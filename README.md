@@ -1,31 +1,31 @@
 # IMOVA
 
-Platformă de anunțuri imobiliare pentru Republica Moldova, orientată spre persoane fizice
-(spre deosebire de 999.md, dominat de agenți). v0.1 — schelet minimal, construit incremental.
+Real estate listings platform for the Republic of Moldova, aimed at individuals
+(as opposed to 999.md, dominated by agencies). v0.1 — minimal skeleton, built incrementally.
 
 ## Stack
 
 - **Backend**: ASP.NET Core / .NET 10 — Clean Architecture (Domain/Infrastructure/Api) +
   Vertical Slices, EF Core + PostgreSQL, MediatR, FluentValidation
 - **Frontend**: Next.js 15 + React + TypeScript
-- Țintă pe termen mediu (nu totul e implementat încă): PostGIS, Redis, Tailwind + shadcn/ui.
+- Medium-term target (not all implemented yet): PostGIS, Redis, Tailwind + shadcn/ui.
 
-## Structură
+## Structure
 
 ```
 imova/
 ├── docker-compose.yml
 └── src/
     ├── backend/
-    │   ├── Imova.Domain/          entități
+    │   ├── Imova.Domain/          entities
     │   ├── Imova.Infrastructure/  EF Core + PostgreSQL
     │   └── Imova.Api/             API + vertical slices (Features/...)
     └── frontend/imova-web/        Next.js 15 (App Router, TypeScript)
 ```
 
-## Rulare
+## Running
 
-Cel mai simplu mod de a rula totul este via Docker Compose:
+The simplest way to run everything is via Docker Compose:
 
 ```bash
 docker compose up -d --build
@@ -35,20 +35,20 @@ docker compose up -d --build
 - Frontend: http://localhost:3000
 - Postgres: localhost:5432 (`imova`/`imova`/`imova`)
 
-Oprire:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-### Backend separat (necesită .NET 10 SDK local + Postgres accesibil)
+### Backend only (requires local .NET 10 SDK + reachable Postgres)
 
 ```bash
 cd src/backend
 dotnet run --project Imova.Api
 ```
 
-### Frontend separat (necesită Node 18+ local)
+### Frontend only (requires Node 18+ locally)
 
 ```bash
 cd src/frontend/imova-web
@@ -56,4 +56,4 @@ npm install
 npm run dev
 ```
 
-Vezi `CLAUDE.md` pentru detalii de arhitectură și convenții de dezvoltare.
+See `CLAUDE.md` for architecture details and development conventions.
