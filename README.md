@@ -5,10 +5,10 @@ Platformă de anunțuri imobiliare pentru Republica Moldova, orientată spre per
 
 ## Stack
 
-- **Backend**: ASP.NET Core / .NET 10
+- **Backend**: ASP.NET Core / .NET 10 — Clean Architecture (Domain/Infrastructure/Api) +
+  Vertical Slices, EF Core + PostgreSQL, MediatR, FluentValidation
 - **Frontend**: Next.js 15 + React + TypeScript
-- Țintă pe termen mediu (nu totul e implementat încă): Clean Architecture + Vertical Slices,
-  EF Core, PostgreSQL + PostGIS, Redis, Tailwind + shadcn/ui, FluentValidation, MediatR.
+- Țintă pe termen mediu (nu totul e implementat încă): PostGIS, Redis, Tailwind + shadcn/ui.
 
 ## Structură
 
@@ -16,8 +16,11 @@ Platformă de anunțuri imobiliare pentru Republica Moldova, orientată spre per
 imova/
 ├── docker-compose.yml
 └── src/
-    ├── backend/Imova.Api/        ASP.NET Core (.NET 10) minimal API
-    └── frontend/imova-web/       Next.js 15 (App Router, TypeScript)
+    ├── backend/
+    │   ├── Imova.Domain/          entități
+    │   ├── Imova.Infrastructure/  EF Core + PostgreSQL
+    │   └── Imova.Api/             API + vertical slices (Features/...)
+    └── frontend/imova-web/        Next.js 15 (App Router, TypeScript)
 ```
 
 ## Rulare
@@ -30,6 +33,7 @@ docker compose up -d --build
 
 - Backend: http://localhost:8080 (`GET /health`, `GET /api/v1/properties`)
 - Frontend: http://localhost:3000
+- Postgres: localhost:5432 (`imova`/`imova`/`imova`)
 
 Oprire:
 
@@ -37,11 +41,11 @@ Oprire:
 docker compose down
 ```
 
-### Backend separat (necesită .NET 10 SDK local)
+### Backend separat (necesită .NET 10 SDK local + Postgres accesibil)
 
 ```bash
-cd src/backend/Imova.Api
-dotnet run
+cd src/backend
+dotnet run --project Imova.Api
 ```
 
 ### Frontend separat (necesită Node 18+ local)

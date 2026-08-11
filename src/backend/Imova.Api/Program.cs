@@ -1,3 +1,10 @@
+using FluentValidation;
+using Imova.Api.Common.Behaviors;
+using Imova.Api.Features.Properties;
+using Imova.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -11,37 +18,50 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddDbContext<ImovaDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblyContaining<Program>();
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider/contex.GetRequiredService<ImovaDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.UseCors("Frontend");
 
+app.UseExceptionHandler(handler =>
+{
+    handler.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        if (exception is ValidationException validationException)
+        {
+            var errors = validationException.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await Results.ValidationProblem(errors).ExecuteAsync(context);
+            return;
+        }
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    });
+});
+
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-app.MapGet("/api/v1/properties", () =>
-{
-    var properties = new[]
-    {
-        new
-        {
-            Id = Guid.NewGuid(),
-            Title = "Apartament cu 2 camere, Botanica",
-            Price = 550,
-            Currency = "EUR",
-            City = "Chisinau",
-            District = "Botanica"
-        },
-        new
-        {
-            Id = Guid.NewGuid(),
-            Title = "Casa cu curte, Durlesti",
-            Price = 89000,
-            Currency = "EUR",
-            City = "Chisinau",
-            District = "Durlesti"
-        }
-    };
-
-    return Results.Ok(properties);
-});
+app.MapPropertiesEndpoints();
 
 app.Run();

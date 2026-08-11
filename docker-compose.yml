@@ -1,8 +1,31 @@
 services:
+  postgres:
+    image: postgres:16
+    container_name: imova-postgres
+    environment:
+      POSTGRES_USER: imova
+      POSTGRES_PASSWORD: imova
+      POSTGRES_DB: imova
+    ports:
+      - "5432:5432"
+    volumes:
+      - imova-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imova"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
-      context: ./src/backend/Imova.Api
+      context: ./src/backend
+      dockerfile: Imova.Api/Dockerfile
     container_name: imova-backend
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=imova;Password=imova"
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
 
@@ -16,3 +39,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+
+volumes:
+  imova-postgres-data:
