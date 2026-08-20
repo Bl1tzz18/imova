@@ -1,8 +1,9 @@
+using Imova.Contracts.Properties;
 using Imova.Domain.Properties;
 using Imova.Infrastructure;
 using MediatR;
 
-namespace Imova.Api.Features.Properties.CreateProperty;
+namespace Imova.Application.Features.Properties.CreateProperty;
 
 public class CreatePropertyHandler(ImovaDbContext dbContext) : IRequestHandler<CreatePropertyCommand, PropertyDto>
 {
@@ -13,6 +14,6 @@ public class CreatePropertyHandler(ImovaDbContext dbContext) : IRequestHandler<C
         dbContext.Properties.Add(property);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return PropertyDto.FromEntity(property);
+        return property.ToDto();
     }
 }

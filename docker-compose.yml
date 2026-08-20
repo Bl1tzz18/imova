@@ -18,8 +18,8 @@ services:
 
   backend:
     build:
-      context: ./src/backend
-      dockerfile: Imova.Api/Dockerfile
+      context: .
+      dockerfile: src/backend/Imova.Api/Dockerfile
     container_name: imova-backend
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=imova;Password=imova"

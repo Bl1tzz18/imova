@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Imova.Api.Features.Properties.CreateProperty;
+namespace Imova.Application.Features.Properties.CreateProperty;
 
 public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
 {

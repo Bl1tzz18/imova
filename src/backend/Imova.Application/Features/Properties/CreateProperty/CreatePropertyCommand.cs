@@ -1,6 +1,7 @@
+using Imova.Contracts.Properties;
 using MediatR;
 
-namespace Imova.Api.Features.Properties.CreateProperty;
+namespace Imova.Application.Features.Properties.CreateProperty;
 
 public record CreatePropertyCommand(
     string Title,

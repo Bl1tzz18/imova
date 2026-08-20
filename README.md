@@ -5,8 +5,9 @@ Real estate listings platform for the Republic of Moldova, aimed at individuals
 
 ## Stack
 
-- **Backend**: ASP.NET Core / .NET 10 — Clean Architecture (Domain/Infrastructure/Api) +
-  Vertical Slices, EF Core + PostgreSQL, MediatR, FluentValidation
+- **Backend**: ASP.NET Core / .NET 10 — Clean Architecture
+  (Domain/Contracts/Application/Infrastructure/Api/Worker) + Vertical Slices, EF Core + PostgreSQL,
+  MediatR, FluentValidation
 - **Frontend**: Next.js 15 + React + TypeScript
 - Medium-term target (not all implemented yet): PostGIS, Redis, Tailwind + shadcn/ui.
 
@@ -15,12 +16,21 @@ Real estate listings platform for the Republic of Moldova, aimed at individuals
 ```
 imova/
 ├── docker-compose.yml
-└── src/
-    ├── backend/
-    │   ├── Imova.Domain/          entities
-    │   ├── Imova.Infrastructure/  EF Core + PostgreSQL
-    │   └── Imova.Api/             API + vertical slices (Features/...)
-    └── frontend/imova-web/        Next.js 15 (App Router, TypeScript)
+├── Directory.Build.props      shared MSBuild properties
+├── Directory.Packages.props   central NuGet package versions
+├── src/
+│   ├── backend/
+│   │   ├── Imova.Domain/          entities
+│   │   ├── Imova.Contracts/       wire-format DTOs
+│   │   ├── Imova.Application/     vertical slices (Features/...): commands, queries, validators
+│   │   ├── Imova.Infrastructure/  EF Core + PostgreSQL
+│   │   ├── Imova.Api/             endpoint mapping + DI wiring
+│   │   └── Imova.Worker/          background-job host (scaffolded, not wired up yet)
+│   └── frontend/imova-web/        Next.js 15 (App Router, TypeScript)
+└── tests/
+    ├── Imova.UnitTests/
+    ├── Imova.IntegrationTests/
+    └── Imova.ArchitectureTests/
 ```
 
 ## Running

@@ -1,8 +1,9 @@
+using Imova.Contracts.Properties;
 using Imova.Infrastructure;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Imova.Api.Features.Properties.GetProperties;
+namespace Imova.Application.Features.Properties.GetProperties;
 
 public class GetPropertiesHandler(ImovaDbContext dbContext) : IRequestHandler<GetPropertiesQuery, List<PropertyDto>>
 {
@@ -12,6 +13,6 @@ public class GetPropertiesHandler(ImovaDbContext dbContext) : IRequestHandler<Ge
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return properties.Select(PropertyDto.FromEntity).ToList();
+        return properties.Select(p => p.ToDto()).ToList();
     }
 }

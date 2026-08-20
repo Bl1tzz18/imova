@@ -1,3 +1,4 @@
+using Imova.Application.Features.Properties.GetProperties;
 using MediatR;
 
 namespace Imova.Api.Features.Properties.GetProperties;

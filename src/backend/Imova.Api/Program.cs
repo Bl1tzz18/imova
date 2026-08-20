@@ -1,6 +1,7 @@
 using FluentValidation;
-using Imova.Api.Common.Behaviors;
 using Imova.Api.Features.Properties;
+using Imova.Application.Common.Behaviors;
+using Imova.Application.Features.Properties.GetProperties;
 using Imova.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -23,17 +24,17 @@ builder.Services.AddDbContext<ImovaDbContext>(options =>
 
 builder.Services.AddMediatR(cfg =>
 {
-    cfg.RegisterServicesFromAssemblyContaining<Program>();
+    cfg.RegisterServicesFromAssemblyContaining<GetPropertiesQuery>();
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<GetPropertiesQuery>();
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider/contex.GetRequiredService<ImovaDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ImovaDbContext>();
     dbContext.Database.Migrate();
 }
 
@@ -65,3 +66,5 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapPropertiesEndpoints();
 
 app.Run();
+
+public partial class Program;

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Property = {
   id: string;
   title: string;
@@ -24,7 +26,9 @@ export default async function Home() {
   return (
     <main style={{ fontFamily: "sans-serif", padding: "2rem" }}>
       <h1>IMOVA</h1>
-      <p>Anunturi primite din backend (Imova.Api):</p>
+      <p>
+        Anunturi primite din backend (Imova.Api): <Link href="/properties/new">Adaugă anunț</Link>
+      </p>
       <ul>
         {properties.map((property) => (
           <li key={property.id}>

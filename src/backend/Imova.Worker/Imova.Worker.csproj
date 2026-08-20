@@ -1,14 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <UserSecretsId>dotnet-Imova.Worker-dadcc81a-6257-4ae1-9d0a-f3a2a4c8d974</UserSecretsId>
+  </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Imova.Contracts\Imova.Contracts.csproj" />
     <ProjectReference Include="..\Imova.Application\Imova.Application.csproj" />
     <ProjectReference Include="..\Imova.Infrastructure\Imova.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
 </Project>

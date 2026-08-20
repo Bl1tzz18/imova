@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 
-namespace Imova.Api.Common.Behaviors;
+namespace Imova.Application.Common.Behaviors;
 
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
