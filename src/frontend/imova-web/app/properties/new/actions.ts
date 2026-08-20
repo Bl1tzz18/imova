@@ -14,11 +14,18 @@ export async function createProperty(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
 
   const payload = {
+    ownerId: formData.get("ownerId"),
     title: formData.get("title"),
+    description: formData.get("description"),
+    propertyType: formData.get("propertyType"),
+    listingType: formData.get("listingType"),
     price: Number(formData.get("price")),
     currency: formData.get("currency"),
+    country: formData.get("country"),
     city: formData.get("city"),
-    district: formData.get("district"),
+    district: formData.get("district") || null,
+    latitude: Number(formData.get("latitude")),
+    longitude: Number(formData.get("longitude")),
   };
 
   const res = await fetch(`${apiUrl}/api/v1/properties`, {

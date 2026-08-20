@@ -1,4 +1,5 @@
 using Imova.Contracts.Properties;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Imova.Infrastructure;
 using MediatR;
@@ -9,11 +10,27 @@ public class CreatePropertyHandler(ImovaDbContext dbContext) : IRequestHandler<C
 {
     public async Task<PropertyDto> Handle(CreatePropertyCommand request, CancellationToken cancellationToken)
     {
-        var property = Property.Create(request.Title, request.Price, request.Currency, request.City, request.District);
+        var property = Property.Create(
+            request.OwnerId,
+            request.Title,
+            request.Description,
+            request.PropertyType,
+            request.ListingType,
+            request.Price,
+            request.Currency);
+
+        var location = PropertyLocation.Create(
+            property.Id,
+            request.Country,
+            request.City,
+            request.District,
+            request.Latitude,
+            request.Longitude);
 
         dbContext.Properties.Add(property);
+        dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return property.ToDto();
+        return property.ToDto(location);
     }
 }

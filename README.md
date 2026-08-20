@@ -6,10 +6,10 @@ Real estate listings platform for the Republic of Moldova, aimed at individuals
 ## Stack
 
 - **Backend**: ASP.NET Core / .NET 10 — Clean Architecture
-  (Domain/Contracts/Application/Infrastructure/Api/Worker) + Vertical Slices, EF Core + PostgreSQL,
-  MediatR, FluentValidation
+  (Domain/Contracts/Application/Infrastructure/Api/Worker) + Vertical Slices, EF Core + PostgreSQL +
+  PostGIS, MediatR, FluentValidation
 - **Frontend**: Next.js 15 + React + TypeScript
-- Medium-term target (not all implemented yet): PostGIS, Redis, Tailwind + shadcn/ui.
+- Medium-term target (not all implemented yet): auth, search, admin, Redis, Tailwind + shadcn/ui.
 
 ## Structure
 
@@ -43,7 +43,7 @@ docker compose up -d --build
 
 - Backend: http://localhost:8080 (`GET /health`, `GET /api/v1/properties`)
 - Frontend: http://localhost:3000
-- Postgres: localhost:5432 (`imova`/`imova`/`imova`)
+- Postgres (PostGIS-enabled, `postgis/postgis:16-3.4`): localhost:5432 (`imova`/`imova`/`imova`)
 
 Stop:
 
@@ -51,7 +51,7 @@ Stop:
 docker compose down
 ```
 
-### Backend only (requires local .NET 10 SDK + reachable Postgres)
+### Backend only (requires local .NET 10 SDK + a reachable Postgres with PostGIS)
 
 ```bash
 cd src/backend

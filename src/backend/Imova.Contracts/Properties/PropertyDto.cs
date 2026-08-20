@@ -1,3 +1,27 @@
 namespace Imova.Contracts.Properties;
 
-public record PropertyDto(Guid Id, string Title, decimal Price, string Currency, string City, string District);
+public record PropertyDto(
+    Guid Id,
+    Guid OwnerId,
+    Guid? OrganizationId,
+    string Title,
+    string Description,
+    string PropertyType,
+    string ListingType,
+    string Status,
+    decimal Price,
+    string Currency,
+    decimal? Area,
+    decimal? Rooms,
+    short? Bathrooms,
+    short? Floor,
+    short? TotalFloors,
+    short? YearBuilt,
+    bool? Furnished,
+    bool? ParkingAvailable,
+    bool? PetsAllowed,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt,
+    DateTimeOffset? PublishedAt,
+    DateTimeOffset? ExpiresAt,
+    PropertyLocationDto? Location);

@@ -13,6 +13,12 @@ public class GetPropertiesHandler(ImovaDbContext dbContext) : IRequestHandler<Ge
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        return properties.Select(p => p.ToDto()).ToList();
+        var locationsByPropertyId = await dbContext.PropertyLocations
+            .AsNoTracking()
+            .ToDictionaryAsync(l => l.PropertyId, cancellationToken);
+
+        return properties
+            .Select(p => p.ToDto(locationsByPropertyId.GetValueOrDefault(p.Id)))
+            .ToList();
     }
 }

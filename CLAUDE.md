@@ -6,15 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 IMOVA — a real estate listings marketplace for Moldova (individuals + agencies), aimed at
 competing with 999.md. This is still an early build (v0.1) grown incrementally rather than the
-full target architecture — do not assume unbuilt pieces (auth, search, admin, PostGIS, Redis)
-exist yet.
+full target architecture — do not assume unbuilt pieces (auth, search, admin, Redis) exist yet.
+
+There is no auth yet — no login, no registration endpoint, no JWT. `Imova.Domain.Users.User`
+exists as a domain concept and DB table (seeded with one demo user), but the only way a `User` row
+gets created right now is that seed. `CreatePropertyCommand.OwnerId` is accepted directly from the
+request body as a stopgap (see the comment on that record) — once auth exists, pull it from the
+caller's claims instead and stop trusting the client for it.
 
 The full target stack (to be introduced incrementally, not all at once) is: ASP.NET Core / .NET,
 Clean Architecture + Vertical Slices, EF Core, PostgreSQL + PostGIS, Redis, Next.js/React/TypeScript,
 Tailwind + shadcn/ui, FluentValidation, MediatR. The backend now uses Clean Architecture
-(Domain/Contracts/Application/Infrastructure/Api/Worker) + Vertical Slices, EF Core + PostgreSQL,
-MediatR and FluentValidation — see below. For anything beyond that, keep preferring the simplest
-thing that works over front-loading structure that isn't yet justified by real complexity.
+(Domain/Contracts/Application/Infrastructure/Api/Worker) + Vertical Slices, EF Core + PostgreSQL +
+PostGIS, MediatR and FluentValidation — see below. For anything beyond that, keep preferring the
+simplest thing that works over front-loading structure that isn't yet justified by real complexity.
+
+`Imova.Domain` has DDD building blocks in `Common/` (`Entity`, `AggregateRoot`, `IDomainEvent` — no
+domain events raised yet, just the base types) plus three aggregates/entities:
+`Properties/Property.cs` (lifecycle: `Draft` → `Published`/`Rejected`/... via `Publish()`/`Archive()`,
+see `PropertyStatus`), `Users/User.cs`, and `Locations/PropertyLocation.cs` (a separate entity keyed
+by `PropertyId`, not a navigation property on `Property` — holds a PostGIS `Point` via
+NetTopologySuite). Postgres runs as `postgis/postgis:16-3.4` in compose (plain `postgres:16` doesn't
+have the extension available, and `CREATE EXTENSION postgis` fails against it) and
+`OnModelCreating` calls `HasPostgresExtension("postgis")`.
 
 ## Repository layout
 
@@ -60,8 +74,8 @@ default `app/` directory.
 
 ## Running the stack
 
-Run all services together via Docker Compose (this is the primary way to run and test the app —
-there is no local .NET SDK or a modern-enough Node version in this dev environment, only Docker):
+Run all services together via Docker Compose — this is the primary way to run and test the app as
+a whole (it's the only way to get PostGIS, and matches how it actually deploys):
 
 ```bash
 docker compose up -d --build   # build and start postgres, backend, frontend
@@ -75,35 +89,35 @@ docker compose down            # stop (add -v to also drop the postgres volume)
 - Postgres: `localhost:5432` (`imova`/`imova`/`imova` — user/password/db)
 
 The backend applies EF Core migrations automatically on startup (`dbContext.Database.Migrate()` in
-`Program.cs`) — no manual migration step needed to run the stack. To add a new migration after
-changing an entity or its configuration, use a one-off SDK container (no local .NET SDK here),
-from the repo root — this must mount the repo root, not just `src/backend`, so MSBuild can see
-`Directory.Build.props`/`Directory.Packages.props`:
+`Program.cs`) — no manual migration step needed to run the stack.
+
+A local .NET 10 SDK is installed (`~/.dotnet`, on `PATH` via `~/.bashrc`/`~/.profile`) so `dotnet
+build`/`dotnet run`/`dotnet ef` work directly without a container — much faster for quick
+build/test loops than round-tripping through Docker. Use it for that; still use Docker Compose to
+actually run/verify the app, since PostGIS only exists there. To add a migration after changing an
+entity or its configuration, from the repo root:
 
 ```bash
-docker run --rm -v "$(pwd)":/repo -w /repo mcr.microsoft.com/dotnet/sdk:10.0 bash -c \
-  "dotnet tool install --tool-path /tmp/tools dotnet-ef && \
-   /tmp/tools/dotnet-ef migrations add <Name> \
-     --project src/backend/Imova.Infrastructure --startup-project src/backend/Imova.Api"
+dotnet tool install --tool-path /tmp/ef-tools dotnet-ef   # once per shell/session
+/tmp/ef-tools/dotnet-ef migrations add <Name> \
+  --project src/backend/Imova.Infrastructure --startup-project src/backend/Imova.Api
 ```
 
-Building or testing the backend via a one-off SDK container likewise needs the repo root mounted
-(same reason). Restore and build the whole solution, then run each test project's compiled DLL
-with `dotnet vstest` — in this sandbox, `dotnet test`'s own console output was unreliable (silent
-but exit code 0) while `dotnet vstest <path-to-dll>` printed normally; try `dotnet test` first
-and fall back to `vstest` if it goes quiet:
+Build/test the whole solution the normal way — `dotnet build src/backend/Imova.sln`. For running
+tests, `dotnet test`'s own console output was observed to go silent in this sandbox (exit code 0,
+no output) while `dotnet vstest <path-to-dll>` printed normally; try `dotnet test` first and fall
+back to `dotnet vstest tests/<Project>/bin/Debug/net10.0/<Project>.dll` if it goes quiet.
+`Imova.IntegrationTests` needs a reachable Postgres (it runs the real `Program.cs` startup,
+migrations included) — point it at the running compose Postgres (`localhost:5432`).
+
+If a one-off SDK *container* is ever needed instead (e.g. no local SDK in some other environment),
+mount the repo root, not just `src/backend` — `Directory.Build.props`/`Directory.Packages.props`
+live at the repo root and MSBuild won't find them otherwise:
 
 ```bash
 docker run --rm -v "$(pwd)":/repo -v imova-nuget-cache:/root/.nuget/packages -w /repo \
-  mcr.microsoft.com/dotnet/sdk:10.0 bash -c \
-  "dotnet restore src/backend/Imova.sln && dotnet build src/backend/Imova.sln --no-restore && \
-   dotnet vstest tests/Imova.UnitTests/bin/Debug/net10.0/Imova.UnitTests.dll && \
-   dotnet vstest tests/Imova.ArchitectureTests/bin/Debug/net10.0/Imova.ArchitectureTests.dll"
+  mcr.microsoft.com/dotnet/sdk:10.0 bash -c "dotnet build src/backend/Imova.sln"
 ```
-
-`Imova.IntegrationTests` additionally needs a reachable Postgres (it runs the real `Program.cs`
-startup, migrations included) — point it at the compose Postgres, e.g. by running the container
-with `--network container:imova-postgres` so `localhost:5432` resolves to it.
 
 The frontend is a Next.js Server Component that fetches from the backend server-side using the
 `API_URL` env var, which docker-compose sets to `http://backend:8080` (the Docker service name) —
@@ -117,7 +131,7 @@ CORS policy if the frontend origin changes.
 
 ```bash
 cd src/backend
-dotnet run --project Imova.Api     # requires local .NET 10 SDK + a reachable Postgres
+dotnet run --project Imova.Api     # needs a reachable Postgres with PostGIS — e.g. `docker compose up -d postgres`
 ```
 
 ### Frontend only

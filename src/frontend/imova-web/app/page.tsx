@@ -1,12 +1,28 @@
 import Link from "next/link";
 
+type PropertyLocation = {
+  country: string;
+  region: string | null;
+  city: string;
+  district: string | null;
+  sector: string | null;
+  street: string | null;
+  buildingNumber: string | null;
+  latitude: number;
+  longitude: number;
+};
+
 type Property = {
   id: string;
+  ownerId: string;
   title: string;
+  description: string;
+  propertyType: string;
+  listingType: string;
+  status: string;
   price: number;
   currency: string;
-  city: string;
-  district: string;
+  location: PropertyLocation | null;
 };
 
 async function getProperties(): Promise<Property[]> {
@@ -31,9 +47,19 @@ export default async function Home() {
       </p>
       <ul>
         {properties.map((property) => (
-          <li key={property.id}>
-            {property.title} — {property.price} {property.currency} (
-            {property.city}, {property.district})
+          <li key={property.id} style={{ marginBottom: "0.75rem" }}>
+            <strong>{property.title}</strong> — {property.price} {property.currency}
+            {" "}
+            ({property.listingType === "Rent" ? "chirie" : "vânzare"})
+            <br />
+            {property.propertyType} · {property.status}
+            {property.location && (
+              <>
+                {" "}
+                · {property.location.city}
+                {property.location.district ? `, ${property.location.district}` : ""}
+              </>
+            )}
           </li>
         ))}
       </ul>
