@@ -1,3 +1,4 @@
+using Imova.Application.Common.Interfaces;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Imova.Domain.Users;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Infrastructure;
 
-public class ImovaDbContext : DbContext
+public class ImovaDbContext : DbContext, IApplicationDbContext
 {
     public ImovaDbContext(DbContextOptions<ImovaDbContext> options) : base(options)
     {

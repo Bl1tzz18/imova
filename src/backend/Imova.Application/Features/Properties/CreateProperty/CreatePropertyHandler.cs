@@ -1,12 +1,12 @@
+using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Properties;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
-using Imova.Infrastructure;
 using MediatR;
 
 namespace Imova.Application.Features.Properties.CreateProperty;
 
-public class CreatePropertyHandler(ImovaDbContext dbContext) : IRequestHandler<CreatePropertyCommand, PropertyDto>
+public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHandler<CreatePropertyCommand, PropertyDto>
 {
     public async Task<PropertyDto> Handle(CreatePropertyCommand request, CancellationToken cancellationToken)
     {

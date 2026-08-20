@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Imova.Domain\Imova.Domain.csproj" />
+    <ProjectReference Include="..\Imova.Application\Imova.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

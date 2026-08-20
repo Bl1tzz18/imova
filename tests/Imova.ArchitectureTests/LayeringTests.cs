@@ -44,11 +44,22 @@ public class LayeringTests
     }
 
     [Fact]
-    public void Infrastructure_Should_Not_DependOn_ApplicationOrApi()
+    public void Application_Should_Not_DependOn_Infrastructure()
+    {
+        var result = Types.InAssembly(typeof(Application.Features.Properties.PropertyMapping).Assembly)
+            .Should()
+            .NotHaveDependencyOn(InfrastructureNamespace)
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, string.Join(", ", result.FailingTypeNames ?? []));
+    }
+
+    [Fact]
+    public void Infrastructure_Should_Not_DependOn_Api()
     {
         var result = Types.InAssembly(typeof(Infrastructure.ImovaDbContext).Assembly)
             .Should()
-            .NotHaveDependencyOnAny(ApplicationNamespace, ApiNamespace)
+            .NotHaveDependencyOn(ApiNamespace)
             .GetResult();
 
         Assert.True(result.IsSuccessful, string.Join(", ", result.FailingTypeNames ?? []));

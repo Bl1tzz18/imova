@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Imova.Api.Features.Properties;
 using Imova.Application.Common.Behaviors;
+using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Properties.GetProperties;
 using Imova.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics;
@@ -27,6 +28,8 @@ builder.Services.AddDbContext<ImovaDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Default"),
         npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
+
+builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ImovaDbContext>());
 
 builder.Services.AddMediatR(cfg =>
 {

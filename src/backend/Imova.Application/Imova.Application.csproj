@@ -3,12 +3,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Imova.Domain\Imova.Domain.csproj" />
     <ProjectReference Include="..\Imova.Contracts\Imova.Contracts.csproj" />
-    <ProjectReference Include="..\Imova.Infrastructure\Imova.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
   </ItemGroup>
 
 </Project>
