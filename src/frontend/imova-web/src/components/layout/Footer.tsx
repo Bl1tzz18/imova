@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
@@ -7,12 +8,7 @@ export function Footer() {
   return (
     <footer className="border-t border-ink-100 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-10 text-center sm:px-6">
-        <span className="flex items-center gap-2 font-display text-lg font-semibold text-ink-950">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-500 text-xs font-bold text-white">
-            IM
-          </span>
-          IMOVA
-        </span>
+        <Image src="/logo.png" alt="IMOVA" width={460} height={271} className="h-11 w-auto" />
         <p className="max-w-sm text-sm text-ink-500">{t("tagline")}</p>
         <div className="flex gap-6 pt-2 text-sm text-ink-600">
           <Link href="/search" className="hover:text-ink-950">

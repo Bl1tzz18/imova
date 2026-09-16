@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LinkButton } from "@/components/ui/Button";
@@ -9,12 +10,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink-100 bg-ink-50/85 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-display text-xl font-semibold tracking-tight text-ink-950">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-500 text-sm font-bold text-white">
-            IM
-          </span>
-          IMOVA
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link href="/" className="flex items-center">
+          <Image src="/logo.png" alt="IMOVA" width={460} height={271} priority className="h-14 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-ink-600 md:flex">
