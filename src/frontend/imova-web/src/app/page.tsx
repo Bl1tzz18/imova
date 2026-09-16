@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { SearchForm } from "@/components/search/SearchForm";
 import { PropertyCard } from "@/components/property/PropertyCard";
+import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
 import { LinkButton } from "@/components/ui/Button";
 import type { Property } from "@/types/property";
 
@@ -39,8 +40,8 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-ink-100 bg-gradient-to-b from-ink-100 via-ink-50 to-ink-50">
-          <div className="mx-auto flex max-w-6xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24">
+        <section className="relative overflow-hidden bg-gradient-to-b from-ink-100 via-ink-50 to-ink-50">
+          <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pb-20 pt-16 text-center sm:px-6 sm:pb-28 sm:pt-24">
             <span className="mb-5 inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-ink-600 shadow-sm">
               {t("badge")}
             </span>
@@ -58,8 +59,12 @@ export default async function Home() {
           </div>
         </section>
 
+        <div className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:-mt-12 sm:px-6">
+          <PropertyTypeStats properties={properties} />
+        </div>
+
         <section className="border-b border-ink-100 bg-white">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 pb-10 pt-14 sm:px-6 sm:pt-16 md:grid-cols-4">
             {valueProps.map((item) => (
               <div key={item.key} className="flex flex-col items-start gap-2">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
