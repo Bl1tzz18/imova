@@ -91,8 +91,26 @@
     "saving": "Saving...",
     "genericError": "Error while saving ({status})."
   },
-  "PropertyPage": {
-    "title": "Property: {slug}"
+  "PropertyDetail": {
+    "back": "Back to listings",
+    "description": "Description",
+    "details": "Details",
+    "area": "Area",
+    "rooms": "Rooms",
+    "bathrooms": "Bathrooms",
+    "floor": "Floor",
+    "floorOf": "{floor} of {totalFloors}",
+    "yearBuilt": "Year built",
+    "furnished": "Furnished",
+    "parkingAvailable": "Parking",
+    "petsAllowed": "Pets allowed",
+    "yes": "Yes",
+    "no": "No",
+    "listedOn": "Listed on {date}",
+    "updatedOn": "Updated on {date}",
+    "notFoundTitle": "Listing not found",
+    "notFoundText": "It may have been removed, or the link is wrong.",
+    "backHome": "Back to homepage"
   },
   "DashboardPage": {
     "title": "Dashboard"

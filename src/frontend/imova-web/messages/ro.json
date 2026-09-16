@@ -91,8 +91,26 @@
     "saving": "Se salvează...",
     "genericError": "Eroare la salvare ({status})."
   },
-  "PropertyPage": {
-    "title": "Proprietate: {slug}"
+  "PropertyDetail": {
+    "back": "Înapoi la anunțuri",
+    "description": "Descriere",
+    "details": "Detalii",
+    "area": "Suprafață",
+    "rooms": "Camere",
+    "bathrooms": "Băi",
+    "floor": "Etaj",
+    "floorOf": "{floor} din {totalFloors}",
+    "yearBuilt": "An construcție",
+    "furnished": "Mobilat",
+    "parkingAvailable": "Parcare",
+    "petsAllowed": "Animale de companie",
+    "yes": "Da",
+    "no": "Nu",
+    "listedOn": "Publicat pe {date}",
+    "updatedOn": "Actualizat pe {date}",
+    "notFoundTitle": "Anunțul nu a fost găsit",
+    "notFoundText": "Este posibil să fi fost șters sau linkul este greșit.",
+    "backHome": "Înapoi la pagina principală"
   },
   "DashboardPage": {
     "title": "Dashboard"

@@ -13,6 +13,7 @@ export type PropertyLocation = {
 export type Property = {
   id: string;
   ownerId: string;
+  organizationId: string | null;
   title: string;
   description: string;
   propertyType: string;
@@ -22,5 +23,16 @@ export type Property = {
   currency: string;
   area: number | null;
   rooms: number | null;
+  bathrooms: number | null;
+  floor: number | null;
+  totalFloors: number | null;
+  yearBuilt: number | null;
+  furnished: boolean | null;
+  parkingAvailable: boolean | null;
+  petsAllowed: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
+  expiresAt: string | null;
   location: PropertyLocation | null;
 };
