@@ -1,0 +1,100 @@
+{
+  "Common": {
+    "addListing": "Добавить объявление",
+    "selectLanguage": "Выбрать язык"
+  },
+  "Header": {
+    "buy": "Купить",
+    "rent": "Снять"
+  },
+  "Footer": {
+    "tagline": "Платформа недвижимости для Молдовы — объявления от частных лиц и агентств.",
+    "searchListings": "Искать объявления",
+    "publishListing": "Разместить объявление",
+    "inDevelopment": "Проект в разработке."
+  },
+  "SearchForm": {
+    "saleOption": "Продажа",
+    "rentOption": "Аренда",
+    "anyType": "Любой тип",
+    "cityPlaceholder": "Кишинёв, Бельцы, Оргеев...",
+    "submit": "Найти"
+  },
+  "PropertyType": {
+    "Apartment": "Квартира",
+    "House": "Дом",
+    "Land": "Участок",
+    "Commercial": "Коммерческое помещение",
+    "Garage": "Гараж",
+    "Room": "Комната"
+  },
+  "ListingType": {
+    "Sale": "Продажа",
+    "Rent": "Аренда"
+  },
+  "PropertyCard": {
+    "perMonth": "/мес",
+    "rooms": "{count, plural, one {# комната} few {# комнаты} many {# комнат} other {# комнаты}}"
+  },
+  "Home": {
+    "badge": "Недвижимость в Молдове, без посредников",
+    "heroTitleStart": "Найдите свой следующий дом",
+    "heroTitleHighlight": "прямо в Молдове",
+    "heroSubtitle": "Квартиры, дома и участки на продажу или в аренду — от собственников и агентств.",
+    "valueProps": {
+      "noCommission": {
+        "title": "Без комиссии",
+        "description": "Размещайте и ищите объявления без скрытых платежей."
+      },
+      "directSource": {
+        "title": "Напрямую от источника",
+        "description": "Объявления от собственников и проверенных агентств."
+      },
+      "quickPublish": {
+        "title": "Публикация за пару минут",
+        "description": "Простая форма, без бюрократии."
+      },
+      "nationalCoverage": {
+        "title": "Покрытие по всей стране",
+        "description": "Объявления со всей Республики Молдова."
+      }
+    },
+    "recentListings": "Последние объявления",
+    "listingsAvailable": "{count, plural, one {# объявление доступно сейчас} few {# объявления доступно сейчас} many {# объявлений доступно сейчас} other {# объявления доступно сейчас}}",
+    "noListingsYet": "Пока нет опубликованных объявлений",
+    "viewAll": "Смотреть все объявления",
+    "emptyStateText": "Станьте первым, кто разместит объявление на IMOVA.",
+    "ctaTitle": "Есть недвижимость на продажу или в аренду?",
+    "ctaSubtitle": "Разместите объявление бесплатно и найдите покупателей или арендаторов по всей Молдове.",
+    "ctaButton": "Разместить бесплатно"
+  },
+  "SearchPage": {
+    "title": "Поиск"
+  },
+  "NewPropertyPage": {
+    "title": "Добавить объявление"
+  },
+  "PropertyForm": {
+    "ownerIdLabel": "Owner ID (временно, пока нет аутентификации)",
+    "titleLabel": "Заголовок",
+    "descriptionLabel": "Описание",
+    "propertyTypeLabel": "Тип недвижимости",
+    "listingTypeLabel": "Тип объявления",
+    "priceLabel": "Цена",
+    "currencyLabel": "Валюта",
+    "countryLabel": "Страна",
+    "cityLabel": "Город",
+    "districtLabel": "Район/Местность",
+    "latitudeLabel": "Широта",
+    "longitudeLabel": "Долгота",
+    "publish": "Опубликовать объявление",
+    "saving": "Сохранение...",
+    "genericError": "Ошибка при сохранении ({status})."
+  },
+  "PropertyPage": {
+    "title": "Объект: {slug}"
+  },
+  "DashboardPage": {
+    "title": "Панель управления"
+  }
+}

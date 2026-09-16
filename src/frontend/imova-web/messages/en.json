@@ -1,0 +1,100 @@
+{
+  "Common": {
+    "addListing": "Add listing",
+    "selectLanguage": "Select language"
+  },
+  "Header": {
+    "buy": "Buy",
+    "rent": "Rent"
+  },
+  "Footer": {
+    "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
+    "searchListings": "Search listings",
+    "publishListing": "Publish a listing",
+    "inDevelopment": "Project in development."
+  },
+  "SearchForm": {
+    "saleOption": "Sale",
+    "rentOption": "Rent",
+    "anyType": "Any type",
+    "cityPlaceholder": "Chișinău, Bălți, Orhei...",
+    "submit": "Search"
+  },
+  "PropertyType": {
+    "Apartment": "Apartment",
+    "House": "House",
+    "Land": "Land",
+    "Commercial": "Commercial space",
+    "Garage": "Garage",
+    "Room": "Room"
+  },
+  "ListingType": {
+    "Sale": "Sale",
+    "Rent": "Rent"
+  },
+  "PropertyCard": {
+    "perMonth": "/mo",
+    "rooms": "{count, plural, one {# room} other {# rooms}}"
+  },
+  "Home": {
+    "badge": "Real estate in Moldova, no middlemen",
+    "heroTitleStart": "Find your next home,",
+    "heroTitleHighlight": "straight from Moldova",
+    "heroSubtitle": "Apartments, houses and land for sale or rent — listed by owners and agencies.",
+    "valueProps": {
+      "noCommission": {
+        "title": "No commission",
+        "description": "List and search with no hidden fees."
+      },
+      "directSource": {
+        "title": "Straight from the source",
+        "description": "Listings from owners and verified agencies."
+      },
+      "quickPublish": {
+        "title": "Publish in minutes",
+        "description": "A simple form, no red tape."
+      },
+      "nationalCoverage": {
+        "title": "Nationwide coverage",
+        "description": "Listings from across the Republic of Moldova."
+      }
+    },
+    "recentListings": "Recent listings",
+    "listingsAvailable": "{count, plural, one {# listing available now} other {# listings available now}}",
+    "noListingsYet": "No listings published yet",
+    "viewAll": "View all listings",
+    "emptyStateText": "Be the first to publish a listing on IMOVA.",
+    "ctaTitle": "Have a property to sell or rent?",
+    "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
+    "ctaButton": "Publish for free"
+  },
+  "SearchPage": {
+    "title": "Search"
+  },
+  "NewPropertyPage": {
+    "title": "Add listing"
+  },
+  "PropertyForm": {
+    "ownerIdLabel": "Owner ID (temporary, until authentication exists)",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "propertyTypeLabel": "Property type",
+    "listingTypeLabel": "Listing type",
+    "priceLabel": "Price",
+    "currencyLabel": "Currency",
+    "countryLabel": "Country",
+    "cityLabel": "City",
+    "districtLabel": "District/Area",
+    "latitudeLabel": "Latitude",
+    "longitudeLabel": "Longitude",
+    "publish": "Publish listing",
+    "saving": "Saving...",
+    "genericError": "Error while saving ({status})."
+  },
+  "PropertyPage": {
+    "title": "Property: {slug}"
+  },
+  "DashboardPage": {
+    "title": "Dashboard"
+  }
+}

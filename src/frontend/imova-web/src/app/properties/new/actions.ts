@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 export type CreatePropertyState = {
   error?: string;
@@ -38,7 +39,7 @@ export async function createProperty(
     const problem = await res.json().catch(() => null);
     const message = problem?.errors
       ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : `Eroare la salvare (${res.status}).`;
+      : await getTranslations("PropertyForm").then((t) => t("genericError", { status: res.status }));
 
     return { error: message };
   }

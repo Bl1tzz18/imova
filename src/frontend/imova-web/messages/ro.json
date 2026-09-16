@@ -1,0 +1,100 @@
+{
+  "Common": {
+    "addListing": "Adaugă anunț",
+    "selectLanguage": "Selectează limba"
+  },
+  "Header": {
+    "buy": "Cumpără",
+    "rent": "Închiriază"
+  },
+  "Footer": {
+    "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
+    "searchListings": "Caută anunțuri",
+    "publishListing": "Publică un anunț",
+    "inDevelopment": "Proiect în dezvoltare."
+  },
+  "SearchForm": {
+    "saleOption": "Vânzare",
+    "rentOption": "Închiriere",
+    "anyType": "Orice tip",
+    "cityPlaceholder": "Chișinău, Bălți, Orhei...",
+    "submit": "Caută"
+  },
+  "PropertyType": {
+    "Apartment": "Apartament",
+    "House": "Casă",
+    "Land": "Teren",
+    "Commercial": "Spațiu comercial",
+    "Garage": "Garaj",
+    "Room": "Cameră"
+  },
+  "ListingType": {
+    "Sale": "Vânzare",
+    "Rent": "Chirie"
+  },
+  "PropertyCard": {
+    "perMonth": "/lună",
+    "rooms": "{count, plural, one {# cameră} few {# camere} other {# de camere}}"
+  },
+  "Home": {
+    "badge": "Imobiliare din Moldova, fără intermediari",
+    "heroTitleStart": "Găsește-ți următoarea casă,",
+    "heroTitleHighlight": "direct din Moldova",
+    "heroSubtitle": "Apartamente, case și terenuri de vânzare sau de închiriat — publicate de proprietari și agenții.",
+    "valueProps": {
+      "noCommission": {
+        "title": "Fără comision",
+        "description": "Publici și cauți anunțuri fără taxe ascunse."
+      },
+      "directSource": {
+        "title": "Direct de la sursă",
+        "description": "Anunțuri de la proprietari și agenții verificate."
+      },
+      "quickPublish": {
+        "title": "Publici în câteva minute",
+        "description": "Formular simplu, fără birocrație."
+      },
+      "nationalCoverage": {
+        "title": "Acoperire națională",
+        "description": "Anunțuri din toată Republica Moldova."
+      }
+    },
+    "recentListings": "Anunțuri recente",
+    "listingsAvailable": "{count, plural, one {# anunț disponibil acum} few {# anunțuri disponibile acum} other {# de anunțuri disponibile acum}}",
+    "noListingsYet": "Momentan nu sunt anunțuri publicate",
+    "viewAll": "Vezi toate anunțurile",
+    "emptyStateText": "Fii primul care publică un anunț pe IMOVA.",
+    "ctaTitle": "Ai o proprietate de vândut sau închiriat?",
+    "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
+    "ctaButton": "Publică anunț gratuit"
+  },
+  "SearchPage": {
+    "title": "Caută"
+  },
+  "NewPropertyPage": {
+    "title": "Adaugă anunț"
+  },
+  "PropertyForm": {
+    "ownerIdLabel": "Owner ID (temporar, cât timp nu există autentificare)",
+    "titleLabel": "Titlu",
+    "descriptionLabel": "Descriere",
+    "propertyTypeLabel": "Tip proprietate",
+    "listingTypeLabel": "Tip anunț",
+    "priceLabel": "Preț",
+    "currencyLabel": "Monedă",
+    "countryLabel": "Țară",
+    "cityLabel": "Oraș",
+    "districtLabel": "Sector/Localitate",
+    "latitudeLabel": "Latitudine",
+    "longitudeLabel": "Longitudine",
+    "publish": "Publică anunțul",
+    "saving": "Se salvează...",
+    "genericError": "Eroare la salvare ({status})."
+  },
+  "PropertyPage": {
+    "title": "Proprietate: {slug}"
+  },
+  "DashboardPage": {
+    "title": "Dashboard"
+  }
+}
