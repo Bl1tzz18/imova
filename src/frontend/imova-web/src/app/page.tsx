@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SearchForm } from "@/components/search/SearchForm";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
+import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
 import { LinkButton } from "@/components/ui/Button";
 import type { Property } from "@/types/property";
 
@@ -81,6 +82,10 @@ export default async function Home() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
+          <PropertyMapPromo properties={properties} />
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">

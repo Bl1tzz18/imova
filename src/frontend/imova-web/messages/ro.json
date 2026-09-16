@@ -73,6 +73,17 @@
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}",
     "noResults": "Niciun anunț nu corespunde acestei căutări"
   },
+  "MapPromo": {
+    "title": "Toate proprietățile pe hartă",
+    "subtitle": "Vezi rapid care sunt prețurile și cum arată proprietățile din jur.",
+    "cta": "Vezi harta"
+  },
+  "MapPage": {
+    "title": "Proprietăți pe hartă",
+    "resultsCount": "{count, plural, one {# anunț pe hartă} few {# anunțuri pe hartă} other {# de anunțuri pe hartă}}",
+    "noResults": "Momentan niciun anunț nu are locație",
+    "viewListing": "Vezi anunțul"
+  },
   "NewPropertyPage": {
     "title": "Adaugă anunț"
   },

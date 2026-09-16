@@ -73,6 +73,17 @@
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}",
     "noResults": "No listings match this search"
   },
+  "MapPromo": {
+    "title": "All properties on the map",
+    "subtitle": "See at a glance where listings are and what prices look like around you.",
+    "cta": "View map"
+  },
+  "MapPage": {
+    "title": "Properties on the map",
+    "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
+    "noResults": "No listings with a location yet",
+    "viewListing": "View listing"
+  },
   "NewPropertyPage": {
     "title": "Add listing"
   },
