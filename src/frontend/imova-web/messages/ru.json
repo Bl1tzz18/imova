@@ -139,7 +139,12 @@
     "email": "Эл. почта",
     "phone": "Телефон",
     "phoneNotProvided": "Телефон не указан",
-    "viewOnMap": "Показать на карте"
+    "viewOnMap": "Показать на карте",
+    "photoCount": "{count, plural, one {# фото} few {# фото} many {# фото} other {# фото}}",
+    "photoCounter": "{current} из {total}",
+    "closeGallery": "Закрыть галерею",
+    "previousPhoto": "Предыдущее фото",
+    "nextPhoto": "Следующее фото"
   },
   "DashboardPage": {
     "title": "Панель управления"

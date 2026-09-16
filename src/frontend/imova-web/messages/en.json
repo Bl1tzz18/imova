@@ -139,7 +139,12 @@
     "email": "Email",
     "phone": "Phone",
     "phoneNotProvided": "Phone not provided",
-    "viewOnMap": "View on map"
+    "viewOnMap": "View on map",
+    "photoCount": "{count, plural, one {# photo} other {# photos}}",
+    "photoCounter": "{current} of {total}",
+    "closeGallery": "Close gallery",
+    "previousPhoto": "Previous photo",
+    "nextPhoto": "Next photo"
   },
   "DashboardPage": {
     "title": "Dashboard"

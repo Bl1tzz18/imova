@@ -139,7 +139,12 @@
     "email": "Email",
     "phone": "Telefon",
     "phoneNotProvided": "Telefon nefurnizat",
-    "viewOnMap": "Vezi pe hartă"
+    "viewOnMap": "Vezi pe hartă",
+    "photoCount": "{count, plural, one {# fotografie} few {# fotografii} other {# de fotografii}}",
+    "photoCounter": "{current} din {total}",
+    "closeGallery": "Închide galeria",
+    "previousPhoto": "Fotografia anterioară",
+    "nextPhoto": "Fotografia următoare"
   },
   "DashboardPage": {
     "title": "Dashboard"
