@@ -126,7 +126,13 @@
     "updatedOn": "Обновлено {date}",
     "notFoundTitle": "Объявление не найдено",
     "notFoundText": "Возможно, оно было удалено, или ссылка неверна.",
-    "backHome": "На главную"
+    "backHome": "На главную",
+    "contact": "Контакты",
+    "contactOwner": "Связаться с продавцом",
+    "email": "Эл. почта",
+    "phone": "Телефон",
+    "phoneNotProvided": "Телефон не указан",
+    "viewOnMap": "Показать на карте"
   },
   "DashboardPage": {
     "title": "Панель управления"

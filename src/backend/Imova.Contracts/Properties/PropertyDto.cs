@@ -24,4 +24,5 @@ public record PropertyDto(
     DateTimeOffset UpdatedAt,
     DateTimeOffset? PublishedAt,
     DateTimeOffset? ExpiresAt,
-    PropertyLocationDto? Location);
+    PropertyLocationDto? Location,
+    PropertyOwnerDto? Owner);

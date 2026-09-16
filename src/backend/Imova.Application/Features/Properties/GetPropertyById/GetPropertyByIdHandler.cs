@@ -22,6 +22,10 @@ public class GetPropertyByIdHandler(IApplicationDbContext dbContext) : IRequestH
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.PropertyId == property.Id, cancellationToken);
 
-        return property.ToDto(location);
+        var owner = await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == property.OwnerId, cancellationToken);
+
+        return property.ToDto(location, owner);
     }
 }

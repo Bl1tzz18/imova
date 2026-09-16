@@ -1,4 +1,6 @@
-import type { ComponentPropsWithoutRef } from "react";
+"use client";
+
+import { useState, type ChangeEvent, type ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/utils/cn";
 
 const inputClass =
@@ -29,4 +31,51 @@ export function TextAreaInput({ className, ...props }: ComponentPropsWithoutRef<
 
 export function SelectInput({ className, ...props }: ComponentPropsWithoutRef<"select">) {
   return <select {...props} className={cn(inputClass, className)} />;
+}
+
+function groupThousands(digits: string) {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+// Displays a live space-grouped number (e.g. "23 450") while typing, but submits the
+// raw unformatted value under `name` so the server keeps parsing a plain number string.
+export function PriceInput({
+  name,
+  required,
+  defaultValue,
+  className,
+}: {
+  name: string;
+  required?: boolean;
+  defaultValue?: number | string;
+  className?: string;
+}) {
+  const [raw, setRaw] = useState(defaultValue != null ? String(defaultValue) : "");
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^\d.,]/g, "").replace(/,/g, ".");
+    const firstDot = value.indexOf(".");
+    if (firstDot !== -1) {
+      value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, "");
+    }
+    setRaw(value);
+  };
+
+  const [intPart, decPart] = raw.split(".");
+  const display = raw === "" ? "" : `${groupThousands(intPart)}${decPart !== undefined ? `.${decPart}` : raw.endsWith(".") ? "." : ""}`;
+
+  return (
+    <>
+      <input
+        type="text"
+        inputMode="decimal"
+        value={display}
+        onChange={handleChange}
+        required={required}
+        placeholder="0"
+        className={cn(inputClass, className)}
+      />
+      <input type="hidden" name={name} value={raw} />
+    </>
+  );
 }

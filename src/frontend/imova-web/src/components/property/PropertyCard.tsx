@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import type { Property } from "@/types/property";
 
 export function PropertyCard({ property }: { property: Property }) {
-  const locale = useLocale();
   const tType = useTranslations("PropertyType");
   const tListing = useTranslations("ListingType");
   const tCard = useTranslations("PropertyCard");
@@ -31,7 +30,7 @@ export function PropertyCard({ property }: { property: Property }) {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <p className="font-display text-xl font-medium text-ink-950">
-          {formatPrice(property.price, property.currency, locale)}
+          {formatPrice(property.price, property.currency)}
           {property.listingType === "Rent" && (
             <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
           )}

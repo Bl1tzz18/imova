@@ -126,7 +126,13 @@
     "updatedOn": "Actualizat pe {date}",
     "notFoundTitle": "Anunțul nu a fost găsit",
     "notFoundText": "Este posibil să fi fost șters sau linkul este greșit.",
-    "backHome": "Înapoi la pagina principală"
+    "backHome": "Înapoi la pagina principală",
+    "contact": "Contact",
+    "contactOwner": "Contactează anunțătorul",
+    "email": "Email",
+    "phone": "Telefon",
+    "phoneNotProvided": "Telefon nefurnizat",
+    "viewOnMap": "Vezi pe hartă"
   },
   "DashboardPage": {
     "title": "Dashboard"

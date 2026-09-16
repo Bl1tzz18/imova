@@ -1,5 +1,7 @@
-export function formatPrice(price: number, currency: string, locale: string) {
-  return new Intl.NumberFormat(locale, {
+// Always formatted with a space thousands separator (e.g. "100 000 €"), regardless of
+// the active site language — this is the format the user asked to see everywhere.
+export function formatPrice(price: number, currency: string) {
+  return new Intl.NumberFormat("ru-RU", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -12,8 +14,10 @@ export function formatDate(isoDate: string, locale: string) {
 
 export function formatFullLocation(location: {
   country: string;
+  region: string | null;
   city: string;
   district: string | null;
+  sector: string | null;
   street: string | null;
   buildingNumber: string | null;
 } | null) {
@@ -22,8 +26,10 @@ export function formatFullLocation(location: {
     location.street
       ? `${location.street}${location.buildingNumber ? ` ${location.buildingNumber}` : ""}`
       : null,
+    location.sector,
     location.district,
     location.city,
+    location.region,
     location.country,
   ].filter(Boolean);
   return parts.join(", ");

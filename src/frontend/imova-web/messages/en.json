@@ -126,7 +126,13 @@
     "updatedOn": "Updated on {date}",
     "notFoundTitle": "Listing not found",
     "notFoundText": "It may have been removed, or the link is wrong.",
-    "backHome": "Back to homepage"
+    "backHome": "Back to homepage",
+    "contact": "Contact",
+    "contactOwner": "Contact the lister",
+    "email": "Email",
+    "phone": "Phone",
+    "phoneNotProvided": "Phone not provided",
+    "viewOnMap": "View on map"
   },
   "DashboardPage": {
     "title": "Dashboard"

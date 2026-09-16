@@ -1,12 +1,13 @@
 using Imova.Contracts.Properties;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Users;
 
 namespace Imova.Application.Features.Properties;
 
 public static class PropertyMapping
 {
-    public static PropertyDto ToDto(this Property property, PropertyLocation? location) =>
+    public static PropertyDto ToDto(this Property property, PropertyLocation? location, User? owner = null) =>
         new(
             property.Id,
             property.OwnerId,
@@ -42,5 +43,6 @@ public static class PropertyMapping
                     location.Street,
                     location.BuildingNumber,
                     location.Latitude,
-                    location.Longitude));
+                    location.Longitude),
+            owner is null ? null : new PropertyOwnerDto(owner.Email, owner.Phone));
 }

@@ -10,6 +10,11 @@ export type PropertyLocation = {
   longitude: number;
 };
 
+export type PropertyOwner = {
+  email: string;
+  phone: string | null;
+};
+
 export type Property = {
   id: string;
   ownerId: string;
@@ -35,4 +40,5 @@ export type Property = {
   publishedAt: string | null;
   expiresAt: string | null;
   location: PropertyLocation | null;
+  owner: PropertyOwner | null;
 };

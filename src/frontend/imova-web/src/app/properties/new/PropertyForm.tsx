@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
+import { FieldLabel, PriceInput, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
 import { getFieldRequirement } from "@/lib/property/fieldRules";
 import { createProperty, type CreatePropertyState } from "./actions";
 
@@ -85,7 +85,7 @@ export function PropertyForm() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block">
               <FieldLabel required>{t("priceLabel")}</FieldLabel>
-              <TextInput name="price" type="number" min="0.01" step="0.01" required />
+              <PriceInput name="price" required />
             </label>
             <label className="block">
               <FieldLabel required>{t("currencyLabel")}</FieldLabel>

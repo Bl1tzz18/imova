@@ -99,12 +99,22 @@ export default async function ProprietatePage({
               </h1>
 
               {location && (
-                <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-500">
+                <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-500">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4 shrink-0">
                     <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11Z" />
                     <circle cx="12" cy="10" r="2.5" />
                   </svg>
                   {location}
+                  {property.location && (
+                    <a
+                      href={`https://www.google.com/maps?q=${property.location.latitude},${property.location.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-brand-700 underline-offset-2 hover:underline"
+                    >
+                      {t("viewOnMap")}
+                    </a>
+                  )}
                 </p>
               )}
 
@@ -133,7 +143,7 @@ export default async function ProprietatePage({
             <aside className="w-full shrink-0 lg:w-80">
               <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:sticky lg:top-24">
                 <p className="font-display text-3xl font-semibold text-ink-950">
-                  {formatPrice(property.price, property.currency, locale)}
+                  {formatPrice(property.price, property.currency)}
                   {property.listingType === "Rent" && (
                     <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
                   )}
@@ -146,6 +156,34 @@ export default async function ProprietatePage({
                   )}
                 </div>
               </div>
+
+              {property.owner && (
+                <div className="mt-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
+                  <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
+                  <dl className="mt-3 space-y-3 text-sm">
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
+                      <dd className="mt-0.5">
+                        <a href={`mailto:${property.owner.email}`} className="font-medium text-brand-700 hover:underline">
+                          {property.owner.email}
+                        </a>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
+                      <dd className="mt-0.5">
+                        {property.owner.phone ? (
+                          <a href={`tel:${property.owner.phone}`} className="font-medium text-brand-700 hover:underline">
+                            {property.owner.phone}
+                          </a>
+                        ) : (
+                          <span className="text-ink-400">{t("phoneNotProvided")}</span>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              )}
             </aside>
           </div>
         </div>
