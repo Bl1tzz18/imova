@@ -14,7 +14,7 @@ export function PropertyCard({ property }: { property: Property }) {
 
   return (
     <Link
-      href={`/proprietate/${property.id}`}
+      href={`/property/${property.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
     >
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-800 to-brand-600">

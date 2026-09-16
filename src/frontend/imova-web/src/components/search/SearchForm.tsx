@@ -6,34 +6,34 @@ export function SearchForm() {
 
   return (
     <form
-      action="/cauta"
+      action="/search"
       method="GET"
       className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-[var(--shadow-card-hover)] sm:flex-row sm:items-center sm:rounded-full"
     >
       <select
-        name="tip"
-        defaultValue="vanzare"
+        name="listingType"
+        defaultValue="Sale"
         className="h-12 shrink-0 rounded-full bg-transparent px-4 text-sm font-medium text-ink-800 outline-none sm:border-r sm:border-ink-100"
       >
-        <option value="vanzare">{t("saleOption")}</option>
-        <option value="chirie">{t("rentOption")}</option>
+        <option value="Sale">{t("saleOption")}</option>
+        <option value="Rent">{t("rentOption")}</option>
       </select>
 
       <select
-        name="tipProprietate"
+        name="propertyType"
         defaultValue=""
         className="h-12 shrink-0 rounded-full bg-transparent px-4 text-sm text-ink-600 outline-none sm:border-r sm:border-ink-100"
       >
         <option value="">{t("anyType")}</option>
-        <option value="apartament">{tType("Apartment")}</option>
-        <option value="casa">{tType("House")}</option>
-        <option value="teren">{tType("Land")}</option>
-        <option value="comercial">{tType("Commercial")}</option>
+        <option value="Apartment">{tType("Apartment")}</option>
+        <option value="House">{tType("House")}</option>
+        <option value="Land">{tType("Land")}</option>
+        <option value="Commercial">{tType("Commercial")}</option>
       </select>
 
       <input
         type="text"
-        name="oras"
+        name="city"
         placeholder={t("cityPlaceholder")}
         className="h-12 flex-1 rounded-full bg-transparent px-4 text-sm text-ink-900 outline-none placeholder:text-ink-400"
       />

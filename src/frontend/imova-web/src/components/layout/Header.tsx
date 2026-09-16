@@ -18,10 +18,10 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-ink-600 md:flex">
-          <Link href="/cauta?tip=vanzare" className="transition-colors hover:text-ink-950">
+          <Link href="/search?listingType=Sale" className="transition-colors hover:text-ink-950">
             {t("buy")}
           </Link>
-          <Link href="/cauta?tip=chirie" className="transition-colors hover:text-ink-950">
+          <Link href="/search?listingType=Rent" className="transition-colors hover:text-ink-950">
             {t("rent")}
           </Link>
         </nav>

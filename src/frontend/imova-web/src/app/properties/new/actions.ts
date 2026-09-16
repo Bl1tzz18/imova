@@ -8,6 +8,18 @@ export type CreatePropertyState = {
   error?: string;
 };
 
+function optionalNumber(value: FormDataEntryValue | null): number | null {
+  if (value === null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function optionalBoolean(value: FormDataEntryValue | null): boolean | null {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
 export async function createProperty(
   _prevState: CreatePropertyState,
   formData: FormData
@@ -27,6 +39,15 @@ export async function createProperty(
     district: formData.get("district") || null,
     latitude: Number(formData.get("latitude")),
     longitude: Number(formData.get("longitude")),
+    area: optionalNumber(formData.get("area")),
+    rooms: optionalNumber(formData.get("rooms")),
+    bathrooms: optionalNumber(formData.get("bathrooms")),
+    floor: optionalNumber(formData.get("floor")),
+    totalFloors: optionalNumber(formData.get("totalFloors")),
+    yearBuilt: optionalNumber(formData.get("yearBuilt")),
+    furnished: optionalBoolean(formData.get("furnished")),
+    parkingAvailable: optionalBoolean(formData.get("parkingAvailable")),
+    petsAllowed: optionalBoolean(formData.get("petsAllowed")),
   };
 
   const res = await fetch(`${apiUrl}/api/v1/properties`, {

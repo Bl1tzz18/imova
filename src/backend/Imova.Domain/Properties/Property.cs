@@ -12,7 +12,16 @@ public sealed class Property : AggregateRoot
         PropertyType propertyType,
         ListingType listingType,
         decimal price,
-        string currency)
+        string currency,
+        decimal? area,
+        decimal? rooms,
+        short? bathrooms,
+        short? floor,
+        short? totalFloors,
+        short? yearBuilt,
+        bool? furnished,
+        bool? parkingAvailable,
+        bool? petsAllowed)
         : base(id)
     {
         OwnerId = ownerId;
@@ -22,6 +31,15 @@ public sealed class Property : AggregateRoot
         ListingType = listingType;
         Price = price;
         Currency = currency;
+        Area = area;
+        Rooms = rooms;
+        Bathrooms = bathrooms;
+        Floor = floor;
+        TotalFloors = totalFloors;
+        YearBuilt = yearBuilt;
+        Furnished = furnished;
+        ParkingAvailable = parkingAvailable;
+        PetsAllowed = petsAllowed;
 
         Status = PropertyStatus.Draft;
         CreatedAt = DateTimeOffset.UtcNow;
@@ -79,7 +97,16 @@ public sealed class Property : AggregateRoot
         PropertyType propertyType,
         ListingType listingType,
         decimal price,
-        string currency)
+        string currency,
+        decimal? area = null,
+        decimal? rooms = null,
+        short? bathrooms = null,
+        short? floor = null,
+        short? totalFloors = null,
+        short? yearBuilt = null,
+        bool? furnished = null,
+        bool? parkingAvailable = null,
+        bool? petsAllowed = null)
     {
         if (ownerId == Guid.Empty)
         {
@@ -106,6 +133,26 @@ public sealed class Property : AggregateRoot
             throw new ArgumentException("Currency is required.", nameof(currency));
         }
 
+        if (area is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(area), "Area must be greater than zero.");
+        }
+
+        if (rooms is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(rooms), "Rooms must be greater than zero.");
+        }
+
+        if (bathrooms is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bathrooms), "Bathrooms cannot be negative.");
+        }
+
+        if (totalFloors is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(totalFloors), "TotalFloors must be greater than zero.");
+        }
+
         return new Property(
             Guid.NewGuid(),
             ownerId,
@@ -114,7 +161,16 @@ public sealed class Property : AggregateRoot
             propertyType,
             listingType,
             price,
-            currency);
+            currency,
+            area,
+            rooms,
+            bathrooms,
+            floor,
+            totalFloors,
+            yearBuilt,
+            furnished,
+            parkingAvailable,
+            petsAllowed);
     }
 
     public void UpdateDetails(

@@ -95,7 +95,7 @@ export default async function Home() {
                   : t("noListingsYet")}
               </p>
             </div>
-            <LinkButton href="/cauta" variant="secondary" size="sm">
+            <LinkButton href="/search" variant="secondary" size="sm">
               {t("viewAll")}
             </LinkButton>
           </div>

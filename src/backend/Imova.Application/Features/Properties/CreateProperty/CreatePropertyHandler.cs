@@ -17,7 +17,16 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             request.PropertyType,
             request.ListingType,
             request.Price,
-            request.Currency);
+            request.Currency,
+            request.Area,
+            request.Rooms,
+            request.Bathrooms,
+            request.Floor,
+            request.TotalFloors,
+            request.YearBuilt,
+            request.Furnished,
+            request.ParkingAvailable,
+            request.PetsAllowed);
 
         var location = PropertyLocation.Create(
             property.Id,
