@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { SearchForm } from "@/components/search/SearchForm";
-import { PropertyCard } from "@/components/property/PropertyCard";
+import { PropertyCarousel } from "@/components/property/PropertyCarousel";
 import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
 import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
 import { LinkButton } from "@/components/ui/Button";
@@ -106,11 +106,7 @@ export default async function Home() {
           </div>
 
           {properties.length > 0 ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
+            <PropertyCarousel properties={properties} />
           ) : (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
               <p className="text-sm text-ink-500">{t("emptyStateText")}</p>

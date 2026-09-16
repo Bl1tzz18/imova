@@ -1,7 +1,9 @@
 {
   "Common": {
     "addListing": "Adaugă anunț",
-    "selectLanguage": "Selectează limba"
+    "selectLanguage": "Selectează limba",
+    "previous": "Anterior",
+    "next": "Următor"
   },
   "Header": {
     "buy": "Cumpără",

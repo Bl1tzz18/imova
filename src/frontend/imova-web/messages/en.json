@@ -1,7 +1,9 @@
 {
   "Common": {
     "addListing": "Add listing",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "previous": "Previous",
+    "next": "Next"
   },
   "Header": {
     "buy": "Buy",

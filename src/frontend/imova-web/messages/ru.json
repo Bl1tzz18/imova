@@ -1,7 +1,9 @@
 {
   "Common": {
     "addListing": "Добавить объявление",
-    "selectLanguage": "Выбрать язык"
+    "selectLanguage": "Выбрать язык",
+    "previous": "Назад",
+    "next": "Вперёд"
   },
   "Header": {
     "buy": "Купить",
