@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, PriceInput, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
+import { ImageUploader } from "@/components/property/ImageUploader";
 import { getFieldRequirement } from "@/lib/property/fieldRules";
 import { createProperty, type CreatePropertyState } from "./actions";
 
@@ -21,6 +22,12 @@ export function PropertyForm() {
   const [state, formAction, pending] = useActionState(createProperty, initialState);
   const [propertyType, setPropertyType] = useState<string>("Apartment");
   const [listingType, setListingType] = useState<string>("Rent");
+  // Generated up front (client-side only, in an effect — crypto.randomUUID() during the
+  // initial render would produce a different value on the server than on the client and
+  // trigger a hydration mismatch) so photos can be uploaded and attached server-side (see
+  // ImageUploader/actions.ts) before the property itself is created.
+  const [propertyId, setPropertyId] = useState<string | null>(null);
+  useEffect(() => setPropertyId(crypto.randomUUID()), []);
 
   const t = useTranslations("PropertyForm");
   const tType = useTranslations("PropertyType");
@@ -31,6 +38,8 @@ export function PropertyForm() {
 
   return (
     <form action={formAction} className="space-y-8">
+      <input type="hidden" name="id" value={propertyId ?? ""} />
+
       <section>
         <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionType")}</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -216,6 +225,13 @@ export function PropertyForm() {
               </SelectInput>
             </label>
           )}
+        </div>
+      </section>
+
+      <section className="border-t border-ink-100 pt-8">
+        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionPhotos")}</h2>
+        <div className="mt-4">
+          {propertyId && <ImageUploader propertyId={propertyId} />}
         </div>
       </section>
 

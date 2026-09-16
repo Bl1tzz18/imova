@@ -1,10 +1,12 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Imova.Api.Features.Media;
 using Imova.Api.Features.Properties;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Properties.GetProperties;
 using Imova.Infrastructure;
+using Imova.Infrastructure.Storage;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +32,11 @@ builder.Services.AddDbContext<ImovaDbContext>(options =>
         npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
 
 builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ImovaDbContext>());
+
+var blobStorageOptions = builder.Configuration.GetSection(BlobStorageOptions.SectionName).Get<BlobStorageOptions>()
+    ?? throw new InvalidOperationException($"Configuration section \"{BlobStorageOptions.SectionName}\" is missing.");
+builder.Services.AddSingleton(blobStorageOptions);
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -73,6 +80,7 @@ app.UseExceptionHandler(handler =>
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapPropertiesEndpoints();
+app.MapMediaEndpoints();
 
 app.Run();
 

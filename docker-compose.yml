@@ -16,6 +16,23 @@ services:
       timeout: 5s
       retries: 5
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: imova-azurite
+    # Blob service only (queue/table aren't used) on the default blob port, loose mode relaxes
+    # strict request validation so real-world SDK traffic that differs slightly from Azure's
+    # exact behavior still works locally.
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --location /data --loose"
+    volumes:
+      - imova-azurite-data:/data
+    ports:
+      - "10000:10000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:10000/devstoreaccount1', r => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -23,8 +40,18 @@ services:
     container_name: imova-backend
     environment:
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=imova;Password=imova"
+      # Azurite, reached over the compose network — same well-known dev account key Azurite
+      # always uses, not a real secret. See appsettings.Development.json for the equivalent
+      # values used when running the backend outside Docker.
+      Storage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      # The backend reaches Azurite via the "azurite" service name, but the browser (running on
+      # the host, not in the compose network) can't resolve that — it needs "localhost" instead,
+      # via the port published below. See BlobStorageOptions.PublicBlobEndpoint.
+      Storage__PublicBlobEndpoint: "http://localhost:10000"
     depends_on:
       postgres:
+        condition: service_healthy
+      azurite:
         condition: service_healthy
     ports:
       - "8080:8080"
@@ -32,6 +59,11 @@ services:
   frontend:
     build:
       context: ./src/frontend/imova-web
+      args:
+        # Baked into the client bundle at build time — the browser calls the backend directly
+        # for image uploads (see lib/api/media.ts), so this must be host-reachable, unlike the
+        # server-only API_URL below which uses the compose network's service name.
+        NEXT_PUBLIC_API_URL: http://localhost:8080
     container_name: imova-frontend
     environment:
       API_URL: http://backend:8080
@@ -42,3 +74,4 @@ services:
 
 volumes:
   imova-postgres-data:
+  imova-azurite-data:

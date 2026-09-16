@@ -22,6 +22,7 @@ public class CreatePropertyValidatorTests
         bool? parkingAvailable = null,
         bool? petsAllowed = null) =>
         new(
+            null,
             Guid.NewGuid(),
             "Apartament 2 camere",
             "Apartament luminos, aproape de centru.",

@@ -17,10 +17,20 @@ export function PropertyCard({ property }: { property: Property }) {
       className="group flex flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
     >
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-800 to-brand-600">
-        <PropertyIcon
-          type={property.propertyType}
-          className="h-16 w-16 text-white/25 transition-transform duration-300 group-hover:scale-110"
-        />
+        {property.media.length > 0 ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={property.media[0].url}
+            alt={property.title}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <PropertyIcon
+            type={property.propertyType}
+            className="h-16 w-16 text-white/25 transition-transform duration-300 group-hover:scale-110"
+          />
+        )}
         <div className="absolute left-3 top-3">
           <Badge tone={property.listingType === "Rent" ? "accent" : "brand"} className="bg-white/90 backdrop-blur">
             {tListing(property.listingType)}

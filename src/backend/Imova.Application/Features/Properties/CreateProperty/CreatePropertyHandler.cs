@@ -26,7 +26,8 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             request.YearBuilt,
             request.Furnished,
             request.ParkingAvailable,
-            request.PetsAllowed);
+            request.PetsAllowed,
+            request.Id);
 
         var location = PropertyLocation.Create(
             property.Id,

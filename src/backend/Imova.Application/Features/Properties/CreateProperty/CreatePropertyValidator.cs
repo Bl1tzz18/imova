@@ -7,6 +7,7 @@ public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
 {
     public CreatePropertyValidator()
     {
+        RuleFor(c => c.Id).NotEqual(Guid.Empty).When(c => c.Id.HasValue);
         RuleFor(c => c.OwnerId).NotEmpty();
         RuleFor(c => c.Title).NotEmpty().MaximumLength(200);
         RuleFor(c => c.Description).NotEmpty().MaximumLength(4000);

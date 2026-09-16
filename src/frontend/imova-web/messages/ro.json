@@ -105,7 +105,14 @@
     "no": "Nu",
     "publish": "Publică anunțul",
     "saving": "Se salvează...",
-    "genericError": "Eroare la salvare ({status})."
+    "genericError": "Eroare la salvare ({status}).",
+    "sectionPhotos": "Fotografii",
+    "addPhotos": "Adaugă fotografii",
+    "photoHint": "JPEG, PNG, WebP, GIF, BMP sau HEIC, max. 10MB per fotografie",
+    "photoInvalidType": "Format neacceptat",
+    "photoTooLarge": "Fișier prea mare (max. 10MB)",
+    "photoUploadFailed": "Încărcare eșuată",
+    "removePhoto": "Elimină fotografia"
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",

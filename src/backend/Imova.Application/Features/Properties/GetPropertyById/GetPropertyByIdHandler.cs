@@ -1,11 +1,13 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Media;
 using Imova.Contracts.Properties;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.GetPropertyById;
 
-public class GetPropertyByIdHandler(IApplicationDbContext dbContext) : IRequestHandler<GetPropertyByIdQuery, PropertyDto?>
+public class GetPropertyByIdHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
+    : IRequestHandler<GetPropertyByIdQuery, PropertyDto?>
 {
     public async Task<PropertyDto?> Handle(GetPropertyByIdQuery request, CancellationToken cancellationToken)
     {
@@ -26,6 +28,13 @@ public class GetPropertyByIdHandler(IApplicationDbContext dbContext) : IRequestH
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == property.OwnerId, cancellationToken);
 
-        return property.ToDto(location, owner);
+        var media = await dbContext.PropertyMedias
+            .AsNoTracking()
+            .Where(m => m.PropertyId == property.Id)
+            .OrderBy(m => m.SortOrder)
+            .ThenBy(m => m.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return property.ToDto(location, owner, media.Select(m => m.ToDto(blobStorageService)).ToList());
     }
 }

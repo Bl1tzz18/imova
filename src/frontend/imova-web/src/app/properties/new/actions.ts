@@ -27,6 +27,7 @@ export async function createProperty(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
 
   const payload = {
+    id: formData.get("id") || null,
     ownerId: formData.get("ownerId"),
     title: formData.get("title"),
     description: formData.get("description"),

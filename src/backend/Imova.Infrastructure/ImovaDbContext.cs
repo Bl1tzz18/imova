@@ -1,5 +1,6 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Domain.Locations;
+using Imova.Domain.Media;
 using Imova.Domain.Properties;
 using Imova.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,8 @@ public class ImovaDbContext : DbContext, IApplicationDbContext
     public DbSet<Property> Properties => Set<Property>();
 
     public DbSet<PropertyLocation> PropertyLocations => Set<PropertyLocation>();
+
+    public DbSet<PropertyMedia> PropertyMedias => Set<PropertyMedia>();
 
     public DbSet<User> Users => Set<User>();
 

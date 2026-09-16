@@ -105,7 +105,14 @@
     "no": "No",
     "publish": "Publish listing",
     "saving": "Saving...",
-    "genericError": "Error while saving ({status})."
+    "genericError": "Error while saving ({status}).",
+    "sectionPhotos": "Photos",
+    "addPhotos": "Add photos",
+    "photoHint": "JPEG, PNG, WebP, GIF, BMP or HEIC, max 10MB per photo",
+    "photoInvalidType": "Unsupported format",
+    "photoTooLarge": "File too large (max 10MB)",
+    "photoUploadFailed": "Upload failed",
+    "removePhoto": "Remove photo"
   },
   "PropertyDetail": {
     "back": "Back to listings",

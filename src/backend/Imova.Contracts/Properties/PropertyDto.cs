@@ -1,3 +1,5 @@
+using Imova.Contracts.Media;
+
 namespace Imova.Contracts.Properties;
 
 public record PropertyDto(
@@ -25,4 +27,5 @@ public record PropertyDto(
     DateTimeOffset? PublishedAt,
     DateTimeOffset? ExpiresAt,
     PropertyLocationDto? Location,
-    PropertyOwnerDto? Owner);
+    PropertyOwnerDto? Owner,
+    IReadOnlyList<PropertyMediaDto> Media);

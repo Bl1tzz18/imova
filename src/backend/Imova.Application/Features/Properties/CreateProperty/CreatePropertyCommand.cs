@@ -12,7 +12,12 @@ namespace Imova.Application.Features.Properties.CreateProperty;
 // are all optional here because which of them are required, optional, or not applicable
 // depends on PropertyType (and, for PetsAllowed, ListingType) — see
 // PropertyFieldRules and CreatePropertyValidator.
+//
+// Id is also client-supplied and optional: the add-listing form generates one up front so it
+// can attach uploaded photos (ConfirmMediaUpload) to that id before the property row exists.
+// Falls back to a server-generated id when omitted, same as before that flow existed.
 public record CreatePropertyCommand(
+    Guid? Id,
     Guid OwnerId,
     string Title,
     string Description,

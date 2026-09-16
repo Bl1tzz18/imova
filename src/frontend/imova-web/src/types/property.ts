@@ -15,6 +15,17 @@ export type PropertyOwner = {
   phone: string | null;
 };
 
+export type PropertyMedia = {
+  id: string;
+  propertyId: string;
+  url: string;
+  contentType: string;
+  fileSizeBytes: number;
+  moderationStatus: string;
+  sortOrder: number;
+  createdAt: string;
+};
+
 export type Property = {
   id: string;
   ownerId: string;
@@ -41,4 +52,5 @@ export type Property = {
   expiresAt: string | null;
   location: PropertyLocation | null;
   owner: PropertyOwner | null;
+  media: PropertyMedia[];
 };

@@ -80,10 +80,34 @@ export default async function ProprietatePage({
           </Link>
 
           <div className="mt-4 overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600">
-            <div className="flex aspect-[21/9] items-center justify-center">
-              <PropertyIcon type={property.propertyType} className="h-20 w-20 text-white/25 sm:h-28 sm:w-28" />
+            <div className="relative flex aspect-[21/9] items-center justify-center">
+              {property.media.length > 0 ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={property.media[0].url}
+                  alt={property.title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <PropertyIcon type={property.propertyType} className="h-20 w-20 text-white/25 sm:h-28 sm:w-28" />
+              )}
             </div>
           </div>
+
+          {property.media.length > 1 && (
+            <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-6">
+              {property.media.slice(1).map((media) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={media.id}
+                  src={media.url}
+                  alt={property.title}
+                  loading="lazy"
+                  className="aspect-square w-full rounded-xl border border-ink-100 object-cover"
+                />
+              ))}
+            </div>
+          )}
 
           <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">

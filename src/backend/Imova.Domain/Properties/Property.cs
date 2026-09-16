@@ -106,7 +106,11 @@ public sealed class Property : AggregateRoot
         short? yearBuilt = null,
         bool? furnished = null,
         bool? parkingAvailable = null,
-        bool? petsAllowed = null)
+        bool? petsAllowed = null,
+        // Lets a caller (CreatePropertyCommand.Id) supply the id up front, so a client can start
+        // uploading listing photos under a known property id before this row exists — see the
+        // comment on PropertyMedia. Defaults to a fresh id when omitted, same as before.
+        Guid? id = null)
     {
         if (ownerId == Guid.Empty)
         {
@@ -154,7 +158,7 @@ public sealed class Property : AggregateRoot
         }
 
         return new Property(
-            Guid.NewGuid(),
+            id ?? Guid.NewGuid(),
             ownerId,
             title,
             description,

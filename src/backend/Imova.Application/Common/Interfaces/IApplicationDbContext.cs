@@ -1,4 +1,5 @@
 using Imova.Domain.Locations;
+using Imova.Domain.Media;
 using Imova.Domain.Properties;
 using Imova.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ public interface IApplicationDbContext
     DbSet<Property> Properties { get; }
 
     DbSet<PropertyLocation> PropertyLocations { get; }
+
+    DbSet<PropertyMedia> PropertyMedias { get; }
 
     DbSet<User> Users { get; }
 

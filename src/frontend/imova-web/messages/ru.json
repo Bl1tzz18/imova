@@ -105,7 +105,14 @@
     "no": "Нет",
     "publish": "Опубликовать объявление",
     "saving": "Сохранение...",
-    "genericError": "Ошибка при сохранении ({status})."
+    "genericError": "Ошибка при сохранении ({status}).",
+    "sectionPhotos": "Фотографии",
+    "addPhotos": "Добавить фотографии",
+    "photoHint": "JPEG, PNG, WebP, GIF, BMP или HEIC, макс. 10МБ на фото",
+    "photoInvalidType": "Неподдерживаемый формат",
+    "photoTooLarge": "Файл слишком большой (макс. 10МБ)",
+    "photoUploadFailed": "Ошибка загрузки",
+    "removePhoto": "Удалить фото"
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
