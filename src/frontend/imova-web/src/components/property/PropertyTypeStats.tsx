@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Property } from "@/types/property";
 
@@ -17,9 +18,10 @@ export async function PropertyTypeStats({ properties }: { properties: Property[]
   return (
     <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-ink-100 bg-ink-100 shadow-[var(--shadow-card-hover)] sm:grid-cols-3 lg:grid-cols-6">
       {counts.map((item) => (
-        <div
+        <Link
           key={item.type}
-          className="flex flex-col items-center justify-center gap-1.5 bg-white px-4 py-6 text-center sm:py-7"
+          href={`/search?propertyType=${item.type}`}
+          className="flex flex-col items-center justify-center gap-1.5 bg-white px-4 py-6 text-center transition-colors hover:bg-ink-50 sm:py-7"
         >
           <span className="text-[11px] font-medium uppercase tracking-widest text-ink-500">
             {item.label}
@@ -27,7 +29,7 @@ export async function PropertyTypeStats({ properties }: { properties: Property[]
           <span className="font-display text-2xl font-semibold text-ink-950 sm:text-3xl">
             {formatter.format(item.count)}
           </span>
-        </div>
+        </Link>
       ))}
     </div>
   );

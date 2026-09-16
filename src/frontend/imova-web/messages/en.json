@@ -69,7 +69,9 @@
     "ctaButton": "Publish for free"
   },
   "SearchPage": {
-    "title": "Search"
+    "title": "Search",
+    "resultsCount": "{count, plural, one {# listing found} other {# listings found}}",
+    "noResults": "No listings match this search"
   },
   "NewPropertyPage": {
     "title": "Add listing"

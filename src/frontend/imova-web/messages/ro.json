@@ -69,7 +69,9 @@
     "ctaButton": "Publică anunț gratuit"
   },
   "SearchPage": {
-    "title": "Caută"
+    "title": "Caută",
+    "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}",
+    "noResults": "Niciun anunț nu corespunde acestei căutări"
   },
   "NewPropertyPage": {
     "title": "Adaugă anunț"

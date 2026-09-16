@@ -69,7 +69,9 @@
     "ctaButton": "Разместить бесплатно"
   },
   "SearchPage": {
-    "title": "Поиск"
+    "title": "Поиск",
+    "resultsCount": "{count, plural, one {# объявление найдено} few {# объявления найдено} many {# объявлений найдено} other {# объявления найдено}}",
+    "noResults": "Нет объявлений по этому запросу"
   },
   "NewPropertyPage": {
     "title": "Добавить объявление"

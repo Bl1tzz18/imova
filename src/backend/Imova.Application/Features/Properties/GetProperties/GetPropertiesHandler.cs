@@ -12,9 +12,14 @@ public class GetPropertiesHandler(IApplicationDbContext dbContext, IBlobStorageS
 {
     public async Task<List<PropertyDto>> Handle(GetPropertiesQuery request, CancellationToken cancellationToken)
     {
-        var properties = await dbContext.Properties
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var propertiesQuery = dbContext.Properties.AsNoTracking();
+
+        if (request.PropertyType is not null)
+        {
+            propertiesQuery = propertiesQuery.Where(p => p.PropertyType == request.PropertyType);
+        }
+
+        var properties = await propertiesQuery.ToListAsync(cancellationToken);
 
         var locationsByPropertyId = await dbContext.PropertyLocations
             .AsNoTracking()
