@@ -66,4 +66,5 @@ npm install
 npm run dev
 ```
 
-See `CLAUDE.md` for architecture details and development conventions.
+See [`docs/development.md`](docs/development.md) for EF Core migrations, backend-only/frontend-only
+dev loops, and other local dev workflow details, and `CLAUDE.md` for architecture and conventions.
