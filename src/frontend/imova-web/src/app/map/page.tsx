@@ -1,3 +1,4 @@
+import { Footer } from "@/components/layout/Footer";
 import { PropertyMapExplorer } from "@/components/property/PropertyMapExplorer";
 import type { Property } from "@/types/property";
 
@@ -15,5 +16,12 @@ async function getProperties(): Promise<Property[]> {
 export default async function HartaPage() {
   const properties = await getProperties();
 
-  return <PropertyMapExplorer properties={properties} />;
+  return (
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <PropertyMapExplorer properties={properties} />
+      </main>
+      <Footer />
+    </div>
+  );
 }
