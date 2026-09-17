@@ -37,10 +37,10 @@ Thumbs.db
 # Logs
 *.log
 
-# Claude Code local tooling — installed/personal, not part of this project's source.
-# CLAUDE.md at the repo root is kept tracked; it documents the project itself.
+# Claude Code local tooling — kept on disk, local-only, never pushed.
 .claude/settings.local.json
 .claude/skills/
+CLAUDE.md
 
 # Design mockups (.dc.html source files) — local reference material, not project source.
 design/
