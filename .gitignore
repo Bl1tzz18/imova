@@ -37,5 +37,7 @@ Thumbs.db
 # Logs
 *.log
 
-# Claude Code local settings
+# Claude Code local tooling — installed/personal, not part of this project's source.
+# CLAUDE.md at the repo root is kept tracked; it documents the project itself.
 .claude/settings.local.json
+.claude/skills/
