@@ -7,7 +7,9 @@
   },
   "Header": {
     "buy": "Buy",
-    "rent": "Rent"
+    "rent": "Rent",
+    "login": "Log in",
+    "logout": "Log out"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -101,7 +103,6 @@
     "step4Heading": "Price & contact",
     "backLabel": "Back",
     "continueLabel": "Continue",
-    "ownerIdLabel": "Owner ID (temporary, until authentication exists)",
     "titleLabel": "Listing title",
     "titlePlaceholder": "e.g. 2-room apartment, Botanica",
     "descriptionLabel": "Description",
@@ -180,5 +181,31 @@
   },
   "DashboardPage": {
     "title": "Dashboard"
+  },
+  "Auth": {
+    "loginTab": "Log in",
+    "registerTab": "New account",
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Log in to manage your listings and favorites.",
+    "registerTitle": "Create your account",
+    "registerSubtitle": "Save favorites, publish listings and get messages directly.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm password",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot your password?",
+    "loginSubmit": "Log in",
+    "loginPending": "Logging in...",
+    "registerSubmit": "Create account",
+    "registerPending": "Creating account...",
+    "termsAgreement": "I agree to the <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.",
+    "agencyPrompt": "Have an agency?",
+    "agencyCta": "Publish listings as a professional",
+    "orDivider": "or",
+    "genericError": "Something went wrong. Please try again.",
+    "passwordMismatch": "Passwords don't match."
   }
 }

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FieldLabel, PriceInput, TextInput } from "@/components/ui/Field";
 
-export function StepPriceContact({ ownerId }: { ownerId: string }) {
+export function StepPriceContact() {
   const t = useTranslations("PropertyForm");
 
   return (
@@ -28,11 +28,6 @@ export function StepPriceContact({ ownerId }: { ownerId: string }) {
           />
         </label>
       </div>
-
-      <label className="mt-4 block">
-        <FieldLabel required>{t("ownerIdLabel")}</FieldLabel>
-        <TextInput name="ownerId" required defaultValue={ownerId} />
-      </label>
 
       <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-accent-100 bg-accent-100/40 px-4 py-3.5">
         <svg

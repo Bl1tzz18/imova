@@ -1,8 +1,15 @@
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
+import { getSessionToken } from "@/lib/auth/session";
 import { PropertyForm } from "./PropertyForm";
 
 export default async function NewPropertyPage() {
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login?next=/properties/new");
+  }
+
   const t = await getTranslations("NewPropertyPage");
 
   return (

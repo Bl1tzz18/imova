@@ -1,12 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { LinkButton } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { LogoutButton } from "@/components/auth/LogoutButton";
+import { getSessionToken } from "@/lib/auth/session";
 
-export function Header() {
-  const t = useTranslations("Header");
-  const tCommon = useTranslations("Common");
+export async function Header() {
+  const [t, tCommon, token] = await Promise.all([
+    getTranslations("Header"),
+    getTranslations("Common"),
+    getSessionToken(),
+  ]);
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink-100 bg-ink-50/85 backdrop-blur">
@@ -26,6 +31,13 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
+          {token ? (
+            <LogoutButton>{t("logout")}</LogoutButton>
+          ) : (
+            <Link href="/login" className="text-sm font-medium text-ink-600 transition-colors hover:text-ink-950">
+              {t("login")}
+            </Link>
+          )}
           <LinkButton href="/properties/new" size="sm">
             {tCommon("addListing")}
           </LinkButton>

@@ -1,7 +1,7 @@
+using Imova.Application.Common.Identity;
 using Imova.Domain.Locations;
 using Imova.Domain.Media;
 using Imova.Domain.Properties;
-using Imova.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Common.Interfaces;
@@ -14,7 +14,7 @@ public interface IApplicationDbContext
 
     DbSet<PropertyMedia> PropertyMedias { get; }
 
-    DbSet<User> Users { get; }
+    DbSet<ApplicationUser> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

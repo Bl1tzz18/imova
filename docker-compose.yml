@@ -3,15 +3,15 @@ services:
     image: postgis/postgis:16-3.4
     container_name: imova-postgres
     environment:
-      POSTGRES_USER: imova
-      POSTGRES_PASSWORD: imova
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: imova
     ports:
       - "5432:5432"
     volumes:
       - imova-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U imova"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -39,15 +39,26 @@ services:
       dockerfile: src/backend/Imova.Api/Dockerfile
     container_name: imova-backend
     environment:
-      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=imova;Password=imova"
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       # Azurite, reached over the compose network — same well-known dev account key Azurite
-      # always uses, not a real secret. See appsettings.Development.json for the equivalent
-      # values used when running the backend outside Docker.
+      # always uses for every install, published in Azurite's own docs, not a real secret. See
+      # appsettings.Development.json for the equivalent values used when running the backend
+      # outside Docker.
       Storage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       # The backend reaches Azurite via the "azurite" service name, but the browser (running on
       # the host, not in the compose network) can't resolve that — it needs "localhost" instead,
       # via the port published below. See BlobStorageOptions.PublicBlobEndpoint.
       Storage__PublicBlobEndpoint: "http://localhost:10000"
+      # Same signing key as the local (non-Docker) dev setup — see .env / .env.example and the
+      # user-secrets entry set up for `dotnet run` — so a token issued by one still validates
+      # against the other. Not a real secret rotation concern yet — no deployed environment
+      # exists beyond this local dev setup.
+      Jwt__Key: "${JWT_SIGNING_KEY}"
+      Jwt__Issuer: "Imova.Api"
+      Jwt__Audience: "Imova.Client"
+      Jwt__ExpiryMinutes: "10080"
+      GoogleAuth__ClientId: "${GOOGLE_CLIENT_ID}"
+      GoogleAuth__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
     depends_on:
       postgres:
         condition: service_healthy

@@ -14,10 +14,6 @@ import { createProperty, type CreatePropertyState } from "./actions";
 
 const initialState: CreatePropertyState = {};
 
-// No auth yet, so there's no logged-in user to attribute the listing to.
-// Prefilled with the seeded demo user until real auth exists.
-const DEMO_OWNER_ID = "33333333-3333-3333-3333-333333333333";
-
 const STEP_COUNT = 4;
 
 export function PropertyForm() {
@@ -136,7 +132,7 @@ export function PropertyForm() {
             }}
             className={step === 4 ? "" : "hidden"}
           >
-            <StepPriceContact ownerId={DEMO_OWNER_ID} />
+            <StepPriceContact />
           </div>
 
           {state.error && (

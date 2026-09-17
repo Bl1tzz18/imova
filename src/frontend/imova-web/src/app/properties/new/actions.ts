@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { getSessionToken } from "@/lib/auth/session";
 
 export type CreatePropertyState = {
   error?: string;
@@ -28,7 +29,6 @@ export async function createProperty(
 
   const payload = {
     id: formData.get("id") || null,
-    ownerId: formData.get("ownerId"),
     title: formData.get("title"),
     description: formData.get("description"),
     propertyType: formData.get("propertyType"),
@@ -51,9 +51,13 @@ export async function createProperty(
     petsAllowed: optionalBoolean(formData.get("petsAllowed")),
   };
 
+  const token = await getSessionToken();
   const res = await fetch(`${apiUrl}/api/v1/properties`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(payload),
   });
 

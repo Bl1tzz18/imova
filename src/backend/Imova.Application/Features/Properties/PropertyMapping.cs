@@ -1,8 +1,8 @@
+using Imova.Application.Common.Identity;
 using Imova.Contracts.Media;
 using Imova.Contracts.Properties;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
-using Imova.Domain.Users;
 
 namespace Imova.Application.Features.Properties;
 
@@ -11,7 +11,7 @@ public static class PropertyMapping
     public static PropertyDto ToDto(
         this Property property,
         PropertyLocation? location,
-        User? owner = null,
+        ApplicationUser? owner = null,
         IReadOnlyList<PropertyMediaDto>? media = null) =>
         new(
             property.Id,
@@ -49,6 +49,6 @@ public static class PropertyMapping
                     location.BuildingNumber,
                     location.Latitude,
                     location.Longitude),
-            owner is null ? null : new PropertyOwnerDto(owner.Email, owner.Phone),
+            owner is null ? null : new PropertyOwnerDto(owner.Email ?? string.Empty, owner.PhoneNumber),
             media ?? []);
 }

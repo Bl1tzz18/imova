@@ -16,6 +16,15 @@ npm-debug.log*
 .env.local
 .env.*.local
 
+# Contains real local secrets (Jwt/GoogleAuth/connection strings) once populated — see
+# appsettings.Development.json's checked-in version (empty placeholders) and use
+# `dotnet user-secrets` instead for real local values.
+src/backend/Imova.Api/appsettings.Development.json
+
+# .NET user-secrets normally live outside the repo entirely (~/.microsoft/usersecrets/<id>/), so
+# this is a defensive backstop in case one ever ends up inside the working tree.
+**/secrets.json
+
 # OS
 .DS_Store
 Thumbs.db

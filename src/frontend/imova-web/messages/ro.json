@@ -7,7 +7,9 @@
   },
   "Header": {
     "buy": "Cumpără",
-    "rent": "Închiriază"
+    "rent": "Închiriază",
+    "login": "Autentificare",
+    "logout": "Deconectare"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -101,7 +103,6 @@
     "step4Heading": "Preț & contact",
     "backLabel": "Înapoi",
     "continueLabel": "Continuă",
-    "ownerIdLabel": "Owner ID (temporar, cât timp nu există autentificare)",
     "titleLabel": "Titlu anunț",
     "titlePlaceholder": "ex: Apartament 2 camere, Botanica",
     "descriptionLabel": "Descriere",
@@ -180,5 +181,31 @@
   },
   "DashboardPage": {
     "title": "Dashboard"
+  },
+  "Auth": {
+    "loginTab": "Autentificare",
+    "registerTab": "Cont nou",
+    "loginTitle": "Bine ai revenit",
+    "loginSubtitle": "Autentifică-te pentru a-ți gestiona anunțurile și favoritele.",
+    "registerTitle": "Creează-ți un cont",
+    "registerSubtitle": "Salvează favorite, publică anunțuri și primește mesaje direct.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "nume@exemplu.com",
+    "passwordLabel": "Parolă",
+    "confirmPasswordLabel": "Confirmă parola",
+    "nameLabel": "Nume",
+    "namePlaceholder": "Numele tău",
+    "rememberMe": "Ține-mă minte",
+    "forgotPassword": "Ai uitat parola?",
+    "loginSubmit": "Autentificare",
+    "loginPending": "Se autentifică...",
+    "registerSubmit": "Creează cont",
+    "registerPending": "Se creează contul...",
+    "termsAgreement": "Sunt de acord cu <terms>Termenii</terms> și <privacy>Politica de confidențialitate</privacy>.",
+    "agencyPrompt": "Ai o agenție?",
+    "agencyCta": "Publică anunțuri ca profesionist",
+    "orDivider": "sau",
+    "genericError": "A apărut o eroare. Încearcă din nou.",
+    "passwordMismatch": "Parolele nu coincid."
   }
 }

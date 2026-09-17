@@ -1,6 +1,8 @@
 using Imova.Api.Features.Properties.CreateProperty;
+using Imova.Api.Features.Properties.DeleteProperty;
 using Imova.Api.Features.Properties.GetProperties;
 using Imova.Api.Features.Properties.GetPropertyById;
+using Imova.Api.Features.Properties.UpdateProperty;
 
 namespace Imova.Api.Features.Properties;
 
@@ -11,5 +13,7 @@ public static class PropertyEndpoints
         app.MapGetProperties();
         app.MapGetPropertyById();
         app.MapCreateProperty();
+        app.MapUpdateProperty();
+        app.MapDeleteProperty();
     }
 }

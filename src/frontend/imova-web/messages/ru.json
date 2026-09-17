@@ -7,7 +7,9 @@
   },
   "Header": {
     "buy": "Купить",
-    "rent": "Снять"
+    "rent": "Снять",
+    "login": "Войти",
+    "logout": "Выйти"
   },
   "Footer": {
     "tagline": "Платформа недвижимости для Молдовы — объявления от частных лиц и агентств.",
@@ -101,7 +103,6 @@
     "step4Heading": "Цена и контакты",
     "backLabel": "Назад",
     "continueLabel": "Продолжить",
-    "ownerIdLabel": "Owner ID (временно, пока нет аутентификации)",
     "titleLabel": "Заголовок объявления",
     "titlePlaceholder": "напр., 2-комнатная квартира, Ботаника",
     "descriptionLabel": "Описание",
@@ -180,5 +181,31 @@
   },
   "DashboardPage": {
     "title": "Панель управления"
+  },
+  "Auth": {
+    "loginTab": "Вход",
+    "registerTab": "Новый аккаунт",
+    "loginTitle": "С возвращением",
+    "loginSubtitle": "Войдите, чтобы управлять своими объявлениями и избранным.",
+    "registerTitle": "Создайте аккаунт",
+    "registerSubtitle": "Сохраняйте избранное, публикуйте объявления и получайте сообщения напрямую.",
+    "emailLabel": "Эл. почта",
+    "emailPlaceholder": "имя@пример.com",
+    "passwordLabel": "Пароль",
+    "confirmPasswordLabel": "Подтвердите пароль",
+    "nameLabel": "Имя",
+    "namePlaceholder": "Ваше имя",
+    "rememberMe": "Запомнить меня",
+    "forgotPassword": "Забыли пароль?",
+    "loginSubmit": "Войти",
+    "loginPending": "Выполняется вход...",
+    "registerSubmit": "Создать аккаунт",
+    "registerPending": "Создание аккаунта...",
+    "termsAgreement": "Я согласен с <terms>условиями</terms> и <privacy>политикой конфиденциальности</privacy>.",
+    "agencyPrompt": "Есть агентство?",
+    "agencyCta": "Публикуйте объявления как профессионал",
+    "orDivider": "или",
+    "genericError": "Произошла ошибка. Попробуйте снова.",
+    "passwordMismatch": "Пароли не совпадают."
   }
 }
