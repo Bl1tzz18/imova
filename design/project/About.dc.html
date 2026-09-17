@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ground: #FAFAF8;
+      --surface: #FFFFFF;
+      --ink: #14181C;
+      --ink-muted: #5B6472;
+      --border: #E4E7E9;
+      --accent: #1C5C4B;
+    }
+    body { margin: 0; background: var(--ground); }
+    a { text-decoration: none; color: inherit; }
+    h1, h2 { margin: 0; }
+    p { margin: 0; }
+    input, textarea, button { font: inherit; }
+
+    .nav-link { font-size: 14px; font-weight: 500; color: var(--ink-muted); }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; }
+    .footer-link { font-size: 14px; color: var(--ink-muted); }
+
+    .field-input { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 14px; color: var(--ink); background: #FFFFFF; }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+
+    @media (max-width: 900px) {
+      .container { padding-left: 20px !important; padding-right: 20px !important; }
+      .main-nav { display: none !important; }
+      .pillars-grid { grid-template-columns: repeat(1, minmax(0,1fr)) !important; }
+      .contact-split { flex-direction: column !important; }
+    }
+  </style>
+</helmet>
+<div style="--accent: {{accent}}; width: 100%; min-height: 100vh; background: var(--ground); font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); overflow-x: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.2c0 5-3 8-7 9.2-4-1.2-7-4.2-7-9.2V6.1l7-2.6Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M11.5 3.5H5v6.5L14.5 20l6.5-6.5L11.5 3.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8.7" cy="7.2" r="1.2" fill="currentColor"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 6.5l7.5 6 7.5-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    </defs>
+  </svg>
+
+  <header style="border-bottom: 1px solid var(--border); background: var(--surface);">
+    <div class="container" style="max-width: 900px; margin: 0 auto; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between;">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em;">imova</span>
+      </a>
+      <nav class="main-nav" style="display: flex; gap: 28px;">
+        <a class="nav-link" href="SearchResults.dc.html">Cumpără</a>
+        <a class="nav-link" href="AddListing.dc.html">Pentru proprietari</a>
+        <a class="nav-link" href="Auth.dc.html">Autentificare</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section style="padding: 64px 48px 48px;">
+      <div class="container" style="max-width: 780px; margin: 0 auto; text-align: center;">
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: -0.01em;">Despre imova</h1>
+        <p style="margin-top: 18px; font-size: 17px; color: var(--ink-muted); line-height: 1.65;">imova este o platformă pentru închirierea, cumpărarea și vânzarea de proprietăți în Republica Moldova — apartamente, case, terenuri și spații comerciale. Nu vrem doar să avem mai multe anunțuri decât alții; vrem ca fiecare căutare să fie clară, structurată și utilă, de la primul filtru până la mesajul trimis proprietarului.</p>
+      </div>
+    </section>
+
+    <section style="padding: 24px 48px 64px;">
+      <div class="container pillars-grid" style="max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px;">
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px;">
+          <svg width="22" height="22" style="color: var(--accent);"><use href="#i-shield"></use></svg>
+          <div style="font-weight: 600; font-size: 15px;">Calitatea datelor</div>
+          <p style="font-size: 13px; color: var(--ink-muted); line-height: 1.5;">Anunțuri verificate, cu informații complete și corecte despre fiecare proprietate.</p>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px;">
+          <svg width="22" height="22" style="color: var(--accent);"><use href="#i-clock"></use></svg>
+          <div style="font-weight: 600; font-size: 15px;">Prospețimea anunțurilor</div>
+          <p style="font-size: 13px; color: var(--ink-muted); line-height: 1.5;">Actualizări zilnice, ca să nu mai pierzi timpul cu anunțuri vechi sau vândute.</p>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 10px;">
+          <svg width="22" height="22" style="color: var(--accent);"><use href="#i-tag"></use></svg>
+          <div style="font-weight: 600; font-size: 15px;">Transparență</div>
+          <p style="font-size: 13px; color: var(--ink-muted); line-height: 1.5;">Prețuri clare și filtre care chiar reflectă ce găsești, fără surprize.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" style="padding: 56px 48px 80px; background: var(--surface); border-top: 1px solid var(--border);">
+      <div class="container contact-split" style="max-width: 900px; margin: 0 auto; display: flex; gap: 56px;">
+        <div style="flex: 1 1 320px;">
+          <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px;">Contact</h2>
+          <p style="margin-top: 10px; font-size: 14px; color: var(--ink-muted); line-height: 1.6;">Ai o întrebare despre platformă, un parteneriat sau ai găsit o problemă la un anunț? Scrie-ne.</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 22px;">
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink);"><svg width="16" height="16" style="color: var(--accent);"><use href="#i-mail"></use></svg>[email@imova.md]</div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink);"><svg width="16" height="16" style="color: var(--accent);"><use href="#i-pin"></use></svg>[Adresa biroului], Chișinău</div>
+          </div>
+        </div>
+        <div style="flex: 1 1 360px; background: var(--ground); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label class="field-label" for="ct-nume">Nume</label>
+              <input id="ct-nume" class="field-input" type="text" placeholder="Numele tău">
+            </div>
+            <div>
+              <label class="field-label" for="ct-email">Email</label>
+              <input id="ct-email" class="field-input" type="email" placeholder="nume@exemplu.com">
+            </div>
+            <div>
+              <label class="field-label" for="ct-mesaj">Mesaj</label>
+              <textarea id="ct-mesaj" class="field-input" rows="4" style="resize: vertical;" placeholder="Cu ce te putem ajuta?"></textarea>
+            </div>
+            <button type="button" class="btn-primary" style="width: 100%;">Trimite mesaj</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--border); padding: 24px 48px;">
+    <div class="container" style="max-width: 900px; margin: 0 auto; font-size: 13px; color: var(--ink-muted); text-align: center;">© 2026 imova. Toate drepturile rezervate.</div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#1C5C4B","options":["#1C5C4B","#1D3557","#7A3B12","#4A4E69"]},"$preview":{"width":1100,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#1C5C4B' };
+  }
+}
+</script>
+</body>
+</html>

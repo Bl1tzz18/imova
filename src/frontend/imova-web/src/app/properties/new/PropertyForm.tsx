@@ -1,11 +1,15 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { FieldLabel, PriceInput, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
-import { ImageUploader } from "@/components/property/ImageUploader";
-import { getFieldRequirement } from "@/lib/property/fieldRules";
+import { StepIndicator, type StepDef } from "@/components/property/listing-form/StepIndicator";
+import { StepTypeLocation } from "@/components/property/listing-form/StepTypeLocation";
+import { StepDetails } from "@/components/property/listing-form/StepDetails";
+import { StepPhotos } from "@/components/property/listing-form/StepPhotos";
+import { StepPriceContact } from "@/components/property/listing-form/StepPriceContact";
+import { ListingTips } from "@/components/property/listing-form/ListingTips";
+import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
 import { createProperty, type CreatePropertyState } from "./actions";
 
 const initialState: CreatePropertyState = {};
@@ -14,14 +18,14 @@ const initialState: CreatePropertyState = {};
 // Prefilled with the seeded demo user until real auth exists.
 const DEMO_OWNER_ID = "33333333-3333-3333-3333-333333333333";
 
-const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
-const LISTING_TYPES = ["Rent", "Sale"] as const;
-const CURRENT_YEAR = new Date().getFullYear();
+const STEP_COUNT = 4;
 
 export function PropertyForm() {
   const [state, formAction, pending] = useActionState(createProperty, initialState);
-  const [propertyType, setPropertyType] = useState<string>("Apartment");
-  const [listingType, setListingType] = useState<string>("Rent");
+  const [step, setStep] = useState(1);
+  const [propertyType, setPropertyType] = useState("Apartment");
+  const [listingType, setListingType] = useState("Rent");
+
   // Generated up front (client-side only, in an effect — crypto.randomUUID() during the
   // initial render would produce a different value on the server than on the client and
   // trigger a hydration mismatch) so photos can be uploaded and attached server-side (see
@@ -29,267 +33,136 @@ export function PropertyForm() {
   const [propertyId, setPropertyId] = useState<string | null>(null);
   useEffect(() => setPropertyId(crypto.randomUUID()), []);
 
-  const t = useTranslations("PropertyForm");
-  const tType = useTranslations("PropertyType");
-  const tListing = useTranslations("ListingType");
+  const formRef = useRef<HTMLFormElement>(null);
+  const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  const req = (field: Parameters<typeof getFieldRequirement>[0]) =>
-    getFieldRequirement(field, propertyType, listingType);
+  const t = useTranslations("PropertyForm");
+
+  // Only the currently visible step's fields are validated: a hidden field can't show its
+  // native validation bubble, so jumping straight to a distant step (skipping ones never
+  // rendered visible) is not allowed — advancing one step at a time keeps every check on a
+  // field the browser can actually focus and report against.
+  function validateCurrentStep(): boolean {
+    const container = stepRefs.current[step - 1];
+    if (!container) return true;
+    const invalid = container.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(":invalid");
+    if (invalid) {
+      invalid.reportValidity();
+      return false;
+    }
+    return true;
+  }
+
+  function goToStep(target: number) {
+    if (target <= step) {
+      setStep(target);
+      return;
+    }
+    if (target === step + 1 && validateCurrentStep()) {
+      setStep(target);
+    }
+  }
+
+  function handlePrimaryClick() {
+    if (step < STEP_COUNT) {
+      goToStep(step + 1);
+    } else if (validateCurrentStep()) {
+      formRef.current?.requestSubmit();
+    }
+  }
+
+  const steps: StepDef[] = [
+    { number: 1, label: t("step1Label") },
+    { number: 2, label: t("step2Label") },
+    { number: 3, label: t("step3Label") },
+    { number: 4, label: t("step4Label") },
+  ].map((s) => ({
+    ...s,
+    state: s.number < step ? "done" : s.number === step ? "active" : "upcoming",
+    clickable: s.number <= step + 1,
+  }));
+
+  if (state.success) {
+    return <SuccessPanel />;
+  }
 
   return (
-    <form action={formAction} className="space-y-8">
-      <input type="hidden" name="id" value={propertyId ?? ""} />
+    <div>
+      <StepIndicator steps={steps} onSelect={goToStep} />
 
-      <section>
-        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionType")}</h2>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="block">
-            <FieldLabel required>{t("listingTypeLabel")}</FieldLabel>
-            <SelectInput
-              name="listingType"
-              required
-              value={listingType}
-              onChange={(e) => setListingType(e.target.value)}
-            >
-              {LISTING_TYPES.map((lt) => (
-                <option key={lt} value={lt}>
-                  {tListing(lt)}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-          <label className="block">
-            <FieldLabel required>{t("propertyTypeLabel")}</FieldLabel>
-            <SelectInput
-              name="propertyType"
-              required
-              value={propertyType}
-              onChange={(e) => setPropertyType(e.target.value)}
-            >
-              {PROPERTY_TYPES.map((pt) => (
-                <option key={pt} value={pt}>
-                  {tType(pt)}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-        </div>
-      </section>
+      <div className="flex flex-col items-start gap-10 lg:flex-row">
+        <form
+          ref={formRef}
+          action={formAction}
+          className="min-w-0 flex-1 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8"
+        >
+          <input type="hidden" name="id" value={propertyId ?? ""} />
 
-      <section className="border-t border-ink-100 pt-8">
-        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionBasics")}</h2>
-        <div className="mt-4 space-y-4">
-          <label className="block">
-            <FieldLabel required>{t("ownerIdLabel")}</FieldLabel>
-            <TextInput name="ownerId" required defaultValue={DEMO_OWNER_ID} />
-          </label>
-          <label className="block">
-            <FieldLabel required>{t("titleLabel")}</FieldLabel>
-            <TextInput name="title" required maxLength={200} />
-          </label>
-          <label className="block">
-            <FieldLabel required>{t("descriptionLabel")}</FieldLabel>
-            <TextAreaInput name="description" required maxLength={4000} rows={4} />
-          </label>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block">
-              <FieldLabel required>{t("priceLabel")}</FieldLabel>
-              <PriceInput name="price" required />
-            </label>
-            <label className="block">
-              <FieldLabel required>{t("currencyLabel")}</FieldLabel>
-              <TextInput
-                name="currency"
-                required
-                minLength={3}
-                maxLength={3}
-                pattern="[A-Za-z]{3}"
-                defaultValue="EUR"
-                className="uppercase"
-              />
-            </label>
+          <div
+            ref={(el) => {
+              stepRefs.current[0] = el;
+            }}
+            className={step === 1 ? "" : "hidden"}
+          >
+            <StepTypeLocation
+              propertyType={propertyType}
+              onPropertyTypeChange={setPropertyType}
+              listingType={listingType}
+              onListingTypeChange={setListingType}
+            />
           </div>
-        </div>
-      </section>
 
-      <section className="border-t border-ink-100 pt-8">
-        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionDetails")}</h2>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {req("area") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("area") === "required"}>{t("areaLabel")}</FieldLabel>
-              <TextInput
-                name="area"
-                type="number"
-                min="0.01"
-                step="0.01"
-                required={req("area") === "required"}
-              />
-            </label>
-          )}
-          {req("rooms") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("rooms") === "required"}>{t("roomsLabel")}</FieldLabel>
-              <TextInput
-                name="rooms"
-                type="number"
-                min="1"
-                step="1"
-                required={req("rooms") === "required"}
-              />
-            </label>
-          )}
-          {req("bathrooms") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("bathrooms") === "required"}>{t("bathroomsLabel")}</FieldLabel>
-              <TextInput
-                name="bathrooms"
-                type="number"
-                min="0"
-                step="1"
-                required={req("bathrooms") === "required"}
-              />
-            </label>
-          )}
-          {req("floor") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("floor") === "required"}>{t("floorLabel")}</FieldLabel>
-              <TextInput
-                name="floor"
-                type="number"
-                min="-5"
-                max="200"
-                step="1"
-                required={req("floor") === "required"}
-              />
-            </label>
-          )}
-          {req("totalFloors") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("totalFloors") === "required"}>{t("totalFloorsLabel")}</FieldLabel>
-              <TextInput
-                name="totalFloors"
-                type="number"
-                min="1"
-                step="1"
-                required={req("totalFloors") === "required"}
-              />
-            </label>
-          )}
-          {req("yearBuilt") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("yearBuilt") === "required"}>{t("yearBuiltLabel")}</FieldLabel>
-              <TextInput
-                name="yearBuilt"
-                type="number"
-                min="1800"
-                max={CURRENT_YEAR + 1}
-                step="1"
-                required={req("yearBuilt") === "required"}
-              />
-            </label>
-          )}
-          {req("furnished") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("furnished") === "required"}>{t("furnishedLabel")}</FieldLabel>
-              <SelectInput name="furnished" defaultValue="" required={req("furnished") === "required"}>
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
-          {req("parkingAvailable") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("parkingAvailable") === "required"}>
-                {t("parkingAvailableLabel")}
-              </FieldLabel>
-              <SelectInput
-                name="parkingAvailable"
-                defaultValue=""
-                required={req("parkingAvailable") === "required"}
-              >
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
-          {req("petsAllowed") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("petsAllowed") === "required"}>{t("petsAllowedLabel")}</FieldLabel>
-              <SelectInput name="petsAllowed" defaultValue="" required={req("petsAllowed") === "required"}>
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
-        </div>
-      </section>
-
-      <section className="border-t border-ink-100 pt-8">
-        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionPhotos")}</h2>
-        <div className="mt-4">
-          {propertyId && <ImageUploader propertyId={propertyId} />}
-        </div>
-      </section>
-
-      <section className="border-t border-ink-100 pt-8">
-        <h2 className="font-display text-lg font-medium text-ink-950">{t("sectionLocation")}</h2>
-        <div className="mt-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block">
-              <FieldLabel required>{t("countryLabel")}</FieldLabel>
-              <TextInput name="country" required maxLength={100} defaultValue="Moldova" />
-            </label>
-            <label className="block">
-              <FieldLabel required>{t("cityLabel")}</FieldLabel>
-              <TextInput name="city" required maxLength={100} />
-            </label>
+          <div
+            ref={(el) => {
+              stepRefs.current[1] = el;
+            }}
+            className={step === 2 ? "" : "hidden"}
+          >
+            <StepDetails propertyType={propertyType} listingType={listingType} />
           </div>
-          <label className="block">
-            <FieldLabel>{t("districtLabel")}</FieldLabel>
-            <TextInput name="district" maxLength={100} />
-          </label>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block">
-              <FieldLabel required>{t("latitudeLabel")}</FieldLabel>
-              <TextInput
-                name="latitude"
-                type="number"
-                step="any"
-                min="-90"
-                max="90"
-                required
-                defaultValue="47.0105"
-              />
-            </label>
-            <label className="block">
-              <FieldLabel required>{t("longitudeLabel")}</FieldLabel>
-              <TextInput
-                name="longitude"
-                type="number"
-                step="any"
-                min="-180"
-                max="180"
-                required
-                defaultValue="28.8638"
-              />
-            </label>
+
+          <div
+            ref={(el) => {
+              stepRefs.current[2] = el;
+            }}
+            className={step === 3 ? "" : "hidden"}
+          >
+            <StepPhotos propertyId={propertyId} />
           </div>
+
+          <div
+            ref={(el) => {
+              stepRefs.current[3] = el;
+            }}
+            className={step === 4 ? "" : "hidden"}
+          >
+            <StepPriceContact ownerId={DEMO_OWNER_ID} />
+          </div>
+
+          {state.error && (
+            <p className="mt-6 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
+              {state.error}
+            </p>
+          )}
+
+          <div className="mt-8 flex items-center justify-between">
+            {step > 1 ? (
+              <Button type="button" variant="secondary" onClick={() => goToStep(step - 1)}>
+                {t("backLabel")}
+              </Button>
+            ) : (
+              <span />
+            )}
+            <Button type="button" disabled={pending} onClick={handlePrimaryClick}>
+              {pending ? t("saving") : step === STEP_COUNT ? t("publish") : t("continueLabel")}
+            </Button>
+          </div>
+        </form>
+
+        <div className="w-full lg:sticky lg:top-24 lg:w-80 lg:shrink-0">
+          <ListingTips />
         </div>
-      </section>
-
-      {state.error && (
-        <p className="rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
-          {state.error}
-        </p>
-      )}
-
-      <Button type="submit" disabled={pending} size="lg" className="w-full sm:w-auto">
-        {pending ? t("saving") : t("publish")}
-      </Button>
-    </form>
+      </div>
+    </div>
   );
 }

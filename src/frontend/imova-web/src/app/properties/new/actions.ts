@@ -1,11 +1,11 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 
 export type CreatePropertyState = {
   error?: string;
+  success?: boolean;
 };
 
 function optionalNumber(value: FormDataEntryValue | null): number | null {
@@ -67,5 +67,5 @@ export async function createProperty(
   }
 
   revalidatePath("/");
-  redirect("/");
+  return { success: true };
 }

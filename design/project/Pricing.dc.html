@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ground: #FAFAF8;
+      --surface: #FFFFFF;
+      --ink: #14181C;
+      --ink-muted: #5B6472;
+      --border: #E4E7E9;
+      --accent: #1C5C4B;
+    }
+    body { margin: 0; background: var(--ground); }
+    a { text-decoration: none; color: inherit; }
+    h1, h2 { margin: 0; }
+    p { margin: 0; }
+    button { font: inherit; }
+
+    .nav-link { font-size: 14px; font-weight: 500; color: var(--ink-muted); }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; width: 100%; }
+    .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--ink); font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; width: 100%; }
+    .footer-link { font-size: 14px; color: var(--ink-muted); }
+
+    .plan-card { flex: 1 1 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 30px; display: flex; flex-direction: column; }
+    .plan-card.featured { border: 2px solid var(--accent); box-shadow: 0 30px 60px -34px rgba(20,24,28,.28); }
+
+    @media (max-width: 960px) {
+      .container { padding-left: 20px !important; padding-right: 20px !important; }
+      .main-nav { display: none !important; }
+      .plans-row { flex-direction: column !important; }
+    }
+  </style>
+</helmet>
+<div style="--accent: {{accent}}; width: 100%; min-height: 100vh; background: var(--ground); font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); overflow-x: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
+
+  <header style="border-bottom: 1px solid var(--border); background: var(--surface);">
+    <div class="container" style="max-width: 1160px; margin: 0 auto; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between;">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em;">imova</span>
+      </a>
+      <nav class="main-nav" style="display: flex; gap: 28px;">
+        <a class="nav-link" href="Main.dc.html">Acasă</a>
+        <a class="nav-link" href="AddListing.dc.html">Pentru proprietari</a>
+        <a class="nav-link" href="Auth.dc.html">Autentificare</a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="padding: 56px 48px 80px;">
+    <div class="container" style="max-width: 1160px; margin: 0 auto;">
+      <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 34px; letter-spacing: -0.01em;">Planuri pentru agenții</h1>
+        <p style="margin-top: 12px; font-size: 16px; color: var(--ink-muted); line-height: 1.6;">Alege planul potrivit pentru volumul tău de anunțuri. Poți schimba planul oricând.</p>
+      </div>
+
+      <div class="plans-row" style="display: flex; gap: 24px; margin-top: 44px; align-items: stretch;">
+        <div class="plan-card">
+          <div style="font-size: 13px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em;">Start</div>
+          <div style="margin-top: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px;">[PREȚ] €<span style="font-size: 14px; font-weight: 500; color: var(--ink-muted);">/lună</span></div>
+          <p style="margin-top: 8px; font-size: 14px; color: var(--ink-muted);">Pentru proprietari cu unul sau câteva anunțuri.</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 22px; flex: 1;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">[X] anunțuri active incluse</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Vizibilitate standard</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Mesaje directe de la cumpărători</span></div>
+          </div>
+          <button type="button" class="btn-outline" style="margin-top: 24px;">Alege planul</button>
+        </div>
+
+        <div class="plan-card featured" style="position: relative;">
+          <span style="position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 4px 14px; border-radius: 999px;">Recomandat</span>
+          <div style="font-size: 13px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .05em;">Professional</div>
+          <div style="margin-top: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px;">[PREȚ] €<span style="font-size: 14px; font-weight: 500; color: var(--ink-muted);">/lună</span></div>
+          <p style="margin-top: 8px; font-size: 14px; color: var(--ink-muted);">Pentru agenții mici și mijlocii cu portofoliu activ.</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 22px; flex: 1;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">[X] anunțuri active incluse</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Vizibilitate crescută în rezultate</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Panou de gestionare pentru echipă</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Suport prioritar</span></div>
+          </div>
+          <button type="button" class="btn-primary" style="margin-top: 24px;">Alege planul</button>
+        </div>
+
+        <div class="plan-card">
+          <div style="font-size: 13px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em;">Enterprise</div>
+          <div style="margin-top: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px;">[PREȚ] €<span style="font-size: 14px; font-weight: 500; color: var(--ink-muted);">/lună</span></div>
+          <p style="margin-top: 8px; font-size: 14px; color: var(--ink-muted);">Pentru agenții mari și dezvoltatori imobiliari.</p>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 22px; flex: 1;">
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Anunțuri nelimitate</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Vizibilitate maximă + pagină de agenție</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Acces API pentru sincronizare automată</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;"><svg width="16" height="16" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-check"></use></svg><span style="font-size: 14px;">Manager de cont dedicat</span></div>
+          </div>
+          <button type="button" class="btn-outline" style="margin-top: 24px;">Contactează-ne</button>
+        </div>
+      </div>
+
+      <p style="text-align: center; margin-top: 32px; font-size: 13px; color: var(--ink-muted);">Prețurile afișate sunt provizorii și urmează să fie confirmate.</p>
+    </div>
+  </main>
+
+  <footer style="border-top: 1px solid var(--border); padding: 24px 48px;">
+    <div class="container" style="max-width: 1160px; margin: 0 auto; font-size: 13px; color: var(--ink-muted); text-align: center;">© 2026 imova. Toate drepturile rezervate.</div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#1C5C4B","options":["#1C5C4B","#1D3557","#7A3B12","#4A4E69"]},"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#1C5C4B' };
+  }
+}
+</script>
+</body>
+</html>

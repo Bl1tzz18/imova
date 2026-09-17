@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ground: #FAFAF8;
+      --surface: #FFFFFF;
+      --ink: #14181C;
+      --ink-muted: #5B6472;
+      --border: #E4E7E9;
+      --accent: #1C5C4B;
+    }
+    body { margin: 0; background: var(--ground); }
+    a { text-decoration: none; color: inherit; }
+    h1, h2, h3 { margin: 0; }
+    p { margin: 0; }
+    select, input, button { font: inherit; }
+
+    .nav-link { font-size: 14px; font-weight: 500; color: var(--ink-muted); transition: color .15s ease; }
+    .nav-link:hover { color: var(--ink); }
+    .nav-link.active { color: var(--ink); }
+
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s ease; white-space: nowrap; }
+    .btn-primary:hover { background: color-mix(in oklch, var(--accent) 85%, black); }
+
+    .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--ink); font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: border-color .15s ease, background .15s ease; white-space: nowrap; }
+    .btn-outline:hover { border-color: var(--ink); background: color-mix(in oklch, var(--ink) 4%, transparent); }
+
+    .field-input { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--ink); background: #FFFFFF; }
+    .field-input:focus { outline: 2px solid color-mix(in oklch, var(--accent) 35%, transparent); outline-offset: 1px; border-color: var(--accent); }
+
+    .filter-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; white-space: nowrap; }
+    .filter-chip:hover { border-color: var(--ink); }
+
+    .heart-btn svg { fill: none; stroke: var(--ink-muted); }
+    .heart-btn.saved svg { fill: var(--accent); stroke: var(--accent); }
+    .heart-btn:hover svg { stroke: var(--accent); }
+
+    .footer-link { font-size: 14px; color: var(--ink-muted); transition: color .15s ease; }
+    .footer-link:hover { color: var(--accent); }
+
+    .mobile-menu-btn { display: none; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; width: 40px; height: 40px; align-items: center; justify-content: center; cursor: pointer; }
+
+    .list-item-card { display: flex; gap: 18px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
+    .list-item-card:hover { border-color: color-mix(in oklch, var(--accent) 50%, var(--border)); }
+    .list-item-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+    .map-col { position: sticky; top: 92px; height: calc(100vh - 116px); min-height: 420px; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; background-image: repeating-linear-gradient(0deg, var(--border) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 40px); background-color: var(--surface); }
+
+    .map-pin { position: absolute; transform: translate(-50%, -50%); border: 1px solid var(--border); background: #FFFFFF; color: var(--ink); font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer; box-shadow: 0 6px 14px -6px rgba(20,24,28,.25); transition: background .15s ease, color .15s ease, border-color .15s ease; }
+    .map-pin:hover { border-color: var(--ink); }
+    .map-pin.active { background: var(--ink); color: #FFFFFF; border-color: var(--ink); z-index: 2; }
+
+    @media (max-width: 960px) {
+      .container { padding-left: 20px !important; padding-right: 20px !important; }
+      .main-nav, .header-actions .nav-link { display: none !important; }
+      .mobile-menu-btn { display: flex !important; }
+      .results-split { flex-direction: column !important; }
+      .map-col { position: static !important; height: 260px !important; order: -1 !important; width: 100% !important; }
+      .list-col { width: 100% !important; }
+      .filters-row { overflow-x: auto !important; flex-wrap: nowrap !important; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+      .list-item-card { flex-direction: column !important; }
+      .list-item-card > div:first-child { width: 100% !important; height: 160px !important; }
+    }
+  </style>
+</helmet>
+<div style="--accent: {{accent}}; width: 100%; min-height: 100vh; background: var(--ground); font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); overflow-x: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><line x1="21" y1="21" x2="16.2" y2="16.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+      <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-9.6-9C.9 7.6 2.7 4 6.2 4c2 0 3.6 1.1 4.4 2.7C11.4 5.1 13 4 15 4c3.5 0 5.3 3.6 3.8 7-2.1 4.4-9.6 9-9.6 9Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-message" viewBox="0 0 24 24"><path d="M4 5.5h16v11H8.5L4 20V5.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><line x1="4" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 20V9.5L12 4l8 5.5V20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="9.5" y1="20" x2="9.5" y2="14" stroke="currentColor" stroke-width="1.6"/><line x1="14.5" y1="20" x2="14.5" y2="14" stroke="currentColor" stroke-width="1.6"/><line x1="9.5" y1="14" x2="14.5" y2="14" stroke="currentColor" stroke-width="1.6"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    </defs>
+  </svg>
+
+  <header style="position: sticky; top: 0; z-index: 20; background: color-mix(in oklch, var(--ground) 90%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);">
+    <div class="container" style="max-width: 1360px; margin: 0 auto; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 44px;">
+        <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px;">
+          <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+          <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em;">imova</span>
+        </a>
+        <nav class="main-nav" style="display: flex; gap: 28px;">
+          <a class="nav-link active" href="SearchResults.dc.html">Cumpără</a>
+          <a class="nav-link" href="SearchResults.dc.html">Închiriază</a>
+          <a class="nav-link" href="SearchResults.dc.html">Terenuri</a>
+          <a class="nav-link" href="#">Spații comerciale</a>
+          <a class="nav-link" href="AddListing.dc.html">Pentru proprietari</a>
+        </nav>
+      </div>
+      <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
+        <a href="SavedListings.dc.html" class="nav-link" aria-label="Anunțuri salvate" style="display: flex; align-items: center;"><svg width="18" height="18"><use href="#i-heart"></use></svg></a>
+        <a href="Messages.dc.html" class="nav-link" aria-label="Mesaje" style="display: flex; align-items: center;"><svg width="18" height="18"><use href="#i-message"></use></svg></a>
+        <a href="Auth.dc.html" class="nav-link" style="font-weight: 500;">Autentificare</a>
+        <a href="AddListing.dc.html" class="btn-primary">Adaugă un anunț</a>
+        <button type="button" class="mobile-menu-btn" aria-label="Deschide meniul">
+          <svg width="18" height="18"><use href="#i-menu"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section style="padding: 28px 48px 12px;">
+      <div class="container" style="max-width: 1360px; margin: 0 auto;">
+        <div style="font-size: 13px; color: var(--ink-muted);"><a href="Main.dc.html" style="color: var(--ink-muted);">Acasă</a> / Rezultate</div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 8px;">
+          <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -0.01em;">Chișinău · {{resultCount}} rezultate</h1>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="f-sort" style="font-size: 13px; color: var(--ink-muted);">Sortează:</label>
+            <select id="f-sort" class="field-input">
+              <option>Cele mai noi</option>
+              <option>Preț crescător</option>
+              <option>Preț descrescător</option>
+              <option>Suprafață</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters-row" style="display: flex; gap: 10px; margin-top: 16px;">
+          <button type="button" class="filter-chip">Preț</button>
+          <button type="button" class="filter-chip">Camere</button>
+          <button type="button" class="filter-chip">Suprafață</button>
+          <button type="button" class="filter-chip">Tip proprietate</button>
+          <button type="button" class="filter-chip">Mai multe filtre</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding: 20px 48px 72px;">
+      <div class="container results-split" style="max-width: 1360px; margin: 0 auto; display: flex; gap: 28px; align-items: flex-start;">
+        <div class="list-col" style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+          <sc-for list="{{listings}}" as="item" hint-placeholder-count="8">
+            <article class="{{item.cardClass}}" onClick="{{item.select}}">
+              <div style="position: relative; width: 190px; height: 136px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: linear-gradient(160deg, color-mix(in oklch, var(--accent) 15%, var(--surface)), color-mix(in oklch, var(--accent) 3%, var(--surface)));">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                  <svg width="36" height="36" style="color: color-mix(in oklch, var(--accent) 45%, var(--ink-muted)); opacity: .55;"><use href="#i-building"></use></svg>
+                </div>
+                <span style="position: absolute; top: 10px; left: 10px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 500; color: var(--ink-muted);">{{item.freshness}}</span>
+                <button type="button" class="{{item.heartClass}}" onClick="{{item.toggleSave}}" aria-label="Salvează anunțul" style="position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; background: #FFFFFF; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                  <svg width="15" height="15"><use href="#i-heart"></use></svg>
+                </button>
+              </div>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 2px 4px;">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px;">{{item.price}}</span>
+                <span style="font-size: 15px; font-weight: 500;">{{item.title}}</span>
+                <span style="font-size: 13px; color: var(--ink-muted);">{{item.specs}}</span>
+                <div style="display: flex; align-items: center; gap: 6px; color: var(--ink-muted); font-size: 13px;">
+                  <svg width="13" height="13"><use href="#i-pin"></use></svg>
+                  <span>{{item.location}}</span>
+                </div>
+                <a href="PropertyDetail.dc.html" style="margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--accent);">Vezi detalii<svg width="13" height="13"><use href="#i-arrow"></use></svg></a>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        <div class="map-col">
+          <sc-for list="{{listings}}" as="item" hint-placeholder-count="8">
+            <button type="button" class="{{item.pinClass}}" onClick="{{item.select}}" style="top: {{item.top}}; left: {{item.left}};">{{item.price}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="border-top: 1px solid var(--border); background: var(--surface); margin-top: 8px;">
+    <div class="container" style="max-width: 1360px; margin: 0 auto; padding: 40px 48px 28px;">
+      <div class="footer-grid" style="display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 32px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px;">imova</span>
+          </div>
+          <p style="font-size: 14px; color: var(--ink-muted); line-height: 1.6; max-width: 220px;">O platformă imobiliară clară și structurată pentru Republica Moldova.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">Explorează</span>
+          <a class="footer-link" href="SearchResults.dc.html">Apartamente</a>
+          <a class="footer-link" href="SearchResults.dc.html">Case</a>
+          <a class="footer-link" href="SearchResults.dc.html">Terenuri</a>
+          <a class="footer-link" href="#">Spații comerciale</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">Orașe</span>
+          <a class="footer-link" href="SearchResults.dc.html">Chișinău</a>
+          <a class="footer-link" href="SearchResults.dc.html">Bălți</a>
+          <a class="footer-link" href="SearchResults.dc.html">Orhei</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px;">Companie</span>
+          <a class="footer-link" href="About.dc.html">Despre imova</a>
+          <a class="footer-link" href="About.dc.html#contact">Contact</a>
+        </div>
+      </div>
+      <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <span style="font-size: 13px; color: var(--ink-muted);">© 2026 imova. Toate drepturile rezervate.</span>
+        <div style="display: flex; gap: 20px;">
+          <a class="footer-link" href="#">Termeni și condiții</a>
+          <a class="footer-link" href="#">Confidențialitate</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#1C5C4B","options":["#1C5C4B","#1D3557","#7A3B12","#4A4E69"]},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#1C5C4B';
+    const activeId = this.state.activeId ?? 'l1';
+    const savedMap = this.state.saved || {};
+
+    const rawListings = [
+      { id: 'l1', price: '€68.500', title: 'Apartament, 2 camere', specs: '64 m² · etaj 4/9', location: 'Centru, Chișinău', freshness: 'Nou', top: '42%', left: '46%' },
+      { id: 'l2', price: '€82.000', title: 'Apartament, 3 camere', specs: '78 m² · etaj 2/5', location: 'Botanica, Chișinău', freshness: 'Actualizat azi', top: '68%', left: '62%' },
+      { id: 'l3', price: '€165.000', title: 'Casă', specs: '140 m² · teren 4 ari', location: 'Buiucani, Chișinău', freshness: 'Actualizat acum 2 zile', top: '30%', left: '22%' },
+      { id: 'l4', price: '€41.900', title: 'Apartament, 1 cameră', specs: '42 m² · etaj 7/12', location: 'Râșcani, Chișinău', freshness: 'Nou', top: '18%', left: '34%' },
+      { id: 'l5', price: '€118.000', title: 'Apartament, 4 camere', specs: '96 m² · etaj 3/5', location: 'Telecentru, Chișinău', freshness: 'Actualizat acum 3 zile', top: '34%', left: '58%' },
+      { id: 'l6', price: '€97.500', title: 'Casă', specs: '110 m² · teren 3 ari', location: 'Ciocana, Chișinău', freshness: 'Actualizat azi', top: '52%', left: '74%' },
+      { id: 'l7', price: '€52.000', title: 'Apartament, 2 camere', specs: '58 m² · etaj 3/4', location: 'Orhei', freshness: 'Actualizat acum 4 zile', top: '78%', left: '14%' },
+      { id: 'l8', price: '€96.000', title: 'Apartament, 3 camere', specs: '85 m² · etaj 6/9', location: 'Centru, Chișinău', freshness: 'Nou', top: '46%', left: '50%' }
+    ];
+
+    const listings = rawListings.map((l) => {
+      const active = l.id === activeId;
+      const isSaved = !!savedMap[l.id];
+      return {
+        ...l,
+        cardClass: active ? 'list-item-card active' : 'list-item-card',
+        pinClass: active ? 'map-pin active' : 'map-pin',
+        heartClass: isSaved ? 'heart-btn saved' : 'heart-btn',
+        select: () => this.setState({ activeId: l.id }),
+        toggleSave: () => {
+          const next = { ...(this.state.saved || {}) };
+          next[l.id] = !next[l.id];
+          this.setState({ saved: next });
+        }
+      };
+    });
+
+    return {
+      accent,
+      listings,
+      resultCount: rawListings.length
+    };
+  }
+}
+</script>
+</body>
+</html>

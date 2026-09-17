@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ground: #FAFAF8;
+      --surface: #FFFFFF;
+      --ink: #14181C;
+      --ink-muted: #5B6472;
+      --border: #E4E7E9;
+      --accent: #1C5C4B;
+    }
+    body { margin: 0; background: var(--ground); }
+    a { text-decoration: none; color: inherit; }
+    h1, h2, h3 { margin: 0; }
+    p { margin: 0; }
+    select, input, button, textarea { font: inherit; }
+
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s ease; white-space: nowrap; }
+    .btn-primary:hover { background: color-mix(in oklch, var(--accent) 85%, black); }
+
+    .btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--ink); font-weight: 600; font-size: 14px; padding: 12px 24px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; transition: border-color .15s ease, background .15s ease; white-space: nowrap; }
+    .btn-outline:hover { border-color: var(--ink); background: color-mix(in oklch, var(--ink) 4%, transparent); }
+
+    .field-input { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 14px; color: var(--ink); background: #FFFFFF; }
+    .field-input:focus { outline: 2px solid color-mix(in oklch, var(--accent) 35%, transparent); outline-offset: 1px; border-color: var(--accent); }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+
+    .tab-btn { border: none; cursor: pointer; padding: 10px 20px; border-radius: 9px; font-weight: 500; font-size: 14px; transition: background .15s ease, color .15s ease; }
+
+    .step-btn { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; background: transparent; border: none; cursor: pointer; flex: 1; }
+
+    @media (max-width: 960px) {
+      .container { padding-left: 20px !important; padding-right: 20px !important; }
+      .form-split { flex-direction: column !important; }
+      .tips-col { position: static !important; width: 100% !important; }
+      .row-2 { grid-template-columns: 1fr !important; }
+      .photo-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+      .step-label { display: none !important; }
+    }
+  </style>
+</helmet>
+<div style="--accent: {{accent}}; width: 100%; min-height: 100vh; background: var(--ground); font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); overflow-x: hidden;">
+
+  <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+    <defs>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M12 4l-4 4M12 4l4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7l1.6-2.5h4.8L16 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M11.5 3.5H5v6.5L14.5 20l6.5-6.5L11.5 3.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8.7" cy="7.2" r="1.2" fill="currentColor"/></symbol>
+      <symbol id="i-text" viewBox="0 0 24 24"><line x1="5" y1="7" x2="19" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="5" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.2c0 5-3 8-7 9.2-4-1.2-7-4.2-7-9.2V6.1l7-2.6Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
+
+  <header style="border-bottom: 1px solid var(--border); background: var(--surface);">
+    <div class="container" style="max-width: 1040px; margin: 0 auto; padding: 18px 48px; display: flex; align-items: center; justify-content: space-between;">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em;">imova</span>
+      </a>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button type="button" class="btn-outline">Salvează ca ciornă</button>
+        <a href="Main.dc.html" style="font-size: 14px; font-weight: 500; color: var(--ink-muted);">Ieși</a>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding: 40px 48px 80px;">
+    <div class="container" style="max-width: 1040px; margin: 0 auto;">
+      <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.01em;">Adaugă un anunț nou</h1>
+      <p style="margin-top: 8px; font-size: 15px; color: var(--ink-muted);">Completează detaliile de mai jos — durează doar câteva minute.</p>
+
+      <sc-if value="{{isSuccess}}" hint-placeholder-val="{{false}}">
+        <div style="margin-top: 40px; padding: 64px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;">
+          <div style="width: 60px; height: 60px; border-radius: 50%; background: color-mix(in oklch, var(--accent) 14%, var(--surface)); display: flex; align-items: center; justify-content: center; color: var(--accent);"><svg width="28" height="28"><use href="#i-check"></use></svg></div>
+          <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px;">Anunțul tău a fost trimis spre verificare</h2>
+          <p style="font-size: 14px; color: var(--ink-muted); max-width: 420px; line-height: 1.6;">Îl vei regăsi în lista ta de anunțuri odată ce este aprobat — de obicei în câteva ore.</p>
+          <div style="display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; justify-content: center;">
+            <a href="OwnerDashboard.dc.html" class="btn-primary">Vezi anunțurile mele</a>
+            <a href="Main.dc.html" class="btn-outline">Înapoi la pagina principală</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isFormVisible}}" hint-placeholder-val="{{true}}">
+      <div style="position: relative; display: flex; justify-content: space-between; margin: 36px 0 44px;">
+        <div style="position: absolute; top: 17px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 0;"></div>
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+          <button type="button" class="step-btn" onClick="{{s.click}}">
+            <span style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; background: {{s.circleBg}}; color: {{s.circleColor}}; border: 2px solid {{s.circleBorder}};">
+              <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}"><svg width="15" height="15"><use href="#i-check"></use></svg></sc-if>
+              <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">{{s.number}}</sc-if>
+            </span>
+            <span class="step-label" style="font-size: 12px; font-weight: 500; color: {{s.labelColor}}; text-align: center;">{{s.label}}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div class="form-split" style="display: flex; gap: 40px; align-items: flex-start;">
+        <div style="flex: 1 1 640px; min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px;">
+
+          <sc-if value="{{isStep1}}" hint-placeholder-val="{{true}}">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-bottom: 20px;">Tip anunț &amp; locație</h2>
+            <div style="display: inline-flex; gap: 4px; background: var(--ground); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px;">
+              <sc-for list="{{dealTabs}}" as="t" hint-placeholder-count="2">
+                <button type="button" class="tab-btn" onClick="{{t.click}}" style="background: {{t.bg}}; color: {{t.color}};">{{t.label}}</button>
+              </sc-for>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px;" class="row-2">
+              <div>
+                <label class="field-label" for="al-tip">Tip proprietate</label>
+                <select id="al-tip" class="field-input">
+                  <option>Apartament</option>
+                  <option>Casă</option>
+                  <option>Teren</option>
+                  <option>Spațiu comercial</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="al-localitate">Localitate</label>
+                <select id="al-localitate" class="field-input">
+                  <option>Chișinău</option>
+                  <option>Bălți</option>
+                  <option>Orhei</option>
+                  <option>Cahul</option>
+                  <option>Ungheni</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="al-sector">Sector / cartier</label>
+                <select id="al-sector" class="field-input">
+                  <option>Centru</option>
+                  <option>Botanica</option>
+                  <option>Buiucani</option>
+                  <option>Râșcani</option>
+                  <option>Telecentru</option>
+                  <option>Ciocana</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="al-strada">Adresă / stradă</label>
+                <input id="al-strada" class="field-input" type="text" placeholder="ex: str. Ismail 42">
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isStep2}}" hint-placeholder-val="{{false}}">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-bottom: 20px;">Detalii proprietate</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px;" class="row-2">
+              <div>
+                <label class="field-label" for="al-suprafata">Suprafață, m²</label>
+                <input id="al-suprafata" class="field-input" type="number" placeholder="ex: 64">
+              </div>
+              <div>
+                <label class="field-label" for="al-camere">Camere</label>
+                <select id="al-camere" class="field-input">
+                  <option>Studio</option>
+                  <option>1 cameră</option>
+                  <option>2 camere</option>
+                  <option>3 camere</option>
+                  <option>4+ camere</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label" for="al-etaj">Etaj</label>
+                <input id="al-etaj" class="field-input" type="number" placeholder="ex: 4">
+              </div>
+              <div>
+                <label class="field-label" for="al-etaje">Total etaje</label>
+                <input id="al-etaje" class="field-input" type="number" placeholder="ex: 9">
+              </div>
+              <div>
+                <label class="field-label" for="al-an">An construcției</label>
+                <input id="al-an" class="field-input" type="number" placeholder="ex: 2015">
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <label class="field-label" for="al-descriere">Descriere</label>
+              <textarea id="al-descriere" class="field-input" rows="5" style="resize: vertical;" placeholder="Descrie proprietatea: compartimentare, stare, dotări, vecinătate..."></textarea>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isStep3}}" hint-placeholder-val="{{false}}">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-bottom: 20px;">Fotografii</h2>
+            <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+              <div style="width: 52px; height: 52px; border-radius: 50%; background: color-mix(in oklch, var(--accent) 12%, var(--surface)); display: flex; align-items: center; justify-content: center; color: var(--accent);"><svg width="24" height="24"><use href="#i-upload"></use></svg></div>
+              <div style="font-weight: 600; font-size: 15px;">Trage fotografiile aici sau apasă pentru a le încărca</div>
+              <div style="font-size: 13px; color: var(--ink-muted);">JPG sau PNG, până la 10 MB per fotografie</div>
+              <button type="button" class="btn-outline" style="margin-top: 8px;">Alege fișiere</button>
+            </div>
+            <div class="photo-grid" style="display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 16px;">
+              <div style="height: 84px; border-radius: 10px; border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--ink-muted);"><svg width="20" height="20"><use href="#i-camera"></use></svg></div>
+              <div style="height: 84px; border-radius: 10px; border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--ink-muted);"><svg width="20" height="20"><use href="#i-camera"></use></svg></div>
+              <div style="height: 84px; border-radius: 10px; border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--ink-muted);"><svg width="20" height="20"><use href="#i-camera"></use></svg></div>
+              <div style="height: 84px; border-radius: 10px; border: 1.5px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--ink-muted);"><svg width="20" height="20"><use href="#i-camera"></use></svg></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isStep4}}" hint-placeholder-val="{{false}}">
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-bottom: 20px;">Preț &amp; contact</h2>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px;" class="row-2">
+              <div>
+                <label class="field-label" for="al-pret">Preț, €</label>
+                <input id="al-pret" class="field-input" type="number" placeholder="ex: 68500">
+              </div>
+              <div style="display: flex; align-items: flex-end; padding-bottom: 12px; gap: 8px;">
+                <input id="al-negociabil" type="checkbox" style="width: 16px; height: 16px;">
+                <label for="al-negociabil" style="font-size: 14px;">Preț negociabil</label>
+              </div>
+              <div>
+                <label class="field-label" for="al-nume">Nume contact</label>
+                <input id="al-nume" class="field-input" type="text" placeholder="Numele tău">
+              </div>
+              <div>
+                <label class="field-label" for="al-telefon">Telefon</label>
+                <input id="al-telefon" class="field-input" type="tel" placeholder="+373 6_ ___ ___">
+              </div>
+              <div>
+                <label class="field-label" for="al-email">Email</label>
+                <input id="al-email" class="field-input" type="email" placeholder="nume@exemplu.com">
+              </div>
+              <div style="display: flex; align-items: flex-end; padding-bottom: 12px; gap: 8px;">
+                <input id="al-agentie" type="checkbox" style="width: 16px; height: 16px;">
+                <label for="al-agentie" style="font-size: 14px;">Sunt agenție imobiliară</label>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px; padding: 14px 16px; background: color-mix(in oklch, var(--accent) 7%, var(--surface)); border: 1px solid color-mix(in oklch, var(--accent) 16%, var(--border)); border-radius: 10px;">
+              <svg width="17" height="17" style="color: var(--accent); flex-shrink: 0;"><use href="#i-shield"></use></svg>
+              <span style="font-size: 13px; color: var(--ink);">Anunțul tău va fi verificat înainte de publicare.</span>
+            </div>
+          </sc-if>
+
+          <div style="display: flex; justify-content: space-between; margin-top: 32px;">
+            <sc-if value="{{showBack}}" hint-placeholder-val="{{false}}">
+              <button type="button" class="btn-outline" onClick="{{goBack}}">Înapoi</button>
+            </sc-if>
+            <sc-if value="{{hideBack}}" hint-placeholder-val="{{true}}">
+              <span></span>
+            </sc-if>
+            <button type="button" class="btn-primary" onClick="{{goNext}}">{{nextLabel}}</button>
+          </div>
+        </div>
+
+        <div class="tips-col" style="flex: 1 1 280px; position: sticky; top: 24px;">
+          <div style="background: color-mix(in oklch, var(--accent) 6%, var(--surface)); border: 1px solid color-mix(in oklch, var(--accent) 14%, var(--border)); border-radius: 16px; padding: 24px;">
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 16px;">Sfaturi pentru un anunț de succes</h3>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <svg width="17" height="17" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-camera"></use></svg>
+                <span style="font-size: 13px; color: var(--ink); line-height: 1.5;">Fotografii clare, făcute ziua, din mai multe unghiuri.</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <svg width="17" height="17" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-tag"></use></svg>
+                <span style="font-size: 13px; color: var(--ink); line-height: 1.5;">Un preț realist atrage mai multe mesaje de la persoane interesate.</span>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <svg width="17" height="17" style="color: var(--accent); flex-shrink: 0; margin-top: 2px;"><use href="#i-text"></use></svg>
+                <span style="font-size: 13px; color: var(--ink); line-height: 1.5;">O descriere completă și onestă reduce numărul de întrebări repetitive.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+  </main>
+
+  <footer style="border-top: 1px solid var(--border); padding: 24px 48px;">
+    <div class="container" style="max-width: 1040px; margin: 0 auto; font-size: 13px; color: var(--ink-muted); text-align: center;">© 2026 imova. Toate drepturile rezervate.</div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#1C5C4B","options":["#1C5C4B","#1D3557","#7A3B12","#4A4E69"]},"$preview":{"width":1200,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#1C5C4B';
+    const step = this.state.step ?? 1;
+
+    const stepDefs = [
+      { n: 1, label: 'Tip & locație' },
+      { n: 2, label: 'Detalii' },
+      { n: 3, label: 'Fotografii' },
+      { n: 4, label: 'Preț & contact' }
+    ];
+    const steps = stepDefs.map((d) => {
+      const done = d.n < step;
+      const active = d.n === step;
+      return {
+        number: String(d.n),
+        label: d.label,
+        done,
+        notDone: !done,
+        circleBg: done ? 'var(--accent)' : (active ? 'var(--surface)' : 'var(--surface)'),
+        circleColor: done ? '#FFFFFF' : (active ? 'var(--accent)' : 'var(--ink-muted)'),
+        circleBorder: done ? 'var(--accent)' : (active ? 'var(--accent)' : 'var(--border)'),
+        labelColor: active ? 'var(--ink)' : 'var(--ink-muted)',
+        click: () => this.setState({ step: d.n })
+      };
+    });
+
+    const activeDeal = this.state.dealType ?? 'vinde';
+    const dealDefs = [
+      { id: 'vinde', label: 'Vând' },
+      { id: 'inchiriez', label: 'Închiriez' }
+    ];
+    const dealTabs = dealDefs.map((d) => {
+      const active = d.id === activeDeal;
+      return {
+        id: d.id,
+        label: d.label,
+        bg: active ? 'var(--accent)' : 'transparent',
+        color: active ? '#FFFFFF' : 'var(--ink-muted)',
+        click: () => this.setState({ dealType: d.id })
+      };
+    });
+
+    const submitted = !!this.state.submitted;
+    const goNext = () => {
+      if (step === 4) {
+        this.setState({ submitted: true });
+      } else {
+        this.setState({ step: Math.min(4, step + 1) });
+      }
+    };
+    const goBack = () => this.setState({ step: Math.max(1, step - 1) });
+
+    return {
+      accent,
+      steps,
+      dealTabs,
+      isStep1: step === 1,
+      isStep2: step === 2,
+      isStep3: step === 3,
+      isStep4: step === 4,
+      showBack: step > 1,
+      hideBack: step === 1,
+      nextLabel: step === 4 ? 'Publică anunțul' : 'Continuă',
+      goNext,
+      goBack,
+      isSuccess: submitted,
+      isFormVisible: !submitted
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --ground: #FAFAF8;
+      --surface: #FFFFFF;
+      --ink: #14181C;
+      --ink-muted: #5B6472;
+      --border: #E4E7E9;
+      --accent: #1C5C4B;
+    }
+    body { margin: 0; background: var(--ground); }
+    a { text-decoration: none; color: inherit; }
+    h1 { margin: 0; }
+    p { margin: 0; }
+    select, input, button { font: inherit; }
+
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #FFFFFF; font-weight: 600; font-size: 14px; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s ease; width: 100%; }
+    .btn-primary:hover { background: color-mix(in oklch, var(--accent) 85%, black); }
+
+    .field-input { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; font-size: 14px; color: var(--ink); background: #FFFFFF; }
+    .field-input:focus { outline: 2px solid color-mix(in oklch, var(--accent) 35%, transparent); outline-offset: 1px; border-color: var(--accent); }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+
+    .tab-btn { border: none; cursor: pointer; padding: 10px 18px; border-radius: 9px; font-weight: 500; font-size: 14px; transition: background .15s ease, color .15s ease; flex: 1; }
+
+    .auth-bg { position: relative; overflow: hidden; }
+    .auth-bg::before { content: ""; position: absolute; left: -10%; right: -10%; top: -18%; height: 620px; background: radial-gradient(55% 55% at 50% 0%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 72%); pointer-events: none; z-index: 0; }
+  </style>
+</helmet>
+<div style="--accent: {{accent}}; width: 100%; min-height: 100vh; background: var(--ground); font-family: 'IBM Plex Sans', sans-serif; color: var(--ink); overflow-x: hidden;">
+
+  <div class="auth-bg" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 64px 24px;">
+    <div style="position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%;">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; margin-bottom: 36px;">
+        <span style="width: 10px; height: 10px; border-radius: 3px; background: var(--accent); display: inline-block;"></span>
+        <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em;">imova</span>
+      </a>
+
+      <div style="width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px; box-shadow: 0 30px 60px -34px rgba(20,24,28,.28);">
+        <div style="display: flex; gap: 4px; background: var(--ground); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px;">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+            <button type="button" class="tab-btn" onClick="{{t.click}}" style="background: {{t.bg}}; color: {{t.color}};">{{t.label}}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{isLogin}}" hint-placeholder-val="{{true}}">
+          <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; margin-bottom: 6px;">Bine ai revenit</h1>
+          <p style="font-size: 14px; color: var(--ink-muted); margin-bottom: 22px;">Autentifică-te pentru a-ți gestiona anunțurile și favoritele.</p>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label class="field-label" for="au-email">Email</label>
+              <input id="au-email" class="field-input" type="email" placeholder="nume@exemplu.com">
+            </div>
+            <div>
+              <label class="field-label" for="au-parola">Parolă</label>
+              <input id="au-parola" class="field-input" type="password" placeholder="••••••••">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-muted);"><input type="checkbox" style="width: 14px; height: 14px;">Ține-mă minte</label>
+              <a href="#" style="font-size: 13px; color: var(--accent);">Ai uitat parola?</a>
+            </div>
+            <button type="button" class="btn-primary" style="margin-top: 6px;">Autentificare</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSignup}}" hint-placeholder-val="{{false}}">
+          <h1 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; margin-bottom: 6px;">Creează-ți un cont</h1>
+          <p style="font-size: 14px; color: var(--ink-muted); margin-bottom: 22px;">Salvează favorite, publică anunțuri și primește mesaje direct.</p>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label class="field-label" for="au-nume">Nume</label>
+              <input id="au-nume" class="field-input" type="text" placeholder="Numele tău">
+            </div>
+            <div>
+              <label class="field-label" for="au-email2">Email</label>
+              <input id="au-email2" class="field-input" type="email" placeholder="nume@exemplu.com">
+            </div>
+            <div>
+              <label class="field-label" for="au-parola2">Parolă</label>
+              <input id="au-parola2" class="field-input" type="password" placeholder="••••••••">
+            </div>
+            <div>
+              <label class="field-label" for="au-parola3">Confirmă parola</label>
+              <input id="au-parola3" class="field-input" type="password" placeholder="••••••••">
+            </div>
+            <label style="display: flex; align-items: flex-start; gap: 7px; font-size: 13px; color: var(--ink-muted); line-height: 1.4;">
+              <input type="checkbox" style="width: 14px; height: 14px; margin-top: 2px;">
+              <span>Sunt de acord cu <a href="About.dc.html" style="color: var(--accent);">Termenii</a> și <a href="About.dc.html" style="color: var(--accent);">Politica de confidențialitate</a>.</span>
+            </label>
+            <button type="button" class="btn-primary" style="margin-top: 6px;">Creează cont</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <p style="margin-top: 22px; font-size: 13px; color: var(--ink-muted);">Ai o agenție? <a href="AddListing.dc.html" style="color: var(--accent);">Publică anunțuri ca profesionist</a></p>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#1C5C4B","options":["#1C5C4B","#1D3557","#7A3B12","#4A4E69"]},"$preview":{"width":900,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#1C5C4B';
+    const mode = this.state.mode ?? 'login';
+    const tabDefs = [
+      { id: 'login', label: 'Autentificare' },
+      { id: 'signup', label: 'Cont nou' }
+    ];
+    const tabs = tabDefs.map((d) => {
+      const active = d.id === mode;
+      return {
+        id: d.id,
+        label: d.label,
+        bg: active ? 'var(--accent)' : 'transparent',
+        color: active ? '#FFFFFF' : 'var(--ink-muted)',
+        click: () => this.setState({ mode: d.id })
+      };
+    });
+    return {
+      accent,
+      tabs,
+      isLogin: mode === 'login',
+      isSignup: mode === 'signup'
+    };
+  }
+}
+</script>
+</body>
+</html>
