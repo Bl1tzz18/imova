@@ -9,7 +9,8 @@
     "buy": "Купить",
     "rent": "Снять",
     "login": "Войти",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "account": "Аккаунт"
   },
   "Footer": {
     "tagline": "Платформа недвижимости для Молдовы — объявления от частных лиц и агентств.",
@@ -191,6 +192,13 @@
     "registerSubtitle": "Сохраняйте избранное, публикуйте объявления и получайте сообщения напрямую.",
     "emailLabel": "Эл. почта",
     "emailPlaceholder": "имя@пример.com",
+    "phoneLabel": "Номер телефона",
+    "phonePlaceholder": "69 123 456",
+    "phoneSearchPlaceholder": "Поиск страны...",
+    "phoneNoResults": "Страны не найдены.",
+    "completeProfileTitle": "Ещё один шаг",
+    "completeProfileSubtitle": "Добавьте номер телефона, чтобы покупатели и арендаторы могли с вами связаться.",
+    "completeProfileSubmit": "Сохранить и продолжить",
     "passwordLabel": "Пароль",
     "confirmPasswordLabel": "Подтвердите пароль",
     "nameLabel": "Имя",
@@ -207,5 +215,22 @@
     "orDivider": "или",
     "genericError": "Произошла ошибка. Попробуйте снова.",
     "passwordMismatch": "Пароли не совпадают."
+  },
+  "Account": {
+    "settingsTitle": "Настройки аккаунта",
+    "settingsSubtitle": "Управляйте профилем и безопасностью.",
+    "profileTab": "Профиль",
+    "securityTab": "Безопасность",
+    "saveChanges": "Сохранить изменения",
+    "saving": "Сохранение...",
+    "profileSaved": "Профиль обновлён.",
+    "currentPasswordLabel": "Текущий пароль",
+    "newPasswordLabel": "Новый пароль",
+    "confirmNewPasswordLabel": "Подтвердите новый пароль",
+    "setPasswordHint": "У вашего аккаунта ещё нет пароля (вы вошли через Google). Установите его, чтобы также иметь возможность входить по email.",
+    "setPassword": "Установить пароль",
+    "updatePassword": "Обновить пароль",
+    "updating": "Обновление...",
+    "passwordUpdated": "Пароль обновлён."
   }
 }

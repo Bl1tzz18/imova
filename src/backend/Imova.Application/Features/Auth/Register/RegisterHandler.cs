@@ -19,6 +19,7 @@ public class RegisterHandler(UserManager<ApplicationUser> userManager, IJwtToken
             UserName = request.Email,
             Email = request.Email,
             DisplayName = request.DisplayName,
+            PhoneNumber = request.PhoneNumber,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);
@@ -31,7 +32,10 @@ public class RegisterHandler(UserManager<ApplicationUser> userManager, IJwtToken
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
         var token = jwtTokenGenerator.GenerateToken(user, roles);
-        return new AuthResultDto(token.Value, token.ExpiresAt, new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles));
+        return new AuthResultDto(
+            token.Value,
+            token.ExpiresAt,
+            new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber)));
     }
 
     private static IEnumerable<ValidationFailure> ToValidationFailures(IEnumerable<IdentityError> errors) =>

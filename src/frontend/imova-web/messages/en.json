@@ -9,7 +9,8 @@
     "buy": "Buy",
     "rent": "Rent",
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "account": "Account"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -191,6 +192,13 @@
     "registerSubtitle": "Save favorites, publish listings and get messages directly.",
     "emailLabel": "Email",
     "emailPlaceholder": "name@example.com",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "69 123 456",
+    "phoneSearchPlaceholder": "Search country...",
+    "phoneNoResults": "No countries found.",
+    "completeProfileTitle": "One more thing",
+    "completeProfileSubtitle": "Add a phone number so buyers and renters can reach you.",
+    "completeProfileSubmit": "Save and continue",
     "passwordLabel": "Password",
     "confirmPasswordLabel": "Confirm password",
     "nameLabel": "Name",
@@ -207,5 +215,22 @@
     "orDivider": "or",
     "genericError": "Something went wrong. Please try again.",
     "passwordMismatch": "Passwords don't match."
+  },
+  "Account": {
+    "settingsTitle": "Account settings",
+    "settingsSubtitle": "Manage your profile and security.",
+    "profileTab": "Profile",
+    "securityTab": "Security",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "profileSaved": "Profile updated.",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmNewPasswordLabel": "Confirm new password",
+    "setPasswordHint": "Your account doesn't have a password yet (you signed in with Google). Set one to also be able to log in with your email.",
+    "setPassword": "Set password",
+    "updatePassword": "Update password",
+    "updating": "Updating...",
+    "passwordUpdated": "Password updated."
   }
 }

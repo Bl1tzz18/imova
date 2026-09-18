@@ -3,7 +3,7 @@
 import { useState, type ChangeEvent, type ComponentPropsWithoutRef } from "react";
 import { cn } from "@/lib/utils/cn";
 
-const inputClass =
+export const inputClass =
   "h-11 w-full rounded-xl border border-ink-200 bg-white px-3.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20";
 
 export function FieldLabel({
