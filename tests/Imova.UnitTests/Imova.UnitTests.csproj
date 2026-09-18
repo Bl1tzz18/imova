@@ -5,8 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Needed for ASP.NET Core Identity types (UserManager<>, IUserStore<>, …) used directly by
+         the Auth unit tests' fake UserManager setup — same reason Application/Infrastructure need it. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\backend\Imova.Domain\Imova.Domain.csproj" />
     <ProjectReference Include="..\..\src\backend\Imova.Application\Imova.Application.csproj" />
+    <ProjectReference Include="..\..\src\backend\Imova.Infrastructure\Imova.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\backend\Imova.Api\Imova.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
