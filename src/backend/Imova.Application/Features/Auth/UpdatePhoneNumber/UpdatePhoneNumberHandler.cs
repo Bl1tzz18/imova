@@ -18,6 +18,12 @@ public class UpdatePhoneNumberHandler(UserManager<ApplicationUser> userManager)
         await userManager.UpdateAsync(user);
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
-        return new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber));
+        return new AuthUserDto(
+            user.Id,
+            user.Email!,
+            user.DisplayName,
+            roles,
+            string.IsNullOrWhiteSpace(user.PhoneNumber),
+            user.ProfilePictureUrl);
     }
 }

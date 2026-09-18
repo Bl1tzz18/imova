@@ -13,12 +13,28 @@ public interface IBlobStorageService
 
     string GenerateBlobName(Guid propertyId, string fileExtension);
 
+    // Prefixed under "profile-pictures/" so these never collide with the flat "{propertyId}/..."
+    // scheme GenerateBlobName uses — both share the same container.
+    string GenerateProfilePictureBlobName(Guid userId, string fileExtension);
+
     string GenerateUploadSasUrl(string blobName, TimeSpan expiry);
 
     string GetPublicUrl(string blobName);
 
+    // Inverse of GetPublicUrl — recovers the blob name from a URL this service previously
+    // returned, so a caller that only stored the URL (e.g. ApplicationUser.ProfilePictureUrl)
+    // can still delete that blob later. Null if the URL isn't one of ours.
+    string? TryGetBlobNameFromUrl(string url);
+
     // Null when the blob hasn't actually been written yet (upload never happened, or failed).
     Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken);
+
+    // Direct server-side write — for content the server itself produced or fetched (e.g. a
+    // downloaded Google profile picture, or a profile picture received via a server-validated
+    // multipart upload), as opposed to GenerateUploadSasUrl's browser-direct-to-storage flow.
+    Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken);
+
+    Task DeleteAsync(string blobName, CancellationToken cancellationToken);
 }
 
 public record UploadedBlobInfo(long SizeBytes, string? ReportedContentType, byte[] LeadingBytes);

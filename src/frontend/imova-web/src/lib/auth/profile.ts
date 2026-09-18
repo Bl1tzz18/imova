@@ -5,6 +5,7 @@ export type UserProfile = {
   email: string;
   displayName: string | null;
   phoneNumber: string | null;
+  profilePictureUrl: string | null;
   roles: string[];
   hasPassword: boolean;
 };

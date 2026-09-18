@@ -24,6 +24,12 @@ public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGen
         return new AuthResultDto(
             token.Value,
             token.ExpiresAt,
-            new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber)));
+            new AuthUserDto(
+                user.Id,
+                user.Email!,
+                user.DisplayName,
+                roles,
+                string.IsNullOrWhiteSpace(user.PhoneNumber),
+                user.ProfilePictureUrl));
     }
 }

@@ -69,6 +69,9 @@ public sealed class BlobStorageService : IBlobStorageService
     public string GenerateBlobName(Guid propertyId, string fileExtension) =>
         $"{propertyId}/{Guid.NewGuid()}{fileExtension}";
 
+    public string GenerateProfilePictureBlobName(Guid userId, string fileExtension) =>
+        $"profile-pictures/{userId}/{Guid.NewGuid()}{fileExtension}";
+
     public string GenerateUploadSasUrl(string blobName, TimeSpan expiry)
     {
         var blobClient = _containerClient.GetBlobClient(blobName);
@@ -95,6 +98,42 @@ public sealed class BlobStorageService : IBlobStorageService
 
     public string GetPublicUrl(string blobName) =>
         RewriteHostIfConfigured(_containerClient.GetBlobClient(blobName).Uri);
+
+    public string? TryGetBlobNameFromUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        // Can't just prefix-match "/{containerName}/" — Azurite's URL shape is
+        // "/{account}/{container}/{blob}" (the account is a path segment), while real Azure
+        // Storage's is "https://{account}.blob.core.windows.net/{container}/{blob}" (the account
+        // is a subdomain, not in the path). _containerClient.Uri.AbsolutePath already reflects
+        // whichever shape is actually in play, so deriving the prefix from it instead of
+        // hardcoding it works for both.
+        var containerPrefix = _containerClient.Uri.AbsolutePath.TrimEnd('/') + "/";
+        if (!uri.AbsolutePath.StartsWith(containerPrefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return Uri.UnescapeDataString(uri.AbsolutePath[containerPrefix.Length..]);
+    }
+
+    public async Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
+    {
+        var blobClient = _containerClient.GetBlobClient(blobName);
+        await blobClient.UploadAsync(
+            content,
+            new BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = contentType } },
+            cancellationToken);
+    }
+
+    public async Task DeleteAsync(string blobName, CancellationToken cancellationToken)
+    {
+        await _containerClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+    }
 
     public async Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken)
     {

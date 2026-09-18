@@ -21,6 +21,7 @@ public class UpdateProfileHandler(UserManager<ApplicationUser> userManager)
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         var hasPassword = await userManager.HasPasswordAsync(user);
 
-        return new UserProfileDto(user.Id, user.Email!, user.DisplayName, user.PhoneNumber, roles, hasPassword);
+        return new UserProfileDto(
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword);
     }
 }

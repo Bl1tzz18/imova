@@ -4,13 +4,14 @@ import { getTranslations } from "next-intl/server";
 import { LinkButton } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { LogoutButton } from "@/components/auth/LogoutButton";
-import { getSessionToken } from "@/lib/auth/session";
+import { Avatar } from "@/components/ui/Avatar";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
 
 export async function Header() {
-  const [t, tCommon, token] = await Promise.all([
+  const [t, tCommon, profile] = await Promise.all([
     getTranslations("Header"),
     getTranslations("Common"),
-    getSessionToken(),
+    getCurrentUserProfile(),
   ]);
 
   return (
@@ -31,18 +32,21 @@ export async function Header() {
 
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          {token ? (
+          {profile ? (
             <>
               <Link
                 href="/account"
                 aria-label={t("account")}
                 title={t("account")}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-ink-100 bg-white text-ink-600 transition-colors hover:border-ink-200 hover:text-ink-950"
+                className="rounded-full ring-offset-2 transition-shadow hover:ring-2 hover:ring-ink-200"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4.5 w-4.5">
-                  <circle cx="12" cy="8.5" r="3.4" />
-                  <path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" strokeLinecap="round" />
-                </svg>
+                <Avatar
+                  userId={profile.id}
+                  displayName={profile.displayName}
+                  email={profile.email}
+                  pictureUrl={profile.profilePictureUrl}
+                  size={36}
+                />
               </Link>
               <LogoutButton>{t("logout")}</LogoutButton>
             </>

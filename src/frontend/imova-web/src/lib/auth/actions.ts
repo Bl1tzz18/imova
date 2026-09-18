@@ -163,6 +163,62 @@ export async function changePassword(_prevState: AuthFormState, formData: FormDa
   return { success: true };
 }
 
+export type UploadProfilePictureResult = { error?: string; profilePictureUrl?: string | null };
+
+// Called directly from the client (not via useActionState) — this is an immediate
+// upload-on-file-select interaction, not a <form> submission, same pattern as googleLogin()
+// above. Proxied through a Server Action (rather than the browser calling the API directly, the
+// way listing-photo uploads do in lib/api/media.ts) because this endpoint is authenticated and
+// the JWT lives in an httpOnly cookie client-side JS can't read.
+export async function uploadProfilePicture(file: File): Promise<UploadProfilePictureResult> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const uploadForm = new FormData();
+  uploadForm.append("file", file);
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/profile-picture`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: uploadForm,
+  });
+
+  if (!res.ok) {
+    const { error } = await readAuthError(res);
+    return { error };
+  }
+
+  const profile = (await res.json()) as { profilePictureUrl: string | null };
+  revalidatePath("/account");
+  return { profilePictureUrl: profile.profilePictureUrl };
+}
+
+// Same proxy-through-a-Server-Action reasoning as uploadProfilePicture above.
+export async function removeProfilePicture(): Promise<UploadProfilePictureResult> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/profile-picture`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    const { error } = await readAuthError(res);
+    return { error };
+  }
+
+  const profile = (await res.json()) as { profilePictureUrl: string | null };
+  revalidatePath("/account");
+  return { profilePictureUrl: profile.profilePictureUrl };
+}
+
 export async function logout() {
   await clearSessionCookie();
   redirect("/");

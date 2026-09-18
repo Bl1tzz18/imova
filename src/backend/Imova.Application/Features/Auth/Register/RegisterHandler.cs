@@ -35,7 +35,13 @@ public class RegisterHandler(UserManager<ApplicationUser> userManager, IJwtToken
         return new AuthResultDto(
             token.Value,
             token.ExpiresAt,
-            new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber)));
+            new AuthUserDto(
+                user.Id,
+                user.Email!,
+                user.DisplayName,
+                roles,
+                string.IsNullOrWhiteSpace(user.PhoneNumber),
+                user.ProfilePictureUrl));
     }
 
     private static IEnumerable<ValidationFailure> ToValidationFailures(IEnumerable<IdentityError> errors) =>

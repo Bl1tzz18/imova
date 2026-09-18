@@ -12,4 +12,10 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     // Collected at registration (and, for Google sign-in, taken from the Google profile) —
     // Identity's base user has no name field of its own.
     public string? DisplayName { get; set; }
+
+    // Always one of OUR OWN blob URLs (see IBlobStorageService.GetPublicUrl) — never an external
+    // URL. Google's profile picture is downloaded and re-uploaded to our own storage on first
+    // sign-in (see GoogleLoginHandler) rather than linked to directly, since Google's URL can be
+    // unreliable/temporary and we don't want a third party able to change what renders here.
+    public string? ProfilePictureUrl { get; set; }
 }

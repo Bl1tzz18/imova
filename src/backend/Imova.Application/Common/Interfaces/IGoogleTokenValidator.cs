@@ -1,6 +1,6 @@
 namespace Imova.Application.Common.Interfaces;
 
-public record GoogleUserInfo(string Email, string? Name);
+public record GoogleUserInfo(string Email, string? Name, string? Picture);
 
 public interface IGoogleTokenValidator
 {
