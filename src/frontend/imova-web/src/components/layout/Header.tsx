@@ -3,8 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LinkButton } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
-import { LogoutButton } from "@/components/auth/LogoutButton";
-import { Avatar } from "@/components/ui/Avatar";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 
 export async function Header() {
@@ -33,23 +32,7 @@ export async function Header() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           {profile ? (
-            <>
-              <Link
-                href="/account"
-                aria-label={t("account")}
-                title={t("account")}
-                className="rounded-full ring-offset-2 transition-shadow hover:ring-2 hover:ring-ink-200"
-              >
-                <Avatar
-                  userId={profile.id}
-                  displayName={profile.displayName}
-                  email={profile.email}
-                  pictureUrl={profile.profilePictureUrl}
-                  size={36}
-                />
-              </Link>
-              <LogoutButton>{t("logout")}</LogoutButton>
-            </>
+            <AccountMenu profile={profile} />
           ) : (
             <Link href="/login" className="text-sm font-medium text-ink-600 transition-colors hover:text-ink-950">
               {t("login")}

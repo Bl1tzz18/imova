@@ -53,4 +53,5 @@ export type Property = {
   location: PropertyLocation | null;
   owner: PropertyOwner | null;
   media: PropertyMedia[];
+  isSaved: boolean;
 };

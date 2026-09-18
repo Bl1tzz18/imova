@@ -5,11 +5,16 @@ import { PropertyCarousel } from "@/components/property/PropertyCarousel";
 import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
 import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
 import { LinkButton } from "@/components/ui/Button";
+import { getSessionToken } from "@/lib/auth/session";
 import type { Property } from "@/types/property";
 
 async function getProperties(): Promise<Property[]> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/properties`, { cache: "no-store" });
+  const token = await getSessionToken();
+  const res = await fetch(`${apiUrl}/api/v1/properties`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  });
 
   if (!res.ok) {
     throw new Error(`Failed to fetch properties: ${res.status}`);

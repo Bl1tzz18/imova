@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Imova.Api.Features.Auth;
+using Imova.Api.Features.Favorites;
 using Imova.Api.Features.Media;
 using Imova.Api.Features.Properties;
 using Imova.Api.Features.Users;
@@ -174,6 +175,7 @@ app.MapPropertiesEndpoints();
 app.MapMediaEndpoints();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
+app.MapFavoriteEndpoints();
 
 app.Run();
 

@@ -10,7 +10,9 @@
     "rent": "Rent",
     "login": "Log in",
     "logout": "Log out",
-    "account": "Account"
+    "account": "Account",
+    "savedListings": "Saved listings",
+    "accountSettings": "Account settings"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -39,7 +41,9 @@
   },
   "PropertyCard": {
     "perMonth": "/mo",
-    "rooms": "{count, plural, one {# room} other {# rooms}}"
+    "rooms": "{count, plural, one {# room} other {# rooms}}",
+    "saveListing": "Save listing",
+    "savedListing": "Saved"
   },
   "Home": {
     "badge": "Real estate in Moldova, no middlemen",
@@ -241,5 +245,12 @@
     "updatePassword": "Update password",
     "updating": "Updating...",
     "passwordUpdated": "Password updated."
+  },
+  "SavedListingsPage": {
+    "title": "Saved listings",
+    "resultsCount": "{count, plural, one {# saved listing} other {# saved listings}}",
+    "emptyTitle": "You haven't saved any listings yet",
+    "emptyBody": "Tap the heart on a listing to save it here for later.",
+    "browseListings": "Browse listings"
   }
 }

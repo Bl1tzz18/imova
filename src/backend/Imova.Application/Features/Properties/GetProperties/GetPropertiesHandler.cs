@@ -35,8 +35,19 @@ public class GetPropertiesHandler(IApplicationDbContext dbContext, IBlobStorageS
             .GroupBy(m => m.PropertyId)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<PropertyMediaDto>)g.Select(m => m.ToDto(blobStorageService)).ToList());
 
+        var savedPropertyIds = request.CurrentUserId is null
+            ? []
+            : await dbContext.Favorites
+                .AsNoTracking()
+                .Where(f => f.UserId == request.CurrentUserId)
+                .Select(f => f.PropertyId)
+                .ToHashSetAsync(cancellationToken);
+
         return properties
-            .Select(p => p.ToDto(locationsByPropertyId.GetValueOrDefault(p.Id), media: mediaLookup.GetValueOrDefault(p.Id)))
+            .Select(p => p.ToDto(
+                locationsByPropertyId.GetValueOrDefault(p.Id),
+                media: mediaLookup.GetValueOrDefault(p.Id),
+                isSaved: savedPropertyIds.Contains(p.Id)))
             .ToList();
     }
 }
