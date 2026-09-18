@@ -5,12 +5,18 @@ import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
+import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
+import { getSessionToken } from "@/lib/auth/session";
 import type { Property } from "@/types/property";
 
 async function getProperty(id: string): Promise<Property | null> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/properties/${id}`, { cache: "no-store" });
+  const token = await getSessionToken();
+  const res = await fetch(`${apiUrl}/api/v1/properties/${id}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  });
 
   if (res.status === 404) {
     return null;
@@ -83,11 +89,14 @@ export default async function ProprietatePage({
 
           <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={property.listingType === "Rent" ? "accent" : "brand"}>
-                  {tListing(property.listingType)}
-                </Badge>
-                <Badge tone="neutral">{tType(property.propertyType)}</Badge>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={property.listingType === "Rent" ? "accent" : "brand"}>
+                    {tListing(property.listingType)}
+                  </Badge>
+                  <Badge tone="neutral">{tType(property.propertyType)}</Badge>
+                </div>
+                <SaveListingButton propertyId={property.id} initialSaved={property.isSaved} variant="labeled" />
               </div>
 
               <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">

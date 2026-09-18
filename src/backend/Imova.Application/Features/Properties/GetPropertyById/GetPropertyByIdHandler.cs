@@ -35,6 +35,10 @@ public class GetPropertyByIdHandler(IApplicationDbContext dbContext, IBlobStorag
             .ThenBy(m => m.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return property.ToDto(location, owner, media.Select(m => m.ToDto(blobStorageService)).ToList());
+        var isSaved = request.CurrentUserId is not null && await dbContext.Favorites
+            .AsNoTracking()
+            .AnyAsync(f => f.UserId == request.CurrentUserId && f.PropertyId == property.Id, cancellationToken);
+
+        return property.ToDto(location, owner, media.Select(m => m.ToDto(blobStorageService)).ToList(), isSaved);
     }
 }

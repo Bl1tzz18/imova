@@ -1,5 +1,6 @@
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Favorites;
 using Imova.Domain.Locations;
 using Imova.Domain.Media;
 using Imova.Domain.Properties;
@@ -23,6 +24,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<PropertyLocation> PropertyLocations => Set<PropertyLocation>();
 
     public DbSet<PropertyMedia> PropertyMedias => Set<PropertyMedia>();
+
+    public DbSet<Favorite> Favorites => Set<Favorite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

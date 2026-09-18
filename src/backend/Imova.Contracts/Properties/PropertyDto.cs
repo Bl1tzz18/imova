@@ -28,4 +28,5 @@ public record PropertyDto(
     DateTimeOffset? ExpiresAt,
     PropertyLocationDto? Location,
     PropertyOwnerDto? Owner,
-    IReadOnlyList<PropertyMediaDto> Media);
+    IReadOnlyList<PropertyMediaDto> Media,
+    bool IsSaved);

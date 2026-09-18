@@ -26,6 +26,9 @@ public class DeletePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             dbContext.PropertyLocations.Remove(location);
         }
 
+        var favorites = await dbContext.Favorites.Where(f => f.PropertyId == property.Id).ToListAsync(cancellationToken);
+        dbContext.Favorites.RemoveRange(favorites);
+
         // No FK/cascade from PropertyMedia to Property (see PropertyMediaConfiguration), so these
         // have to be removed explicitly rather than relying on the database to cascade them.
         var media = await dbContext.PropertyMedias.Where(m => m.PropertyId == property.Id).ToListAsync(cancellationToken);

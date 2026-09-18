@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PropertyCard } from "@/components/property/PropertyCard";
+import { getSessionToken } from "@/lib/auth/session";
 import type { Property } from "@/types/property";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
@@ -11,8 +12,12 @@ function isPropertyType(value: string): value is PropertyTypeFilter {
 
 async function getProperties(propertyType?: PropertyTypeFilter): Promise<Property[]> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
   const query = propertyType ? `?propertyType=${propertyType}` : "";
-  const res = await fetch(`${apiUrl}/api/v1/properties${query}`, { cache: "no-store" });
+  const res = await fetch(`${apiUrl}/api/v1/properties${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  });
 
   if (!res.ok) {
     throw new Error(`Failed to fetch properties: ${res.status}`);

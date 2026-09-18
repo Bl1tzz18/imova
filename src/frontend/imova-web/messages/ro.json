@@ -10,7 +10,9 @@
     "rent": "Închiriază",
     "login": "Autentificare",
     "logout": "Deconectare",
-    "account": "Cont"
+    "account": "Cont",
+    "savedListings": "Anunțuri salvate",
+    "accountSettings": "Setările contului"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -39,7 +41,9 @@
   },
   "PropertyCard": {
     "perMonth": "/lună",
-    "rooms": "{count, plural, one {# cameră} few {# camere} other {# de camere}}"
+    "rooms": "{count, plural, one {# cameră} few {# camere} other {# de camere}}",
+    "saveListing": "Salvează anunțul",
+    "savedListing": "Salvat"
   },
   "Home": {
     "badge": "Imobiliare din Moldova, fără intermediari",
@@ -241,5 +245,12 @@
     "updatePassword": "Actualizează parola",
     "updating": "Se actualizează...",
     "passwordUpdated": "Parolă actualizată."
+  },
+  "SavedListingsPage": {
+    "title": "Anunțuri salvate",
+    "resultsCount": "{count, plural, one {# anunț salvat} few {# anunțuri salvate} other {# de anunțuri salvate}}",
+    "emptyTitle": "Nu ai salvat încă niciun anunț",
+    "emptyBody": "Apasă pe inimă pe un anunț pentru a-l salva aici.",
+    "browseListings": "Vezi anunțuri"
   }
 }

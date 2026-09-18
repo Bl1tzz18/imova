@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import type { Property } from "@/types/property";
 
@@ -36,6 +37,12 @@ export function PropertyCard({ property }: { property: Property }) {
             {tListing(property.listingType)}
           </Badge>
         </div>
+
+        <SaveListingButton
+          propertyId={property.id}
+          initialSaved={property.isSaved}
+          className="absolute right-3 top-3"
+        />
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">

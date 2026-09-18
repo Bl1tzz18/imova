@@ -12,7 +12,8 @@ public static class PropertyMapping
         this Property property,
         PropertyLocation? location,
         ApplicationUser? owner = null,
-        IReadOnlyList<PropertyMediaDto>? media = null) =>
+        IReadOnlyList<PropertyMediaDto>? media = null,
+        bool isSaved = false) =>
         new(
             property.Id,
             property.OwnerId,
@@ -50,5 +51,6 @@ public static class PropertyMapping
                     location.Latitude,
                     location.Longitude),
             owner is null ? null : new PropertyOwnerDto(owner.Email ?? string.Empty, owner.PhoneNumber),
-            media ?? []);
+            media ?? [],
+            isSaved);
 }

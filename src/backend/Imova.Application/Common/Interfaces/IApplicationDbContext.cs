@@ -1,4 +1,5 @@
 using Imova.Application.Common.Identity;
+using Imova.Domain.Favorites;
 using Imova.Domain.Locations;
 using Imova.Domain.Media;
 using Imova.Domain.Properties;
@@ -13,6 +14,8 @@ public interface IApplicationDbContext
     DbSet<PropertyLocation> PropertyLocations { get; }
 
     DbSet<PropertyMedia> PropertyMedias { get; }
+
+    DbSet<Favorite> Favorites { get; }
 
     DbSet<ApplicationUser> Users { get; }
 
