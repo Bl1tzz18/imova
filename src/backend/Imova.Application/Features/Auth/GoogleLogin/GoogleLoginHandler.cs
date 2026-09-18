@@ -44,10 +44,22 @@ public class GoogleLoginHandler(
 
             await userManager.AddToRoleAsync(user, Roles.User);
         }
+        else if (!user.EmailConfirmed)
+        {
+            // Google just re-verified this email, even though the account may have originally
+            // been created via email/password registration (which leaves EmailConfirmed false —
+            // we don't have email verification there yet). Without this, an account that started
+            // as email/password and later signed in with Google would stay stuck as unconfirmed.
+            user.EmailConfirmed = true;
+            await userManager.UpdateAsync(user);
+        }
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         var token = jwtTokenGenerator.GenerateToken(user, roles);
 
-        return new AuthResultDto(token.Value, token.ExpiresAt, new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles));
+        return new AuthResultDto(
+            token.Value,
+            token.ExpiresAt,
+            new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber)));
     }
 }

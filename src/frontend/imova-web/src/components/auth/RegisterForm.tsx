@@ -6,6 +6,7 @@ import { register, type AuthFormState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, TextInput } from "@/components/ui/Field";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 const initialState: AuthFormState = {};
 
@@ -40,6 +41,11 @@ export function RegisterForm({ next }: { next?: string }) {
       <label className="block">
         <FieldLabel>{t("emailLabel")}</FieldLabel>
         <TextInput type="email" name="email" placeholder={t("emailPlaceholder")} required />
+      </label>
+
+      <label className="block">
+        <FieldLabel>{t("phoneLabel")}</FieldLabel>
+        <PhoneInput name="phone" required />
       </label>
 
       <label className="block">

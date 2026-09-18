@@ -1,10 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
-import { clearSessionCookie, setSessionCookie } from "@/lib/auth/session";
+import { clearSessionCookie, getSessionToken, setSessionCookie } from "@/lib/auth/session";
 
-export type AuthFormState = { error?: string };
+export type AuthFormState = { error?: string; success?: boolean };
 
 // Only ever redirect to a same-site path — formData/query values are attacker-controlled, and an
 // absolute URL here would make this an open redirect.
@@ -12,17 +13,27 @@ function safeNext(next: FormDataEntryValue | string | null): string {
   return typeof next === "string" && next.startsWith("/") ? next : "/";
 }
 
+type AuthResponseBody = {
+  token: string;
+  expiresAt: string;
+  user: { requiresPhoneNumber: boolean };
+};
+
+async function readAuthError(res: Response): Promise<AuthFormState> {
+  const problem = await res.json().catch(() => null);
+  const message = problem?.errors
+    ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
+    : ((problem?.detail as string | undefined) ?? (await getTranslations("Auth"))("genericError"));
+
+  return { error: message };
+}
+
 async function completeSignIn(res: Response, next: string): Promise<AuthFormState> {
   if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    const message = problem?.errors
-      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : ((problem?.detail as string | undefined) ?? (await getTranslations("Auth"))("genericError"));
-
-    return { error: message };
+    return readAuthError(res);
   }
 
-  const { token, expiresAt } = (await res.json()) as { token: string; expiresAt: string };
+  const { token, expiresAt } = (await res.json()) as AuthResponseBody;
   await setSessionCookie(token, expiresAt);
   redirect(next);
 }
@@ -52,6 +63,7 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
       email: formData.get("email"),
       password: formData.get("password"),
       displayName: formData.get("name"),
+      phoneNumber: formData.get("phone"),
     }),
   });
 
@@ -67,7 +79,88 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
     body: JSON.stringify({ idToken }),
   });
 
-  return completeSignIn(res, safeNext(next ?? null));
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  const { token, expiresAt, user } = (await res.json()) as AuthResponseBody;
+  await setSessionCookie(token, expiresAt);
+
+  const safeNextPath = safeNext(next ?? null);
+  redirect(
+    user.requiresPhoneNumber ? `/complete-profile?next=${encodeURIComponent(safeNextPath)}` : safeNextPath,
+  );
+}
+
+export async function completePhoneNumber(
+  _prevState: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/phone`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ phoneNumber: formData.get("phone") }),
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  redirect(safeNext(formData.get("next")));
+}
+
+export async function updateProfile(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/profile`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      displayName: formData.get("name"),
+      phoneNumber: formData.get("phone"),
+    }),
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  revalidatePath("/account");
+  return { success: true };
+}
+
+export async function changePassword(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/password`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      currentPassword: formData.get("currentPassword") || null,
+      newPassword: formData.get("newPassword"),
+    }),
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  revalidatePath("/account");
+  return { success: true };
 }
 
 export async function logout() {

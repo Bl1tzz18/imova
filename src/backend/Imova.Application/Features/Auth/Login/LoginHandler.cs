@@ -21,6 +21,9 @@ public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGen
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         var token = jwtTokenGenerator.GenerateToken(user, roles);
 
-        return new AuthResultDto(token.Value, token.ExpiresAt, new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles));
+        return new AuthResultDto(
+            token.Value,
+            token.ExpiresAt,
+            new AuthUserDto(user.Id, user.Email!, user.DisplayName, roles, string.IsNullOrWhiteSpace(user.PhoneNumber)));
     }
 }

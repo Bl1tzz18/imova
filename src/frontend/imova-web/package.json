@@ -11,6 +11,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
+    "libphonenumber-js": "^1.13.13",
     "next": "^15.0.0",
     "next-intl": "^4.14.5",
     "react": "^19.0.0",

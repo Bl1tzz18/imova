@@ -9,7 +9,8 @@
     "buy": "Cumpără",
     "rent": "Închiriază",
     "login": "Autentificare",
-    "logout": "Deconectare"
+    "logout": "Deconectare",
+    "account": "Cont"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -191,6 +192,13 @@
     "registerSubtitle": "Salvează favorite, publică anunțuri și primește mesaje direct.",
     "emailLabel": "Email",
     "emailPlaceholder": "nume@exemplu.com",
+    "phoneLabel": "Număr de telefon",
+    "phonePlaceholder": "69 123 456",
+    "phoneSearchPlaceholder": "Caută țara...",
+    "phoneNoResults": "Nicio țară găsită.",
+    "completeProfileTitle": "Încă un lucru",
+    "completeProfileSubtitle": "Adaugă un număr de telefon pentru ca cumpărătorii și chiriașii să te poată contacta.",
+    "completeProfileSubmit": "Salvează și continuă",
     "passwordLabel": "Parolă",
     "confirmPasswordLabel": "Confirmă parola",
     "nameLabel": "Nume",
@@ -207,5 +215,22 @@
     "orDivider": "sau",
     "genericError": "A apărut o eroare. Încearcă din nou.",
     "passwordMismatch": "Parolele nu coincid."
+  },
+  "Account": {
+    "settingsTitle": "Setările contului",
+    "settingsSubtitle": "Gestionează-ți profilul și securitatea.",
+    "profileTab": "Profil",
+    "securityTab": "Securitate",
+    "saveChanges": "Salvează modificările",
+    "saving": "Se salvează...",
+    "profileSaved": "Profil actualizat.",
+    "currentPasswordLabel": "Parola curentă",
+    "newPasswordLabel": "Parolă nouă",
+    "confirmNewPasswordLabel": "Confirmă parola nouă",
+    "setPasswordHint": "Contul tău nu are încă o parolă (te-ai autentificat cu Google). Setează una pentru a te putea autentifica și cu emailul tău.",
+    "setPassword": "Setează parola",
+    "updatePassword": "Actualizează parola",
+    "updating": "Se actualizează...",
+    "passwordUpdated": "Parolă actualizată."
   }
 }

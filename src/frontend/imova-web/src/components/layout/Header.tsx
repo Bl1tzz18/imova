@@ -32,7 +32,20 @@ export async function Header() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           {token ? (
-            <LogoutButton>{t("logout")}</LogoutButton>
+            <>
+              <Link
+                href="/account"
+                aria-label={t("account")}
+                title={t("account")}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-ink-100 bg-white text-ink-600 transition-colors hover:border-ink-200 hover:text-ink-950"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4.5 w-4.5">
+                  <circle cx="12" cy="8.5" r="3.4" />
+                  <path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" strokeLinecap="round" />
+                </svg>
+              </Link>
+              <LogoutButton>{t("logout")}</LogoutButton>
+            </>
           ) : (
             <Link href="/login" className="text-sm font-medium text-ink-600 transition-colors hover:text-ink-950">
               {t("login")}
