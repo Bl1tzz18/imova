@@ -2,4 +2,10 @@ namespace Imova.Contracts.Auth;
 
 public record AuthResultDto(string Token, DateTimeOffset ExpiresAt, AuthUserDto User);
 
-public record AuthUserDto(Guid Id, string Email, string? DisplayName, IReadOnlyList<string> Roles, bool RequiresPhoneNumber);
+public record AuthUserDto(
+    Guid Id,
+    string Email,
+    string? DisplayName,
+    IReadOnlyList<string> Roles,
+    bool RequiresPhoneNumber,
+    string? ProfilePictureUrl);

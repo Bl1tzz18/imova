@@ -15,7 +15,7 @@ public class GoogleTokenValidator(GoogleAuthOptions options) : IGoogleTokenValid
             };
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
-            return new GoogleUserInfo(payload.Email, payload.Name);
+            return new GoogleUserInfo(payload.Email, payload.Name, payload.Picture);
         }
         catch (InvalidJwtException)
         {

@@ -5,6 +5,7 @@ using FluentValidation;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Media;
 using Imova.Api.Features.Properties;
+using Imova.Api.Features.Users;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
@@ -94,6 +95,14 @@ var blobStorageOptions = builder.Configuration.GetSection(BlobStorageOptions.Sec
 builder.Services.AddSingleton(blobStorageOptions);
 builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
+// Typed HttpClient for downloading external images (currently just Google profile pictures on
+// new-account sign-in — see GoogleLoginHandler). A short timeout since this is a synchronous
+// part of the sign-in request path and must not hang it.
+builder.Services.AddHttpClient<IExternalImageFetcher, ExternalImageFetcher>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblyContaining<GetPropertiesQuery>();
@@ -164,6 +173,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapPropertiesEndpoints();
 app.MapMediaEndpoints();
 app.MapAuthEndpoints();
+app.MapUserEndpoints();
 
 app.Run();
 

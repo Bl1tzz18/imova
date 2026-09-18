@@ -1,4 +1,5 @@
 using System.Text;
+using Imova.Domain.Media;
 
 namespace Imova.Application.Common;
 
@@ -6,6 +7,17 @@ namespace Imova.Application.Common;
 // client-reported content-type or file extension, which are easy to spoof.
 public static class ImageSignature
 {
+    // Built from PropertyMedia's own extension->contentType map (the existing source of truth
+    // for "which image formats does this app accept") rather than a second, separately
+    // maintained list — reused by both the profile-picture upload and Google picture sync flows.
+    private static readonly IReadOnlyDictionary<string, string> ExtensionByContentType =
+        PropertyMedia.AllowedContentTypesByExtension
+            .GroupBy(kvp => kvp.Value, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().Key, StringComparer.OrdinalIgnoreCase);
+
+    public static string? ExtensionForContentType(string contentType) =>
+        ExtensionByContentType.GetValueOrDefault(contentType);
+
     // ISOBMFF (the container HEIC/HEIF use) "major brand" values — see the ftyp check below.
     private static readonly HashSet<string> HeicBrands = ["heic", "heix", "heim", "heis", "hevc", "hevx"];
     private static readonly HashSet<string> HeifBrands = ["mif1", "msf1"];

@@ -7,6 +7,7 @@ import type { UserProfile } from "@/lib/auth/profile";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, TextInput } from "@/components/ui/Field";
 import { PhoneInput } from "@/components/ui/PhoneInput";
+import { ProfilePictureUploader } from "@/components/account/ProfilePictureUploader";
 
 const initialState: AuthFormState = {};
 
@@ -17,6 +18,13 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-3.5">
+      <ProfilePictureUploader
+        userId={profile.id}
+        displayName={profile.displayName}
+        email={profile.email}
+        profilePictureUrl={profile.profilePictureUrl}
+      />
+
       <label className="block">
         <FieldLabel>{tAuth("nameLabel")}</FieldLabel>
         <TextInput type="text" name="name" defaultValue={profile.displayName ?? ""} placeholder={tAuth("namePlaceholder")} />
