@@ -63,6 +63,35 @@ public sealed class PropertyLocation : Entity
             throw new ArgumentException("PropertyId is required.", nameof(propertyId));
         }
 
+        EnsureValidDetails(country, city, latitude, longitude);
+
+        return new PropertyLocation(
+            Guid.NewGuid(),
+            propertyId,
+            country,
+            city,
+            district,
+            latitude,
+            longitude);
+    }
+
+    public void UpdateDetails(string country, string city, string? district, double latitude, double longitude)
+    {
+        EnsureValidDetails(country, city, latitude, longitude);
+
+        Country = country;
+        City = city;
+        District = district;
+        Latitude = latitude;
+        Longitude = longitude;
+        Location = new Point(longitude, latitude)
+        {
+            SRID = 4326
+        };
+    }
+
+    private static void EnsureValidDetails(string country, string city, double latitude, double longitude)
+    {
         if (string.IsNullOrWhiteSpace(country))
         {
             throw new ArgumentException("Country is required.", nameof(country));
@@ -82,14 +111,5 @@ public sealed class PropertyLocation : Entity
         {
             throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude must be between -180 and 180.");
         }
-
-        return new PropertyLocation(
-            Guid.NewGuid(),
-            propertyId,
-            country,
-            city,
-            district,
-            latitude,
-            longitude);
     }
 }

@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { LinkButton } from "@/components/ui/Button";
-import { EditListingForm } from "@/components/property/EditListingForm";
+import { PropertyForm } from "@/app/properties/new/PropertyForm";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Property } from "@/types/property";
@@ -51,7 +51,7 @@ export default async function EditListingPage({
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-[1040px] px-4 py-10 sm:px-6 sm:py-14">
           <LinkButton href="/my-listings" variant="ghost" size="sm" className="!px-0 !justify-start">
             ← {t("backToMyListings")}
           </LinkButton>
@@ -62,7 +62,7 @@ export default async function EditListingPage({
             <>
               <p className="mt-2 text-sm text-ink-500">{t("subtitle")}</p>
               <div className="mt-8">
-                <EditListingForm property={property} />
+                <PropertyForm property={property} />
               </div>
             </>
           ) : (

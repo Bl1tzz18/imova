@@ -74,4 +74,29 @@ public class PropertyLocationTests
 
         Assert.Equal(latitude, location.Latitude);
     }
+
+    [Fact]
+    public void UpdateDetails_ChangesFieldsAndRebuildsThePoint()
+    {
+        var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638);
+
+        location.UpdateDetails("Moldova", "Balti", "Centru", 47.75, 27.9167);
+
+        Assert.Equal("Balti", location.City);
+        Assert.Equal("Centru", location.District);
+        Assert.Equal(47.75, location.Latitude);
+        Assert.Equal(27.9167, location.Longitude);
+        Assert.Equal(27.9167, location.Location.X);
+        Assert.Equal(47.75, location.Location.Y);
+    }
+
+    [Theory]
+    [InlineData("", "Chisinau")]
+    [InlineData("Moldova", "")]
+    public void UpdateDetails_WithMissingCountryOrCity_Throws(string country, string city)
+    {
+        var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", null, 47.0105, 28.8638);
+
+        Assert.ThrowsAny<ArgumentException>(() => location.UpdateDetails(country, city, null, 47.0105, 28.8638));
+    }
 }

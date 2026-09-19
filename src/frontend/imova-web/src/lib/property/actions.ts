@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
+import { buildPropertyPayload } from "@/lib/property/formPayload";
 
 export async function setFavorite(propertyId: string, saved: boolean, next: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
@@ -70,7 +71,8 @@ export async function republishProperty(propertyId: string): Promise<{ error?: s
 export type UpdatePropertyState = { error?: string; success?: boolean };
 
 // Bound with the property id from the client (updatePropertyDetails.bind(null, id)) so it fits
-// useActionState's (prevState, formData) signature — see EditListingForm.
+// useActionState's (prevState, formData) signature — see PropertyForm, which reuses the exact
+// same multi-step create flow (and therefore the same field set) for editing.
 export async function updatePropertyDetails(
   propertyId: string,
   _prevState: UpdatePropertyState,
@@ -85,11 +87,7 @@ export async function updatePropertyDetails(
   const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      title: formData.get("title"),
-      description: formData.get("description"),
-      price: Number(formData.get("price")),
-    }),
+    body: JSON.stringify(buildPropertyPayload(formData)),
   });
 
   if (!res.ok) {
@@ -104,4 +102,28 @@ export async function updatePropertyDetails(
   revalidatePath(`/my-listings/${propertyId}/edit`);
   revalidatePath(`/property/${propertyId}`);
   return { success: true };
+}
+
+// Called directly from the client (ImageUploader), not via a form action — same pattern as
+// setFavorite. Routed through a server action (rather than a direct browser fetch like
+// requestUploadUrl/confirmMediaUpload) specifically so the httpOnly session cookie can be
+// attached as a Bearer token: the new DELETE endpoint requires auth + an owner/admin check.
+export async function deletePropertyMedia(propertyId: string, mediaId: string): Promise<{ error?: string }> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    return { error: "Not authenticated." };
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/media/${mediaId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok && res.status !== 404) {
+    return { error: `Request failed (${res.status})` };
+  }
+
+  revalidatePath(`/my-listings/${propertyId}/edit`);
+  return {};
 }

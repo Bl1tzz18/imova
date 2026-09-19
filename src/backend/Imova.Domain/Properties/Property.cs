@@ -125,6 +125,40 @@ public sealed class Property : AggregateRoot
             throw new ArgumentException("OwnerId is required.", nameof(ownerId));
         }
 
+        EnsureValidDetails(title, description, price, currency, area, rooms, bathrooms, totalFloors);
+
+        return new Property(
+            id ?? Guid.NewGuid(),
+            ownerId,
+            title,
+            description,
+            propertyType,
+            listingType,
+            price,
+            currency,
+            area,
+            rooms,
+            bathrooms,
+            floor,
+            totalFloors,
+            yearBuilt,
+            furnished,
+            parkingAvailable,
+            petsAllowed);
+    }
+
+    // Shared by Create and UpdateDetails so both apply the exact same invariants — a listing
+    // can't be edited into a state that couldn't have been created in the first place.
+    private static void EnsureValidDetails(
+        string title,
+        string description,
+        decimal price,
+        string currency,
+        decimal? area,
+        decimal? rooms,
+        short? bathrooms,
+        short? totalFloors)
+    {
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new ArgumentException("Title is required.", nameof(title));
@@ -164,35 +198,46 @@ public sealed class Property : AggregateRoot
         {
             throw new ArgumentOutOfRangeException(nameof(totalFloors), "TotalFloors must be greater than zero.");
         }
-
-        return new Property(
-            id ?? Guid.NewGuid(),
-            ownerId,
-            title,
-            description,
-            propertyType,
-            listingType,
-            price,
-            currency,
-            area,
-            rooms,
-            bathrooms,
-            floor,
-            totalFloors,
-            yearBuilt,
-            furnished,
-            parkingAvailable,
-            petsAllowed);
     }
 
+    // Covers every field Create accepts (bar OwnerId/Currency-immutable concerns — there are
+    // none) so the owner can edit a listing through the exact same set of fields they created it
+    // with, via the same multi-step form on the frontend (see PropertyForm.tsx). Status/OwnerId
+    // are untouched — this never changes the lifecycle state.
     public void UpdateDetails(
         string title,
         string description,
-        decimal price)
+        PropertyType propertyType,
+        ListingType listingType,
+        decimal price,
+        string currency,
+        decimal? area,
+        decimal? rooms,
+        short? bathrooms,
+        short? floor,
+        short? totalFloors,
+        short? yearBuilt,
+        bool? furnished,
+        bool? parkingAvailable,
+        bool? petsAllowed)
     {
+        EnsureValidDetails(title, description, price, currency, area, rooms, bathrooms, totalFloors);
+
         Title = title;
         Description = description;
+        PropertyType = propertyType;
+        ListingType = listingType;
         Price = price;
+        Currency = currency;
+        Area = area;
+        Rooms = rooms;
+        Bathrooms = bathrooms;
+        Floor = floor;
+        TotalFloors = totalFloors;
+        YearBuilt = yearBuilt;
+        Furnished = furnished;
+        ParkingAvailable = parkingAvailable;
+        PetsAllowed = petsAllowed;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

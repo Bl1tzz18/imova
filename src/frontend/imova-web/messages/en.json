@@ -293,7 +293,7 @@
   },
   "EditListingPage": {
     "title": "Edit listing",
-    "subtitle": "Update the title, description and price for this listing.",
+    "subtitle": "Update any detail of this listing — type, location, photos, price, and more.",
     "backToMyListings": "Back to my listings",
     "saveChanges": "Save changes",
     "saveAndResubmit": "Save & resubmit for review",

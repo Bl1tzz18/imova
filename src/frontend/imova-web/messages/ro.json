@@ -293,7 +293,7 @@
   },
   "EditListingPage": {
     "title": "Editează anunțul",
-    "subtitle": "Actualizează titlul, descrierea și prețul acestui anunț.",
+    "subtitle": "Actualizează orice detaliu al acestui anunț — tip, locație, fotografii, preț și altele.",
     "backToMyListings": "Înapoi la anunțurile mele",
     "saveChanges": "Salvează modificările",
     "saveAndResubmit": "Salvează și retrimite spre verificare",

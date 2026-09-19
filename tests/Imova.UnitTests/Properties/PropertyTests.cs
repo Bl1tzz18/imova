@@ -67,7 +67,9 @@ public class PropertyTests
         var property = NewProperty();
         var originalUpdatedAt = property.UpdatedAt;
 
-        property.UpdateDetails("Titlu nou", "Descriere noua", 600m);
+        property.UpdateDetails(
+            "Titlu nou", "Descriere noua", PropertyType.Apartment, ListingType.Rent, 600m, "EUR",
+            null, null, null, null, null, null, null, null, null);
 
         Assert.Equal("Titlu nou", property.Title);
         Assert.Equal("Descriere noua", property.Description);
@@ -80,10 +82,45 @@ public class PropertyTests
     {
         var property = NewPublishedProperty();
 
-        property.UpdateDetails("Titlu nou", "Descriere noua", 600m);
+        property.UpdateDetails(
+            "Titlu nou", "Descriere noua", PropertyType.Apartment, ListingType.Rent, 600m, "EUR",
+            null, null, null, null, null, null, null, null, null);
 
         Assert.Equal(PropertyStatus.Published, property.Status);
         Assert.Equal(OwnerId, property.OwnerId);
+    }
+
+    [Fact]
+    public void UpdateDetails_ChangesPropertyTypeListingTypeAndDetailFields()
+    {
+        var property = NewProperty();
+
+        property.UpdateDetails(
+            "Titlu", "Descriere", PropertyType.House, ListingType.Sale, 100000m, "EUR",
+            area: 120m, rooms: 4m, bathrooms: 2, floor: null, totalFloors: 2,
+            yearBuilt: 2010, furnished: true, parkingAvailable: true, petsAllowed: null);
+
+        Assert.Equal(PropertyType.House, property.PropertyType);
+        Assert.Equal(ListingType.Sale, property.ListingType);
+        Assert.Equal(120m, property.Area);
+        Assert.Equal(4m, property.Rooms);
+        Assert.Equal((short)2, property.Bathrooms);
+        Assert.Equal((short)2010, property.YearBuilt);
+        Assert.True(property.Furnished);
+        Assert.True(property.ParkingAvailable);
+    }
+
+    [Theory]
+    [InlineData("", "Descriere", 550)]
+    [InlineData("Titlu", "", 550)]
+    [InlineData("Titlu", "Descriere", 0)]
+    public void UpdateDetails_WithInvalidData_Throws(string title, string description, decimal price)
+    {
+        var property = NewProperty();
+
+        Assert.ThrowsAny<ArgumentException>(() => property.UpdateDetails(
+            title, description, PropertyType.Apartment, ListingType.Rent, price, "EUR",
+            null, null, null, null, null, null, null, null, null));
     }
 
     [Fact]

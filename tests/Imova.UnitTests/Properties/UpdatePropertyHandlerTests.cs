@@ -17,6 +17,38 @@ public class UpdatePropertyHandlerTests
         return property;
     }
 
+    // Mirrors AddProperty's Apartment/Rent fixture by default, overridable per test — the command
+    // now carries every field CreatePropertyCommand does (see UpdatePropertyCommand), not just
+    // title/description/price.
+    private static UpdatePropertyCommand BuildCommand(
+        Guid propertyId,
+        Guid requestingUserId,
+        bool isAdmin,
+        string title = "Titlu nou",
+        string description = "Descriere noua",
+        decimal price = 600m,
+        PropertyType propertyType = PropertyType.Apartment,
+        ListingType listingType = ListingType.Rent,
+        string currency = "EUR",
+        string country = "Moldova",
+        string city = "Chisinau",
+        string? district = null,
+        double latitude = 47.0105,
+        double longitude = 28.8638,
+        decimal? area = 54m,
+        decimal? rooms = 2m,
+        short? bathrooms = null,
+        short? floor = 3,
+        short? totalFloors = 9,
+        short? yearBuilt = null,
+        bool? furnished = null,
+        bool? parkingAvailable = null,
+        bool? petsAllowed = null) =>
+        new(
+            propertyId, requestingUserId, isAdmin, title, description, propertyType, listingType, price,
+            currency, country, city, district, latitude, longitude, area, rooms, bathrooms, floor,
+            totalFloors, yearBuilt, furnished, parkingAvailable, petsAllowed);
+
     [Fact]
     public async Task Handle_ByOwner_UpdatesAndReturnsDto()
     {
@@ -27,7 +59,7 @@ public class UpdatePropertyHandlerTests
 
         var handler = new UpdatePropertyHandler(dbContext);
         var result = await handler.Handle(
-            new UpdatePropertyCommand(property.Id, ownerId, false, "Titlu nou", "Descriere noua", 600m),
+            BuildCommand(property.Id, ownerId, false, title: "Titlu nou", description: "Descriere noua", price: 600m),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -47,7 +79,7 @@ public class UpdatePropertyHandlerTests
         var otherUserId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => handler.Handle(
-            new UpdatePropertyCommand(property.Id, otherUserId, false, "Hijacked", "Descriere", 1m),
+            BuildCommand(property.Id, otherUserId, false, title: "Hijacked", description: "Descriere", price: 1m),
             CancellationToken.None));
 
         // The listing must be left untouched.
@@ -66,7 +98,7 @@ public class UpdatePropertyHandlerTests
         var adminId = Guid.NewGuid();
 
         var result = await handler.Handle(
-            new UpdatePropertyCommand(property.Id, adminId, true, "Updated by admin", "Descriere", 700m),
+            BuildCommand(property.Id, adminId, true, title: "Updated by admin", description: "Descriere", price: 700m),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -80,7 +112,7 @@ public class UpdatePropertyHandlerTests
         var handler = new UpdatePropertyHandler(dbContext);
 
         var result = await handler.Handle(
-            new UpdatePropertyCommand(Guid.NewGuid(), Guid.NewGuid(), false, "Titlu", "Descriere", 100m),
+            BuildCommand(Guid.NewGuid(), Guid.NewGuid(), false, title: "Titlu", description: "Descriere", price: 100m),
             CancellationToken.None);
 
         Assert.Null(result);
@@ -91,7 +123,7 @@ public class UpdatePropertyHandlerTests
     {
         // The frontend no longer offers a separate "submit for review" button for Rejected
         // listings — saving the edit is what resubmits it (see OwnerListingsList.tsx /
-        // EditListingForm.tsx). This is the handler-side half of that behavior.
+        // PropertyForm.tsx). This is the handler-side half of that behavior.
         await using var dbContext = TestDbContextFactory.Create();
         var ownerId = Guid.NewGuid();
         var property = AddProperty(dbContext, ownerId);
@@ -101,7 +133,7 @@ public class UpdatePropertyHandlerTests
 
         var handler = new UpdatePropertyHandler(dbContext);
         var result = await handler.Handle(
-            new UpdatePropertyCommand(property.Id, ownerId, false, "Titlu corectat", "Descriere corectata", 600m),
+            BuildCommand(property.Id, ownerId, false, title: "Titlu corectat", description: "Descriere corectata", price: 600m),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -119,10 +151,54 @@ public class UpdatePropertyHandlerTests
 
         var handler = new UpdatePropertyHandler(dbContext);
         var result = await handler.Handle(
-            new UpdatePropertyCommand(property.Id, ownerId, false, "Titlu nou", "Descriere noua", 600m),
+            BuildCommand(property.Id, ownerId, false, title: "Titlu nou", description: "Descriere noua", price: 600m),
             CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Equal("Draft", result!.Status);
+    }
+
+    [Fact]
+    public async Task Handle_UpdatesLocationDetails()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        var location = Imova.Domain.Locations.PropertyLocation.Create(property.Id, "Moldova", "Chisinau", null, 47.0105, 28.8638);
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new UpdatePropertyHandler(dbContext);
+        var result = await handler.Handle(
+            BuildCommand(property.Id, ownerId, false, city: "Balti", district: "Centru", latitude: 47.75, longitude: 27.9167),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result!.Location);
+        Assert.Equal("Balti", result.Location!.City);
+        Assert.Equal("Centru", result.Location.District);
+        Assert.Equal(47.75, result.Location.Latitude);
+        Assert.Equal(27.9167, result.Location.Longitude);
+    }
+
+    [Fact]
+    public async Task Handle_UpdatesPropertyTypeAndListingType()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new UpdatePropertyHandler(dbContext);
+        var result = await handler.Handle(
+            BuildCommand(
+                property.Id, ownerId, false,
+                propertyType: PropertyType.House, listingType: ListingType.Sale,
+                area: 120m, rooms: 4m, floor: null, totalFloors: null),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal("House", result!.PropertyType);
+        Assert.Equal("Sale", result.ListingType);
     }
 }

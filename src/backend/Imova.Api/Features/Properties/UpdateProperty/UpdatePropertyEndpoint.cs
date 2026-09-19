@@ -23,7 +23,24 @@ public static class UpdatePropertyEndpoint
                 user.IsInRole(Roles.Admin),
                 request.Title,
                 request.Description,
-                request.Price);
+                request.PropertyType,
+                request.ListingType,
+                request.Price,
+                request.Currency,
+                request.Country,
+                request.City,
+                request.District,
+                request.Latitude,
+                request.Longitude,
+                request.Area,
+                request.Rooms,
+                request.Bathrooms,
+                request.Floor,
+                request.TotalFloors,
+                request.YearBuilt,
+                request.Furnished,
+                request.ParkingAvailable,
+                request.PetsAllowed);
 
             var property = await sender.Send(command, cancellationToken);
             return property is null ? Results.NotFound() : Results.Ok(property);
