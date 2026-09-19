@@ -29,6 +29,12 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             request.PetsAllowed,
             request.Id);
 
+        // A new listing goes straight into the admin review queue — the owner doesn't take a
+        // separate "submit for review" step for a listing they just finished creating.
+        // SubmitForReview() stays available as its own command for the other case it's actually
+        // needed: resubmitting after a Rejected listing has been fixed.
+        property.SubmitForReview();
+
         var location = PropertyLocation.Create(
             property.Id,
             request.Country,

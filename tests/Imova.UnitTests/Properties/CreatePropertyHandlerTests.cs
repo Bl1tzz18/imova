@@ -40,7 +40,9 @@ public class CreatePropertyHandlerTests
         var result = await handler.Handle(ValidCommand(ownerId: ownerId), CancellationToken.None);
 
         Assert.Equal(ownerId, result.OwnerId);
-        Assert.Equal("Draft", result.Status);
+        // A new listing goes straight into the admin review queue — see
+        // CreatePropertyHandler's call to SubmitForReview().
+        Assert.Equal("PendingReview", result.Status);
         Assert.NotNull(result.Location);
         Assert.Equal("Chisinau", result.Location!.City);
 

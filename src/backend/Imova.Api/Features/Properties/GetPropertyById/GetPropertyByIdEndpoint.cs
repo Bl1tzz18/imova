@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Imova.Api.Common;
+using Imova.Application.Common.Identity;
 using Imova.Application.Features.Properties.GetPropertyById;
 using MediatR;
 
@@ -16,7 +17,8 @@ public static class GetPropertyByIdEndpoint
             CancellationToken cancellationToken) =>
         {
             var currentUserId = user.Identity?.IsAuthenticated == true ? user.GetUserId() : (Guid?)null;
-            var property = await sender.Send(new GetPropertyByIdQuery(id, currentUserId), cancellationToken);
+            var isAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole(Roles.Admin);
+            var property = await sender.Send(new GetPropertyByIdQuery(id, currentUserId, isAdmin), cancellationToken);
             return property is null ? Results.NotFound() : Results.Ok(property);
         });
     }

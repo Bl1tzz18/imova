@@ -26,6 +26,8 @@ public record PropertyDto(
     DateTimeOffset UpdatedAt,
     DateTimeOffset? PublishedAt,
     DateTimeOffset? ExpiresAt,
+    string? RejectionReason,
+    string? SuspensionReason,
     PropertyLocationDto? Location,
     PropertyOwnerDto? Owner,
     IReadOnlyList<PropertyMediaDto> Media,

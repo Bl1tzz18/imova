@@ -2,17 +2,21 @@ using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Media;
 using Imova.Contracts.Media;
 using Imova.Contracts.Properties;
+using Imova.Domain.Properties;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.GetProperties;
 
+// This backs public browsing only (home page, search, map) — an owner's Draft/Archived listings
+// are never meant to appear here regardless of who's asking; see GetMyPropertiesHandler for the
+// "show me everything I own, any status" query.
 public class GetPropertiesHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
     : IRequestHandler<GetPropertiesQuery, List<PropertyDto>>
 {
     public async Task<List<PropertyDto>> Handle(GetPropertiesQuery request, CancellationToken cancellationToken)
     {
-        var propertiesQuery = dbContext.Properties.AsNoTracking();
+        var propertiesQuery = dbContext.Properties.AsNoTracking().Where(p => p.Status == PropertyStatus.Published);
 
         if (request.PropertyType is not null)
         {

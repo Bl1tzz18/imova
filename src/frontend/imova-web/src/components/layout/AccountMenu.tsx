@@ -64,12 +64,20 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
             <p className="truncate text-xs text-ink-400">{profile.email}</p>
           </div>
 
+          <Link href="/my-listings" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+            {t("myListings")}
+          </Link>
           <Link href="/saved-listings" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
             {t("savedListings")}
           </Link>
           <Link href="/account" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
             {t("accountSettings")}
           </Link>
+          {profile.roles.includes("Admin") && (
+            <Link href="/admin/moderation" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+              {t("moderationQueue")}
+            </Link>
+          )}
 
           <form action={logout}>
             <button type="submit" role="menuitem" className={`w-full text-left ${menuItemClass}`}>

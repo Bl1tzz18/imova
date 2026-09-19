@@ -9,6 +9,8 @@ namespace Imova.UnitTests.Properties;
 
 public class GetPropertiesHandlerTests
 {
+    // Published by default — GetPropertiesHandler only ever returns Published listings (public
+    // browsing), so that's what every pre-existing test in this file implicitly assumes.
     private static Property AddProperty(
         ImovaDbContext dbContext,
         PropertyType propertyType = PropertyType.Apartment,
@@ -20,6 +22,8 @@ public class GetPropertiesHandlerTests
         var property = Property.Create(
             Guid.NewGuid(), "Titlu", "Descriere", propertyType, ListingType.Rent, 550m, "EUR",
             area, rooms, null, floor, totalFloors);
+        property.SubmitForReview();
+        property.Approve();
         dbContext.Properties.Add(property);
         return property;
     }
@@ -121,5 +125,35 @@ public class GetPropertiesHandlerTests
         var result = await handler.Handle(new GetPropertiesQuery(), CancellationToken.None);
 
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task Handle_ExcludesDraftAndArchivedListings()
+    {
+        // The bug this guards: a deactivated (Archived) listing must never appear on public
+        // browsing pages (home page, search, map) again, and a never-published Draft never did.
+        await using var dbContext = TestDbContextFactory.Create();
+        var published = AddProperty(dbContext);
+
+        var draft = Property.Create(
+            Guid.NewGuid(), "Draft listing", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
+            54m, 2m, null, 3, 9);
+        dbContext.Properties.Add(draft);
+
+        var archived = Property.Create(
+            Guid.NewGuid(), "Archived listing", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
+            54m, 2m, null, 3, 9);
+        archived.SubmitForReview();
+        archived.Approve();
+        archived.Archive();
+        dbContext.Properties.Add(archived);
+
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertiesHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertiesQuery(), CancellationToken.None);
+
+        var dto = Assert.Single(result);
+        Assert.Equal(published.Id, dto.Id);
     }
 }

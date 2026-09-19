@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Imova.Application.Features.Properties.GetPropertyById;
 
-public record GetPropertyByIdQuery(Guid Id, Guid? CurrentUserId = null) : IRequest<PropertyDto?>;
+public record GetPropertyByIdQuery(Guid Id, Guid? CurrentUserId = null, bool IsAdmin = false) : IRequest<PropertyDto?>;

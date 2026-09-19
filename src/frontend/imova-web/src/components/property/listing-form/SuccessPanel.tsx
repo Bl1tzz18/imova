@@ -24,7 +24,7 @@ export function SuccessPanel() {
       <h2 className="font-display text-2xl font-medium text-ink-950">{t("successTitle")}</h2>
       <p className="max-w-md text-sm leading-relaxed text-ink-500">{t("successSubtitle")}</p>
       <div className="mt-2 flex flex-wrap justify-center gap-3">
-        <LinkButton href="/dashboard">{t("successViewMine")}</LinkButton>
+        <LinkButton href="/my-listings">{t("successViewMine")}</LinkButton>
         <LinkButton href="/" variant="secondary">
           {t("successBackHome")}
         </LinkButton>

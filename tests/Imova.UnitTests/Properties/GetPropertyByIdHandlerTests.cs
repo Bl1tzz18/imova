@@ -9,11 +9,16 @@ namespace Imova.UnitTests.Properties;
 
 public class GetPropertyByIdHandlerTests
 {
+    // Published by default — a Draft/Archived listing is only visible to its own owner (see the
+    // dedicated tests below), so every pre-existing test here that fetches anonymously needs a
+    // live listing.
     private static Property AddProperty(ImovaDbContext dbContext, Guid? ownerId = null)
     {
         var property = Property.Create(
             ownerId ?? Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
             54m, 2m, null, 3, 9);
+        property.SubmitForReview();
+        property.Approve();
         dbContext.Properties.Add(property);
         return property;
     }
@@ -99,5 +104,129 @@ public class GetPropertyByIdHandlerTests
         var result = await handler.Handle(new GetPropertyByIdQuery(property.Id, Guid.NewGuid()), CancellationToken.None);
 
         Assert.False(result!.IsSaved);
+    }
+
+    [Fact]
+    public async Task Handle_ForArchivedListing_AnonymousRequest_ReturnsNull()
+    {
+        // The bug this guards: a deactivated listing must not be directly viewable either, same
+        // as it no longer appears on public browsing pages.
+        var ownerId = Guid.NewGuid();
+        await using var dbContext = TestDbContextFactory.Create();
+        var property = AddProperty(dbContext, ownerId);
+        property.Archive();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertyByIdQuery(property.Id), CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Handle_ForArchivedListing_OtherLoggedInUser_ReturnsNull()
+    {
+        var ownerId = Guid.NewGuid();
+        await using var dbContext = TestDbContextFactory.Create();
+        var property = AddProperty(dbContext, ownerId);
+        property.Archive();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertyByIdQuery(property.Id, Guid.NewGuid()), CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Handle_ForArchivedListing_OwnerRequest_StillReturnsIt()
+    {
+        // The owner needs to keep seeing their own Draft/Archived listing — this is what the
+        // "my listings" edit page relies on.
+        var ownerId = Guid.NewGuid();
+        await using var dbContext = TestDbContextFactory.Create();
+        var property = AddProperty(dbContext, ownerId);
+        property.Archive();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertyByIdQuery(property.Id, ownerId), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(property.Id, result!.Id);
+    }
+
+    [Fact]
+    public async Task Handle_ForDraftListing_AnonymousRequest_ReturnsNull()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var draft = Property.Create(
+            Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
+            54m, 2m, null, 3, 9);
+        dbContext.Properties.Add(draft);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertyByIdQuery(draft.Id), CancellationToken.None);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Handle_ForPendingReviewListing_AdminRequest_ReturnsIt()
+    {
+        // The bug this guards: an admin opening a listing from the moderation queue (which links
+        // to /property/{id}, not just /my-listings/{id}/edit) got "not found" for anyone else's
+        // PendingReview listing, since only the owner was ever allowed to see a non-Published one.
+        await using var dbContext = TestDbContextFactory.Create();
+        var pending = Property.Create(
+            Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
+            54m, 2m, null, 3, 9);
+        pending.SubmitForReview();
+        dbContext.Properties.Add(pending);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(
+            new GetPropertyByIdQuery(pending.Id, CurrentUserId: Guid.NewGuid(), IsAdmin: true), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(pending.Id, result!.Id);
+    }
+
+    [Fact]
+    public async Task Handle_ForArchivedListing_AdminRequest_ReturnsIt()
+    {
+        var ownerId = Guid.NewGuid();
+        await using var dbContext = TestDbContextFactory.Create();
+        var property = AddProperty(dbContext, ownerId);
+        property.Archive();
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(
+            new GetPropertyByIdQuery(property.Id, CurrentUserId: Guid.NewGuid(), IsAdmin: true), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(property.Id, result!.Id);
+    }
+
+    [Fact]
+    public async Task Handle_ForPendingReviewListing_NonAdminOtherUser_StillReturnsNull()
+    {
+        // IsAdmin doesn't leak into the ordinary non-owner path unless it's actually set.
+        await using var dbContext = TestDbContextFactory.Create();
+        var pending = Property.Create(
+            Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
+            54m, 2m, null, 3, 9);
+        pending.SubmitForReview();
+        dbContext.Properties.Add(pending);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(
+            new GetPropertyByIdQuery(pending.Id, CurrentUserId: Guid.NewGuid(), IsAdmin: false), CancellationToken.None);
+
+        Assert.Null(result);
     }
 }

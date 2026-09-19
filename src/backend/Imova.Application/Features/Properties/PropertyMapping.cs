@@ -38,6 +38,8 @@ public static class PropertyMapping
             property.UpdatedAt,
             property.PublishedAt,
             property.ExpiresAt,
+            property.RejectionReason,
+            property.SuspensionReason,
             location is null
                 ? null
                 : new PropertyLocationDto(
