@@ -10,7 +10,8 @@ namespace Imova.UnitTests.TestSupport;
 internal sealed class FakeUserStore :
     IUserStore<ApplicationUser>,
     IUserEmailStore<ApplicationUser>,
-    IUserRoleStore<ApplicationUser>
+    IUserRoleStore<ApplicationUser>,
+    IUserPasswordStore<ApplicationUser>
 {
     private readonly Dictionary<Guid, ApplicationUser> _usersById = [];
     private readonly Dictionary<Guid, HashSet<string>> _rolesByUserId = [];
@@ -32,6 +33,15 @@ internal sealed class FakeUserStore :
             EmailConfirmed = emailConfirmed,
         };
         _usersById[user.Id] = user;
+        return user;
+    }
+
+    // Hashes with the same PasswordHasher<ApplicationUser> TestUserManagerFactory wires into the
+    // UserManager, so a seeded password verifies correctly through the real CheckPasswordAsync.
+    public ApplicationUser SeedUserWithPassword(string email, string password)
+    {
+        var user = SeedUser(email, emailConfirmed: true);
+        user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user, password);
         return user;
     }
 
@@ -149,4 +159,17 @@ internal sealed class FakeUserStore :
     public Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken) =>
         Task.FromResult<IList<ApplicationUser>>(
             _usersById.Values.Where(u => _rolesByUserId.TryGetValue(u.Id, out var roles) && roles.Contains(roleName)).ToList());
+
+    // IUserPasswordStore<ApplicationUser>
+    public Task SetPasswordHashAsync(ApplicationUser user, string? passwordHash, CancellationToken cancellationToken)
+    {
+        user.PasswordHash = passwordHash;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> GetPasswordHashAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.PasswordHash);
+
+    public Task<bool> HasPasswordAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.PasswordHash is not null);
 }

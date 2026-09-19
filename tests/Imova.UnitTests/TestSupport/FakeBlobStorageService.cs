@@ -10,6 +10,10 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
 
     public string? UploadedContentType { get; private set; }
 
+    public List<string> DeletedBlobNames { get; } = [];
+
+    public UploadedBlobInfo? BlobInfoToReturn { get; set; }
+
     public TimeSpan DefaultUploadExpiry => TimeSpan.FromMinutes(15);
 
     public string GenerateBlobName(Guid propertyId, string fileExtension) => $"{propertyId}.{fileExtension}";
@@ -25,7 +29,7 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
         url.StartsWith("https://blob.test/", StringComparison.Ordinal) ? url["https://blob.test/".Length..] : null;
 
     public Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken) =>
-        Task.FromResult<UploadedBlobInfo?>(null);
+        Task.FromResult(BlobInfoToReturn);
 
     public Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
     {
@@ -35,5 +39,9 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
         return Task.CompletedTask;
     }
 
-    public Task DeleteAsync(string blobName, CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task DeleteAsync(string blobName, CancellationToken cancellationToken)
+    {
+        DeletedBlobNames.Add(blobName);
+        return Task.CompletedTask;
+    }
 }
