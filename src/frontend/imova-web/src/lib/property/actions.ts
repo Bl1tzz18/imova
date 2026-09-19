@@ -98,6 +98,19 @@ export async function updatePropertyDetails(
     return { error: message };
   }
 
+  // Photos the owner removed on this edit page (ImageUploader, deferDeletes mode) are only
+  // hidden client-side up to this point — this is the actual commit, and it only runs once the
+  // property update above has already succeeded, so an abandoned/failed edit never deletes them.
+  const deleteMediaIds = formData.getAll("deleteMediaIds").filter((id): id is string => typeof id === "string");
+  await Promise.allSettled(
+    deleteMediaIds.map((mediaId) =>
+      fetch(`${apiUrl}/api/v1/properties/${propertyId}/media/${mediaId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ),
+  );
+
   revalidatePath("/my-listings");
   revalidatePath(`/my-listings/${propertyId}/edit`);
   revalidatePath(`/property/${propertyId}`);
