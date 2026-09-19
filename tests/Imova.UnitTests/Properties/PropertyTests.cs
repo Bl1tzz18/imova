@@ -68,4 +68,57 @@ public class PropertyTests
 
         Assert.Throws<InvalidOperationException>(() => property.Publish());
     }
+
+    [Fact]
+    public void UpdateDetails_ChangesTitleDescriptionAndPriceAndTouchesUpdatedAt()
+    {
+        var property = Property.Create(
+            OwnerId, "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
+        var originalUpdatedAt = property.UpdatedAt;
+
+        property.UpdateDetails("Titlu nou", "Descriere noua", 600m);
+
+        Assert.Equal("Titlu nou", property.Title);
+        Assert.Equal("Descriere noua", property.Description);
+        Assert.Equal(600m, property.Price);
+        Assert.True(property.UpdatedAt >= originalUpdatedAt);
+    }
+
+    [Fact]
+    public void UpdateDetails_DoesNotChangeStatusOrOwner()
+    {
+        var property = Property.Create(
+            OwnerId, "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
+        property.Publish();
+
+        property.UpdateDetails("Titlu nou", "Descriere noua", 600m);
+
+        Assert.Equal(PropertyStatus.Published, property.Status);
+        Assert.Equal(OwnerId, property.OwnerId);
+    }
+
+    [Fact]
+    public void Archive_FromPublished_SetsArchivedStatus()
+    {
+        var property = Property.Create(
+            OwnerId, "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
+        property.Publish();
+
+        property.Archive();
+
+        Assert.Equal(PropertyStatus.Archived, property.Status);
+    }
+
+    [Fact]
+    public void Archive_FromDraft_SetsArchivedStatus()
+    {
+        // Archive has no "must be published first" guard, unlike Publish — a draft can be
+        // archived directly (e.g. the owner abandons it before ever publishing).
+        var property = Property.Create(
+            OwnerId, "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
+
+        property.Archive();
+
+        Assert.Equal(PropertyStatus.Archived, property.Status);
+    }
 }

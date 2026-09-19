@@ -19,6 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
+    <!-- Backs a real ImovaDbContext for handler tests, since IApplicationDbContext exposes plain
+         EF Core DbSet<T> (not a repository interface) — no database needed, no schema/PostGIS
+         validation happens against InMemory, so it's a faithful-enough stand-in for testing
+         handler logic (as opposed to Npgsql-specific SQL, which only the real Postgres in
+         Imova.IntegrationTests can exercise). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
