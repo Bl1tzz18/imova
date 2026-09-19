@@ -45,7 +45,10 @@
     "perMonth": "/mo",
     "rooms": "{count, plural, one {# room} other {# rooms}}",
     "saveListing": "Save listing",
-    "savedListing": "Saved"
+    "savedListing": "Saved",
+    "statusRented": "Rented",
+    "statusSold": "Sold",
+    "statusUnavailable": "Unavailable"
   },
   "Home": {
     "badge": "Real estate in Moldova, no middlemen",
