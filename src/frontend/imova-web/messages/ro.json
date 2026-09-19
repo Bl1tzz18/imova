@@ -45,7 +45,10 @@
     "perMonth": "/lună",
     "rooms": "{count, plural, one {# cameră} few {# camere} other {# de camere}}",
     "saveListing": "Salvează anunțul",
-    "savedListing": "Salvat"
+    "savedListing": "Salvat",
+    "statusRented": "Închiriat",
+    "statusSold": "Vândut",
+    "statusUnavailable": "Indisponibil"
   },
   "Home": {
     "badge": "Imobiliare din Moldova, fără intermediari",

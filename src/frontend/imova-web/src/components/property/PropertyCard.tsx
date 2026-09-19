@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 import type { Property } from "@/types/property";
 
 export function PropertyCard({ property }: { property: Property }) {
@@ -11,6 +12,7 @@ export function PropertyCard({ property }: { property: Property }) {
   const tListing = useTranslations("ListingType");
   const tCard = useTranslations("PropertyCard");
   const location = formatLocation(property.location);
+  const isUnavailable = property.status !== "Published";
 
   return (
     <Link
@@ -24,12 +26,18 @@ export function PropertyCard({ property }: { property: Property }) {
             src={property.media[0].url}
             alt={property.title}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className={cn(
+              "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105",
+              isUnavailable && "grayscale",
+            )}
           />
         ) : (
           <PropertyIcon
             type={property.propertyType}
-            className="h-16 w-16 text-white/25 transition-transform duration-300 group-hover:scale-110"
+            className={cn(
+              "h-16 w-16 text-white/25 transition-transform duration-300 group-hover:scale-110",
+              isUnavailable && "grayscale",
+            )}
           />
         )}
         <div className="absolute left-3 top-3">
@@ -43,9 +51,17 @@ export function PropertyCard({ property }: { property: Property }) {
           initialSaved={property.isSaved}
           className="absolute right-3 top-3"
         />
+
+        {isUnavailable && (
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-ink-950/75 py-1.5 text-center">
+            <span className="text-xs font-semibold uppercase tracking-wide text-white">
+              {statusOverlayLabel(tCard, property.status)}
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className={cn("flex flex-1 flex-col gap-2 p-4", isUnavailable && "opacity-60")}>
         <p className="font-display text-xl font-medium text-ink-950">
           {formatPrice(property.price, property.currency)}
           {property.listingType === "Rent" && (
@@ -85,4 +101,15 @@ export function PropertyCard({ property }: { property: Property }) {
       </div>
     </Link>
   );
+}
+
+function statusOverlayLabel(tCard: ReturnType<typeof useTranslations<"PropertyCard">>, status: string) {
+  switch (status) {
+    case "Rented":
+      return tCard("statusRented");
+    case "Sold":
+      return tCard("statusSold");
+    default:
+      return tCard("statusUnavailable");
+  }
 }

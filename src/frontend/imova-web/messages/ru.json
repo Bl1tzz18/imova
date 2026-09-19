@@ -45,7 +45,10 @@
     "perMonth": "/мес",
     "rooms": "{count, plural, one {# комната} few {# комнаты} many {# комнат} other {# комнаты}}",
     "saveListing": "Сохранить объявление",
-    "savedListing": "Сохранено"
+    "savedListing": "Сохранено",
+    "statusRented": "Сдано",
+    "statusSold": "Продано",
+    "statusUnavailable": "Недоступно"
   },
   "Home": {
     "badge": "Недвижимость в Молдове, без посредников",
