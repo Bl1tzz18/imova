@@ -14,9 +14,18 @@ export function EditListingForm({ property }: { property: Property }) {
   const tEdit = useTranslations("EditListingPage");
   const boundAction = updatePropertyDetails.bind(null, property.id);
   const [state, formAction, pending] = useActionState(boundAction, initialState);
+  const isRejected = property.status === "Rejected";
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {isRejected && (
+        <div className="rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
+          <p className="font-medium">{tEdit("rejectedNoticeTitle")}</p>
+          {property.rejectionReason && <p className="mt-0.5">{property.rejectionReason}</p>}
+          <p className="mt-1.5">{tEdit("rejectedNoticeBody")}</p>
+        </div>
+      )}
+
       <label className="block">
         <FieldLabel required>{tForm("titleLabel")}</FieldLabel>
         <TextInput
@@ -53,12 +62,12 @@ export function EditListingForm({ property }: { property: Property }) {
       )}
       {state.success && (
         <p className="rounded-xl border border-brand-100 bg-brand-100/60 px-4 py-3 text-sm text-brand-700">
-          {tEdit("saved")}
+          {isRejected ? tEdit("savedAndResubmitted") : tEdit("saved")}
         </p>
       )}
 
       <Button type="submit" disabled={pending} className="mt-1.5 self-start">
-        {pending ? tEdit("saving") : tEdit("saveChanges")}
+        {pending ? tEdit("saving") : isRejected ? tEdit("saveAndResubmit") : tEdit("saveChanges")}
       </Button>
     </form>
   );

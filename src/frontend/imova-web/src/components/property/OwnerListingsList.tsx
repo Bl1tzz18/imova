@@ -41,10 +41,10 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
 
   const tabs: { id: StatusFilter; label: string }[] = [
     { id: "all", label: t("tabAll") },
-    { id: "PendingReview", label: t("tabPendingReview") },
-    { id: "Rejected", label: t("tabRejected") },
     { id: "Published", label: t("tabPublished") },
     { id: "Draft", label: t("tabDraft") },
+    { id: "PendingReview", label: t("tabPendingReview") },
+    { id: "Rejected", label: t("tabRejected") },
     { id: "Archived", label: t("tabArchived") },
   ];
 
@@ -161,11 +161,15 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
                     </div>
                   ) : (
                     <div className="flex shrink-0 gap-2">
-                      <LinkButton href={`/my-listings/${property.id}/edit`} variant="secondary" size="sm">
-                        {t("edit")}
+                      <LinkButton
+                        href={`/my-listings/${property.id}/edit`}
+                        variant={property.status === "Rejected" ? "primary" : "secondary"}
+                        size="sm"
+                      >
+                        {property.status === "Rejected" ? t("editAndResubmit") : t("edit")}
                       </LinkButton>
 
-                      {(property.status === "Draft" || property.status === "Rejected") && (
+                      {property.status === "Draft" && (
                         <Button
                           variant="primary"
                           size="sm"

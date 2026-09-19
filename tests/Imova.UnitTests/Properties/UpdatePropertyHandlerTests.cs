@@ -85,4 +85,44 @@ public class UpdatePropertyHandlerTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task Handle_ForRejectedListing_ResubmitsForReview()
+    {
+        // The frontend no longer offers a separate "submit for review" button for Rejected
+        // listings — saving the edit is what resubmits it (see OwnerListingsList.tsx /
+        // EditListingForm.tsx). This is the handler-side half of that behavior.
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        property.SubmitForReview();
+        property.Reject("Missing photos");
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new UpdatePropertyHandler(dbContext);
+        var result = await handler.Handle(
+            new UpdatePropertyCommand(property.Id, ownerId, false, "Titlu corectat", "Descriere corectata", 600m),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal("PendingReview", result!.Status);
+        Assert.Null(result.RejectionReason);
+    }
+
+    [Fact]
+    public async Task Handle_ForNonRejectedListing_DoesNotChangeStatus()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new UpdatePropertyHandler(dbContext);
+        var result = await handler.Handle(
+            new UpdatePropertyCommand(property.Id, ownerId, false, "Titlu nou", "Descriere noua", 600m),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal("Draft", result!.Status);
+    }
 }
