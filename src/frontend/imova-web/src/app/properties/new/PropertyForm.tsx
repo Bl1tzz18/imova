@@ -169,7 +169,7 @@ export function PropertyForm({ property }: { property?: Property }) {
             }}
             className={step === 3 ? "" : "hidden"}
           >
-            <StepPhotos propertyId={propertyId} initialMedia={property?.media} />
+            <StepPhotos propertyId={propertyId} initialMedia={property?.media} deferDeletes={isEdit} />
           </div>
 
           <div

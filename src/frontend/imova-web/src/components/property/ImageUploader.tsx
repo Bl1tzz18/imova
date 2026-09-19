@@ -38,12 +38,23 @@ type UploadItem = {
 // lib/api/media.ts), then tells the backend to confirm+validate it. `initialMedia` seeds already-
 // uploaded photos (editing an existing listing) as already-"done" items so they show up alongside
 // anything newly added, and can be removed the same way.
+//
+// `deferDeletes` (edit mode only — see PropertyForm.tsx): the listing being edited already exists
+// and is live, so removing a photo must not take effect until the surrounding form is actually
+// saved. Instead of calling deletePropertyMedia immediately, the item is hidden locally and its
+// id is recorded as a hidden `deleteMediaIds` field (rendered inside the same <form>, so it rides
+// along in the real submit's FormData); updatePropertyDetails only deletes those media rows after
+// the property update itself has succeeded. Create mode leaves this off — the property doesn't
+// exist yet, so there's nothing "live" to protect, and immediate cleanup avoids leaking rows/blobs
+// for photos the owner uploaded then reconsidered before ever publishing.
 export function ImageUploader({
   propertyId,
   initialMedia,
+  deferDeletes,
 }: {
   propertyId: string;
   initialMedia?: PropertyMedia[];
+  deferDeletes?: boolean;
 }) {
   const [items, setItems] = useState<UploadItem[]>(
     () =>
@@ -54,6 +65,7 @@ export function ImageUploader({
         status: "done" as const,
       })) ?? [],
   );
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const t = useTranslations("PropertyForm");
 
   const handleFiles = (files: FileList | null) => {
@@ -101,6 +113,12 @@ export function ImageUploader({
     if (item.status === "uploading" || item.status === "deleting") return;
 
     if (!item.mediaId) {
+      setItems((prev) => prev.filter((it) => it.id !== item.id));
+      return;
+    }
+
+    if (deferDeletes) {
+      setPendingDeleteIds((prev) => [...prev, item.mediaId!]);
       setItems((prev) => prev.filter((it) => it.id !== item.id));
       return;
     }
@@ -175,6 +193,10 @@ export function ImageUploader({
           ))}
         </div>
       )}
+
+      {pendingDeleteIds.map((id) => (
+        <input key={id} type="hidden" name="deleteMediaIds" value={id} />
+      ))}
     </div>
   );
 }
