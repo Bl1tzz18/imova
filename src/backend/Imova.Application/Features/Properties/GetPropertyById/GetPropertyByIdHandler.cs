@@ -1,6 +1,7 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Media;
 using Imova.Contracts.Properties;
+using Imova.Domain.Properties;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,16 @@ public class GetPropertyByIdHandler(IApplicationDbContext dbContext, IBlobStorag
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
         if (property is null)
+        {
+            return null;
+        }
+
+        // A non-Published listing is only visible to its own owner (e.g. the "my listings" edit
+        // page) or an admin (e.g. reviewing it from the moderation queue) — anyone else, including
+        // an anonymous visitor, gets the same "not found" as if the row didn't exist. Matches
+        // GetPropertiesHandler's public-browsing filter.
+        var isOwner = request.CurrentUserId is not null && request.CurrentUserId == property.OwnerId;
+        if (property.Status != PropertyStatus.Published && !isOwner && !request.IsAdmin)
         {
             return null;
         }

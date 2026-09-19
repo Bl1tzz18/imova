@@ -50,6 +50,8 @@ export type Property = {
   updatedAt: string;
   publishedAt: string | null;
   expiresAt: string | null;
+  rejectionReason: string | null;
+  suspensionReason: string | null;
   location: PropertyLocation | null;
   owner: PropertyOwner | null;
   media: PropertyMedia[];

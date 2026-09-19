@@ -71,6 +71,28 @@ public class CreatePropertyValidatorTests
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.Currency));
     }
 
+    [Theory]
+    [InlineData("EUR")]
+    [InlineData("MDL")]
+    [InlineData("USD")]
+    public void Validate_WithSupportedCurrency_HasNoCurrencyError(string currency)
+    {
+        var result = _validator.Validate(ValidCommand(currency: currency));
+
+        Assert.DoesNotContain(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.Currency));
+    }
+
+    [Fact]
+    public void Validate_WithUnsupportedCurrency_HasError()
+    {
+        // Only EUR/MDL/USD are offered on the frontend dropdown — a well-formed but unsupported
+        // 3-letter code must still fail.
+        var result = _validator.Validate(ValidCommand(currency: "GBP"));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.Currency));
+    }
+
     [Fact]
     public void Validate_ApartmentWithoutFloor_HasError()
     {

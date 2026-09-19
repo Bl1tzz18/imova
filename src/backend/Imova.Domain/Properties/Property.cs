@@ -90,6 +90,14 @@ public sealed class Property : AggregateRoot
 
     public DateTimeOffset? ExpiresAt { get; private set; }
 
+    // Set by Reject()/cleared by SubmitForReview() — why an admin bounced the listing back to
+    // the owner. Null unless Status is currently Rejected.
+    public string? RejectionReason { get; private set; }
+
+    // Set by Suspend()/cleared by Reinstate() — why an admin took an otherwise-live listing down.
+    // Null unless Status is currently Suspended.
+    public string? SuspensionReason { get; private set; }
+
     public static Property Create(
         Guid ownerId,
         string title,
@@ -117,6 +125,40 @@ public sealed class Property : AggregateRoot
             throw new ArgumentException("OwnerId is required.", nameof(ownerId));
         }
 
+        EnsureValidDetails(title, description, price, currency, area, rooms, bathrooms, totalFloors);
+
+        return new Property(
+            id ?? Guid.NewGuid(),
+            ownerId,
+            title,
+            description,
+            propertyType,
+            listingType,
+            price,
+            currency,
+            area,
+            rooms,
+            bathrooms,
+            floor,
+            totalFloors,
+            yearBuilt,
+            furnished,
+            parkingAvailable,
+            petsAllowed);
+    }
+
+    // Shared by Create and UpdateDetails so both apply the exact same invariants — a listing
+    // can't be edited into a state that couldn't have been created in the first place.
+    private static void EnsureValidDetails(
+        string title,
+        string description,
+        decimal price,
+        string currency,
+        decimal? area,
+        decimal? rooms,
+        short? bathrooms,
+        short? totalFloors)
+    {
         if (string.IsNullOrWhiteSpace(title))
         {
             throw new ArgumentException("Title is required.", nameof(title));
@@ -156,53 +198,184 @@ public sealed class Property : AggregateRoot
         {
             throw new ArgumentOutOfRangeException(nameof(totalFloors), "TotalFloors must be greater than zero.");
         }
-
-        return new Property(
-            id ?? Guid.NewGuid(),
-            ownerId,
-            title,
-            description,
-            propertyType,
-            listingType,
-            price,
-            currency,
-            area,
-            rooms,
-            bathrooms,
-            floor,
-            totalFloors,
-            yearBuilt,
-            furnished,
-            parkingAvailable,
-            petsAllowed);
     }
 
+    // Covers every field Create accepts (bar OwnerId/Currency-immutable concerns — there are
+    // none) so the owner can edit a listing through the exact same set of fields they created it
+    // with, via the same multi-step form on the frontend (see PropertyForm.tsx). Status/OwnerId
+    // are untouched — this never changes the lifecycle state.
     public void UpdateDetails(
         string title,
         string description,
-        decimal price)
+        PropertyType propertyType,
+        ListingType listingType,
+        decimal price,
+        string currency,
+        decimal? area,
+        decimal? rooms,
+        short? bathrooms,
+        short? floor,
+        short? totalFloors,
+        short? yearBuilt,
+        bool? furnished,
+        bool? parkingAvailable,
+        bool? petsAllowed)
     {
+        EnsureValidDetails(title, description, price, currency, area, rooms, bathrooms, totalFloors);
+
         Title = title;
         Description = description;
+        PropertyType = propertyType;
+        ListingType = listingType;
         Price = price;
+        Currency = currency;
+        Area = area;
+        Rooms = rooms;
+        Bathrooms = bathrooms;
+        Floor = floor;
+        TotalFloors = totalFloors;
+        YearBuilt = yearBuilt;
+        Furnished = furnished;
+        ParkingAvailable = parkingAvailable;
+        PetsAllowed = petsAllowed;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void Publish()
+    // Draft -> PendingReview (first submission), or Rejected -> PendingReview (resubmission after
+    // the owner addresses whatever an admin flagged) — deliberately the same method for both, so
+    // fixing a rejected listing doesn't force the owner back through Draft first.
+    public void SubmitForReview()
     {
-        if (Status != PropertyStatus.Draft)
+        if (Status is not (PropertyStatus.Draft or PropertyStatus.Rejected))
         {
-            throw new InvalidOperationException("Only draft properties can be published.");
+            throw new InvalidOperationException("Only a draft or rejected listing can be submitted for review.");
+        }
+
+        RejectionReason = null;
+        Status = PropertyStatus.PendingReview;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    // Admin-only in practice (enforced by ApproveListingHandler, not here) — PendingReview -> Published.
+    public void Approve()
+    {
+        if (Status != PropertyStatus.PendingReview)
+        {
+            throw new InvalidOperationException("Only a listing pending review can be approved.");
         }
 
         Status = PropertyStatus.Published;
-        PublishedAt = DateTimeOffset.UtcNow;
+        PublishedAt ??= DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void Reject(string reason)
+    {
+        if (Status != PropertyStatus.PendingReview)
+        {
+            throw new InvalidOperationException("Only a listing pending review can be rejected.");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A rejection reason is required.", nameof(reason));
+        }
+
+        Status = PropertyStatus.Rejected;
+        RejectionReason = reason;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Suspend(string reason)
+    {
+        if (Status != PropertyStatus.Published)
+        {
+            throw new InvalidOperationException("Only a published listing can be suspended.");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A suspension reason is required.", nameof(reason));
+        }
+
+        Status = PropertyStatus.Suspended;
+        SuspensionReason = reason;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    // Admin lifting a suspension — Suspended -> Published. Distinct from Republish() (the owner's
+    // own Archived -> Published), since a suspension wasn't the owner's choice to undo.
+    public void Reinstate()
+    {
+        if (Status != PropertyStatus.Suspended)
+        {
+            throw new InvalidOperationException("Only a suspended listing can be reinstated.");
+        }
+
+        Status = PropertyStatus.Published;
+        SuspensionReason = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkAsRented()
+    {
+        if (Status != PropertyStatus.Published)
+        {
+            throw new InvalidOperationException("Only a published listing can be marked as rented.");
+        }
+
+        if (ListingType != ListingType.Rent)
+        {
+            throw new InvalidOperationException("Only a rental listing can be marked as rented.");
+        }
+
+        Status = PropertyStatus.Rented;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkAsSold()
+    {
+        if (Status != PropertyStatus.Published)
+        {
+            throw new InvalidOperationException("Only a published listing can be marked as sold.");
+        }
+
+        if (ListingType != ListingType.Sale)
+        {
+            throw new InvalidOperationException("Only a for-sale listing can be marked as sold.");
+        }
+
+        Status = PropertyStatus.Sold;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    // Published/Rented/Sold -> Archived — anything earlier in the lifecycle never went live, so
+    // there's nothing to "take down"; discard a Draft/PendingReview/Rejected listing via delete
+    // instead.
     public void Archive()
     {
+        if (Status is not (PropertyStatus.Published or PropertyStatus.Rented or PropertyStatus.Sold))
+        {
+            throw new InvalidOperationException("Only a published, rented, or sold listing can be archived.");
+        }
+
         Status = PropertyStatus.Archived;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    // Distinct from Approve() (PendingReview -> Published, requires admin review) — this is the
+    // owner putting a previously deactivated listing back up themselves, without going through
+    // review again since it was already approved once. Only accepts the Archived -> Published
+    // edge and deliberately leaves an already-set PublishedAt untouched.
+    public void Republish()
+    {
+        if (Status != PropertyStatus.Archived)
+        {
+            throw new InvalidOperationException("Only archived properties can be republished.");
+        }
+
+        Status = PropertyStatus.Published;
+        PublishedAt ??= DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

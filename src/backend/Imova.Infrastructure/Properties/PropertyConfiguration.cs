@@ -23,6 +23,8 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.Area).HasColumnType("numeric(8,2)");
         builder.Property(p => p.Rooms).HasColumnType("numeric(4,1)");
+        builder.Property(p => p.RejectionReason).HasMaxLength(1000);
+        builder.Property(p => p.SuspensionReason).HasMaxLength(1000);
 
         builder.HasIndex(p => p.OwnerId);
         builder.HasIndex(p => p.Status);

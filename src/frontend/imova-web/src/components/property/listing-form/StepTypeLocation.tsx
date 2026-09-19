@@ -12,11 +12,21 @@ export function StepTypeLocation({
   onPropertyTypeChange,
   listingType,
   onListingTypeChange,
+  defaultCity,
+  defaultDistrict,
+  defaultCountry,
+  defaultLatitude,
+  defaultLongitude,
 }: {
   propertyType: string;
   onPropertyTypeChange: (value: string) => void;
   listingType: string;
   onListingTypeChange: (value: string) => void;
+  defaultCity?: string;
+  defaultDistrict?: string | null;
+  defaultCountry?: string;
+  defaultLatitude?: number;
+  defaultLongitude?: number;
 }) {
   const t = useTranslations("PropertyForm");
   const tType = useTranslations("PropertyType");
@@ -53,19 +63,25 @@ export function StepTypeLocation({
         </label>
         <label className="block">
           <FieldLabel required>{t("cityLabel")}</FieldLabel>
-          <TextInput name="city" required maxLength={100} placeholder={t("cityPlaceholder")} />
+          <TextInput name="city" required maxLength={100} defaultValue={defaultCity} placeholder={t("cityPlaceholder")} />
         </label>
         <label className="block">
           <FieldLabel>{t("districtLabel")}</FieldLabel>
-          <TextInput name="district" maxLength={100} placeholder={t("districtPlaceholder")} />
+          <TextInput
+            name="district"
+            maxLength={100}
+            defaultValue={defaultDistrict ?? undefined}
+            placeholder={t("districtPlaceholder")}
+          />
         </label>
       </div>
 
-      <input type="hidden" name="country" value="Moldova" />
-      {/* Stopgap until a map-based location picker / geocoding exists: every listing is
-          pinned to Chișinău's center so the required lat/lng still reach the backend. */}
-      <input type="hidden" name="latitude" value="47.0105" />
-      <input type="hidden" name="longitude" value="28.8638" />
+      <input type="hidden" name="country" value={defaultCountry ?? "Moldova"} />
+      {/* Stopgap until a map-based location picker / geocoding exists: a new listing is pinned
+          to Chișinău's center so the required lat/lng still reach the backend; editing an
+          existing listing preserves whatever it already had instead of resetting it. */}
+      <input type="hidden" name="latitude" value={defaultLatitude ?? 47.0105} />
+      <input type="hidden" name="longitude" value={defaultLongitude ?? 28.8638} />
     </div>
   );
 }

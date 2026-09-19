@@ -3,15 +3,22 @@
 import { useTranslations } from "next-intl";
 import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
 import { getFieldRequirement, type DetailFieldName } from "@/lib/property/fieldRules";
+import type { Property } from "@/types/property";
 
 const CURRENT_YEAR = new Date().getFullYear();
+
+function boolDefault(value: boolean | null | undefined): string {
+  return value == null ? "" : String(value);
+}
 
 export function StepDetails({
   propertyType,
   listingType,
+  property,
 }: {
   propertyType: string;
   listingType: string;
+  property?: Property;
 }) {
   const t = useTranslations("PropertyForm");
   const req = (field: DetailFieldName) => getFieldRequirement(field, propertyType, listingType);
@@ -23,20 +30,40 @@ export function StepDetails({
       <div className="mt-5 space-y-4">
         <label className="block">
           <FieldLabel required>{t("titleLabel")}</FieldLabel>
-          <TextInput name="title" required maxLength={200} placeholder={t("titlePlaceholder")} />
+          <TextInput
+            name="title"
+            required
+            maxLength={200}
+            defaultValue={property?.title}
+            placeholder={t("titlePlaceholder")}
+          />
         </label>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {req("area") !== "hidden" && (
             <label className="block">
               <FieldLabel required={req("area") === "required"}>{t("areaLabel")}</FieldLabel>
-              <TextInput name="area" type="number" min="0.01" step="0.01" required={req("area") === "required"} />
+              <TextInput
+                name="area"
+                type="number"
+                min="0.01"
+                step="0.01"
+                defaultValue={property?.area ?? undefined}
+                required={req("area") === "required"}
+              />
             </label>
           )}
           {req("rooms") !== "hidden" && (
             <label className="block">
               <FieldLabel required={req("rooms") === "required"}>{t("roomsLabel")}</FieldLabel>
-              <TextInput name="rooms" type="number" min="1" step="1" required={req("rooms") === "required"} />
+              <TextInput
+                name="rooms"
+                type="number"
+                min="1"
+                step="1"
+                defaultValue={property?.rooms ?? undefined}
+                required={req("rooms") === "required"}
+              />
             </label>
           )}
           {req("floor") !== "hidden" && (
@@ -48,6 +75,7 @@ export function StepDetails({
                 min="-5"
                 max="200"
                 step="1"
+                defaultValue={property?.floor ?? undefined}
                 required={req("floor") === "required"}
               />
             </label>
@@ -60,6 +88,7 @@ export function StepDetails({
                 type="number"
                 min="1"
                 step="1"
+                defaultValue={property?.totalFloors ?? undefined}
                 required={req("totalFloors") === "required"}
               />
             </label>
@@ -73,6 +102,7 @@ export function StepDetails({
                 min="1800"
                 max={CURRENT_YEAR + 1}
                 step="1"
+                defaultValue={property?.yearBuilt ?? undefined}
                 required={req("yearBuilt") === "required"}
               />
             </label>
@@ -85,6 +115,7 @@ export function StepDetails({
                 type="number"
                 min="0"
                 step="1"
+                defaultValue={property?.bathrooms ?? undefined}
                 required={req("bathrooms") === "required"}
               />
             </label>
@@ -92,7 +123,11 @@ export function StepDetails({
           {req("furnished") !== "hidden" && (
             <label className="block">
               <FieldLabel required={req("furnished") === "required"}>{t("furnishedLabel")}</FieldLabel>
-              <SelectInput name="furnished" defaultValue="" required={req("furnished") === "required"}>
+              <SelectInput
+                name="furnished"
+                defaultValue={boolDefault(property?.furnished)}
+                required={req("furnished") === "required"}
+              >
                 <option value="">{t("notSpecified")}</option>
                 <option value="true">{t("yes")}</option>
                 <option value="false">{t("no")}</option>
@@ -106,7 +141,7 @@ export function StepDetails({
               </FieldLabel>
               <SelectInput
                 name="parkingAvailable"
-                defaultValue=""
+                defaultValue={boolDefault(property?.parkingAvailable)}
                 required={req("parkingAvailable") === "required"}
               >
                 <option value="">{t("notSpecified")}</option>
@@ -118,7 +153,11 @@ export function StepDetails({
           {req("petsAllowed") !== "hidden" && (
             <label className="block">
               <FieldLabel required={req("petsAllowed") === "required"}>{t("petsAllowedLabel")}</FieldLabel>
-              <SelectInput name="petsAllowed" defaultValue="" required={req("petsAllowed") === "required"}>
+              <SelectInput
+                name="petsAllowed"
+                defaultValue={boolDefault(property?.petsAllowed)}
+                required={req("petsAllowed") === "required"}
+              >
                 <option value="">{t("notSpecified")}</option>
                 <option value="true">{t("yes")}</option>
                 <option value="false">{t("no")}</option>
@@ -134,6 +173,7 @@ export function StepDetails({
             required
             maxLength={4000}
             rows={5}
+            defaultValue={property?.description}
             placeholder={t("descriptionPlaceholder")}
           />
         </label>

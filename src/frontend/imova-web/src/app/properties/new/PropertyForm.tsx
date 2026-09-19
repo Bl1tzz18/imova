@@ -10,29 +10,52 @@ import { StepPhotos } from "@/components/property/listing-form/StepPhotos";
 import { StepPriceContact } from "@/components/property/listing-form/StepPriceContact";
 import { ListingTips } from "@/components/property/listing-form/ListingTips";
 import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
+import { updatePropertyDetails } from "@/lib/property/actions";
 import { createProperty, type CreatePropertyState } from "./actions";
+import type { Property } from "@/types/property";
 
 const initialState: CreatePropertyState = {};
 
 const STEP_COUNT = 4;
 
-export function PropertyForm() {
-  const [state, formAction, pending] = useActionState(createProperty, initialState);
+// Reused as-is for both listing creation (no `property` prop) and editing an existing listing
+// (`property` supplied — see /my-listings/[id]/edit/page.tsx): same steps, same fields, all
+// pre-filled and editable in edit mode. Only the parts that genuinely differ between the two —
+// which id/action is used, the final button's label, and what happens after a successful submit
+// — branch on whether `property` is present.
+export function PropertyForm({ property }: { property?: Property }) {
+  const isEdit = property != null;
+  const boundUpdateAction = isEdit ? updatePropertyDetails.bind(null, property.id) : null;
+  const [state, formAction, pending] = useActionState(
+    isEdit ? boundUpdateAction! : createProperty,
+    initialState,
+  );
   const [step, setStep] = useState(1);
-  const [propertyType, setPropertyType] = useState("Apartment");
-  const [listingType, setListingType] = useState("Rent");
+  const [propertyType, setPropertyType] = useState(property?.propertyType ?? "Apartment");
+  const [listingType, setListingType] = useState(property?.listingType ?? "Rent");
+
+  // Frozen at mount so it keeps reflecting "this listing was Rejected when the owner opened the
+  // edit page" for the whole session, regardless of the automatic background refresh Next.js
+  // runs after a successful server action (which would otherwise flip property.status to
+  // PendingReview mid-edit and change the button label/notice out from under the user).
+  const [wasRejected] = useState(() => property?.status === "Rejected");
 
   // Generated up front (client-side only, in an effect — crypto.randomUUID() during the
   // initial render would produce a different value on the server than on the client and
   // trigger a hydration mismatch) so photos can be uploaded and attached server-side (see
-  // ImageUploader/actions.ts) before the property itself is created.
-  const [propertyId, setPropertyId] = useState<string | null>(null);
-  useEffect(() => setPropertyId(crypto.randomUUID()), []);
+  // ImageUploader/actions.ts) before the property itself is created. Editing an existing
+  // listing already has a real id, so this only runs for create mode.
+  const [generatedId, setGeneratedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isEdit) setGeneratedId(crypto.randomUUID());
+  }, [isEdit]);
+  const propertyId = property?.id ?? generatedId;
 
   const formRef = useRef<HTMLFormElement>(null);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   const t = useTranslations("PropertyForm");
+  const tEdit = useTranslations("EditListingPage");
 
   // Only the currently visible step's fields are validated: a hidden field can't show its
   // native validation bubble, so jumping straight to a distant step (skipping ones never
@@ -78,9 +101,19 @@ export function PropertyForm() {
     clickable: s.number <= step + 1,
   }));
 
-  if (state.success) {
+  if (state.success && !isEdit) {
     return <SuccessPanel />;
   }
+
+  const primaryLabel = pending
+    ? t("saving")
+    : step === STEP_COUNT
+      ? isEdit
+        ? wasRejected
+          ? tEdit("saveAndResubmit")
+          : tEdit("saveChanges")
+        : t("publish")
+      : t("continueLabel");
 
   return (
     <div>
@@ -92,7 +125,15 @@ export function PropertyForm() {
           action={formAction}
           className="min-w-0 flex-1 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8"
         >
-          <input type="hidden" name="id" value={propertyId ?? ""} />
+          {!isEdit && <input type="hidden" name="id" value={propertyId ?? ""} />}
+
+          {isEdit && wasRejected && (
+            <div className="mb-6 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
+              <p className="font-medium">{tEdit("rejectedNoticeTitle")}</p>
+              {property.rejectionReason && <p className="mt-0.5">{property.rejectionReason}</p>}
+              <p className="mt-1.5">{tEdit("rejectedNoticeBody")}</p>
+            </div>
+          )}
 
           <div
             ref={(el) => {
@@ -105,6 +146,11 @@ export function PropertyForm() {
               onPropertyTypeChange={setPropertyType}
               listingType={listingType}
               onListingTypeChange={setListingType}
+              defaultCity={property?.location?.city}
+              defaultDistrict={property?.location?.district}
+              defaultCountry={property?.location?.country}
+              defaultLatitude={property?.location?.latitude}
+              defaultLongitude={property?.location?.longitude}
             />
           </div>
 
@@ -114,7 +160,7 @@ export function PropertyForm() {
             }}
             className={step === 2 ? "" : "hidden"}
           >
-            <StepDetails propertyType={propertyType} listingType={listingType} />
+            <StepDetails propertyType={propertyType} listingType={listingType} property={property} />
           </div>
 
           <div
@@ -123,7 +169,7 @@ export function PropertyForm() {
             }}
             className={step === 3 ? "" : "hidden"}
           >
-            <StepPhotos propertyId={propertyId} />
+            <StepPhotos propertyId={propertyId} initialMedia={property?.media} />
           </div>
 
           <div
@@ -132,12 +178,18 @@ export function PropertyForm() {
             }}
             className={step === 4 ? "" : "hidden"}
           >
-            <StepPriceContact />
+            <StepPriceContact property={property} />
           </div>
 
           {state.error && (
             <p className="mt-6 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
               {state.error}
+            </p>
+          )}
+
+          {state.success && isEdit && (
+            <p className="mt-6 rounded-xl border border-brand-100 bg-brand-100/60 px-4 py-3 text-sm text-brand-700">
+              {wasRejected ? tEdit("savedAndResubmitted") : tEdit("saved")}
             </p>
           )}
 
@@ -150,7 +202,7 @@ export function PropertyForm() {
               <span />
             )}
             <Button type="button" disabled={pending} onClick={handlePrimaryClick}>
-              {pending ? t("saving") : step === STEP_COUNT ? t("publish") : t("continueLabel")}
+              {primaryLabel}
             </Button>
           </div>
         </form>

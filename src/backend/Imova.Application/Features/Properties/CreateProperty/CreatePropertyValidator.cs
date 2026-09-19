@@ -14,7 +14,11 @@ public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
         RuleFor(c => c.PropertyType).IsInEnum();
         RuleFor(c => c.ListingType).IsInEnum();
         RuleFor(c => c.Price).GreaterThan(0);
-        RuleFor(c => c.Currency).NotEmpty().Length(3);
+        // Only these three currencies are offered on the frontend dropdown — the backend rejects
+        // anything else rather than silently accepting it from a direct API call.
+        RuleFor(c => c.Currency)
+            .Must(SupportedCurrencies.All.Contains)
+            .WithMessage($"Currency must be one of: {string.Join(", ", SupportedCurrencies.All)}.");
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
         RuleFor(c => c.City).NotEmpty().MaximumLength(100);
         RuleFor(c => c.District).MaximumLength(100);
