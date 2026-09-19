@@ -11,16 +11,20 @@ import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { Property } from "@/types/property";
 
-type StatusFilter = "all" | "PendingReview" | "Published" | "Draft" | "Archived";
+type StatusFilter = "all" | "PendingReview" | "Rejected" | "Published" | "Draft" | "Archived";
 
+// "accent" is this app's alert/attention color (same tone used for validation and error
+// banners elsewhere), so it's reserved for statuses that need the owner to act — Rejected and
+// Suspended — rather than for "live" statuses, so a rejected listing doesn't blend into the
+// rest of the gray/neutral bucket.
 const statusBadgeTone: Record<string, "brand" | "accent" | "neutral"> = {
-  Published: "accent",
-  Rented: "accent",
-  Sold: "accent",
-  Draft: "brand",
-  PendingReview: "brand",
-  Rejected: "neutral",
-  Suspended: "neutral",
+  Published: "brand",
+  Rented: "brand",
+  Sold: "brand",
+  Draft: "neutral",
+  PendingReview: "neutral",
+  Rejected: "accent",
+  Suspended: "accent",
   Archived: "neutral",
 };
 
@@ -38,6 +42,7 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
   const tabs: { id: StatusFilter; label: string }[] = [
     { id: "all", label: t("tabAll") },
     { id: "PendingReview", label: t("tabPendingReview") },
+    { id: "Rejected", label: t("tabRejected") },
     { id: "Published", label: t("tabPublished") },
     { id: "Draft", label: t("tabDraft") },
     { id: "Archived", label: t("tabArchived") },
@@ -102,94 +107,104 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
             return (
               <div
                 key={property.id}
-                className="flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-3.5 sm:flex-row sm:items-center sm:gap-4"
+                className="flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-3.5"
               >
-                <Link
-                  href={`/property/${property.id}`}
-                  className="flex h-[68px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600"
-                >
-                  {property.media.length > 0 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={property.media[0].url}
-                      alt={property.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <PropertyIcon type={property.propertyType} className="h-7 w-7 text-white/40" />
-                  )}
-                </Link>
-
-                <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <Link
                     href={`/property/${property.id}`}
-                    className="block truncate text-sm font-medium text-ink-900 hover:underline"
+                    className="flex h-[68px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600"
                   >
-                    {property.title}
+                    {property.media.length > 0 ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={property.media[0].url}
+                        alt={property.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <PropertyIcon type={property.propertyType} className="h-7 w-7 text-white/40" />
+                    )}
                   </Link>
-                  {location && <p className="mt-0.5 truncate text-xs text-ink-500">{location}</p>}
-                  {reason && <p className="mt-0.5 truncate text-xs text-accent-600">{reason}</p>}
-                </div>
 
-                <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">
-                  {formatPrice(property.price, property.currency)}
-                </p>
-
-                <Badge tone={statusBadgeTone[property.status] ?? "neutral"} className="shrink-0">
-                  {statusLabel(t, property.status)}
-                </Badge>
-
-                {ARCHIVABLE_STATUSES.has(property.status) && confirmingId === property.id ? (
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <span className="text-xs text-ink-600">{t("deactivateConfirm")}</span>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      disabled={pending}
-                      onClick={() => handleConfirmDeactivate(property.id)}
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/property/${property.id}`}
+                      className="block truncate text-sm font-medium text-ink-900 hover:underline"
                     >
-                      {t("deactivateConfirmYes")}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setConfirmingId(null)}>
-                      {t("deactivateConfirmCancel")}
-                    </Button>
+                      {property.title}
+                    </Link>
+                    {location && <p className="mt-0.5 truncate text-xs text-ink-500">{location}</p>}
                   </div>
-                ) : (
-                  <div className="flex shrink-0 gap-2">
-                    <LinkButton href={`/my-listings/${property.id}/edit`} variant="secondary" size="sm">
-                      {t("edit")}
-                    </LinkButton>
 
-                    {(property.status === "Draft" || property.status === "Rejected") && (
+                  <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">
+                    {formatPrice(property.price, property.currency)}
+                  </p>
+
+                  <Badge tone={statusBadgeTone[property.status] ?? "neutral"} className="shrink-0">
+                    {statusLabel(t, property.status)}
+                  </Badge>
+
+                  {ARCHIVABLE_STATUSES.has(property.status) && confirmingId === property.id ? (
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <span className="text-xs text-ink-600">{t("deactivateConfirm")}</span>
                       <Button
                         variant="primary"
                         size="sm"
                         disabled={pending}
-                        onClick={() => runAction(property.id, submitForReview)}
+                        onClick={() => handleConfirmDeactivate(property.id)}
                       >
-                        {t("submitForReview")}
+                        {t("deactivateConfirmYes")}
                       </Button>
-                    )}
-                    {ARCHIVABLE_STATUSES.has(property.status) && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => setConfirmingId(property.id)}
-                      >
-                        {t("deactivate")}
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmingId(null)}>
+                        {t("deactivateConfirmCancel")}
                       </Button>
-                    )}
-                    {property.status === "Archived" && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={pending}
-                        onClick={() => runAction(property.id, republishProperty)}
-                      >
-                        {t("activate")}
-                      </Button>
-                    )}
+                    </div>
+                  ) : (
+                    <div className="flex shrink-0 gap-2">
+                      <LinkButton href={`/my-listings/${property.id}/edit`} variant="secondary" size="sm">
+                        {t("edit")}
+                      </LinkButton>
+
+                      {(property.status === "Draft" || property.status === "Rejected") && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => runAction(property.id, submitForReview)}
+                        >
+                          {t("submitForReview")}
+                        </Button>
+                      )}
+                      {ARCHIVABLE_STATUSES.has(property.status) && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => setConfirmingId(property.id)}
+                        >
+                          {t("deactivate")}
+                        </Button>
+                      )}
+                      {property.status === "Archived" && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => runAction(property.id, republishProperty)}
+                        >
+                          {t("activate")}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {reason && (
+                  <div className="rounded-xl border border-accent-100 bg-accent-100/60 px-3.5 py-2.5 text-sm text-accent-700">
+                    <p className="font-medium">
+                      {property.status === "Rejected" ? t("rejectionReasonLabel") : t("suspensionReasonLabel")}
+                    </p>
+                    <p className="mt-0.5">{reason}</p>
                   </div>
                 )}
               </div>
