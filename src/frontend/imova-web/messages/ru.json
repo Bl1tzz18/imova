@@ -48,9 +48,7 @@
     "savedListing": "Сохранено",
     "statusRented": "Сдано",
     "statusSold": "Продано",
-    "statusUnavailable": "Недоступно",
-    "share": "Поделиться",
-    "linkCopied": "Ссылка скопирована"
+    "statusUnavailable": "Недоступно"
   },
   "Home": {
     "badge": "Недвижимость в Молдове, без посредников",

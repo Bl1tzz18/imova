@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
-import { ShareListingButton } from "@/components/property/ShareListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { Property } from "@/types/property";
@@ -11,7 +10,6 @@ import type { Property } from "@/types/property";
 export function PropertyCard({
   property,
   showFloor = false,
-  showShareButton = false,
   hidePerMonthSuffix = false,
 }: {
   property: Property;
@@ -19,7 +17,6 @@ export function PropertyCard({
   // regular search/saved-listings grids don't — kept optional so this stays the one card
   // implementation everywhere instead of a near-duplicate compact card.
   showFloor?: boolean;
-  showShareButton?: boolean;
   hidePerMonthSuffix?: boolean;
 }) {
   const tType = useTranslations("PropertyType");
@@ -63,7 +60,6 @@ export function PropertyCard({
 
         <div className="absolute right-3 top-3 flex gap-1.5">
           <SaveListingButton propertyId={property.id} initialSaved={property.isSaved} />
-          {showShareButton && <ShareListingButton propertyId={property.id} />}
         </div>
 
         {isUnavailable && (

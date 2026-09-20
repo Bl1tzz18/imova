@@ -19,8 +19,8 @@ function CloseIcon({ className }: { className?: string }) {
 // to it, at any width — a bottom sheet over the map below `lg` (matching /map's own breakpoint
 // for switching between a stacked and a side-by-side layout), the original right-edge panel at
 // `lg+` where there's room for it beside the sidebar. Reuses PropertyCard as-is (its
-// showFloor/showShareButton/hidePerMonthSuffix props exist for exactly this panel) rather than
-// building separate card markup, so these stay visually consistent with search/saved-listings.
+// showFloor/hidePerMonthSuffix props exist for exactly this panel) rather than building
+// separate card markup, so these stay visually consistent with search/saved-listings.
 export function ClusterOverflowPanel({ points, onClose }: { points: MapPoint[]; onClose: () => void }) {
   const t = useTranslations("MapPage");
 
@@ -42,7 +42,7 @@ export function ClusterOverflowPanel({ points, onClose }: { points: MapPoint[]; 
       <div className="flex-1 overflow-y-auto p-3">
         <div className="flex flex-col gap-3">
           {points.map((point) => (
-            <PropertyCard key={point.property.id} property={point.property} showFloor showShareButton hidePerMonthSuffix />
+            <PropertyCard key={point.property.id} property={point.property} showFloor hidePerMonthSuffix />
           ))}
         </div>
       </div>

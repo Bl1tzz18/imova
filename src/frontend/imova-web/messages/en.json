@@ -48,9 +48,7 @@
     "savedListing": "Saved",
     "statusRented": "Rented",
     "statusSold": "Sold",
-    "statusUnavailable": "Unavailable",
-    "share": "Share",
-    "linkCopied": "Link copied"
+    "statusUnavailable": "Unavailable"
   },
   "Home": {
     "badge": "Real estate in Moldova, no middlemen",
