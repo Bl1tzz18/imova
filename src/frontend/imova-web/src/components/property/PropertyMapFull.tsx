@@ -69,15 +69,38 @@ function pointKey(lat: number, lng: number) {
   return `${lat.toFixed(6)},${lng.toFixed(6)}`;
 }
 
+// Zoom levels a cluster click jumps to (see ClusteredPropertyMarkers' onClick below) and the
+// boundaries maxClusterRadius steps down at (see clusterRadiusForZoom) — roughly 3 cluster
+// "tiers" instead of a smooth/gradual breakdown across every zoom level: wide (city/region,
+// below tier[0]), medium (neighborhood/street, between the two), and tight (building/point at
+// maxZoom — only markers sharing the same or a near-identical coordinate still merge there).
+// Deliberately not using `disableClusteringAtZoom`: that would stop clustering outright beyond a
+// fixed zoom, including at maxZoom, which would break the "still a cluster at maxZoom → show
+// every listing at that point in the overflow panel" feature for listings sharing one exact
+// coordinate.
+const ZOOM_TIERS = [13, 18];
+
+function clusterRadiusForZoom(zoom: number) {
+  if (zoom < ZOOM_TIERS[0]) return 100;
+  if (zoom < ZOOM_TIERS[1]) return 50;
+  return 20;
+}
+
+function nextTierZoom(currentZoom: number, maxZoom: number) {
+  const next = ZOOM_TIERS.find((zoom) => zoom > currentZoom);
+  return Math.min(next ?? maxZoom, maxZoom);
+}
+
 // /map explorer only: groups nearby listings into a count cluster, breaking apart into smaller
 // clusters or individual price pills as the user zooms in. `zoomToBoundsOnClick` is turned off
-// (its default "fit bounds of this cluster's children" jump can leap several zoom levels at
-// once) in favor of a custom handler that always steps in by exactly one zoom level, so clusters
-// visibly break apart progressively instead of jumping straight to individual markers. Once
-// already at the map's max zoom, stepping in further is impossible — if it's still a cluster at
-// that point, its markers must share the same (or a near-identical) coordinate and can never
-// separate by zooming alone, so the click instead reports the full list of listings at that
-// point via `onClusterOverflow`, for the caller to show as a side panel.
+// (its default "fit bounds of this cluster's children" jump can be unpredictable — anywhere from
+// barely zooming to leaping straight to individual markers) in favor of a custom handler that
+// jumps to the next zoom tier, so a couple of clicks gets from a city-wide view down to
+// individual listings instead of needing many one-level-at-a-time clicks. Once already at the
+// map's max zoom, stepping in further is impossible — if it's still a cluster at that point, its
+// markers must share the same (or a near-identical) coordinate and can never separate by zooming
+// alone, so the click instead reports the full list of listings at that point via
+// `onClusterOverflow`, for the caller to show as a side panel.
 function ClusteredPropertyMarkers({
   points,
   selectedId,
@@ -95,7 +118,7 @@ function ClusteredPropertyMarkers({
 
   return (
     <MarkerClusterGroup
-      maxClusterRadius={70}
+      maxClusterRadius={clusterRadiusForZoom}
       showCoverageOnHover={false}
       spiderfyOnMaxZoom={false}
       zoomToBoundsOnClick={false}
@@ -108,7 +131,7 @@ function ClusteredPropertyMarkers({
           return;
         }
         onClusterOverflow(null);
-        map.setView(e.latlng, Math.min(map.getZoom() + 1, map.getMaxZoom()));
+        map.setView(e.latlng, nextTierZoom(map.getZoom(), map.getMaxZoom()));
       }}
     >
       {points.map((point) => (
