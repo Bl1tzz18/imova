@@ -12,6 +12,13 @@ export function formatDate(isoDate: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(isoDate));
 }
 
+// Several raion seats share their raion's exact name (e.g. the town "Soroca" is the seat of
+// Soroca raion) — showing both would read as "Soroca, Soroca", so the raion name is dropped
+// whenever it's identical to the more specific localitate/sector name.
+function sameName(a: string | null, b: string | null) {
+  return a != null && b != null && a.trim() === b.trim();
+}
+
 export function formatFullLocation(location: {
   country: string;
   region: string | null;
@@ -22,13 +29,14 @@ export function formatFullLocation(location: {
   buildingNumber: string | null;
 } | null) {
   if (!location) return null;
+  const raionName = sameName(location.raionName, location.localitateName) ? null : location.raionName;
   const parts = [
     location.street
       ? `${location.street}${location.buildingNumber ? ` ${location.buildingNumber}` : ""}`
       : null,
     location.sector,
     location.localitateName,
-    location.raionName,
+    raionName,
     location.region,
     location.country,
   ].filter(Boolean);
@@ -40,5 +48,8 @@ export function formatLocation(location: {
   localitateName: string | null;
 } | null) {
   if (!location) return null;
-  return location.localitateName ? `${location.raionName}, ${location.localitateName}` : location.raionName;
+  if (!location.localitateName || sameName(location.raionName, location.localitateName)) {
+    return location.raionName;
+  }
+  return `${location.raionName}, ${location.localitateName}`;
 }
