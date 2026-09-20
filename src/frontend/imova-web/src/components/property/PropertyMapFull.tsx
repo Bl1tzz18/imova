@@ -57,7 +57,17 @@ export function PropertyMapFull({
   const selectedPoint = points.find((point) => point.property.id === selectedId) ?? null;
 
   return (
-    <MapContainer center={MOLDOVA_CENTER} zoom={8} className="h-full w-full" attributionControl={false}>
+    <MapContainer
+      center={MOLDOVA_CENTER}
+      zoom={8}
+      className="h-full w-full"
+      attributionControl={false}
+      zoomControl
+      dragging
+      scrollWheelZoom
+      doubleClickZoom
+      touchZoom
+    >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <FlyToSelected point={selectedPoint} />
       {points.map((point) => (
