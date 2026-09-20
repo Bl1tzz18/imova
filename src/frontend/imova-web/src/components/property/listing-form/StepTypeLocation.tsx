@@ -80,6 +80,11 @@ export function StepTypeLocation({
   const [chisinauKind, setChisinauKind] = useState<"sector" | "suburbie">(() =>
     localitateId ? "suburbie" : "sector",
   );
+  // Chișinău's flattened Localitate list also contains its 5 official CUATM sectors ("Sectorul
+  // Botanica", etc.) alongside the real suburb towns/communes — those are already covered by the
+  // separate Sector tab/dropdown above, so exclude them here to avoid showing the same places
+  // twice under two different names.
+  const suburbieOptions = localitati.filter((localitate) => !localitate.nameRo.startsWith("Sectorul "));
 
   function handleChisinauKindChange(kind: "sector" | "suburbie") {
     setChisinauKind(kind);
@@ -168,7 +173,7 @@ export function StepTypeLocation({
                 value={localitateId}
                 disabled={localitatiLoading}
                 onChange={onLocalitateIdChange}
-                options={localitati.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
+                options={suburbieOptions.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
                 placeholder={t("suburbiePlaceholder")}
                 searchPlaceholder={t("suburbieSearchPlaceholder")}
                 noResultsText={t("searchNoResults")}
