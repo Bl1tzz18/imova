@@ -111,22 +111,12 @@ export default async function ProprietatePage({
                     <circle cx="12" cy="10" r="2.5" />
                   </svg>
                   {location}
-                  {property.location?.latitude != null && property.location?.longitude != null && (
-                    <a
-                      href={`https://www.google.com/maps?q=${property.location.latitude},${property.location.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-brand-700 underline-offset-2 hover:underline"
-                    >
-                      {t("viewOnMap")}
-                    </a>
-                  )}
                 </p>
               )}
 
               {property.location &&
                 (property.location.latitude != null && property.location.longitude != null ? (
-                  <div className="mt-4 h-56 overflow-hidden rounded-2xl border border-ink-100">
+                  <div className="mt-4">
                     <PropertyLocationPreview
                       property={property}
                       lat={property.location.latitude}

@@ -96,7 +96,9 @@
     "title": "Proprietăți pe hartă",
     "resultsCount": "{count, plural, one {# anunț pe hartă} few {# anunțuri pe hartă} other {# de anunțuri pe hartă}}",
     "noResults": "Momentan niciun anunț nu are locație",
-    "viewListing": "Vezi anunțul"
+    "viewListing": "Vezi anunțul",
+    "pointListingsCount": "{count, plural, one {# anunț în acest punct} few {# anunțuri în acest punct} other {# de anunțuri în acest punct}}",
+    "closePanel": "Închide panoul"
   },
   "NewPropertyPage": {
     "title": "Adaugă anunț",
@@ -184,7 +186,9 @@
     "email": "Email",
     "phone": "Telefon",
     "phoneNotProvided": "Telefon nefurnizat",
-    "viewOnMap": "Vezi pe hartă",
+    "openInGoogleMaps": "Deschide în Google Maps",
+    "expandMap": "Extinde harta",
+    "closeMap": "Închide harta",
   "locationPending": "Locația exactă este în curs de procesare.",
     "photoCount": "{count, plural, one {# fotografie} few {# fotografii} other {# de fotografii}}",
     "photoCounter": "{current} din {total}",

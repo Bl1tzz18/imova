@@ -96,7 +96,9 @@
     "title": "Properties on the map",
     "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
     "noResults": "No listings with a location yet",
-    "viewListing": "View listing"
+    "viewListing": "View listing",
+    "pointListingsCount": "{count, plural, one {# listing at this point} other {# listings at this point}}",
+    "closePanel": "Close panel"
   },
   "NewPropertyPage": {
     "title": "Add listing",
@@ -184,7 +186,9 @@
     "email": "Email",
     "phone": "Phone",
     "phoneNotProvided": "Phone not provided",
-    "viewOnMap": "View on map",
+    "openInGoogleMaps": "Open in Google Maps",
+    "expandMap": "Expand map",
+    "closeMap": "Close map",
   "locationPending": "Exact location is being processed.",
     "photoCount": "{count, plural, one {# photo} other {# photos}}",
     "photoCounter": "{current} of {total}",

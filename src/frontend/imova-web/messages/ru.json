@@ -96,7 +96,9 @@
     "title": "Объекты на карте",
     "resultsCount": "{count, plural, one {# объявление на карте} few {# объявления на карте} many {# объявлений на карте} other {# объявления на карте}}",
     "noResults": "Пока нет объявлений с указанной локацией",
-    "viewListing": "Смотреть объявление"
+    "viewListing": "Смотреть объявление",
+    "pointListingsCount": "{count, plural, one {# объявление в этой точке} few {# объявления в этой точке} many {# объявлений в этой точке} other {# объявления в этой точке}}",
+    "closePanel": "Закрыть панель"
   },
   "NewPropertyPage": {
     "title": "Добавить объявление",
@@ -184,7 +186,9 @@
     "email": "Эл. почта",
     "phone": "Телефон",
     "phoneNotProvided": "Телефон не указан",
-    "viewOnMap": "Показать на карте",
+    "openInGoogleMaps": "Открыть в Google Картах",
+    "expandMap": "Развернуть карту",
+    "closeMap": "Закрыть карту",
   "locationPending": "Точное местоположение уточняется.",
     "photoCount": "{count, plural, one {# фото} few {# фото} many {# фото} other {# фото}}",
     "photoCounter": "{current} из {total}",
