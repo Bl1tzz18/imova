@@ -33,6 +33,8 @@ export function PropertyForm({ property }: { property?: Property }) {
   const [step, setStep] = useState(1);
   const [propertyType, setPropertyType] = useState(property?.propertyType ?? "Apartment");
   const [listingType, setListingType] = useState(property?.listingType ?? "Rent");
+  const [raionId, setRaionId] = useState(property?.location?.raionId ?? "");
+  const [localitateId, setLocalitateId] = useState(property?.location?.localitateId ?? "");
 
   // Frozen at mount so it keeps reflecting "this listing was Rejected when the owner opened the
   // edit page" for the whole session, regardless of the automatic background refresh Next.js
@@ -70,6 +72,12 @@ export function PropertyForm({ property }: { property?: Property }) {
       return false;
     }
     return true;
+  }
+
+  // Switching Raion invalidates whatever Localitate/Sector was picked under the previous one.
+  function handleRaionIdChange(value: string) {
+    setRaionId(value);
+    setLocalitateId("");
   }
 
   function goToStep(target: number) {
@@ -146,8 +154,10 @@ export function PropertyForm({ property }: { property?: Property }) {
               onPropertyTypeChange={setPropertyType}
               listingType={listingType}
               onListingTypeChange={setListingType}
-              defaultCity={property?.location?.city}
-              defaultDistrict={property?.location?.district}
+              raionId={raionId}
+              onRaionIdChange={handleRaionIdChange}
+              localitateId={localitateId}
+              onLocalitateIdChange={setLocalitateId}
               defaultCountry={property?.location?.country}
               defaultStreetAddress={property?.location?.street}
             />

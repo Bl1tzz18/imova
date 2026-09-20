@@ -13,6 +13,10 @@ public interface IApplicationDbContext
 
     DbSet<PropertyLocation> PropertyLocations { get; }
 
+    DbSet<Raion> Raioane { get; }
+
+    DbSet<Localitate> Localitati { get; }
+
     DbSet<PropertyMedia> PropertyMedias { get; }
 
     DbSet<Favorite> Favorites { get; }

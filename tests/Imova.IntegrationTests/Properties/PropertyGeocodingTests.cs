@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
+using Imova.Contracts.Locations;
 using Imova.Contracts.Properties;
 using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -57,7 +58,13 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         return client;
     }
 
-    private static Dictionary<string, object?> ValidCreatePropertyBody() => new()
+    private static async Task<Guid> GetAnyRaionIdAsync(HttpClient client)
+    {
+        var raioane = await client.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane");
+        return raioane!.First().Id;
+    }
+
+    private static async Task<Dictionary<string, object?>> ValidCreatePropertyBodyAsync(HttpClient client) => new()
     {
         ["title"] = "Apartament 2 camere",
         ["description"] = "Apartament luminos, aproape de centru.",
@@ -66,8 +73,7 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         ["price"] = 550,
         ["currency"] = "EUR",
         ["country"] = "Moldova",
-        ["city"] = "Chisinau",
-        ["district"] = "Botanica",
+        ["raionId"] = await GetAnyRaionIdAsync(client),
         ["area"] = 54,
         ["rooms"] = 2,
         ["floor"] = 3,
@@ -81,7 +87,7 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         var factory = CreateFactory(stub);
         var client = await RegisterAuthedClientAsync(factory);
 
-        var response = await client.PostAsJsonAsync("/api/v1/properties", ValidCreatePropertyBody());
+        var response = await client.PostAsJsonAsync("/api/v1/properties", await ValidCreatePropertyBodyAsync(client));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var property = (await response.Content.ReadFromJsonAsync<PropertyDto>())!;
@@ -101,7 +107,7 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         var factory = CreateFactory(stub);
         var client = await RegisterAuthedClientAsync(factory);
 
-        var response = await client.PostAsJsonAsync("/api/v1/properties", ValidCreatePropertyBody());
+        var response = await client.PostAsJsonAsync("/api/v1/properties", await ValidCreatePropertyBodyAsync(client));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var property = (await response.Content.ReadFromJsonAsync<PropertyDto>())!;
@@ -119,7 +125,7 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         var factory = CreateFactory(resolvingStub);
         var client = await RegisterAuthedClientAsync(factory);
 
-        var createResponse = await client.PostAsJsonAsync("/api/v1/properties", ValidCreatePropertyBody());
+        var createResponse = await client.PostAsJsonAsync("/api/v1/properties", await ValidCreatePropertyBodyAsync(client));
         createResponse.EnsureSuccessStatusCode();
         var created = (await createResponse.Content.ReadFromJsonAsync<PropertyDto>())!;
 
@@ -135,8 +141,8 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
             price = created.Price,
             currency = created.Currency,
             country = created.Location!.Country,
-            city = "Somewhere Unresolvable",
-            district = created.Location.District,
+            raionId = created.Location.RaionId,
+            localitateId = created.Location.LocalitateId,
             area = created.Area,
             rooms = created.Rooms,
             floor = created.Floor,

@@ -120,6 +120,47 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("Favorites");
                 });
 
+            modelBuilder.Entity("Imova.Domain.Locations.Localitate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<string>("NameRo")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NameRu")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<Guid?>("ParentLocalityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RaionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentLocalityId");
+
+                    b.HasIndex("RaionId");
+
+                    b.HasIndex("SourceId")
+                        .IsUnique();
+
+                    b.ToTable("Localitati", (string)null);
+                });
+
             modelBuilder.Entity("Imova.Domain.Locations.PropertyLocation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -130,22 +171,20 @@ namespace Imova.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("District")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision");
+
+                    b.Property<Guid?>("LocalitateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LocalitateName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
                     b.Property<Point>("Location")
                         .HasColumnType("geometry(Point,4326)");
@@ -155,6 +194,14 @@ namespace Imova.Infrastructure.Migrations
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid>("RaionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RaionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Region")
                         .HasMaxLength(100)
@@ -170,6 +217,8 @@ namespace Imova.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LocalitateId");
+
                     b.HasIndex("Location");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "GIST");
@@ -177,7 +226,45 @@ namespace Imova.Infrastructure.Migrations
                     b.HasIndex("PropertyId")
                         .IsUnique();
 
+                    b.HasIndex("RaionId");
+
                     b.ToTable("PropertyLocations");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Locations.Raion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)");
+
+                    b.Property<string>("LocalityLabel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("NameRo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NameRu")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceId")
+                        .IsUnique();
+
+                    b.ToTable("Raioane", (string)null);
                 });
 
             modelBuilder.Entity("Imova.Domain.Media.PropertyMedia", b =>
@@ -464,12 +551,37 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Locations.Localitate", b =>
+                {
+                    b.HasOne("Imova.Domain.Locations.Localitate", null)
+                        .WithMany()
+                        .HasForeignKey("ParentLocalityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Imova.Domain.Locations.Raion", null)
+                        .WithMany()
+                        .HasForeignKey("RaionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Locations.PropertyLocation", b =>
                 {
+                    b.HasOne("Imova.Domain.Locations.Localitate", null)
+                        .WithMany()
+                        .HasForeignKey("LocalitateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Imova.Domain.Properties.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Domain.Locations.Raion", null)
+                        .WithMany()
+                        .HasForeignKey("RaionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

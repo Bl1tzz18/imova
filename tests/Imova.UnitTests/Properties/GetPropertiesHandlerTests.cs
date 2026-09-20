@@ -105,7 +105,8 @@ public class GetPropertiesHandlerTests
     {
         await using var dbContext = TestDbContextFactory.Create();
         var property = AddProperty(dbContext);
-        var location = PropertyLocation.Create(property.Id, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638);
+        var location = PropertyLocation.Create(
+            property.Id, "Moldova", Guid.NewGuid(), "Chisinau", Guid.NewGuid(), "Botanica", 47.0105, 28.8638);
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
@@ -113,7 +114,7 @@ public class GetPropertiesHandlerTests
         var result = await handler.Handle(new GetPropertiesQuery(), CancellationToken.None);
 
         Assert.NotNull(result.Single().Location);
-        Assert.Equal("Chisinau", result.Single().Location!.City);
+        Assert.Equal("Chisinau", result.Single().Location!.RaionName);
     }
 
     [Fact]

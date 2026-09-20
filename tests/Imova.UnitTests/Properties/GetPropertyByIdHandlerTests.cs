@@ -239,7 +239,7 @@ public class GetPropertyByIdHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var property = AddProperty(dbContext);
         var location = PropertyLocation.Create(
-            property.Id, "Moldova", "Chisinau", "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
+            property.Id, "Moldova", Guid.NewGuid(), "Chisinau", Guid.NewGuid(), "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

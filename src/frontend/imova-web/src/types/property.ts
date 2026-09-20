@@ -1,8 +1,10 @@
 export type PropertyLocation = {
   country: string;
   region: string | null;
-  city: string;
-  district: string | null;
+  raionId: string;
+  raionName: string;
+  localitateId: string | null;
+  localitateName: string | null;
   sector: string | null;
   street: string | null;
   buildingNumber: string | null;

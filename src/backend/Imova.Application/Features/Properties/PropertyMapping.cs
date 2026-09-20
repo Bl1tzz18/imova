@@ -45,8 +45,10 @@ public static class PropertyMapping
                 : new PropertyLocationDto(
                     location.Country,
                     location.Region,
-                    location.City,
-                    location.District,
+                    location.RaionId,
+                    location.RaionName,
+                    location.LocalitateId,
+                    location.LocalitateName,
                     location.Sector,
                     location.Street,
                     location.BuildingNumber,

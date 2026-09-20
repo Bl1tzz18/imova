@@ -9,8 +9,10 @@ public sealed class PropertyLocation : Entity
         Guid id,
         Guid propertyId,
         string country,
-        string city,
-        string? district,
+        Guid raionId,
+        string raionName,
+        Guid? localitateId,
+        string? localitateName,
         double? latitude,
         double? longitude,
         string? street)
@@ -18,8 +20,10 @@ public sealed class PropertyLocation : Entity
     {
         PropertyId = propertyId;
         Country = country;
-        City = city;
-        District = district;
+        RaionId = raionId;
+        RaionName = raionName;
+        LocalitateId = localitateId;
+        LocalitateName = localitateName;
         Street = street;
         Latitude = latitude;
         Longitude = longitude;
@@ -33,9 +37,19 @@ public sealed class PropertyLocation : Entity
 
     public string? Region { get; private set; }
 
-    public string City { get; private set; }
+    public Guid RaionId { get; private set; }
 
-    public string? District { get; private set; }
+    // Denormalized snapshot of Raion.NameRo at write time — every property-returning handler
+    // (17+ call sites through PropertyMapping.ToDto) reads location fields with zero extra DB
+    // calls today; resolving RaionId/LocalitateId to a name at every read would mean batch-joining
+    // Raion/Localitate in each of those handlers instead. CUATM administrative names are static,
+    // so staleness risk is negligible.
+    public string RaionName { get; private set; }
+
+    public Guid? LocalitateId { get; private set; }
+
+    // Always both-or-neither with LocalitateId — see EnsureValidDetails.
+    public string? LocalitateName { get; private set; }
 
     public string? Sector { get; private set; }
 
@@ -55,8 +69,10 @@ public sealed class PropertyLocation : Entity
     public static PropertyLocation Create(
         Guid propertyId,
         string country,
-        string city,
-        string? district,
+        Guid raionId,
+        string raionName,
+        Guid? localitateId,
+        string? localitateName,
         double? latitude,
         double? longitude,
         string? street = null)
@@ -66,14 +82,16 @@ public sealed class PropertyLocation : Entity
             throw new ArgumentException("PropertyId is required.", nameof(propertyId));
         }
 
-        EnsureValidDetails(country, city, latitude, longitude);
+        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, latitude, longitude);
 
         return new PropertyLocation(
             Guid.NewGuid(),
             propertyId,
             country,
-            city,
-            district,
+            raionId,
+            raionName,
+            localitateId,
+            localitateName,
             latitude,
             longitude,
             street);
@@ -81,17 +99,21 @@ public sealed class PropertyLocation : Entity
 
     public void UpdateDetails(
         string country,
-        string city,
-        string? district,
+        Guid raionId,
+        string raionName,
+        Guid? localitateId,
+        string? localitateName,
         double? latitude,
         double? longitude,
         string? street = null)
     {
-        EnsureValidDetails(country, city, latitude, longitude);
+        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, latitude, longitude);
 
         Country = country;
-        City = city;
-        District = district;
+        RaionId = raionId;
+        RaionName = raionName;
+        LocalitateId = localitateId;
+        LocalitateName = localitateName;
         Street = street;
         Latitude = latitude;
         Longitude = longitude;
@@ -103,16 +125,33 @@ public sealed class PropertyLocation : Entity
             ? new Point(longitude.Value, latitude.Value) { SRID = 4326 }
             : null;
 
-    private static void EnsureValidDetails(string country, string city, double? latitude, double? longitude)
+    private static void EnsureValidDetails(
+        string country,
+        Guid raionId,
+        string raionName,
+        Guid? localitateId,
+        string? localitateName,
+        double? latitude,
+        double? longitude)
     {
         if (string.IsNullOrWhiteSpace(country))
         {
             throw new ArgumentException("Country is required.", nameof(country));
         }
 
-        if (string.IsNullOrWhiteSpace(city))
+        if (raionId == Guid.Empty)
         {
-            throw new ArgumentException("City is required.", nameof(city));
+            throw new ArgumentException("RaionId is required.", nameof(raionId));
+        }
+
+        if (string.IsNullOrWhiteSpace(raionName))
+        {
+            throw new ArgumentException("RaionName is required.", nameof(raionName));
+        }
+
+        if (localitateId.HasValue != !string.IsNullOrWhiteSpace(localitateName))
+        {
+            throw new ArgumentException("LocalitateId and LocalitateName must both be set or both be empty.");
         }
 
         if (latitude.HasValue != longitude.HasValue)

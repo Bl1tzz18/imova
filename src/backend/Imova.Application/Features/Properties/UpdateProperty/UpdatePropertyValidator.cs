@@ -1,5 +1,7 @@
 using FluentValidation;
+using Imova.Application.Common.Interfaces;
 using Imova.Domain.Properties;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.UpdateProperty;
 
@@ -8,7 +10,7 @@ namespace Imova.Application.Features.Properties.UpdateProperty;
 // fresh listing would, since PropertyType/ListingType are themselves editable here.
 public class UpdatePropertyValidator : AbstractValidator<UpdatePropertyCommand>
 {
-    public UpdatePropertyValidator()
+    public UpdatePropertyValidator(IApplicationDbContext dbContext)
     {
         RuleFor(c => c.Id).NotEmpty();
         RuleFor(c => c.Title).NotEmpty().MaximumLength(200);
@@ -22,8 +24,19 @@ public class UpdatePropertyValidator : AbstractValidator<UpdatePropertyCommand>
             .Must(SupportedCurrencies.All.Contains)
             .WithMessage($"Currency must be one of: {string.Join(", ", SupportedCurrencies.All)}.");
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
-        RuleFor(c => c.City).NotEmpty().MaximumLength(100);
-        RuleFor(c => c.District).MaximumLength(100);
+
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId, cancellationToken))
+            .WithMessage("RaionId does not reference a known raion.");
+        RuleFor(c => c.LocalitateId)
+            .MustAsync((command, localitateId, cancellationToken) =>
+                dbContext.Localitati.AnyAsync(
+                    l => l.Id == localitateId!.Value && l.RaionId == command.RaionId,
+                    cancellationToken))
+            .WithMessage("LocalitateId does not reference a known localitate belonging to the selected raion.")
+            .When(c => c.LocalitateId.HasValue);
+
         RuleFor(c => c.StreetAddress).MaximumLength(200);
 
         RuleFor(c => c.Area)

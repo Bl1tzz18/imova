@@ -1,5 +1,7 @@
 using Imova.Application.Features.Properties.UpdateProperty;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.UnitTests.TestSupport;
 
 namespace Imova.UnitTests.Properties;
 
@@ -7,9 +9,29 @@ namespace Imova.UnitTests.Properties;
 // PropertyFieldRules-driven rules now that PropertyType/ListingType are editable too.
 public class UpdatePropertyValidatorTests
 {
-    private readonly UpdatePropertyValidator _validator = new();
+    private readonly Guid _raionId;
+    private readonly Guid _localitateId;
+    private readonly Guid _otherRaionId;
+    private readonly UpdatePropertyValidator _validator;
 
-    private static UpdatePropertyCommand ValidCommand(
+    public UpdatePropertyValidatorTests()
+    {
+        var dbContext = TestDbContextFactory.Create();
+
+        var raion = Raion.Create(Guid.NewGuid(), "1000", "Chisinau", null, LocalityLabel.Sector);
+        var otherRaion = Raion.Create(Guid.NewGuid(), "1200", "Ialoveni", null, LocalityLabel.Localitate);
+        var localitate = Localitate.Create(Guid.NewGuid(), raion.Id, null, "1001", "Botanica", null);
+        dbContext.Raioane.AddRange(raion, otherRaion);
+        dbContext.Localitati.Add(localitate);
+        dbContext.SaveChanges();
+
+        _raionId = raion.Id;
+        _otherRaionId = otherRaion.Id;
+        _localitateId = localitate.Id;
+        _validator = new UpdatePropertyValidator(dbContext);
+    }
+
+    private UpdatePropertyCommand ValidCommand(
         Guid? id = null,
         string title = "Titlu",
         string description = "Descriere",
@@ -26,7 +48,9 @@ public class UpdatePropertyValidatorTests
         bool? furnished = null,
         bool? parkingAvailable = null,
         bool? petsAllowed = null,
-        string? streetAddress = null) =>
+        string? streetAddress = null,
+        Guid? raionId = null,
+        Guid? localitateId = null) =>
         new(
             id ?? Guid.NewGuid(),
             Guid.NewGuid(),
@@ -38,8 +62,8 @@ public class UpdatePropertyValidatorTests
             price,
             currency,
             "Moldova",
-            "Chisinau",
-            "Botanica",
+            raionId ?? _raionId,
+            localitateId ?? _localitateId,
             streetAddress,
             area,
             rooms,
@@ -52,44 +76,79 @@ public class UpdatePropertyValidatorTests
             petsAllowed);
 
     [Fact]
-    public void Validate_WithValidCommand_HasNoErrors()
+    public async Task Validate_WithValidCommand_HasNoErrors()
     {
-        var result = _validator.Validate(ValidCommand());
+        var result = await _validator.ValidateAsync(ValidCommand());
 
         Assert.True(result.IsValid);
     }
 
     [Fact]
-    public void Validate_WithEmptyId_HasError()
+    public async Task Validate_WithoutLocalitate_HasNoErrors()
     {
-        var result = _validator.Validate(ValidCommand(id: Guid.Empty));
+        var result = await _validator.ValidateAsync(ValidCommand(localitateId: null));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task Validate_WithUnknownRaionId_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(raionId: Guid.NewGuid()));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.RaionId));
+    }
+
+    [Fact]
+    public async Task Validate_WithUnknownLocalitateId_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(localitateId: Guid.NewGuid()));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.LocalitateId));
+    }
+
+    [Fact]
+    public async Task Validate_WithLocalitateBelongingToDifferentRaion_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(raionId: _otherRaionId, localitateId: _localitateId));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.LocalitateId));
+    }
+
+    [Fact]
+    public async Task Validate_WithEmptyId_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(id: Guid.Empty));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Id));
     }
 
     [Fact]
-    public void Validate_WithEmptyTitle_HasError()
+    public async Task Validate_WithEmptyTitle_HasError()
     {
-        var result = _validator.Validate(ValidCommand(title: ""));
+        var result = await _validator.ValidateAsync(ValidCommand(title: ""));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Title));
     }
 
     [Fact]
-    public void Validate_WithTitleTooLong_HasError()
+    public async Task Validate_WithTitleTooLong_HasError()
     {
-        var result = _validator.Validate(ValidCommand(title: new string('a', 201)));
+        var result = await _validator.ValidateAsync(ValidCommand(title: new string('a', 201)));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Title));
     }
 
     [Fact]
-    public void Validate_WithEmptyDescription_HasError()
+    public async Task Validate_WithEmptyDescription_HasError()
     {
-        var result = _validator.Validate(ValidCommand(description: ""));
+        var result = await _validator.ValidateAsync(ValidCommand(description: ""));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Description));
@@ -98,18 +157,18 @@ public class UpdatePropertyValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Validate_WithNonPositivePrice_HasError(decimal price)
+    public async Task Validate_WithNonPositivePrice_HasError(decimal price)
     {
-        var result = _validator.Validate(ValidCommand(price: price));
+        var result = await _validator.ValidateAsync(ValidCommand(price: price));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Price));
     }
 
     [Fact]
-    public void Validate_WithCurrencyNotThreeLetters_HasError()
+    public async Task Validate_WithCurrencyNotThreeLetters_HasError()
     {
-        var result = _validator.Validate(ValidCommand(currency: "EURO"));
+        var result = await _validator.ValidateAsync(ValidCommand(currency: "EURO"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Currency));
@@ -119,35 +178,35 @@ public class UpdatePropertyValidatorTests
     [InlineData("EUR")]
     [InlineData("MDL")]
     [InlineData("USD")]
-    public void Validate_WithSupportedCurrency_HasNoCurrencyError(string currency)
+    public async Task Validate_WithSupportedCurrency_HasNoCurrencyError(string currency)
     {
-        var result = _validator.Validate(ValidCommand(currency: currency));
+        var result = await _validator.ValidateAsync(ValidCommand(currency: currency));
 
         Assert.DoesNotContain(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Currency));
     }
 
     [Fact]
-    public void Validate_WithUnsupportedCurrency_HasError()
+    public async Task Validate_WithUnsupportedCurrency_HasError()
     {
-        var result = _validator.Validate(ValidCommand(currency: "GBP"));
+        var result = await _validator.ValidateAsync(ValidCommand(currency: "GBP"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Currency));
     }
 
     [Fact]
-    public void Validate_ApartmentWithoutFloor_HasError()
+    public async Task Validate_ApartmentWithoutFloor_HasError()
     {
-        var result = _validator.Validate(ValidCommand(propertyType: PropertyType.Apartment, floor: null));
+        var result = await _validator.ValidateAsync(ValidCommand(propertyType: PropertyType.Apartment, floor: null));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Floor));
     }
 
     [Fact]
-    public void Validate_HouseWithoutFloor_HasNoFloorError()
+    public async Task Validate_HouseWithoutFloor_HasNoFloorError()
     {
-        var result = _validator.Validate(ValidCommand(
+        var result = await _validator.ValidateAsync(ValidCommand(
             propertyType: PropertyType.House,
             listingType: ListingType.Sale,
             floor: null,
@@ -157,9 +216,9 @@ public class UpdatePropertyValidatorTests
     }
 
     [Fact]
-    public void Validate_LandWithAreaOnly_HasNoErrors()
+    public async Task Validate_LandWithAreaOnly_HasNoErrors()
     {
-        var result = _validator.Validate(ValidCommand(
+        var result = await _validator.ValidateAsync(ValidCommand(
             propertyType: PropertyType.Land,
             listingType: ListingType.Sale,
             area: 600m,
@@ -171,9 +230,9 @@ public class UpdatePropertyValidatorTests
     }
 
     [Fact]
-    public void Validate_LandWithRoomsSet_HasError()
+    public async Task Validate_LandWithRoomsSet_HasError()
     {
-        var result = _validator.Validate(ValidCommand(
+        var result = await _validator.ValidateAsync(ValidCommand(
             propertyType: PropertyType.Land,
             listingType: ListingType.Sale,
             area: 600m,
@@ -186,27 +245,27 @@ public class UpdatePropertyValidatorTests
     }
 
     [Fact]
-    public void Validate_SalePropertyWithPetsAllowedSet_HasError()
+    public async Task Validate_SalePropertyWithPetsAllowedSet_HasError()
     {
-        var result = _validator.Validate(ValidCommand(listingType: ListingType.Sale, petsAllowed: true));
+        var result = await _validator.ValidateAsync(ValidCommand(listingType: ListingType.Sale, petsAllowed: true));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.PetsAllowed));
     }
 
     [Fact]
-    public void Validate_FloorGreaterThanTotalFloors_HasError()
+    public async Task Validate_FloorGreaterThanTotalFloors_HasError()
     {
-        var result = _validator.Validate(ValidCommand(floor: 10, totalFloors: 5));
+        var result = await _validator.ValidateAsync(ValidCommand(floor: 10, totalFloors: 5));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.Floor));
     }
 
     [Fact]
-    public void Validate_WithStreetAddressOver200Chars_HasError()
+    public async Task Validate_WithStreetAddressOver200Chars_HasError()
     {
-        var result = _validator.Validate(ValidCommand(streetAddress: new string('a', 201)));
+        var result = await _validator.ValidateAsync(ValidCommand(streetAddress: new string('a', 201)));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.StreetAddress));

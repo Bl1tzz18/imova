@@ -17,8 +17,16 @@ public class PropertyLocationConfiguration : IEntityTypeConfiguration<PropertyLo
 
         builder.Property(l => l.Country).IsRequired().HasMaxLength(100);
         builder.Property(l => l.Region).HasMaxLength(100);
-        builder.Property(l => l.City).IsRequired().HasMaxLength(100);
-        builder.Property(l => l.District).HasMaxLength(100);
+
+        builder.Property(l => l.RaionId).IsRequired();
+        builder.Property(l => l.RaionName).IsRequired().HasMaxLength(100);
+        builder.HasOne<Raion>().WithMany().HasForeignKey(l => l.RaionId).OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(l => l.LocalitateId);
+        // Some flattened Chișinău entries are longer compound names than a typical locality.
+        builder.Property(l => l.LocalitateName).HasMaxLength(150);
+        builder.HasOne<Localitate>().WithMany().HasForeignKey(l => l.LocalitateId).OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(l => l.Sector).HasMaxLength(100);
         builder.Property(l => l.Street).HasMaxLength(200);
         builder.Property(l => l.BuildingNumber).HasMaxLength(20);

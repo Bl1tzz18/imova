@@ -41,7 +41,8 @@ public class DeletePropertyHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var ownerId = Guid.NewGuid();
         var property = AddProperty(dbContext, ownerId);
-        dbContext.PropertyLocations.Add(PropertyLocation.Create(property.Id, "Moldova", "Chisinau", null, 47.0105, 28.8638));
+        dbContext.PropertyLocations.Add(
+            PropertyLocation.Create(property.Id, "Moldova", Guid.NewGuid(), "Chisinau", null, null, 47.0105, 28.8638));
         dbContext.PropertyMedias.Add(PropertyMedia.Create(property.Id, $"{property.Id}/photo.jpg", "image/jpeg", 1024));
         dbContext.Favorites.Add(Favorite.Create(Guid.NewGuid(), property.Id));
         await dbContext.SaveChangesAsync(CancellationToken.None);

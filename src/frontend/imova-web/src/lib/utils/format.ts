@@ -15,8 +15,8 @@ export function formatDate(isoDate: string, locale: string) {
 export function formatFullLocation(location: {
   country: string;
   region: string | null;
-  city: string;
-  district: string | null;
+  raionName: string;
+  localitateName: string | null;
   sector: string | null;
   street: string | null;
   buildingNumber: string | null;
@@ -27,8 +27,8 @@ export function formatFullLocation(location: {
       ? `${location.street}${location.buildingNumber ? ` ${location.buildingNumber}` : ""}`
       : null,
     location.sector,
-    location.district,
-    location.city,
+    location.localitateName,
+    location.raionName,
     location.region,
     location.country,
   ].filter(Boolean);
@@ -36,9 +36,9 @@ export function formatFullLocation(location: {
 }
 
 export function formatLocation(location: {
-  city: string;
-  district: string | null;
+  raionName: string;
+  localitateName: string | null;
 } | null) {
   if (!location) return null;
-  return location.district ? `${location.city}, ${location.district}` : location.city;
+  return location.localitateName ? `${location.raionName}, ${location.localitateName}` : location.raionName;
 }

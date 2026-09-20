@@ -9,11 +9,15 @@ namespace Imova.UnitTests.Properties;
 // coordinates through, with no masking or rounding for any viewer.
 public class PropertyMappingTests
 {
+    private static readonly Guid RaionId = Guid.NewGuid();
+    private static readonly Guid LocalitateId = Guid.NewGuid();
+
     private static Property NewProperty() =>
         Property.Create(Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
 
     private static PropertyLocation NewLocation(Property property) =>
-        PropertyLocation.Create(property.Id, "Moldova", "Chisinau", "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
+        PropertyLocation.Create(
+            property.Id, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
 
     [Fact]
     public void ToDto_AlwaysExposesTheExactCoordinatesAndStreet()
@@ -26,15 +30,17 @@ public class PropertyMappingTests
         Assert.Equal(47.01055, dto.Location!.Latitude);
         Assert.Equal(28.86383, dto.Location.Longitude);
         Assert.Equal("Str. Ismail 44", dto.Location.Street);
-        Assert.Equal("Chisinau", dto.Location.City);
-        Assert.Equal("Botanica", dto.Location.District);
+        Assert.Equal(RaionId, dto.Location.RaionId);
+        Assert.Equal("Chisinau", dto.Location.RaionName);
+        Assert.Equal(LocalitateId, dto.Location.LocalitateId);
+        Assert.Equal("Botanica", dto.Location.LocalitateName);
     }
 
     [Fact]
     public void ToDto_WithNullCoordinates_StaysNull()
     {
         var property = NewProperty();
-        var location = PropertyLocation.Create(property.Id, "Moldova", "Chisinau", null, null, null);
+        var location = PropertyLocation.Create(property.Id, "Moldova", RaionId, "Chisinau", null, null, null, null);
 
         var dto = property.ToDto(location);
 
