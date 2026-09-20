@@ -4,23 +4,23 @@ import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { ShareListingButton } from "@/components/property/ShareListingButton";
-import { formatLocation, formatPrice, formatPricePerArea } from "@/lib/utils/format";
+import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { Property } from "@/types/property";
 
 export function PropertyCard({
   property,
-  showPricePerArea = false,
   showFloor = false,
   showShareButton = false,
+  hidePerMonthSuffix = false,
 }: {
   property: Property;
   // Extra bits the cluster-overflow map panel wants (ClusterOverflowPanel.tsx) that the
   // regular search/saved-listings grids don't — kept optional so this stays the one card
   // implementation everywhere instead of a near-duplicate compact card.
-  showPricePerArea?: boolean;
   showFloor?: boolean;
   showShareButton?: boolean;
+  hidePerMonthSuffix?: boolean;
 }) {
   const tType = useTranslations("PropertyType");
   const tListing = useTranslations("ListingType");
@@ -28,7 +28,6 @@ export function PropertyCard({
   const tCard = useTranslations("PropertyCard");
   const location = formatLocation(property.location);
   const isUnavailable = property.status !== "Published";
-  const pricePerArea = showPricePerArea && property.area ? formatPricePerArea(property.price, property.area, property.currency) : null;
 
   return (
     <Link
@@ -77,14 +76,11 @@ export function PropertyCard({
       </div>
 
       <div className={cn("flex flex-1 flex-col gap-2 p-4", isUnavailable && "opacity-60")}>
-        <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-medium text-ink-950">
-          <span>
-            {formatPrice(property.price, property.currency)}
-            {property.listingType === "Rent" && (
-              <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
-            )}
-          </span>
-          {pricePerArea && <span className="text-sm font-normal text-ink-400">{pricePerArea}</span>}
+        <p className="font-display text-xl font-medium text-ink-950">
+          {formatPrice(property.price, property.currency)}
+          {property.listingType === "Rent" && !hidePerMonthSuffix && (
+            <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
+          )}
         </p>
 
         <h3 className="line-clamp-2 text-sm font-medium leading-snug text-ink-800">

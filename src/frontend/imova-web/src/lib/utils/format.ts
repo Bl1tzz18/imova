@@ -8,10 +8,6 @@ export function formatPrice(price: number, currency: string) {
   }).format(price);
 }
 
-export function formatPricePerArea(price: number, area: number, currency: string) {
-  return `${formatPrice(Math.round(price / area), currency)}/m²`;
-}
-
 export function formatDate(isoDate: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(isoDate));
 }
