@@ -15,8 +15,7 @@ export function StepTypeLocation({
   defaultCity,
   defaultDistrict,
   defaultCountry,
-  defaultLatitude,
-  defaultLongitude,
+  defaultStreetAddress,
 }: {
   propertyType: string;
   onPropertyTypeChange: (value: string) => void;
@@ -25,8 +24,7 @@ export function StepTypeLocation({
   defaultCity?: string;
   defaultDistrict?: string | null;
   defaultCountry?: string;
-  defaultLatitude?: number;
-  defaultLongitude?: number;
+  defaultStreetAddress?: string | null;
 }) {
   const t = useTranslations("PropertyForm");
   const tType = useTranslations("PropertyType");
@@ -74,14 +72,18 @@ export function StepTypeLocation({
             placeholder={t("districtPlaceholder")}
           />
         </label>
+        <label className="block sm:col-span-2">
+          <FieldLabel>{t("streetAddressLabel")}</FieldLabel>
+          <TextInput
+            name="streetAddress"
+            maxLength={200}
+            defaultValue={defaultStreetAddress ?? undefined}
+            placeholder={t("streetAddressPlaceholder")}
+          />
+        </label>
       </div>
 
       <input type="hidden" name="country" value={defaultCountry ?? "Moldova"} />
-      {/* Stopgap until a map-based location picker / geocoding exists: a new listing is pinned
-          to Chișinău's center so the required lat/lng still reach the backend; editing an
-          existing listing preserves whatever it already had instead of resetting it. */}
-      <input type="hidden" name="latitude" value={defaultLatitude ?? 47.0105} />
-      <input type="hidden" name="longitude" value={defaultLongitude ?? 28.8638} />
     </div>
   );
 }

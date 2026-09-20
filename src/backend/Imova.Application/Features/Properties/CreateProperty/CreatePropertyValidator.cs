@@ -22,8 +22,7 @@ public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
         RuleFor(c => c.City).NotEmpty().MaximumLength(100);
         RuleFor(c => c.District).MaximumLength(100);
-        RuleFor(c => c.Latitude).InclusiveBetween(-90, 90);
-        RuleFor(c => c.Longitude).InclusiveBetween(-180, 180);
+        RuleFor(c => c.StreetAddress).MaximumLength(200);
 
         // Which of the fields below are required / must be omitted depends on PropertyType
         // (and, for PetsAllowed, ListingType) — see PropertyFieldRules.

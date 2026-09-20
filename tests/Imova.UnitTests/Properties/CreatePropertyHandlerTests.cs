@@ -6,7 +6,10 @@ namespace Imova.UnitTests.Properties;
 
 public class CreatePropertyHandlerTests
 {
-    private static CreatePropertyCommand ValidCommand(Guid? id = null, Guid? ownerId = null) => new(
+    private static CreatePropertyCommand ValidCommand(
+        Guid? id = null,
+        Guid? ownerId = null,
+        string? streetAddress = null) => new(
         id,
         ownerId ?? Guid.NewGuid(),
         "Apartament 2 camere",
@@ -18,8 +21,7 @@ public class CreatePropertyHandlerTests
         "Moldova",
         "Chisinau",
         "Botanica",
-        47.0105,
-        28.8638,
+        streetAddress,
         54m,
         2m,
         null,
@@ -34,7 +36,7 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithValidCommand_PersistsPropertyAndLocationAndReturnsDto()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var handler = new CreatePropertyHandler(dbContext);
+        var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
         var ownerId = Guid.NewGuid();
 
         var result = await handler.Handle(ValidCommand(ownerId: ownerId), CancellationToken.None);
@@ -55,7 +57,7 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithClientSuppliedId_UsesThatIdForThePropertyAndLocation()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var handler = new CreatePropertyHandler(dbContext);
+        var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
         var suppliedId = Guid.NewGuid();
 
         var result = await handler.Handle(ValidCommand(id: suppliedId), CancellationToken.None);
@@ -68,10 +70,61 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithoutClientSuppliedId_GeneratesANewId()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var handler = new CreatePropertyHandler(dbContext);
+        var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
 
         var result = await handler.Handle(ValidCommand(id: null), CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.Id);
+    }
+
+    [Fact]
+    public async Task Handle_WhenGeocodingResolves_StoresReturnedCoordinates()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.75, 27.9167, "Balti, Moldova"),
+        };
+        var handler = new CreatePropertyHandler(dbContext, geocodingService);
+
+        var result = await handler.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.Equal(47.75, result.Location!.Latitude);
+        Assert.Equal(27.9167, result.Location.Longitude);
+        Assert.Equal("Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+    }
+
+    [Fact]
+    public async Task Handle_WhenGeocodingFails_StillPersistsPropertyWithNullCoordinates()
+    {
+        // Geocoding never throws (see IGeocodingService) — a null result must not block listing
+        // creation, it just means the listing saves without coordinates.
+        await using var dbContext = TestDbContextFactory.Create();
+        var geocodingService = new FakeGeocodingService { ResultToReturn = null };
+        var handler = new CreatePropertyHandler(dbContext, geocodingService);
+
+        var result = await handler.Handle(ValidCommand(), CancellationToken.None);
+
+        Assert.NotNull(result.Location);
+        Assert.Null(result.Location!.Latitude);
+        Assert.Null(result.Location.Longitude);
+        Assert.Single(dbContext.Properties);
+    }
+
+    [Fact]
+    public async Task Handle_WithStreetAddress_IncludesItInTheGeocodedAddressAndPersistsIt()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.0105, 28.8638, "Str. Ismail 44, Botanica, Chisinau, Moldova"),
+        };
+        var handler = new CreatePropertyHandler(dbContext, geocodingService);
+
+        var result = await handler.Handle(
+            ValidCommand(streetAddress: "Str. Ismail 44"), CancellationToken.None);
+
+        Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+        Assert.Equal("Str. Ismail 44", result.Location!.Street);
     }
 }

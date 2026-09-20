@@ -11,21 +11,20 @@ public sealed class PropertyLocation : Entity
         string country,
         string city,
         string? district,
-        double latitude,
-        double longitude)
+        double? latitude,
+        double? longitude,
+        string? street)
         : base(id)
     {
         PropertyId = propertyId;
         Country = country;
         City = city;
         District = district;
+        Street = street;
         Latitude = latitude;
         Longitude = longitude;
 
-        Location = new Point(longitude, latitude)
-        {
-            SRID = 4326
-        };
+        Location = BuildPoint(latitude, longitude);
     }
 
     public Guid PropertyId { get; private set; }
@@ -44,19 +43,23 @@ public sealed class PropertyLocation : Entity
 
     public string? BuildingNumber { get; private set; }
 
-    public double Latitude { get; private set; }
+    // Null when geocoding hasn't run yet, or ran and couldn't resolve the address — a listing is
+    // never blocked on this, see IGeocodingService. Always both-or-neither: EnsureValidDetails
+    // rejects a mismatched pair.
+    public double? Latitude { get; private set; }
 
-    public double Longitude { get; private set; }
+    public double? Longitude { get; private set; }
 
-    public Point Location { get; private set; }
+    public Point? Location { get; private set; }
 
     public static PropertyLocation Create(
         Guid propertyId,
         string country,
         string city,
         string? district,
-        double latitude,
-        double longitude)
+        double? latitude,
+        double? longitude,
+        string? street = null)
     {
         if (propertyId == Guid.Empty)
         {
@@ -72,25 +75,35 @@ public sealed class PropertyLocation : Entity
             city,
             district,
             latitude,
-            longitude);
+            longitude,
+            street);
     }
 
-    public void UpdateDetails(string country, string city, string? district, double latitude, double longitude)
+    public void UpdateDetails(
+        string country,
+        string city,
+        string? district,
+        double? latitude,
+        double? longitude,
+        string? street = null)
     {
         EnsureValidDetails(country, city, latitude, longitude);
 
         Country = country;
         City = city;
         District = district;
+        Street = street;
         Latitude = latitude;
         Longitude = longitude;
-        Location = new Point(longitude, latitude)
-        {
-            SRID = 4326
-        };
+        Location = BuildPoint(latitude, longitude);
     }
 
-    private static void EnsureValidDetails(string country, string city, double latitude, double longitude)
+    private static Point? BuildPoint(double? latitude, double? longitude) =>
+        latitude.HasValue && longitude.HasValue
+            ? new Point(longitude.Value, latitude.Value) { SRID = 4326 }
+            : null;
+
+    private static void EnsureValidDetails(string country, string city, double? latitude, double? longitude)
     {
         if (string.IsNullOrWhiteSpace(country))
         {
@@ -100,6 +113,11 @@ public sealed class PropertyLocation : Entity
         if (string.IsNullOrWhiteSpace(city))
         {
             throw new ArgumentException("City is required.", nameof(city));
+        }
+
+        if (latitude.HasValue != longitude.HasValue)
+        {
+            throw new ArgumentException("Latitude and Longitude must both be set or both be null.");
         }
 
         if (latitude is < -90 or > 90)

@@ -1,5 +1,6 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Properties;
 using Imova.Contracts.Properties;
 using Imova.Domain.Properties;
 using MediatR;
@@ -7,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.UpdateProperty;
 
-public class UpdatePropertyHandler(IApplicationDbContext dbContext) : IRequestHandler<UpdatePropertyCommand, PropertyDto?>
+public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingService geocodingService)
+    : IRequestHandler<UpdatePropertyCommand, PropertyDto?>
 {
     public async Task<PropertyDto?> Handle(UpdatePropertyCommand request, CancellationToken cancellationToken)
     {
@@ -41,9 +43,21 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             request.ParkingAvailable,
             request.PetsAllowed);
 
+        // Re-geocode on every edit — the form doesn't tell us whether the address fields actually
+        // changed, and geocoding never throws (see IGeocodingService), so re-resolving is simpler
+        // than trying to detect "did the address change" and cheap enough at this listing volume.
+        var address = PropertyAddress.Compose(request.StreetAddress, request.District, request.City, request.Country);
+        var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
+
         // Every listing has a location row created alongside it in CreatePropertyHandler — this
         // null check is defensive, not an expected path.
-        location?.UpdateDetails(request.Country, request.City, request.District, request.Latitude, request.Longitude);
+        location?.UpdateDetails(
+            request.Country,
+            request.City,
+            request.District,
+            geocoded?.Latitude,
+            geocoded?.Longitude,
+            request.StreetAddress);
 
         // Saving edits to a Rejected listing is the owner's way of addressing whatever an admin
         // flagged — resubmit it in the same step instead of making them press a separate button

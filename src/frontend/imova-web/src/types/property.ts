@@ -6,8 +6,8 @@ export type PropertyLocation = {
   sector: string | null;
   street: string | null;
   buildingNumber: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type PropertyOwner = {

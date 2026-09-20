@@ -149,8 +149,7 @@ export function PropertyForm({ property }: { property?: Property }) {
               defaultCity={property?.location?.city}
               defaultDistrict={property?.location?.district}
               defaultCountry={property?.location?.country}
-              defaultLatitude={property?.location?.latitude}
-              defaultLongitude={property?.location?.longitude}
+              defaultStreetAddress={property?.location?.street}
             />
           </div>
 

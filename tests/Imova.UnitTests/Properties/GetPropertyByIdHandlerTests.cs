@@ -1,6 +1,7 @@
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Properties.GetPropertyById;
 using Imova.Domain.Favorites;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
@@ -228,5 +229,25 @@ public class GetPropertyByIdHandlerTests
             new GetPropertyByIdQuery(pending.Id, CurrentUserId: Guid.NewGuid(), IsAdmin: false), CancellationToken.None);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task Handle_ForPublishedListing_AnyViewer_SeesExactStreetAndCoordinates()
+    {
+        // No masking: an anonymous visitor sees the same exact address/coordinates as the owner
+        // or an admin would — there's no privacy toggle, every viewer gets the real data.
+        await using var dbContext = TestDbContextFactory.Create();
+        var property = AddProperty(dbContext);
+        var location = PropertyLocation.Create(
+            property.Id, "Moldova", "Chisinau", "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetPropertyByIdHandler(dbContext, new FakeBlobStorageService());
+        var result = await handler.Handle(new GetPropertyByIdQuery(property.Id), CancellationToken.None);
+
+        Assert.Equal("Str. Ismail 44", result!.Location!.Street);
+        Assert.Equal(47.01055, result.Location.Latitude);
+        Assert.Equal(28.86383, result.Location.Longitude);
     }
 }

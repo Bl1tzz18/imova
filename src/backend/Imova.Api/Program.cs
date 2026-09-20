@@ -13,6 +13,7 @@ using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Properties.GetProperties;
 using Imova.Infrastructure;
+using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
 using Imova.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -101,6 +102,20 @@ builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 // part of the sign-in request path and must not hang it.
 builder.Services.AddHttpClient<IExternalImageFetcher, ExternalImageFetcher>(client =>
 {
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
+// Absent in configuration this falls back to GeocodingOptions' own defaults — geocoding degrades
+// gracefully (see IGeocodingService), so a missing "Geocoding" section shouldn't crash startup the
+// way a missing "Storage" section does.
+var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>()
+    ?? new GeocodingOptions();
+builder.Services.AddSingleton(geocodingOptions);
+builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp, client) =>
+{
+    var options = sp.GetRequiredService<GeocodingOptions>();
+    client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
