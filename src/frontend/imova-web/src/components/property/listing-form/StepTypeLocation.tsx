@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { getLocalitati, getRaioane, type Localitate, type Raion } from "@/lib/api/locations";
 import { DealTypeTabs } from "./DealTypeTabs";
 
@@ -89,39 +90,29 @@ export function StepTypeLocation({
         </label>
         <label className="block">
           <FieldLabel required>{t("raionLabel")}</FieldLabel>
-          <SelectInput
+          <SearchableSelect
             name="raionId"
             required
             value={raionId}
-            onChange={(e) => onRaionIdChange(e.target.value)}
-          >
-            <option value="" disabled>
-              {t("raionPlaceholder")}
-            </option>
-            {raioane.map((raion) => (
-              <option key={raion.id} value={raion.id}>
-                {raion.nameRo}
-              </option>
-            ))}
-          </SelectInput>
+            onChange={onRaionIdChange}
+            options={raioane.map((raion) => ({ id: raion.id, label: raion.nameRo }))}
+            placeholder={t("raionPlaceholder")}
+            searchPlaceholder={t("raionSearchPlaceholder")}
+            noResultsText={t("searchNoResults")}
+          />
         </label>
         <label className="block">
           <FieldLabel>{localitateLabel}</FieldLabel>
-          <SelectInput
+          <SearchableSelect
             name="localitateId"
             value={localitateId}
             disabled={!raionId || localitatiLoading}
-            onChange={(e) => onLocalitateIdChange(e.target.value)}
-          >
-            <option value="">
-              {raionId ? t("localitatePlaceholder") : t("localitatePlaceholderDisabled")}
-            </option>
-            {localitati.map((localitate) => (
-              <option key={localitate.id} value={localitate.id}>
-                {localitate.nameRo}
-              </option>
-            ))}
-          </SelectInput>
+            onChange={onLocalitateIdChange}
+            options={localitati.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
+            placeholder={raionId ? t("localitatePlaceholder") : t("localitatePlaceholderDisabled")}
+            searchPlaceholder={t("localitateSearchPlaceholder")}
+            noResultsText={t("searchNoResults")}
+          />
         </label>
         <label className="block sm:col-span-2">
           <FieldLabel>{t("streetAddressLabel")}</FieldLabel>
