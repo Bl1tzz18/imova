@@ -24,8 +24,7 @@ public class UpdatePropertyValidator : AbstractValidator<UpdatePropertyCommand>
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
         RuleFor(c => c.City).NotEmpty().MaximumLength(100);
         RuleFor(c => c.District).MaximumLength(100);
-        RuleFor(c => c.Latitude).InclusiveBetween(-90, 90);
-        RuleFor(c => c.Longitude).InclusiveBetween(-180, 180);
+        RuleFor(c => c.StreetAddress).MaximumLength(200);
 
         RuleFor(c => c.Area)
             .NotNull().WithMessage("Area is required for this property type.")

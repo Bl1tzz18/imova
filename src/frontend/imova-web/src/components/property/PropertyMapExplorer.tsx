@@ -22,8 +22,8 @@ export function PropertyMapExplorer({ properties }: { properties: Property[] }) 
   const points = useMemo<MapPoint[]>(
     () =>
       properties
-        .filter((property) => property.location)
-        .map((property) => ({ property, lat: property.location!.latitude, lng: property.location!.longitude })),
+        .filter((property) => property.location?.latitude != null && property.location?.longitude != null)
+        .map((property) => ({ property, lat: property.location!.latitude!, lng: property.location!.longitude! })),
     [properties],
   );
 

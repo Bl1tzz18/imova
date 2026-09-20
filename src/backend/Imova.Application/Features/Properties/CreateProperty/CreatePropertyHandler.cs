@@ -1,4 +1,5 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Properties;
 using Imova.Contracts.Properties;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -6,7 +7,8 @@ using MediatR;
 
 namespace Imova.Application.Features.Properties.CreateProperty;
 
-public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHandler<CreatePropertyCommand, PropertyDto>
+public class CreatePropertyHandler(IApplicationDbContext dbContext, IGeocodingService geocodingService)
+    : IRequestHandler<CreatePropertyCommand, PropertyDto>
 {
     public async Task<PropertyDto> Handle(CreatePropertyCommand request, CancellationToken cancellationToken)
     {
@@ -27,7 +29,7 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
             request.Furnished,
             request.ParkingAvailable,
             request.PetsAllowed,
-            request.Id);
+            id: request.Id);
 
         // A new listing goes straight into the admin review queue — the owner doesn't take a
         // separate "submit for review" step for a listing they just finished creating.
@@ -35,13 +37,20 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext) : IRequestHa
         // needed: resubmitting after a Rejected listing has been fixed.
         property.SubmitForReview();
 
+        // Geocoding never throws (see IGeocodingService) — a null result (address didn't resolve,
+        // provider unreachable) just means the listing saves without coordinates rather than
+        // failing the whole request.
+        var address = PropertyAddress.Compose(request.StreetAddress, request.District, request.City, request.Country);
+        var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
+
         var location = PropertyLocation.Create(
             property.Id,
             request.Country,
             request.City,
             request.District,
-            request.Latitude,
-            request.Longitude);
+            geocoded?.Latitude,
+            geocoded?.Longitude,
+            request.StreetAddress);
 
         dbContext.Properties.Add(property);
         dbContext.PropertyLocations.Add(location);

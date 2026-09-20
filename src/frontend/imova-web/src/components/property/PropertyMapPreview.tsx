@@ -11,8 +11,8 @@ const MOLDOVA_CENTER: [number, number] = [47.1, 28.6];
 // <Link>, so the map itself ignores pointer events and every click just navigates to /map.
 export function PropertyMapPreview({ properties }: { properties: Property[] }) {
   const points = properties
-    .filter((p) => p.location)
-    .map((p) => ({ id: p.id, lat: p.location!.latitude, lng: p.location!.longitude }));
+    .filter((p) => p.location?.latitude != null && p.location?.longitude != null)
+    .map((p) => ({ id: p.id, lat: p.location!.latitude!, lng: p.location!.longitude! }));
 
   return (
     <MapContainer

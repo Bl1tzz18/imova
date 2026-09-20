@@ -18,7 +18,7 @@ public class PropertyLocationTests
         Assert.Equal("Botanica", location.District);
         Assert.Equal(47.0105, location.Latitude);
         Assert.Equal(28.8638, location.Longitude);
-        Assert.Equal(28.8638, location.Location.X);
+        Assert.Equal(28.8638, location.Location!.X);
         Assert.Equal(47.0105, location.Location.Y);
         Assert.Equal(4326, location.Location.SRID);
     }
@@ -86,7 +86,7 @@ public class PropertyLocationTests
         Assert.Equal("Centru", location.District);
         Assert.Equal(47.75, location.Latitude);
         Assert.Equal(27.9167, location.Longitude);
-        Assert.Equal(27.9167, location.Location.X);
+        Assert.Equal(27.9167, location.Location!.X);
         Assert.Equal(47.75, location.Location.Y);
     }
 
@@ -98,5 +98,77 @@ public class PropertyLocationTests
         var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", null, 47.0105, 28.8638);
 
         Assert.ThrowsAny<ArgumentException>(() => location.UpdateDetails(country, city, null, 47.0105, 28.8638));
+    }
+
+    [Fact]
+    public void Create_WithNullCoordinates_SucceedsWithNoLocationPoint()
+    {
+        // Geocoding failing (or not having run yet) must not block creating the listing — see
+        // IGeocodingService.
+        var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", "Botanica", null, null);
+
+        Assert.Null(location.Latitude);
+        Assert.Null(location.Longitude);
+        Assert.Null(location.Location);
+    }
+
+    [Theory]
+    [InlineData(47.0105, null)]
+    [InlineData(null, 28.8638)]
+    public void Create_WithOnlyOneCoordinateSet_Throws(double? latitude, double? longitude)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", null, latitude, longitude));
+    }
+
+    [Fact]
+    public void UpdateDetails_WithNullCoordinates_ClearsTheLocationPoint()
+    {
+        var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638);
+
+        location.UpdateDetails("Moldova", "Chisinau", "Botanica", null, null);
+
+        Assert.Null(location.Latitude);
+        Assert.Null(location.Longitude);
+        Assert.Null(location.Location);
+    }
+
+    [Fact]
+    public void Create_WithStreet_SetsStreet()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638, "Str. Ismail 44");
+
+        Assert.Equal("Str. Ismail 44", location.Street);
+    }
+
+    [Fact]
+    public void Create_WithoutStreet_LeavesStreetNull()
+    {
+        var location = PropertyLocation.Create(PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638);
+
+        Assert.Null(location.Street);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithStreet_ChangesStreet()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638, "Str. Ismail 44");
+
+        location.UpdateDetails("Moldova", "Chisinau", "Botanica", 47.0105, 28.8638, "Str. Alba Iulia 12");
+
+        Assert.Equal("Str. Alba Iulia 12", location.Street);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithoutStreet_ClearsStreet()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", "Chisinau", "Botanica", 47.0105, 28.8638, "Str. Ismail 44");
+
+        location.UpdateDetails("Moldova", "Chisinau", "Botanica", 47.0105, 28.8638);
+
+        Assert.Null(location.Street);
     }
 }

@@ -1,9 +1,13 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
 using Imova.Contracts.Properties;
+using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Imova.IntegrationTests.Properties;
 
@@ -20,6 +24,14 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
             builder.UseSetting(
                 "ConnectionStrings:Default",
                 "Host=localhost;Port=5432;Database=imova;Username=imova;Password=imova");
+
+            // Swap out the real NominatimGeocodingService — these tests care about ownership
+            // behavior, not geocoding, and must never hit the real Nominatim API.
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IGeocodingService>();
+                services.AddSingleton<IGeocodingService, StubGeocodingService>();
+            });
         });
     }
 
@@ -56,8 +68,6 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
         ["country"] = "Moldova",
         ["city"] = "Chisinau",
         ["district"] = "Botanica",
-        ["latitude"] = 47.0105,
-        ["longitude"] = 28.8638,
         ["area"] = 54,
         ["rooms"] = 2,
         ["floor"] = 3,

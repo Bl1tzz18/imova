@@ -3,6 +3,7 @@ using System;
 using Imova.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Imova.Infrastructure.Migrations
 {
     [DbContext(typeof(ImovaDbContext))]
-    partial class ImovaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260920110639_AddStreetAddressAndShowExactLocationToProperty")]
+    partial class AddStreetAddressAndShowExactLocationToProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,6 +291,11 @@ namespace Imova.Infrastructure.Migrations
 
                     b.Property<decimal?>("Rooms")
                         .HasColumnType("numeric(4,1)");
+
+                    b.Property<bool>("ShowExactLocation")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

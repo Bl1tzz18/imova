@@ -33,8 +33,7 @@ public class UpdatePropertyHandlerTests
         string country = "Moldova",
         string city = "Chisinau",
         string? district = null,
-        double latitude = 47.0105,
-        double longitude = 28.8638,
+        string? streetAddress = null,
         decimal? area = 54m,
         decimal? rooms = 2m,
         short? bathrooms = null,
@@ -46,7 +45,7 @@ public class UpdatePropertyHandlerTests
         bool? petsAllowed = null) =>
         new(
             propertyId, requestingUserId, isAdmin, title, description, propertyType, listingType, price,
-            currency, country, city, district, latitude, longitude, area, rooms, bathrooms, floor,
+            currency, country, city, district, streetAddress, area, rooms, bathrooms, floor,
             totalFloors, yearBuilt, furnished, parkingAvailable, petsAllowed);
 
     [Fact]
@@ -57,7 +56,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var result = await handler.Handle(
             BuildCommand(property.Id, ownerId, false, title: "Titlu nou", description: "Descriere noua", price: 600m),
             CancellationToken.None);
@@ -75,7 +74,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var otherUserId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => handler.Handle(
@@ -94,7 +93,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var adminId = Guid.NewGuid();
 
         var result = await handler.Handle(
@@ -109,7 +108,7 @@ public class UpdatePropertyHandlerTests
     public async Task Handle_ForUnknownPropertyId_ReturnsNull()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
 
         var result = await handler.Handle(
             BuildCommand(Guid.NewGuid(), Guid.NewGuid(), false, title: "Titlu", description: "Descriere", price: 100m),
@@ -131,7 +130,7 @@ public class UpdatePropertyHandlerTests
         property.Reject("Missing photos");
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var result = await handler.Handle(
             BuildCommand(property.Id, ownerId, false, title: "Titlu corectat", description: "Descriere corectata", price: 600m),
             CancellationToken.None);
@@ -149,7 +148,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var result = await handler.Handle(
             BuildCommand(property.Id, ownerId, false, title: "Titlu nou", description: "Descriere noua", price: 600m),
             CancellationToken.None);
@@ -168,9 +167,10 @@ public class UpdatePropertyHandlerTests
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var geocodingService = new FakeGeocodingService { ResultToReturn = new(47.75, 27.9167, "Balti, Moldova") };
+        var handler = new UpdatePropertyHandler(dbContext, geocodingService);
         var result = await handler.Handle(
-            BuildCommand(property.Id, ownerId, false, city: "Balti", district: "Centru", latitude: 47.75, longitude: 27.9167),
+            BuildCommand(property.Id, ownerId, false, city: "Balti", district: "Centru"),
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -179,6 +179,29 @@ public class UpdatePropertyHandlerTests
         Assert.Equal("Centru", result.Location.District);
         Assert.Equal(47.75, result.Location.Latitude);
         Assert.Equal(27.9167, result.Location.Longitude);
+        Assert.Equal("Centru, Balti, Moldova", geocodingService.LastAddressRequested);
+    }
+
+    [Fact]
+    public async Task Handle_WhenGeocodingFails_KeepsListingSavedWithNullCoordinates()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        var location = Imova.Domain.Locations.PropertyLocation.Create(property.Id, "Moldova", "Chisinau", null, 47.0105, 28.8638);
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var geocodingService = new FakeGeocodingService { ResultToReturn = null };
+        var handler = new UpdatePropertyHandler(dbContext, geocodingService);
+        var result = await handler.Handle(
+            BuildCommand(property.Id, ownerId, false, city: "Nonexistent Place"),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result!.Location);
+        Assert.Null(result.Location!.Latitude);
+        Assert.Null(result.Location.Longitude);
     }
 
     [Fact]
@@ -189,7 +212,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdatePropertyHandler(dbContext);
+        var handler = new UpdatePropertyHandler(dbContext, new FakeGeocodingService());
         var result = await handler.Handle(
             BuildCommand(
                 property.Id, ownerId, false,
@@ -200,5 +223,28 @@ public class UpdatePropertyHandlerTests
         Assert.NotNull(result);
         Assert.Equal("House", result!.PropertyType);
         Assert.Equal("Sale", result.ListingType);
+    }
+
+    [Fact]
+    public async Task Handle_WithStreetAddress_IncludesItInTheGeocodedAddressAndPersistsIt()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        var location = Imova.Domain.Locations.PropertyLocation.Create(property.Id, "Moldova", "Chisinau", null, null, null);
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.0105, 28.8638, "Str. Ismail 44, Botanica, Chisinau, Moldova"),
+        };
+        var handler = new UpdatePropertyHandler(dbContext, geocodingService);
+        var result = await handler.Handle(
+            BuildCommand(property.Id, ownerId, false, district: "Botanica", streetAddress: "Str. Ismail 44"),
+            CancellationToken.None);
+
+        Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+        Assert.Equal("Str. Ismail 44", result!.Location!.Street);
     }
 }

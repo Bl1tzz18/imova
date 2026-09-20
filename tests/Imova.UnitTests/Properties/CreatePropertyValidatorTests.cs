@@ -20,7 +20,8 @@ public class CreatePropertyValidatorTests
         short? yearBuilt = null,
         bool? furnished = null,
         bool? parkingAvailable = null,
-        bool? petsAllowed = null) =>
+        bool? petsAllowed = null,
+        string? streetAddress = null) =>
         new(
             null,
             Guid.NewGuid(),
@@ -33,8 +34,7 @@ public class CreatePropertyValidatorTests
             "Moldova",
             "Chisinau",
             "Botanica",
-            47.0105,
-            28.8638,
+            streetAddress,
             area,
             rooms,
             bathrooms,
@@ -175,5 +175,22 @@ public class CreatePropertyValidatorTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.Floor));
+    }
+
+    [Fact]
+    public void Validate_WithStreetAddressOver200Chars_HasError()
+    {
+        var result = _validator.Validate(ValidCommand(streetAddress: new string('a', 201)));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.StreetAddress));
+    }
+
+    [Fact]
+    public void Validate_WithoutStreetAddress_HasNoError()
+    {
+        var result = _validator.Validate(ValidCommand(streetAddress: null));
+
+        Assert.True(result.IsValid);
     }
 }

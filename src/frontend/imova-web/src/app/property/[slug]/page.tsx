@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
+import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
 import { getSessionToken } from "@/lib/auth/session";
@@ -110,7 +111,7 @@ export default async function ProprietatePage({
                     <circle cx="12" cy="10" r="2.5" />
                   </svg>
                   {location}
-                  {property.location && (
+                  {property.location?.latitude != null && property.location?.longitude != null && (
                     <a
                       href={`https://www.google.com/maps?q=${property.location.latitude},${property.location.longitude}`}
                       target="_blank"
@@ -122,6 +123,21 @@ export default async function ProprietatePage({
                   )}
                 </p>
               )}
+
+              {property.location &&
+                (property.location.latitude != null && property.location.longitude != null ? (
+                  <div className="mt-4 h-56 overflow-hidden rounded-2xl border border-ink-100">
+                    <PropertyLocationPreview
+                      property={property}
+                      lat={property.location.latitude}
+                      lng={property.location.longitude}
+                    />
+                  </div>
+                ) : (
+                  <p className="mt-4 rounded-xl border border-dashed border-ink-200 bg-ink-50 px-3.5 py-2.5 text-xs text-ink-500">
+                    {t("locationPending")}
+                  </p>
+                ))}
 
               <div className="mt-8">
                 <h2 className="font-display text-xl font-medium text-ink-950">{t("description")}</h2>

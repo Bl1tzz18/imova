@@ -8,5 +8,5 @@ public record PropertyLocationDto(
     string? Sector,
     string? Street,
     string? BuildingNumber,
-    double Latitude,
-    double Longitude);
+    double? Latitude,
+    double? Longitude);
