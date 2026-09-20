@@ -13,6 +13,8 @@ public sealed class PropertyLocation : Entity
         string raionName,
         Guid? localitateId,
         string? localitateName,
+        Guid? chisinauSectorId,
+        string? chisinauSectorName,
         double? latitude,
         double? longitude,
         string? street)
@@ -24,6 +26,8 @@ public sealed class PropertyLocation : Entity
         RaionName = raionName;
         LocalitateId = localitateId;
         LocalitateName = localitateName;
+        ChisinauSectorId = chisinauSectorId;
+        ChisinauSectorName = chisinauSectorName;
         Street = street;
         Latitude = latitude;
         Longitude = longitude;
@@ -51,6 +55,15 @@ public sealed class PropertyLocation : Entity
     // Always both-or-neither with LocalitateId — see EnsureValidDetails.
     public string? LocalitateName { get; private set; }
 
+    // Informal Chișinău neighborhood (see ChisinauSector) — mutually exclusive with LocalitateId:
+    // a listing can be in a suburb (Localitate) or an informal neighborhood (this), never both
+    // (they're physically different places), though neither is fine. Always both-or-neither with
+    // ChisinauSectorName, and never both-with-LocalitateId — see EnsureValidDetails. Not to be
+    // confused with the dead Sector string column below.
+    public Guid? ChisinauSectorId { get; private set; }
+
+    public string? ChisinauSectorName { get; private set; }
+
     public string? Sector { get; private set; }
 
     public string? Street { get; private set; }
@@ -73,6 +86,8 @@ public sealed class PropertyLocation : Entity
         string raionName,
         Guid? localitateId,
         string? localitateName,
+        Guid? chisinauSectorId,
+        string? chisinauSectorName,
         double? latitude,
         double? longitude,
         string? street = null)
@@ -82,7 +97,7 @@ public sealed class PropertyLocation : Entity
             throw new ArgumentException("PropertyId is required.", nameof(propertyId));
         }
 
-        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, latitude, longitude);
+        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, chisinauSectorId, chisinauSectorName, latitude, longitude);
 
         return new PropertyLocation(
             Guid.NewGuid(),
@@ -92,6 +107,8 @@ public sealed class PropertyLocation : Entity
             raionName,
             localitateId,
             localitateName,
+            chisinauSectorId,
+            chisinauSectorName,
             latitude,
             longitude,
             street);
@@ -103,17 +120,21 @@ public sealed class PropertyLocation : Entity
         string raionName,
         Guid? localitateId,
         string? localitateName,
+        Guid? chisinauSectorId,
+        string? chisinauSectorName,
         double? latitude,
         double? longitude,
         string? street = null)
     {
-        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, latitude, longitude);
+        EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, chisinauSectorId, chisinauSectorName, latitude, longitude);
 
         Country = country;
         RaionId = raionId;
         RaionName = raionName;
         LocalitateId = localitateId;
         LocalitateName = localitateName;
+        ChisinauSectorId = chisinauSectorId;
+        ChisinauSectorName = chisinauSectorName;
         Street = street;
         Latitude = latitude;
         Longitude = longitude;
@@ -131,6 +152,8 @@ public sealed class PropertyLocation : Entity
         string raionName,
         Guid? localitateId,
         string? localitateName,
+        Guid? chisinauSectorId,
+        string? chisinauSectorName,
         double? latitude,
         double? longitude)
     {
@@ -152,6 +175,20 @@ public sealed class PropertyLocation : Entity
         if (localitateId.HasValue != !string.IsNullOrWhiteSpace(localitateName))
         {
             throw new ArgumentException("LocalitateId and LocalitateName must both be set or both be empty.");
+        }
+
+        if (chisinauSectorId.HasValue != !string.IsNullOrWhiteSpace(chisinauSectorName))
+        {
+            throw new ArgumentException("ChisinauSectorId and ChisinauSectorName must both be set or both be empty.");
+        }
+
+        // A listing can be in a suburb (LocalitateId) or an informal Chișinău neighborhood
+        // (ChisinauSectorId), never both at once — those represent physically different places.
+        // Enforced here too (not just in CreatePropertyValidator/UpdatePropertyValidator) so the
+        // entity can't be put into a contradictory state by any other caller.
+        if (localitateId.HasValue && chisinauSectorId.HasValue)
+        {
+            throw new ArgumentException("LocalitateId and ChisinauSectorId cannot both be set.");
         }
 
         if (latitude.HasValue != longitude.HasValue)

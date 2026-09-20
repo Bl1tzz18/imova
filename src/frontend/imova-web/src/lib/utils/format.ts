@@ -24,6 +24,7 @@ export function formatFullLocation(location: {
   region: string | null;
   raionName: string;
   localitateName: string | null;
+  chisinauSectorName: string | null;
   sector: string | null;
   street: string | null;
   buildingNumber: string | null;
@@ -34,6 +35,7 @@ export function formatFullLocation(location: {
     location.street
       ? `${location.street}${location.buildingNumber ? ` ${location.buildingNumber}` : ""}`
       : null,
+    location.chisinauSectorName,
     location.sector,
     location.localitateName,
     raionName,
@@ -43,13 +45,18 @@ export function formatFullLocation(location: {
   return parts.join(", ");
 }
 
+// Suburb (localitateName) and informal Chișinău neighborhood (chisinauSectorName) are mutually
+// exclusive — a listing is never in both at once — so at most one of them is ever non-null here;
+// this still just includes whichever is present rather than special-casing "which one", plus the
+// same raion-seat-town dedup formatFullLocation uses (e.g. avoids "Soroca, Soroca").
 export function formatLocation(location: {
   raionName: string;
   localitateName: string | null;
+  chisinauSectorName: string | null;
 } | null) {
   if (!location) return null;
-  if (!location.localitateName || sameName(location.raionName, location.localitateName)) {
-    return location.raionName;
-  }
-  return `${location.raionName}, ${location.localitateName}`;
+  const specifics = [location.chisinauSectorName, location.localitateName].filter(
+    (name): name is string => Boolean(name) && !sameName(location.raionName, name),
+  );
+  return specifics.length > 0 ? `${location.raionName}, ${specifics.join(", ")}` : location.raionName;
 }

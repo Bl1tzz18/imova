@@ -106,7 +106,7 @@ public class GetPropertiesHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var property = AddProperty(dbContext);
         var location = PropertyLocation.Create(
-            property.Id, "Moldova", Guid.NewGuid(), "Chisinau", Guid.NewGuid(), "Botanica", 47.0105, 28.8638);
+            property.Id, "Moldova", Guid.NewGuid(), "Chisinau", Guid.NewGuid(), "Botanica", null, null, 47.0105, 28.8638);
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

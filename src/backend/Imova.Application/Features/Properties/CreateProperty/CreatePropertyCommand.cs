@@ -26,6 +26,11 @@ namespace Imova.Application.Features.Properties.CreateProperty;
 // CreatePropertyValidator's MustAsync existence checks) — replaces free-text City/District for
 // data quality/geocoding reliability. LocalitateId is optional — a Raion alone is enough to
 // geocode and save.
+//
+// ChisinauSectorId references the ChisinauSectors reference table (informal neighborhood names,
+// e.g. "Botanica" — not CUATM data, see ChisinauSector.cs) — only meaningful when RaionId is
+// Chișinău's, enforced by CreatePropertyValidator. Independent of LocalitateId: both, either, or
+// neither may be set.
 public record CreatePropertyCommand(
     Guid? Id,
     Guid OwnerId,
@@ -38,6 +43,7 @@ public record CreatePropertyCommand(
     string Country,
     Guid RaionId,
     Guid? LocalitateId,
+    Guid? ChisinauSectorId,
     // Free-text, optional — fed into IGeocodingService alongside Localitate/Raion/Country for
     // building-level precision (see PropertyAddress.Compose).
     string? StreetAddress,

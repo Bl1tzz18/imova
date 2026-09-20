@@ -31,6 +31,9 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
         var localitate = request.LocalitateId.HasValue
             ? await dbContext.Localitati.AsNoTracking().FirstAsync(l => l.Id == request.LocalitateId.Value, cancellationToken)
             : null;
+        var chisinauSector = request.ChisinauSectorId.HasValue
+            ? await dbContext.ChisinauSectors.AsNoTracking().FirstAsync(s => s.Id == request.ChisinauSectorId.Value, cancellationToken)
+            : null;
 
         property.UpdateDetails(
             request.Title,
@@ -52,7 +55,7 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
         // Re-geocode on every edit — the form doesn't tell us whether the address fields actually
         // changed, and geocoding never throws (see IGeocodingService), so re-resolving is simpler
         // than trying to detect "did the address change" and cheap enough at this listing volume.
-        var address = PropertyAddress.Compose(request.StreetAddress, localitate?.NameRo, raion.NameRo, request.Country);
+        var address = PropertyAddress.Compose(request.StreetAddress, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
         var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
 
         // Every listing has a location row created alongside it in CreatePropertyHandler — this
@@ -63,6 +66,8 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
             raion.NameRo,
             localitate?.Id,
             localitate?.NameRo,
+            chisinauSector?.Id,
+            chisinauSector?.Name,
             geocoded?.Latitude,
             geocoded?.Longitude,
             request.StreetAddress);

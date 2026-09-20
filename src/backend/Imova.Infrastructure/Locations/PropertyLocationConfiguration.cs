@@ -27,6 +27,10 @@ public class PropertyLocationConfiguration : IEntityTypeConfiguration<PropertyLo
         builder.Property(l => l.LocalitateName).HasMaxLength(150);
         builder.HasOne<Localitate>().WithMany().HasForeignKey(l => l.LocalitateId).OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(l => l.ChisinauSectorId);
+        builder.Property(l => l.ChisinauSectorName).HasMaxLength(50);
+        builder.HasOne<ChisinauSector>().WithMany().HasForeignKey(l => l.ChisinauSectorId).OnDelete(DeleteBehavior.Restrict);
+
         builder.Property(l => l.Sector).HasMaxLength(100);
         builder.Property(l => l.Street).HasMaxLength(200);
         builder.Property(l => l.BuildingNumber).HasMaxLength(20);

@@ -1,5 +1,6 @@
 using FluentValidation;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,28 @@ public class UpdatePropertyValidator : AbstractValidator<UpdatePropertyCommand>
                     cancellationToken))
             .WithMessage("LocalitateId does not reference a known localitate belonging to the selected raion.")
             .When(c => c.LocalitateId.HasValue);
+
+        // Only meaningful when the selected Raion is Chișinău, so still guarded against the
+        // selected RaionId, same shape as the LocalitateId-belongs-to-Raion check above.
+        RuleFor(c => c.ChisinauSectorId)
+            .MustAsync((chisinauSectorId, cancellationToken) =>
+                dbContext.ChisinauSectors.AnyAsync(s => s.Id == chisinauSectorId!.Value, cancellationToken))
+            .WithMessage("ChisinauSectorId does not reference a known sector.")
+            .When(c => c.ChisinauSectorId.HasValue);
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId && r.LocalityLabel == LocalityLabel.Sector, cancellationToken))
+            .WithMessage("ChisinauSectorId can only be set when the selected raion is Chișinău.")
+            .When(c => c.ChisinauSectorId.HasValue)
+            .OverridePropertyName(nameof(UpdatePropertyCommand.ChisinauSectorId));
+
+        // Mutually exclusive with LocalitateId — a listing can be in a suburb or an informal
+        // Chișinău neighborhood, never both at once (they're physically different places).
+        // Neither being set stays allowed.
+        RuleFor(c => c)
+            .Must(c => c.LocalitateId is null || c.ChisinauSectorId is null)
+            .WithMessage("LocalitateId and ChisinauSectorId cannot both be set — pick a suburb or a sector, not both.")
+            .OverridePropertyName(nameof(UpdatePropertyCommand.ChisinauSectorId));
 
         RuleFor(c => c.StreetAddress).MaximumLength(200);
 

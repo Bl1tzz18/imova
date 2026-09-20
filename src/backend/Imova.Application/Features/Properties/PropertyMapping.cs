@@ -49,6 +49,8 @@ public static class PropertyMapping
                     location.RaionName,
                     location.LocalitateId,
                     location.LocalitateName,
+                    location.ChisinauSectorId,
+                    location.ChisinauSectorName,
                     location.Sector,
                     location.Street,
                     location.BuildingNumber,

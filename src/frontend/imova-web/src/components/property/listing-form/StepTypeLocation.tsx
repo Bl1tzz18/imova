@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
-import { getLocalitati, getRaioane, type Localitate, type Raion } from "@/lib/api/locations";
+import { cn } from "@/lib/utils/cn";
+import {
+  getChisinauSectors,
+  getLocalitati,
+  getRaioane,
+  type ChisinauSector,
+  type Localitate,
+  type Raion,
+} from "@/lib/api/locations";
 import { DealTypeTabs } from "./DealTypeTabs";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
@@ -19,6 +27,8 @@ export function StepTypeLocation({
   onRaionIdChange,
   localitateId,
   onLocalitateIdChange,
+  chisinauSectorId,
+  onChisinauSectorIdChange,
   defaultCountry,
   defaultStreetAddress,
 }: {
@@ -30,6 +40,8 @@ export function StepTypeLocation({
   onRaionIdChange: (value: string) => void;
   localitateId: string;
   onLocalitateIdChange: (value: string) => void;
+  chisinauSectorId: string;
+  onChisinauSectorIdChange: (value: string) => void;
   defaultCountry?: string;
   defaultStreetAddress?: string | null;
 }) {
@@ -40,9 +52,11 @@ export function StepTypeLocation({
   const [raioane, setRaioane] = useState<Raion[]>([]);
   const [localitati, setLocalitati] = useState<Localitate[]>([]);
   const [localitatiLoading, setLocalitatiLoading] = useState(false);
+  const [chisinauSectors, setChisinauSectors] = useState<ChisinauSector[]>([]);
 
   useEffect(() => {
     getRaioane().then(setRaioane);
+    getChisinauSectors().then(setChisinauSectors);
   }, []);
 
   useEffect(() => {
@@ -57,7 +71,26 @@ export function StepTypeLocation({
   }, [raionId]);
 
   const selectedRaion = raioane.find((r) => r.id === raionId);
-  const localitateLabel = selectedRaion?.localityLabel === "Sector" ? t("sectorLabel") : t("localitateLabel");
+  // Chișinău gets a single-choice Sector/Suburbie control instead of one relabeled dropdown —
+  // every other raion keeps the single Localitate dropdown exactly as before. Sector (the fixed
+  // informal-neighborhood list) and Suburbie (the real CUATM localitate list) are mutually
+  // exclusive — a listing can't physically be in both at once — so only one dropdown is ever
+  // shown/submitted, never both.
+  const isChisinau = selectedRaion?.localityLabel === "Sector";
+  const [chisinauKind, setChisinauKind] = useState<"sector" | "suburbie">(() =>
+    localitateId ? "suburbie" : "sector",
+  );
+
+  function handleChisinauKindChange(kind: "sector" | "suburbie") {
+    setChisinauKind(kind);
+    // Clear whichever field is about to be hidden, so switching tabs can never leave a stale
+    // selection behind that later gets submitted alongside the new one.
+    if (kind === "sector") {
+      onLocalitateIdChange("");
+    } else {
+      onChisinauSectorIdChange("");
+    }
+  }
 
   return (
     <div>
@@ -101,19 +134,62 @@ export function StepTypeLocation({
             noResultsText={t("searchNoResults")}
           />
         </label>
-        <label className="block">
-          <FieldLabel>{localitateLabel}</FieldLabel>
-          <SearchableSelect
-            name="localitateId"
-            value={localitateId}
-            disabled={!raionId || localitatiLoading}
-            onChange={onLocalitateIdChange}
-            options={localitati.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
-            placeholder={raionId ? t("localitatePlaceholder") : t("localitatePlaceholderDisabled")}
-            searchPlaceholder={t("localitateSearchPlaceholder")}
-            noResultsText={t("searchNoResults")}
-          />
-        </label>
+        {isChisinau ? (
+          <div className="block">
+            <FieldLabel>{t("chisinauLocationLabel")}</FieldLabel>
+            <div className="mb-2 inline-flex gap-1 rounded-xl border border-ink-100 bg-ink-50 p-1">
+              {(["sector", "suburbie"] as const).map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  onClick={() => handleChisinauKindChange(kind)}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                    chisinauKind === kind ? "bg-white text-ink-900 shadow-sm" : "text-ink-500 hover:text-ink-900",
+                  )}
+                >
+                  {kind === "sector" ? t("sectorLabel") : t("suburbieLabel")}
+                </button>
+              ))}
+            </div>
+            {chisinauKind === "sector" ? (
+              <SearchableSelect
+                name="chisinauSectorId"
+                value={chisinauSectorId}
+                onChange={onChisinauSectorIdChange}
+                options={chisinauSectors.map((sector) => ({ id: sector.id, label: sector.name }))}
+                placeholder={t("chisinauSectorPlaceholder")}
+                searchPlaceholder={t("chisinauSectorSearchPlaceholder")}
+                noResultsText={t("searchNoResults")}
+              />
+            ) : (
+              <SearchableSelect
+                name="localitateId"
+                value={localitateId}
+                disabled={localitatiLoading}
+                onChange={onLocalitateIdChange}
+                options={localitati.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
+                placeholder={t("suburbiePlaceholder")}
+                searchPlaceholder={t("suburbieSearchPlaceholder")}
+                noResultsText={t("searchNoResults")}
+              />
+            )}
+          </div>
+        ) : (
+          <label className="block">
+            <FieldLabel>{t("localitateLabel")}</FieldLabel>
+            <SearchableSelect
+              name="localitateId"
+              value={localitateId}
+              disabled={!raionId || localitatiLoading}
+              onChange={onLocalitateIdChange}
+              options={localitati.map((localitate) => ({ id: localitate.id, label: localitate.nameRo }))}
+              placeholder={raionId ? t("localitatePlaceholder") : t("localitatePlaceholderDisabled")}
+              searchPlaceholder={t("localitateSearchPlaceholder")}
+              noResultsText={t("searchNoResults")}
+            />
+          </label>
+        )}
         <label className="block sm:col-span-2">
           <FieldLabel>{t("streetAddressLabel")}</FieldLabel>
           <TextInput

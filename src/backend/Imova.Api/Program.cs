@@ -137,6 +137,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 
     await CuatmLocationSeeder.SeedAsync(dbContext, CancellationToken.None);
+    await ChisinauSectorSeeder.SeedAsync(dbContext, CancellationToken.None);
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     foreach (var role in new[] { Roles.User, Roles.Admin })

@@ -17,6 +17,8 @@ public interface IApplicationDbContext
 
     DbSet<Localitate> Localitati { get; }
 
+    DbSet<ChisinauSector> ChisinauSectors { get; }
+
     DbSet<PropertyMedia> PropertyMedias { get; }
 
     DbSet<Favorite> Favorites { get; }

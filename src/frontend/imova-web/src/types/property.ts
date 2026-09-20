@@ -5,6 +5,8 @@ export type PropertyLocation = {
   raionName: string;
   localitateId: string | null;
   localitateName: string | null;
+  chisinauSectorId: string | null;
+  chisinauSectorName: string | null;
   sector: string | null;
   street: string | null;
   buildingNumber: string | null;

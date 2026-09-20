@@ -26,6 +26,7 @@ export function buildPropertyPayload(formData: FormData) {
     country: formData.get("country"),
     raionId: formData.get("raionId"),
     localitateId: formData.get("localitateId") || null,
+    chisinauSectorId: formData.get("chisinauSectorId") || null,
     streetAddress: formData.get("streetAddress") || null,
     area: optionalNumber(formData.get("area")),
     rooms: optionalNumber(formData.get("rooms")),

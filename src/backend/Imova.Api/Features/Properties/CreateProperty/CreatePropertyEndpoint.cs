@@ -27,6 +27,7 @@ public static class CreatePropertyEndpoint
                 request.Country,
                 request.RaionId,
                 request.LocalitateId,
+                request.ChisinauSectorId,
                 request.StreetAddress,
                 request.Area,
                 request.Rooms,

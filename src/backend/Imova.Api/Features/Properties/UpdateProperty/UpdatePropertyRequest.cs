@@ -14,6 +14,7 @@ public record UpdatePropertyRequest(
     string Country,
     Guid RaionId,
     Guid? LocalitateId,
+    Guid? ChisinauSectorId,
     string? StreetAddress,
     decimal? Area,
     decimal? Rooms,

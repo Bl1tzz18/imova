@@ -32,6 +32,13 @@ public class UpdatePropertyHandlerTests
         return localitate;
     }
 
+    private static ChisinauSector AddChisinauSector(ImovaDbContext dbContext, string name)
+    {
+        var sector = ChisinauSector.Create(name);
+        dbContext.ChisinauSectors.Add(sector);
+        return sector;
+    }
+
     // Mirrors AddProperty's Apartment/Rent fixture by default, overridable per test — the command
     // now carries every field CreatePropertyCommand does (see UpdatePropertyCommand), not just
     // title/description/price.
@@ -41,6 +48,7 @@ public class UpdatePropertyHandlerTests
         bool isAdmin,
         Guid raionId,
         Guid? localitateId = null,
+        Guid? chisinauSectorId = null,
         string title = "Titlu nou",
         string description = "Descriere noua",
         decimal price = 600m,
@@ -60,7 +68,7 @@ public class UpdatePropertyHandlerTests
         bool? petsAllowed = null) =>
         new(
             propertyId, requestingUserId, isAdmin, title, description, propertyType, listingType, price,
-            currency, country, raionId, localitateId, streetAddress, area, rooms, bathrooms, floor,
+            currency, country, raionId, localitateId, chisinauSectorId, streetAddress, area, rooms, bathrooms, floor,
             totalFloors, yearBuilt, furnished, parkingAvailable, petsAllowed);
 
     [Fact]
@@ -189,7 +197,7 @@ public class UpdatePropertyHandlerTests
         var chisinauRaion = AddRaion(dbContext, "0100", "Chisinau");
         var baltiRaion = AddRaion(dbContext, "0300", "Balti");
         var centru = AddLocalitate(dbContext, baltiRaion.Id, "0301", "Centru");
-        var location = PropertyLocation.Create(property.Id, "Moldova", chisinauRaion.Id, "Chisinau", null, null, 47.0105, 28.8638);
+        var location = PropertyLocation.Create(property.Id, "Moldova", chisinauRaion.Id, "Chisinau", null, null, null, null, 47.0105, 28.8638);
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
@@ -209,13 +217,38 @@ public class UpdatePropertyHandlerTests
     }
 
     [Fact]
+    public async Task Handle_UpdatesChisinauSectorAndIncludesItInTheGeocodedAddress()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        var chisinauRaion = AddRaion(dbContext, "0100", "Chisinau");
+        var botanica = AddChisinauSector(dbContext, "Botanica");
+        var location = PropertyLocation.Create(
+            property.Id, "Moldova", chisinauRaion.Id, "Chisinau", null, null, null, null, null, null);
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var geocodingService = new FakeGeocodingService { ResultToReturn = new(47.0105, 28.8638, "Botanica, Chisinau, Moldova") };
+        var handler = new UpdatePropertyHandler(dbContext, geocodingService);
+        var result = await handler.Handle(
+            BuildCommand(property.Id, ownerId, false, chisinauRaion.Id, chisinauSectorId: botanica.Id),
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(botanica.Id, result!.Location!.ChisinauSectorId);
+        Assert.Equal("Botanica", result.Location.ChisinauSectorName);
+        Assert.Equal("Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+    }
+
+    [Fact]
     public async Task Handle_WhenGeocodingFails_KeepsListingSavedWithNullCoordinates()
     {
         await using var dbContext = TestDbContextFactory.Create();
         var ownerId = Guid.NewGuid();
         var property = AddProperty(dbContext, ownerId);
         var raion = AddRaion(dbContext, "0100", "Chisinau");
-        var location = PropertyLocation.Create(property.Id, "Moldova", raion.Id, "Chisinau", null, null, 47.0105, 28.8638);
+        var location = PropertyLocation.Create(property.Id, "Moldova", raion.Id, "Chisinau", null, null, null, null, 47.0105, 28.8638);
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
@@ -261,7 +294,7 @@ public class UpdatePropertyHandlerTests
         var property = AddProperty(dbContext, ownerId);
         var raion = AddRaion(dbContext, "0100", "Chisinau");
         var botanica = AddLocalitate(dbContext, raion.Id, "0101", "Botanica");
-        var location = PropertyLocation.Create(property.Id, "Moldova", raion.Id, "Chisinau", null, null, null, null);
+        var location = PropertyLocation.Create(property.Id, "Moldova", raion.Id, "Chisinau", null, null, null, null, null, null);
         dbContext.PropertyLocations.Add(location);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

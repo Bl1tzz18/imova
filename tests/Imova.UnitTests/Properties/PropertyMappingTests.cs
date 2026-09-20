@@ -11,13 +11,15 @@ public class PropertyMappingTests
 {
     private static readonly Guid RaionId = Guid.NewGuid();
     private static readonly Guid LocalitateId = Guid.NewGuid();
+    private static readonly Guid ChisinauSectorId = Guid.NewGuid();
 
     private static Property NewProperty() =>
         Property.Create(Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR");
 
     private static PropertyLocation NewLocation(Property property) =>
         PropertyLocation.Create(
-            property.Id, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", 47.01055, 28.86383, "Str. Ismail 44");
+            property.Id, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null,
+            47.01055, 28.86383, "Str. Ismail 44");
 
     [Fact]
     public void ToDto_AlwaysExposesTheExactCoordinatesAndStreet()
@@ -37,10 +39,24 @@ public class PropertyMappingTests
     }
 
     [Fact]
+    public void ToDto_ExposesChisinauSectorFields()
+    {
+        var property = NewProperty();
+        var location = PropertyLocation.Create(
+            property.Id, "Moldova", RaionId, "Chisinau", null, null, ChisinauSectorId, "Botanica",
+            47.01055, 28.86383, "Str. Ismail 44");
+
+        var dto = property.ToDto(location);
+
+        Assert.Equal(ChisinauSectorId, dto.Location!.ChisinauSectorId);
+        Assert.Equal("Botanica", dto.Location.ChisinauSectorName);
+    }
+
+    [Fact]
     public void ToDto_WithNullCoordinates_StaysNull()
     {
         var property = NewProperty();
-        var location = PropertyLocation.Create(property.Id, "Moldova", RaionId, "Chisinau", null, null, null, null);
+        var location = PropertyLocation.Create(property.Id, "Moldova", RaionId, "Chisinau", null, null, null, null, null, null);
 
         var dto = property.ToDto(location);
 

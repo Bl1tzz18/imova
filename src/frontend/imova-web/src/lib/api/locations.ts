@@ -15,10 +15,16 @@ export type Localitate = {
   nameRu: string | null;
 };
 
+export type ChisinauSector = {
+  id: string;
+  name: string;
+};
+
 // Static reference data that basically never changes — cached in-memory per page session so the
 // cascading selector doesn't refetch on every Raion pick or re-render.
 let raioanePromise: Promise<Raion[]> | null = null;
 const localitatiByRaionId = new Map<string, Promise<Localitate[]>>();
+let chisinauSectorsPromise: Promise<ChisinauSector[]> | null = null;
 
 export function getRaioane(): Promise<Raion[]> {
   raioanePromise ??= fetch(`${getBrowserApiUrl()}/api/v1/locations/raioane`).then((res) => {
@@ -38,4 +44,14 @@ export function getLocalitati(raionId: string): Promise<Localitate[]> {
     localitatiByRaionId.set(raionId, promise);
   }
   return promise;
+}
+
+// Fixed list of 9 informal real-estate neighborhood names for Chișinău — independent of
+// getLocalitati (which returns Chișinău's real CUATM suburb towns/sectors, a separate field).
+export function getChisinauSectors(): Promise<ChisinauSector[]> {
+  chisinauSectorsPromise ??= fetch(`${getBrowserApiUrl()}/api/v1/locations/chisinau-sectors`).then((res) => {
+    if (!res.ok) throw new Error(`Failed to load chisinau sectors (${res.status})`);
+    return res.json();
+  });
+  return chisinauSectorsPromise;
 }

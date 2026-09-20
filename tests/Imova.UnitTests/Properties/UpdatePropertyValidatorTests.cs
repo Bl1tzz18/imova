@@ -12,6 +12,7 @@ public class UpdatePropertyValidatorTests
     private readonly Guid _raionId;
     private readonly Guid _localitateId;
     private readonly Guid _otherRaionId;
+    private readonly Guid _chisinauSectorId;
     private readonly UpdatePropertyValidator _validator;
 
     public UpdatePropertyValidatorTests()
@@ -21,13 +22,16 @@ public class UpdatePropertyValidatorTests
         var raion = Raion.Create(Guid.NewGuid(), "1000", "Chisinau", null, LocalityLabel.Sector);
         var otherRaion = Raion.Create(Guid.NewGuid(), "1200", "Ialoveni", null, LocalityLabel.Localitate);
         var localitate = Localitate.Create(Guid.NewGuid(), raion.Id, null, "1001", "Botanica", null);
+        var chisinauSector = ChisinauSector.Create("Botanica");
         dbContext.Raioane.AddRange(raion, otherRaion);
         dbContext.Localitati.Add(localitate);
+        dbContext.ChisinauSectors.Add(chisinauSector);
         dbContext.SaveChanges();
 
         _raionId = raion.Id;
         _otherRaionId = otherRaion.Id;
         _localitateId = localitate.Id;
+        _chisinauSectorId = chisinauSector.Id;
         _validator = new UpdatePropertyValidator(dbContext);
     }
 
@@ -50,7 +54,8 @@ public class UpdatePropertyValidatorTests
         bool? petsAllowed = null,
         string? streetAddress = null,
         Guid? raionId = null,
-        Guid? localitateId = null) =>
+        Guid? localitateId = null,
+        Guid? chisinauSectorId = null) =>
         new(
             id ?? Guid.NewGuid(),
             Guid.NewGuid(),
@@ -63,7 +68,12 @@ public class UpdatePropertyValidatorTests
             currency,
             "Moldova",
             raionId ?? _raionId,
-            localitateId ?? _localitateId,
+            // Defaults to the seeded localitate only when the caller isn't testing
+            // chisinauSectorId — otherwise an explicit `localitateId: null` would get silently
+            // overridden back to a non-null value here, falsely triggering the new
+            // LocalitateId/ChisinauSectorId mutual-exclusivity rule in unrelated tests.
+            localitateId ?? (chisinauSectorId.HasValue ? null : _localitateId),
+            chisinauSectorId,
             streetAddress,
             area,
             rooms,
@@ -116,6 +126,45 @@ public class UpdatePropertyValidatorTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.LocalitateId));
+    }
+
+    [Fact]
+    public async Task Validate_WithChisinauSector_HasNoErrors()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(localitateId: null, chisinauSectorId: _chisinauSectorId));
+
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task Validate_WithUnknownChisinauSectorId_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(localitateId: null, chisinauSectorId: Guid.NewGuid()));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.ChisinauSectorId));
+    }
+
+    [Fact]
+    public async Task Validate_WithChisinauSectorOnNonChisinauRaion_HasError()
+    {
+        var result = await _validator.ValidateAsync(
+            ValidCommand(raionId: _otherRaionId, localitateId: null, chisinauSectorId: _chisinauSectorId));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.ChisinauSectorId));
+    }
+
+    [Fact]
+    public async Task Validate_WithChisinauSectorAndLocalitateBothSet_HasError()
+    {
+        // Mutually exclusive — a listing can be in a suburb or an informal Chișinău
+        // neighborhood, never both at once (they're physically different places).
+        var result = await _validator.ValidateAsync(
+            ValidCommand(localitateId: _localitateId, chisinauSectorId: _chisinauSectorId));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdatePropertyCommand.ChisinauSectorId));
     }
 
     [Fact]

@@ -7,6 +7,8 @@ public record PropertyLocationDto(
     string RaionName,
     Guid? LocalitateId,
     string? LocalitateName,
+    Guid? ChisinauSectorId,
+    string? ChisinauSectorName,
     string? Sector,
     string? Street,
     string? BuildingNumber,
