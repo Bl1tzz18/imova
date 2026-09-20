@@ -3,16 +3,32 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
-import { formatLocation, formatPrice } from "@/lib/utils/format";
+import { ShareListingButton } from "@/components/property/ShareListingButton";
+import { formatLocation, formatPrice, formatPricePerArea } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { Property } from "@/types/property";
 
-export function PropertyCard({ property }: { property: Property }) {
+export function PropertyCard({
+  property,
+  showPricePerArea = false,
+  showFloor = false,
+  showShareButton = false,
+}: {
+  property: Property;
+  // Extra bits the cluster-overflow map panel wants (ClusterOverflowPanel.tsx) that the
+  // regular search/saved-listings grids don't — kept optional so this stays the one card
+  // implementation everywhere instead of a near-duplicate compact card.
+  showPricePerArea?: boolean;
+  showFloor?: boolean;
+  showShareButton?: boolean;
+}) {
   const tType = useTranslations("PropertyType");
   const tListing = useTranslations("ListingType");
+  const tDetail = useTranslations("PropertyDetail");
   const tCard = useTranslations("PropertyCard");
   const location = formatLocation(property.location);
   const isUnavailable = property.status !== "Published";
+  const pricePerArea = showPricePerArea && property.area ? formatPricePerArea(property.price, property.area, property.currency) : null;
 
   return (
     <Link
@@ -46,11 +62,10 @@ export function PropertyCard({ property }: { property: Property }) {
           </Badge>
         </div>
 
-        <SaveListingButton
-          propertyId={property.id}
-          initialSaved={property.isSaved}
-          className="absolute right-3 top-3"
-        />
+        <div className="absolute right-3 top-3 flex gap-1.5">
+          <SaveListingButton propertyId={property.id} initialSaved={property.isSaved} />
+          {showShareButton && <ShareListingButton propertyId={property.id} />}
+        </div>
 
         {isUnavailable && (
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-ink-950/75 py-1.5 text-center">
@@ -62,11 +77,14 @@ export function PropertyCard({ property }: { property: Property }) {
       </div>
 
       <div className={cn("flex flex-1 flex-col gap-2 p-4", isUnavailable && "opacity-60")}>
-        <p className="font-display text-xl font-medium text-ink-950">
-          {formatPrice(property.price, property.currency)}
-          {property.listingType === "Rent" && (
-            <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
-          )}
+        <p className="flex flex-wrap items-baseline gap-x-2 font-display text-xl font-medium text-ink-950">
+          <span>
+            {formatPrice(property.price, property.currency)}
+            {property.listingType === "Rent" && (
+              <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
+            )}
+          </span>
+          {pricePerArea && <span className="text-sm font-normal text-ink-400">{pricePerArea}</span>}
         </p>
 
         <h3 className="line-clamp-2 text-sm font-medium leading-snug text-ink-800">
@@ -85,6 +103,16 @@ export function PropertyCard({ property }: { property: Property }) {
             <>
               <span className="h-1 w-1 rounded-full bg-ink-300" />
               <span>{tCard("rooms", { count: property.rooms })}</span>
+            </>
+          )}
+          {showFloor && property.floor != null && (
+            <>
+              <span className="h-1 w-1 rounded-full bg-ink-300" />
+              <span>
+                {property.totalFloors != null
+                  ? tDetail("floorOf", { floor: property.floor, totalFloors: property.totalFloors })
+                  : property.floor}
+              </span>
             </>
           )}
         </div>

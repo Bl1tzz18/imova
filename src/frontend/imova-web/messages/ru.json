@@ -48,7 +48,9 @@
     "savedListing": "Сохранено",
     "statusRented": "Сдано",
     "statusSold": "Продано",
-    "statusUnavailable": "Недоступно"
+    "statusUnavailable": "Недоступно",
+    "share": "Поделиться",
+    "linkCopied": "Ссылка скопирована"
   },
   "Home": {
     "badge": "Недвижимость в Молдове, без посредников",
@@ -96,7 +98,9 @@
     "title": "Объекты на карте",
     "resultsCount": "{count, plural, one {# объявление на карте} few {# объявления на карте} many {# объявлений на карте} other {# объявления на карте}}",
     "noResults": "Пока нет объявлений с указанной локацией",
-    "viewListing": "Смотреть объявление"
+    "viewListing": "Смотреть объявление",
+    "pointListingsCount": "{count, plural, one {# объявление в этой точке} few {# объявления в этой точке} many {# объявлений в этой точке} other {# объявления в этой точке}}",
+    "closePanel": "Закрыть панель"
   },
   "NewPropertyPage": {
     "title": "Добавить объявление",

@@ -48,7 +48,9 @@
     "savedListing": "Saved",
     "statusRented": "Rented",
     "statusSold": "Sold",
-    "statusUnavailable": "Unavailable"
+    "statusUnavailable": "Unavailable",
+    "share": "Share",
+    "linkCopied": "Link copied"
   },
   "Home": {
     "badge": "Real estate in Moldova, no middlemen",
@@ -96,7 +98,9 @@
     "title": "Properties on the map",
     "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
     "noResults": "No listings with a location yet",
-    "viewListing": "View listing"
+    "viewListing": "View listing",
+    "pointListingsCount": "{count, plural, one {# listing at this point} other {# listings at this point}}",
+    "closePanel": "Close panel"
   },
   "NewPropertyPage": {
     "title": "Add listing",

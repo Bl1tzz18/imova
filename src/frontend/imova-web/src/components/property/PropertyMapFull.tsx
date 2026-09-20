@@ -1,11 +1,14 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { createPropertyMarkerIcon } from "@/lib/map/propertyMarkerIcon";
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvent } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import type { LeafletMouseEvent, MarkerCluster } from "leaflet";
+import { createClusterIcon, createPropertyMarkerIcon, createPropertyPricePinIcon } from "@/lib/map/propertyMarkerIcon";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import type { Property } from "@/types/property";
 
@@ -45,14 +48,97 @@ function PropertyPopupContent({ property }: { property: Property }) {
   );
 }
 
-export function PropertyMapFull({
+function PropertyMarkers({ points, selectedId, onSelect }: { points: MapPoint[]; selectedId: string | null; onSelect: (id: string) => void }) {
+  return points.map((point) => (
+    <Marker
+      key={point.property.id}
+      position={[point.lat, point.lng]}
+      icon={createPropertyMarkerIcon(point.property.id === selectedId)}
+      eventHandlers={{ click: () => onSelect(point.property.id) }}
+    >
+      <Popup>
+        <PropertyPopupContent property={point.property} />
+      </Popup>
+    </Marker>
+  ));
+}
+
+// Keyed to 6 decimals (~0.1m) so markers at the exact same or near-identical coordinates
+// (e.g. several units in the same building) match up reliably despite float rounding.
+function pointKey(lat: number, lng: number) {
+  return `${lat.toFixed(6)},${lng.toFixed(6)}`;
+}
+
+// /map explorer only: groups nearby listings into a count cluster, breaking apart into smaller
+// clusters or individual price pills as the user zooms in. `zoomToBoundsOnClick` is turned off
+// (its default "fit bounds of this cluster's children" jump can leap several zoom levels at
+// once) in favor of a custom handler that always steps in by exactly one zoom level, so clusters
+// visibly break apart progressively instead of jumping straight to individual markers. Once
+// already at the map's max zoom, stepping in further is impossible — if it's still a cluster at
+// that point, its markers must share the same (or a near-identical) coordinate and can never
+// separate by zooming alone, so the click instead reports the full list of listings at that
+// point via `onClusterOverflow`, for the caller to show as a side panel.
+function ClusteredPropertyMarkers({
   points,
   selectedId,
   onSelect,
+  onClusterOverflow,
 }: {
   points: MapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onClusterOverflow: (points: MapPoint[] | null) => void;
+}) {
+  const map = useMap();
+
+  useMapEvent("click", () => onClusterOverflow(null));
+
+  return (
+    <MarkerClusterGroup
+      maxClusterRadius={70}
+      showCoverageOnHover={false}
+      spiderfyOnMaxZoom={false}
+      zoomToBoundsOnClick={false}
+      iconCreateFunction={createClusterIcon}
+      onClick={(e: LeafletMouseEvent) => {
+        if (map.getZoom() >= map.getMaxZoom()) {
+          const cluster = (e as unknown as { layer: MarkerCluster }).layer;
+          const childKeys = new Set(cluster.getAllChildMarkers().map((m) => pointKey(m.getLatLng().lat, m.getLatLng().lng)));
+          onClusterOverflow(points.filter((p) => childKeys.has(pointKey(p.lat, p.lng))));
+          return;
+        }
+        onClusterOverflow(null);
+        map.setView(e.latlng, Math.min(map.getZoom() + 1, map.getMaxZoom()));
+      }}
+    >
+      {points.map((point) => (
+        <Marker
+          key={point.property.id}
+          position={[point.lat, point.lng]}
+          icon={createPropertyPricePinIcon(formatPrice(point.property.price, point.property.currency), point.property.id === selectedId)}
+          eventHandlers={{ click: () => onSelect(point.property.id) }}
+        >
+          <Popup>
+            <PropertyPopupContent property={point.property} />
+          </Popup>
+        </Marker>
+      ))}
+    </MarkerClusterGroup>
+  );
+}
+
+export function PropertyMapFull({
+  points,
+  selectedId,
+  onSelect,
+  cluster = false,
+  onClusterOverflow,
+}: {
+  points: MapPoint[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  cluster?: boolean;
+  onClusterOverflow?: (points: MapPoint[] | null) => void;
 }) {
   const selectedPoint = points.find((point) => point.property.id === selectedId) ?? null;
 
@@ -70,18 +156,16 @@ export function PropertyMapFull({
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <FlyToSelected point={selectedPoint} />
-      {points.map((point) => (
-        <Marker
-          key={point.property.id}
-          position={[point.lat, point.lng]}
-          icon={createPropertyMarkerIcon(point.property.id === selectedId)}
-          eventHandlers={{ click: () => onSelect(point.property.id) }}
-        >
-          <Popup>
-            <PropertyPopupContent property={point.property} />
-          </Popup>
-        </Marker>
-      ))}
+      {cluster ? (
+        <ClusteredPropertyMarkers
+          points={points}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onClusterOverflow={onClusterOverflow ?? (() => {})}
+        />
+      ) : (
+        <PropertyMarkers points={points} selectedId={selectedId} onSelect={onSelect} />
+      )}
     </MapContainer>
   );
 }
