@@ -1,7 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Locations;
+using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Imova.IntegrationTests.Locations;
 
@@ -11,6 +15,7 @@ namespace Imova.IntegrationTests.Locations;
 public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
+    private readonly StubStreetSuggestionService _streetSuggestionStub = new();
 
     public LocationsEndpointTests(WebApplicationFactory<Program> factory)
     {
@@ -19,6 +24,13 @@ public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Progra
             builder.UseSetting(
                 "ConnectionStrings:Default",
                 "Host=localhost;Port=5432;Database=imova;Username=imova;Password=imova");
+            builder.ConfigureServices(services =>
+            {
+                // Never hit the real Photon API from the test suite — see
+                // StubStreetSuggestionService's header comment.
+                services.RemoveAll<IStreetSuggestionService>();
+                services.AddSingleton<IStreetSuggestionService>(_streetSuggestionStub);
+            });
         });
     }
 
@@ -79,5 +91,27 @@ public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Progra
         var response = await client.GetAsync($"/api/v1/locations/raioane/{Guid.NewGuid()}/localitati");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetStreetSuggestions_WithAQuery_ReturnsSuggestionsFromTheService()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/locations/street-suggestions?query=Ismail");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var suggestions = await response.Content.ReadFromJsonAsync<List<StreetSuggestionDto>>();
+        Assert.Equal("Strada Ismail", suggestions!.Single().Name);
+    }
+
+    [Fact]
+    public async Task GetStreetSuggestions_WithNoQuery_ReturnsOkWithoutErroring()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/locations/street-suggestions");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

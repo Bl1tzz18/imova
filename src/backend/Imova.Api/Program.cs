@@ -121,6 +121,19 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
+// Same missing-section-degrades-gracefully treatment as Geocoding above — street suggestions are
+// a best-effort typeahead aid, not something startup should fail without.
+var photonOptions = builder.Configuration.GetSection(PhotonOptions.SectionName).Get<PhotonOptions>()
+    ?? new PhotonOptions();
+builder.Services.AddSingleton(photonOptions);
+builder.Services.AddHttpClient<IStreetSuggestionService, PhotonStreetSuggestionService>((sp, client) =>
+{
+    var options = sp.GetRequiredService<PhotonOptions>();
+    client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
+
 // Backs the in-process cache for Raioane/Localitati/ChisinauSectors (see GetRaioaneHandler etc.)
 // — static reference data seeded once at startup, so caching it indefinitely (no expiration,
 // cleared only on restart) avoids re-querying Postgres for data that can't change without a

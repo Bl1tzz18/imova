@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
+import { FieldLabel, SelectInput } from "@/components/ui/Field";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -14,6 +14,7 @@ import {
   type Raion,
 } from "@/lib/api/locations";
 import { DealTypeTabs } from "./DealTypeTabs";
+import { StreetAddressAutocomplete } from "./StreetAddressAutocomplete";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 const LISTING_TYPES = ["Sale", "Rent"] as const;
@@ -197,10 +198,10 @@ export function StepTypeLocation({
         )}
         <label className="block sm:col-span-2">
           <FieldLabel>{t("streetAddressLabel")}</FieldLabel>
-          <TextInput
-            name="streetAddress"
-            maxLength={200}
-            defaultValue={defaultStreetAddress ?? undefined}
+          <StreetAddressAutocomplete
+            raionId={raionId || undefined}
+            localitateId={localitateId || undefined}
+            defaultValue={defaultStreetAddress}
             placeholder={t("streetAddressPlaceholder")}
           />
         </label>
