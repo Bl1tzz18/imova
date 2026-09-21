@@ -4,6 +4,7 @@ using Imova.Contracts.Properties;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.CreateProperty;
 
@@ -12,6 +13,15 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
 {
     public async Task<PropertyDto> Handle(CreatePropertyCommand request, CancellationToken cancellationToken)
     {
+        // Guaranteed to exist by CreatePropertyValidator's MustAsync checks.
+        var raion = await dbContext.Raioane.AsNoTracking().FirstAsync(r => r.Id == request.RaionId, cancellationToken);
+        var localitate = request.LocalitateId.HasValue
+            ? await dbContext.Localitati.AsNoTracking().FirstAsync(l => l.Id == request.LocalitateId.Value, cancellationToken)
+            : null;
+        var chisinauSector = request.ChisinauSectorId.HasValue
+            ? await dbContext.ChisinauSectors.AsNoTracking().FirstAsync(s => s.Id == request.ChisinauSectorId.Value, cancellationToken)
+            : null;
+
         var property = Property.Create(
             request.OwnerId,
             request.Title,
@@ -39,15 +49,20 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
 
         // Geocoding never throws (see IGeocodingService) — a null result (address didn't resolve,
         // provider unreachable) just means the listing saves without coordinates rather than
-        // failing the whole request.
-        var address = PropertyAddress.Compose(request.StreetAddress, request.District, request.City, request.Country);
+        // failing the whole request. Raion/Localitate names generally geocode more reliably than
+        // free-text city names did.
+        var address = PropertyAddress.Compose(request.StreetAddress, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
         var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
 
         var location = PropertyLocation.Create(
             property.Id,
             request.Country,
-            request.City,
-            request.District,
+            raion.Id,
+            raion.NameRo,
+            localitate?.Id,
+            localitate?.NameRo,
+            chisinauSector?.Id,
+            chisinauSector?.Name,
             geocoded?.Latitude,
             geocoded?.Longitude,
             request.StreetAddress);

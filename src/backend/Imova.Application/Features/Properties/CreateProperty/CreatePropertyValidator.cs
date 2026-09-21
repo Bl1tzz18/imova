@@ -1,11 +1,14 @@
 using FluentValidation;
+using Imova.Application.Common.Interfaces;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Properties.CreateProperty;
 
 public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
 {
-    public CreatePropertyValidator()
+    public CreatePropertyValidator(IApplicationDbContext dbContext)
     {
         RuleFor(c => c.Id).NotEqual(Guid.Empty).When(c => c.Id.HasValue);
         RuleFor(c => c.OwnerId).NotEmpty();
@@ -20,8 +23,41 @@ public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
             .Must(SupportedCurrencies.All.Contains)
             .WithMessage($"Currency must be one of: {string.Join(", ", SupportedCurrencies.All)}.");
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
-        RuleFor(c => c.City).NotEmpty().MaximumLength(100);
-        RuleFor(c => c.District).MaximumLength(100);
+
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId, cancellationToken))
+            .WithMessage("RaionId does not reference a known raion.");
+        RuleFor(c => c.LocalitateId)
+            .MustAsync((command, localitateId, cancellationToken) =>
+                dbContext.Localitati.AnyAsync(
+                    l => l.Id == localitateId!.Value && l.RaionId == command.RaionId,
+                    cancellationToken))
+            .WithMessage("LocalitateId does not reference a known localitate belonging to the selected raion.")
+            .When(c => c.LocalitateId.HasValue);
+
+        // Only meaningful when the selected Raion is Chișinău, so still guarded against the
+        // selected RaionId, same shape as the LocalitateId-belongs-to-Raion check above.
+        RuleFor(c => c.ChisinauSectorId)
+            .MustAsync((chisinauSectorId, cancellationToken) =>
+                dbContext.ChisinauSectors.AnyAsync(s => s.Id == chisinauSectorId!.Value, cancellationToken))
+            .WithMessage("ChisinauSectorId does not reference a known sector.")
+            .When(c => c.ChisinauSectorId.HasValue);
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId && r.LocalityLabel == LocalityLabel.Sector, cancellationToken))
+            .WithMessage("ChisinauSectorId can only be set when the selected raion is Chișinău.")
+            .When(c => c.ChisinauSectorId.HasValue)
+            .OverridePropertyName(nameof(CreatePropertyCommand.ChisinauSectorId));
+
+        // Mutually exclusive with LocalitateId — a listing can be in a suburb or an informal
+        // Chișinău neighborhood, never both at once (they're physically different places).
+        // Neither being set stays allowed.
+        RuleFor(c => c)
+            .Must(c => c.LocalitateId is null || c.ChisinauSectorId is null)
+            .WithMessage("LocalitateId and ChisinauSectorId cannot both be set — pick a suburb or a sector, not both.")
+            .OverridePropertyName(nameof(CreatePropertyCommand.ChisinauSectorId));
+
         RuleFor(c => c.StreetAddress).MaximumLength(200);
 
         // Which of the fields below are required / must be omitted depends on PropertyType

@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
+using Imova.Api.Features.Locations;
 using Imova.Api.Features.Media;
 using Imova.Api.Features.Properties;
 using Imova.Api.Features.Users;
@@ -15,6 +16,7 @@ using Imova.Application.Features.Properties.GetProperties;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
+using Imova.Infrastructure.Locations;
 using Imova.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -119,6 +121,12 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
+// Backs the in-process cache for Raioane/Localitati/ChisinauSectors (see GetRaioaneHandler etc.)
+// — static reference data seeded once at startup, so caching it indefinitely (no expiration,
+// cleared only on restart) avoids re-querying Postgres for data that can't change without a
+// reseed, which already implies a restart.
+builder.Services.AddMemoryCache();
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblyContaining<GetPropertiesQuery>();
@@ -133,6 +141,9 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ImovaDbContext>();
     dbContext.Database.Migrate();
+
+    await CuatmLocationSeeder.SeedAsync(dbContext, CancellationToken.None);
+    await ChisinauSectorSeeder.SeedAsync(dbContext, CancellationToken.None);
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     foreach (var role in new[] { Roles.User, Roles.Admin })
@@ -191,6 +202,7 @@ app.MapMediaEndpoints();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapFavoriteEndpoints();
+app.MapLocationsEndpoints();
 
 app.Run();
 

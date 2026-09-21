@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
+using Imova.Contracts.Locations;
 using Imova.Contracts.Properties;
 using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -57,29 +58,32 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
 
     // Apartment/Rent with area/rooms/floor/totalFloors set — same required-field combination as
     // CreatePropertyValidatorTests' ValidCommand(), for the same PropertyFieldRules reasons.
-    private static Dictionary<string, object?> ValidCreatePropertyBody() => new()
+    private static async Task<Dictionary<string, object?>> ValidCreatePropertyBodyAsync(HttpClient client)
     {
-        ["title"] = "Apartament 2 camere",
-        ["description"] = "Apartament luminos, aproape de centru.",
-        ["propertyType"] = "Apartment",
-        ["listingType"] = "Rent",
-        ["price"] = 550,
-        ["currency"] = "EUR",
-        ["country"] = "Moldova",
-        ["city"] = "Chisinau",
-        ["district"] = "Botanica",
-        ["area"] = 54,
-        ["rooms"] = 2,
-        ["floor"] = 3,
-        ["totalFloors"] = 9,
-    };
+        var raioane = await client.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane");
+        return new()
+        {
+            ["title"] = "Apartament 2 camere",
+            ["description"] = "Apartament luminos, aproape de centru.",
+            ["propertyType"] = "Apartment",
+            ["listingType"] = "Rent",
+            ["price"] = 550,
+            ["currency"] = "EUR",
+            ["country"] = "Moldova",
+            ["raionId"] = raioane!.First().Id,
+            ["area"] = 54,
+            ["rooms"] = 2,
+            ["floor"] = 3,
+            ["totalFloors"] = 9,
+        };
+    }
 
     private async Task<(HttpClient OwnerClient, HttpClient OtherClient, PropertyDto Property)> CreatePropertyAsOwnerAsync()
     {
         var (ownerClient, _) = await RegisterAuthedClientAsync(_factory);
         var (otherClient, _) = await RegisterAuthedClientAsync(_factory);
 
-        var createResponse = await ownerClient.PostAsJsonAsync("/api/v1/properties", ValidCreatePropertyBody());
+        var createResponse = await ownerClient.PostAsJsonAsync("/api/v1/properties", await ValidCreatePropertyBodyAsync(ownerClient));
         createResponse.EnsureSuccessStatusCode();
         var property = (await createResponse.Content.ReadFromJsonAsync<PropertyDto>())!;
 
@@ -91,7 +95,7 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
     {
         var (client, userId) = await RegisterAuthedClientAsync(_factory);
         var spoofedOwnerId = Guid.NewGuid();
-        var body = ValidCreatePropertyBody();
+        var body = await ValidCreatePropertyBodyAsync(client);
         body["ownerId"] = spoofedOwnerId; // CreatePropertyRequest has no OwnerId field, so this must be ignored.
 
         var response = await client.PostAsJsonAsync("/api/v1/properties", body);
@@ -109,7 +113,7 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
     {
         var client = _factory.CreateClient();
 
-        var response = await client.PostAsJsonAsync("/api/v1/properties", ValidCreatePropertyBody());
+        var response = await client.PostAsJsonAsync("/api/v1/properties", await ValidCreatePropertyBodyAsync(client));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }

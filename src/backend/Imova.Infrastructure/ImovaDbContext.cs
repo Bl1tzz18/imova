@@ -23,6 +23,12 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<PropertyLocation> PropertyLocations => Set<PropertyLocation>();
 
+    public DbSet<Raion> Raioane => Set<Raion>();
+
+    public DbSet<Localitate> Localitati => Set<Localitate>();
+
+    public DbSet<ChisinauSector> ChisinauSectors => Set<ChisinauSector>();
+
     public DbSet<PropertyMedia> PropertyMedias => Set<PropertyMedia>();
 
     public DbSet<Favorite> Favorites => Set<Favorite>();

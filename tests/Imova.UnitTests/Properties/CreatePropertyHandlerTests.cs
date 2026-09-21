@@ -1,4 +1,5 @@
 using Imova.Application.Features.Properties.CreateProperty;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Imova.UnitTests.TestSupport;
 
@@ -6,7 +7,22 @@ namespace Imova.UnitTests.Properties;
 
 public class CreatePropertyHandlerTests
 {
+    private static (Raion Raion, Localitate Localitate, ChisinauSector Sector) SeedRaionAndLocalitate(Imova.Infrastructure.ImovaDbContext dbContext)
+    {
+        var raion = Raion.Create(Guid.NewGuid(), "0100", "Chisinau", null, LocalityLabel.Sector);
+        var localitate = Localitate.Create(Guid.NewGuid(), raion.Id, null, "0101", "Botanica", null);
+        var sector = ChisinauSector.Create("Botanica");
+        dbContext.Raioane.Add(raion);
+        dbContext.Localitati.Add(localitate);
+        dbContext.ChisinauSectors.Add(sector);
+        dbContext.SaveChanges();
+        return (raion, localitate, sector);
+    }
+
     private static CreatePropertyCommand ValidCommand(
+        Guid raionId,
+        Guid? localitateId,
+        Guid? chisinauSectorId = null,
         Guid? id = null,
         Guid? ownerId = null,
         string? streetAddress = null) => new(
@@ -19,8 +35,9 @@ public class CreatePropertyHandlerTests
         550m,
         "EUR",
         "Moldova",
-        "Chisinau",
-        "Botanica",
+        raionId,
+        localitateId,
+        chisinauSectorId,
         streetAddress,
         54m,
         2m,
@@ -36,17 +53,20 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithValidCommand_PersistsPropertyAndLocationAndReturnsDto()
     {
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
         var ownerId = Guid.NewGuid();
 
-        var result = await handler.Handle(ValidCommand(ownerId: ownerId), CancellationToken.None);
+        var result = await handler.Handle(
+            ValidCommand(raion.Id, localitate.Id, ownerId: ownerId), CancellationToken.None);
 
         Assert.Equal(ownerId, result.OwnerId);
         // A new listing goes straight into the admin review queue — see
         // CreatePropertyHandler's call to SubmitForReview().
         Assert.Equal("PendingReview", result.Status);
         Assert.NotNull(result.Location);
-        Assert.Equal("Chisinau", result.Location!.City);
+        Assert.Equal("Chisinau", result.Location!.RaionName);
+        Assert.Equal("Botanica", result.Location.LocalitateName);
 
         Assert.Single(dbContext.Properties);
         Assert.Single(dbContext.PropertyLocations);
@@ -57,10 +77,12 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithClientSuppliedId_UsesThatIdForThePropertyAndLocation()
     {
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
         var suppliedId = Guid.NewGuid();
 
-        var result = await handler.Handle(ValidCommand(id: suppliedId), CancellationToken.None);
+        var result = await handler.Handle(
+            ValidCommand(raion.Id, localitate.Id, id: suppliedId), CancellationToken.None);
 
         Assert.Equal(suppliedId, result.Id);
         Assert.Equal(suppliedId, dbContext.PropertyLocations.Single().PropertyId);
@@ -70,9 +92,11 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WithoutClientSuppliedId_GeneratesANewId()
     {
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var handler = new CreatePropertyHandler(dbContext, new FakeGeocodingService());
 
-        var result = await handler.Handle(ValidCommand(id: null), CancellationToken.None);
+        var result = await handler.Handle(
+            ValidCommand(raion.Id, localitate.Id, id: null), CancellationToken.None);
 
         Assert.NotEqual(Guid.Empty, result.Id);
     }
@@ -81,13 +105,14 @@ public class CreatePropertyHandlerTests
     public async Task Handle_WhenGeocodingResolves_StoresReturnedCoordinates()
     {
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var geocodingService = new FakeGeocodingService
         {
             ResultToReturn = new(47.75, 27.9167, "Balti, Moldova"),
         };
         var handler = new CreatePropertyHandler(dbContext, geocodingService);
 
-        var result = await handler.Handle(ValidCommand(), CancellationToken.None);
+        var result = await handler.Handle(ValidCommand(raion.Id, localitate.Id), CancellationToken.None);
 
         Assert.Equal(47.75, result.Location!.Latitude);
         Assert.Equal(27.9167, result.Location.Longitude);
@@ -100,10 +125,11 @@ public class CreatePropertyHandlerTests
         // Geocoding never throws (see IGeocodingService) — a null result must not block listing
         // creation, it just means the listing saves without coordinates.
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var geocodingService = new FakeGeocodingService { ResultToReturn = null };
         var handler = new CreatePropertyHandler(dbContext, geocodingService);
 
-        var result = await handler.Handle(ValidCommand(), CancellationToken.None);
+        var result = await handler.Handle(ValidCommand(raion.Id, localitate.Id), CancellationToken.None);
 
         Assert.NotNull(result.Location);
         Assert.Null(result.Location!.Latitude);
@@ -112,9 +138,29 @@ public class CreatePropertyHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WithChisinauSector_PersistsItAndIncludesItInTheGeocodedAddress()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var (raion, _, sector) = SeedRaionAndLocalitate(dbContext);
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.0105, 28.8638, "Botanica, Chisinau, Moldova"),
+        };
+        var handler = new CreatePropertyHandler(dbContext, geocodingService);
+
+        var result = await handler.Handle(
+            ValidCommand(raion.Id, localitateId: null, chisinauSectorId: sector.Id), CancellationToken.None);
+
+        Assert.Equal(sector.Id, result.Location!.ChisinauSectorId);
+        Assert.Equal("Botanica", result.Location.ChisinauSectorName);
+        Assert.Equal("Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+    }
+
+    [Fact]
     public async Task Handle_WithStreetAddress_IncludesItInTheGeocodedAddressAndPersistsIt()
     {
         await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
         var geocodingService = new FakeGeocodingService
         {
             ResultToReturn = new(47.0105, 28.8638, "Str. Ismail 44, Botanica, Chisinau, Moldova"),
@@ -122,7 +168,7 @@ public class CreatePropertyHandlerTests
         var handler = new CreatePropertyHandler(dbContext, geocodingService);
 
         var result = await handler.Handle(
-            ValidCommand(streetAddress: "Str. Ismail 44"), CancellationToken.None);
+            ValidCommand(raion.Id, localitate.Id, streetAddress: "Str. Ismail 44"), CancellationToken.None);
 
         Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
         Assert.Equal("Str. Ismail 44", result.Location!.Street);
