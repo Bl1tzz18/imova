@@ -50,11 +50,43 @@
     "statusSold": "Продано",
     "statusUnavailable": "Недоступно"
   },
+  "Hero": {
+    "eyebrow": "Рынок недвижимости Молдовы в одном месте",
+    "title": "Найдите дом, а не просто объявление.",
+    "subtitle": "Проверенные объявления, обновляемые ежедневно, и фильтры, которые действительно работают — чтобы вы не тратили время на то, что вам не подходит.",
+    "stats": {
+      "houses": "Дома",
+      "apartments": "Квартиры",
+      "commercial": "Коммерция и офисы",
+      "land": "Участки"
+    },
+    "searchCard": {
+      "buyTab": "Купить",
+      "rentTab": "Снять",
+      "locationLabel": "Местоположение",
+      "typeLabel": "Тип",
+      "anyType": "Любой тип",
+      "minPriceLabel": "Мин. цена, €",
+      "minPricePlaceholder": "от",
+      "maxPriceLabel": "Макс. цена, €",
+      "maxPricePlaceholder": "до",
+      "searchButton": "Искать",
+      "locations": {
+        "Chisinau": "Кишинёв",
+        "Balti": "Бельцы",
+        "Cahul": "Кахул",
+        "Orhei": "Оргеев",
+        "Ungheni": "Унгень",
+        "Soroca": "Сороки"
+      }
+    },
+    "trust": {
+      "verified": "Проверенные объявления",
+      "updatedDaily": "Обновляется ежедневно",
+      "transparentPricing": "Прозрачные цены"
+    }
+  },
   "Home": {
-    "badge": "Недвижимость в Молдове, без посредников",
-    "heroTitleStart": "Найдите свой следующий дом",
-    "heroTitleHighlight": "прямо в Молдове",
-    "heroSubtitle": "Квартиры, дома и участки на продажу или в аренду — от собственников и агентств.",
     "valueProps": {
       "noCommission": {
         "title": "Без комиссии",

@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
-import { SearchForm } from "@/components/search/SearchForm";
+import { Hero } from "@/components/home/Hero";
+import { TrustRow } from "@/components/home/TrustRow";
 import { PropertyCarousel } from "@/components/property/PropertyCarousel";
-import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
 import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
@@ -46,27 +46,10 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-ink-100 via-ink-50 to-ink-50">
-          <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pb-20 pt-16 text-center sm:px-6 sm:pb-28 sm:pt-24">
-            <span className="mb-5 inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-ink-600 shadow-sm">
-              {t("badge")}
-            </span>
-            <h1 className="text-balance max-w-2xl font-display text-4xl font-medium leading-[1.1] text-ink-950 sm:text-5xl">
-              {t("heroTitleStart")}{" "}
-              <span className="text-brand-700">{t("heroTitleHighlight")}</span>
-            </h1>
-            <p className="mt-4 max-w-lg text-balance text-base text-ink-600 sm:text-lg">
-              {t("heroSubtitle")}
-            </p>
+        <Hero />
 
-            <div className="mt-8 w-full max-w-3xl">
-              <SearchForm />
-            </div>
-          </div>
-        </section>
-
-        <div className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:-mt-12 sm:px-6">
-          <PropertyTypeStats properties={properties} />
+        <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+          <TrustRow />
         </div>
 
         <section className="border-b border-ink-100 bg-white">

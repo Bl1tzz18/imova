@@ -50,11 +50,43 @@
     "statusSold": "Sold",
     "statusUnavailable": "Unavailable"
   },
+  "Hero": {
+    "eyebrow": "Moldova's real estate market, in one place",
+    "title": "Find a home, not just a listing.",
+    "subtitle": "Verified listings, updated daily, and filters that actually work — so you stop wasting time on what doesn't fit.",
+    "stats": {
+      "houses": "Houses",
+      "apartments": "Apartments",
+      "commercial": "Commercial & offices",
+      "land": "Land plots"
+    },
+    "searchCard": {
+      "buyTab": "Buy",
+      "rentTab": "Rent",
+      "locationLabel": "Location",
+      "typeLabel": "Type",
+      "anyType": "Any type",
+      "minPriceLabel": "Min price, €",
+      "minPricePlaceholder": "from",
+      "maxPriceLabel": "Max price, €",
+      "maxPricePlaceholder": "to",
+      "searchButton": "Search",
+      "locations": {
+        "Chisinau": "Chișinău",
+        "Balti": "Bălți",
+        "Cahul": "Cahul",
+        "Orhei": "Orhei",
+        "Ungheni": "Ungheni",
+        "Soroca": "Soroca"
+      }
+    },
+    "trust": {
+      "verified": "Verified listings",
+      "updatedDaily": "Updated daily",
+      "transparentPricing": "Transparent pricing"
+    }
+  },
   "Home": {
-    "badge": "Real estate in Moldova, no middlemen",
-    "heroTitleStart": "Find your next home,",
-    "heroTitleHighlight": "straight from Moldova",
-    "heroSubtitle": "Apartments, houses and land for sale or rent — listed by owners and agencies.",
     "valueProps": {
       "noCommission": {
         "title": "No commission",
