@@ -25,7 +25,8 @@ public class CreatePropertyHandlerTests
         Guid? chisinauSectorId = null,
         Guid? id = null,
         Guid? ownerId = null,
-        string? streetAddress = null) => new(
+        string? streetAddress = null,
+        string? buildingNumber = null) => new(
         id,
         ownerId ?? Guid.NewGuid(),
         "Apartament 2 camere",
@@ -39,6 +40,7 @@ public class CreatePropertyHandlerTests
         localitateId,
         chisinauSectorId,
         streetAddress,
+        buildingNumber,
         54m,
         2m,
         null,
@@ -172,5 +174,25 @@ public class CreatePropertyHandlerTests
 
         Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
         Assert.Equal("Str. Ismail 44", result.Location!.Street);
+    }
+
+    [Fact]
+    public async Task Handle_WithBuildingNumber_IncludesItAfterStreetInTheGeocodedAddressAndPersistsItSeparately()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var (raion, localitate, _) = SeedRaionAndLocalitate(dbContext);
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.0105, 28.8638, "Str. Ismail 44, Botanica, Chisinau, Moldova"),
+        };
+        var handler = new CreatePropertyHandler(dbContext, geocodingService);
+
+        var result = await handler.Handle(
+            ValidCommand(raion.Id, localitate.Id, streetAddress: "Str. Ismail", buildingNumber: "44"),
+            CancellationToken.None);
+
+        Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+        Assert.Equal("Str. Ismail", result.Location!.Street);
+        Assert.Equal("44", result.Location.BuildingNumber);
     }
 }

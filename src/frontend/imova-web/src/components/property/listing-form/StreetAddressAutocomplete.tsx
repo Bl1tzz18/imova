@@ -27,11 +27,13 @@ export function StreetAddressAutocomplete({
   localitateId,
   defaultValue,
   placeholder,
+  required,
 }: {
   raionId?: string;
   localitateId?: string;
   defaultValue?: string | null;
   placeholder?: string;
+  required?: boolean;
 }) {
   const t = useTranslations("PropertyForm");
   const [value, setValue] = useState(defaultValue ?? "");
@@ -128,6 +130,7 @@ export function StreetAddressAutocomplete({
       <TextInput
         name="streetAddress"
         maxLength={200}
+        required={required}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onFocus={() => setOpen(loading || suggestions.length > 0)}

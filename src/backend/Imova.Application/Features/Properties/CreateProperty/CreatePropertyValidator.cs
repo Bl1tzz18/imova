@@ -58,7 +58,10 @@ public class CreatePropertyValidator : AbstractValidator<CreatePropertyCommand>
             .WithMessage("LocalitateId and ChisinauSectorId cannot both be set — pick a suburb or a sector, not both.")
             .OverridePropertyName(nameof(CreatePropertyCommand.ChisinauSectorId));
 
-        RuleFor(c => c.StreetAddress).MaximumLength(200);
+        RuleFor(c => c.StreetAddress)
+            .NotEmpty().WithMessage("Street address is required.")
+            .MaximumLength(200);
+        RuleFor(c => c.BuildingNumber).MaximumLength(20);
 
         // Which of the fields below are required / must be omitted depends on PropertyType
         // (and, for PetsAllowed, ListingType) — see PropertyFieldRules.

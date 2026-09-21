@@ -165,6 +165,7 @@ export function PropertyForm({ property }: { property?: Property }) {
               onChisinauSectorIdChange={setChisinauSectorId}
               defaultCountry={property?.location?.country}
               defaultStreetAddress={property?.location?.street}
+              defaultBuildingNumber={property?.location?.buildingNumber}
             />
           </div>
 

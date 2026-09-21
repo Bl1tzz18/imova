@@ -25,7 +25,11 @@ public record UpdatePropertyCommand(
     Guid RaionId,
     Guid? LocalitateId,
     Guid? ChisinauSectorId,
+    // Required (see UpdatePropertyValidator's NotEmpty rule) — see CreatePropertyCommand's
+    // StreetAddress for why the C# type stays nullable.
     string? StreetAddress,
+    // Free-text, optional — see CreatePropertyCommand's BuildingNumber.
+    string? BuildingNumber,
     decimal? Area,
     decimal? Rooms,
     short? Bathrooms,

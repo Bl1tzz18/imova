@@ -74,6 +74,9 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
         ["currency"] = "EUR",
         ["country"] = "Moldova",
         ["raionId"] = await GetAnyRaionIdAsync(client),
+        // Now required (see CreatePropertyValidator) — not this file's concern, just needed to
+        // keep the body valid for the geocoding behavior these tests actually exercise.
+        ["streetAddress"] = "Str. Ismail",
         ["area"] = 54,
         ["rooms"] = 2,
         ["floor"] = 3,
@@ -143,6 +146,7 @@ public class PropertyGeocodingTests : IClassFixture<WebApplicationFactory<Progra
             country = created.Location!.Country,
             raionId = created.Location.RaionId,
             localitateId = created.Location.LocalitateId,
+            streetAddress = created.Location.Street,
             area = created.Area,
             rooms = created.Rooms,
             floor = created.Floor,

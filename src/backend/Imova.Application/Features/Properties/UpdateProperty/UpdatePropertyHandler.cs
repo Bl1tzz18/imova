@@ -55,7 +55,8 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
         // Re-geocode on every edit — the form doesn't tell us whether the address fields actually
         // changed, and geocoding never throws (see IGeocodingService), so re-resolving is simpler
         // than trying to detect "did the address change" and cheap enough at this listing volume.
-        var address = PropertyAddress.Compose(request.StreetAddress, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
+        var address = PropertyAddress.Compose(
+            request.StreetAddress, request.BuildingNumber, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
         var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
 
         // Every listing has a location row created alongside it in CreatePropertyHandler — this
@@ -70,7 +71,8 @@ public class UpdatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
             chisinauSector?.Name,
             geocoded?.Latitude,
             geocoded?.Longitude,
-            request.StreetAddress);
+            request.StreetAddress,
+            request.BuildingNumber);
 
         // Saving edits to a Rejected listing is the owner's way of addressing whatever an admin
         // flagged — resubmit it in the same step instead of making them press a separate button

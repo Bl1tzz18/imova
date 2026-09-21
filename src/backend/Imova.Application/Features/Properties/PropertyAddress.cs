@@ -14,6 +14,18 @@ public static class PropertyAddress
     // raion name alone for an in-city Chișinău address. Callers only ever pass one of
     // sector/district at a time (mutually exclusive — a listing can't be in both a suburb and an
     // informal Chișinău neighborhood), but this function itself stays generic about that.
-    public static string Compose(string? street, string? sector, string? district, string city, string country) =>
-        string.Join(", ", new[] { street, sector, district, city, country }.Where(part => !string.IsNullOrWhiteSpace(part)));
+    //
+    // buildingNumber is folded into the same token as street ("Ismail 44", space-separated, no
+    // comma) rather than joined as its own list entry — a query like "Ismail, 44, Chișinău" reads
+    // as a nonsensical address to Nominatim, whereas "Ismail 44, Chișinău" is exactly the
+    // street-plus-number form it expects. Only meaningful when street itself is present —
+    // building number alone, with no street, isn't a usable geocoding token.
+    public static string Compose(string? street, string? buildingNumber, string? sector, string? district, string city, string country)
+    {
+        var streetWithNumber = string.IsNullOrWhiteSpace(street)
+            ? null
+            : string.IsNullOrWhiteSpace(buildingNumber) ? street : $"{street} {buildingNumber}";
+
+        return string.Join(", ", new[] { streetWithNumber, sector, district, city, country }.Where(part => !string.IsNullOrWhiteSpace(part)));
+    }
 }

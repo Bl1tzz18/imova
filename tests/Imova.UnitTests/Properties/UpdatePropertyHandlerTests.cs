@@ -57,6 +57,7 @@ public class UpdatePropertyHandlerTests
         string currency = "EUR",
         string country = "Moldova",
         string? streetAddress = null,
+        string? buildingNumber = null,
         decimal? area = 54m,
         decimal? rooms = 2m,
         short? bathrooms = null,
@@ -68,8 +69,8 @@ public class UpdatePropertyHandlerTests
         bool? petsAllowed = null) =>
         new(
             propertyId, requestingUserId, isAdmin, title, description, propertyType, listingType, price,
-            currency, country, raionId, localitateId, chisinauSectorId, streetAddress, area, rooms, bathrooms, floor,
-            totalFloors, yearBuilt, furnished, parkingAvailable, petsAllowed);
+            currency, country, raionId, localitateId, chisinauSectorId, streetAddress, buildingNumber, area, rooms,
+            bathrooms, floor, totalFloors, yearBuilt, furnished, parkingAvailable, petsAllowed);
 
     [Fact]
     public async Task Handle_ByOwner_UpdatesAndReturnsDto()
@@ -309,5 +310,31 @@ public class UpdatePropertyHandlerTests
 
         Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
         Assert.Equal("Str. Ismail 44", result!.Location!.Street);
+    }
+
+    [Fact]
+    public async Task Handle_WithBuildingNumber_IncludesItAfterStreetInTheGeocodedAddressAndPersistsItSeparately()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var ownerId = Guid.NewGuid();
+        var property = AddProperty(dbContext, ownerId);
+        var raion = AddRaion(dbContext, "0100", "Chisinau");
+        var botanica = AddLocalitate(dbContext, raion.Id, "0101", "Botanica");
+        var location = PropertyLocation.Create(property.Id, "Moldova", raion.Id, "Chisinau", null, null, null, null, null, null);
+        dbContext.PropertyLocations.Add(location);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var geocodingService = new FakeGeocodingService
+        {
+            ResultToReturn = new(47.0105, 28.8638, "Str. Ismail 44, Botanica, Chisinau, Moldova"),
+        };
+        var handler = new UpdatePropertyHandler(dbContext, geocodingService);
+        var result = await handler.Handle(
+            BuildCommand(property.Id, ownerId, false, raion.Id, botanica.Id, streetAddress: "Str. Ismail", buildingNumber: "44"),
+            CancellationToken.None);
+
+        Assert.Equal("Str. Ismail 44, Botanica, Chisinau, Moldova", geocodingService.LastAddressRequested);
+        Assert.Equal("Str. Ismail", result!.Location!.Street);
+        Assert.Equal("44", result.Location.BuildingNumber);
     }
 }

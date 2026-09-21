@@ -266,4 +266,52 @@ public class PropertyLocationTests
 
         Assert.Null(location.Street);
     }
+
+    [Fact]
+    public void Create_WithBuildingNumber_SetsBuildingNumber()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Str. Ismail", "44");
+
+        Assert.Equal("Str. Ismail", location.Street);
+        Assert.Equal("44", location.BuildingNumber);
+    }
+
+    [Fact]
+    public void Create_WithoutBuildingNumber_LeavesBuildingNumberNull()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Str. Ismail");
+
+        Assert.Null(location.BuildingNumber);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithBuildingNumber_ChangesBuildingNumber()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Str. Ismail", "44");
+
+        location.UpdateDetails(
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Str. Ismail", "46A");
+
+        Assert.Equal("46A", location.BuildingNumber);
+    }
+
+    [Fact]
+    public void UpdateDetails_WithoutBuildingNumber_ClearsBuildingNumber()
+    {
+        var location = PropertyLocation.Create(
+            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Str. Ismail", "44");
+
+        location.UpdateDetails(
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638, "Str. Ismail");
+
+        Assert.Null(location.BuildingNumber);
+    }
 }

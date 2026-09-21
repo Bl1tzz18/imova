@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { FieldLabel, SelectInput } from "@/components/ui/Field";
+import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -32,6 +32,7 @@ export function StepTypeLocation({
   onChisinauSectorIdChange,
   defaultCountry,
   defaultStreetAddress,
+  defaultBuildingNumber,
 }: {
   propertyType: string;
   onPropertyTypeChange: (value: string) => void;
@@ -45,6 +46,7 @@ export function StepTypeLocation({
   onChisinauSectorIdChange: (value: string) => void;
   defaultCountry?: string;
   defaultStreetAddress?: string | null;
+  defaultBuildingNumber?: string | null;
 }) {
   const t = useTranslations("PropertyForm");
   const tType = useTranslations("PropertyType");
@@ -196,15 +198,27 @@ export function StepTypeLocation({
             />
           </label>
         )}
-        <label className="block sm:col-span-2">
-          <FieldLabel>{t("streetAddressLabel")}</FieldLabel>
-          <StreetAddressAutocomplete
-            raionId={raionId || undefined}
-            localitateId={localitateId || undefined}
-            defaultValue={defaultStreetAddress}
-            placeholder={t("streetAddressPlaceholder")}
-          />
-        </label>
+        <div className="grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-3">
+          <label className="block sm:col-span-2">
+            <FieldLabel required>{t("streetAddressLabel")}</FieldLabel>
+            <StreetAddressAutocomplete
+              raionId={raionId || undefined}
+              localitateId={localitateId || undefined}
+              defaultValue={defaultStreetAddress}
+              placeholder={t("streetAddressPlaceholder")}
+              required
+            />
+          </label>
+          <label className="block">
+            <FieldLabel>{t("buildingNumberLabel")}</FieldLabel>
+            <TextInput
+              name="buildingNumber"
+              maxLength={20}
+              defaultValue={defaultBuildingNumber ?? undefined}
+              placeholder={t("buildingNumberPlaceholder")}
+            />
+          </label>
+        </div>
       </div>
 
       <input type="hidden" name="country" value={defaultCountry ?? "Moldova"} />
