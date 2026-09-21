@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { TextInput } from "@/components/ui/Field";
+import { cn } from "@/lib/utils/cn";
 import { getStreetSuggestions, type StreetSuggestion } from "@/lib/api/locations";
 
 // 3, not 2: tested against the real Photon API during development — at 2 characters, once a
@@ -40,7 +41,12 @@ export function StreetAddressAutocomplete({
   const [suggestions, setSuggestions] = useState<StreetSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  // Defaults to the first suggestion (index 0), matching SearchableSelect.tsx's choice for every
+  // other typeahead dropdown in this form — lets Enter select the top result right after typing,
+  // no extra ArrowDown needed.
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
   // Guards a slow response for an earlier keystroke from clobbering a faster response for a later
   // one — only the result matching the most recently *sent* request is applied.
   const requestIdRef = useRef(0);
@@ -106,7 +112,7 @@ export function StreetAddressAutocomplete({
         setOpen(false);
       }
     }
-    function handleEscape(e: KeyboardEvent) {
+    function handleEscape(e: globalThis.KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
 
@@ -118,11 +124,45 @@ export function StreetAddressAutocomplete({
     };
   }, [open]);
 
+  // Resets to the first suggestion whenever the list changes (a new fetch resolved) or the
+  // dropdown opens/closes — the highlight should never point at a stale or now-hidden suggestion.
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [suggestions, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    optionRefs.current[highlightedIndex]?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, open]);
+
   function select(suggestion: StreetSuggestion) {
     skipNextFetchRef.current = true;
     setValue(suggestion.name);
     setSuggestions([]);
     setOpen(false);
+  }
+
+  function moveHighlight(delta: number) {
+    if (suggestions.length === 0) return;
+    setHighlightedIndex((i) => (i + delta + suggestions.length) % suggestions.length);
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (!open || suggestions.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      moveHighlight(1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      moveHighlight(-1);
+    } else if (e.key === "Enter") {
+      const suggestion = suggestions[highlightedIndex];
+      if (suggestion) {
+        e.preventDefault();
+        select(suggestion);
+      }
+    }
   }
 
   return (
@@ -134,6 +174,7 @@ export function StreetAddressAutocomplete({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onFocus={() => setOpen(loading || suggestions.length > 0)}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
       />
@@ -151,13 +192,21 @@ export function StreetAddressAutocomplete({
               {t("streetSearching")}
             </li>
           )}
-          {suggestions.map((suggestion) => (
+          {suggestions.map((suggestion, index) => (
             <li key={suggestion.name}>
               <button
+                ref={(el) => {
+                  optionRefs.current[index] = el;
+                }}
                 type="button"
                 role="option"
+                aria-selected={index === highlightedIndex}
                 onClick={() => select(suggestion)}
-                className="w-full truncate rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50"
+                onMouseEnter={() => setHighlightedIndex(index)}
+                className={cn(
+                  "w-full truncate rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50",
+                  index === highlightedIndex && "bg-ink-50",
+                )}
               >
                 {suggestion.name}
               </button>
