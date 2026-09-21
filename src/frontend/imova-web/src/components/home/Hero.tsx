@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { HeroSearchCard } from "@/components/home/HeroSearchCard";
 
 // Single reference point for the hero background image — swap this path (and the file at
-// public/images/hero-bg.jpeg) to change it without touching the component below.
+// public/images/hero-bg.jpg) to change it without touching the component below.
 const HERO_IMAGE_SRC = "/images/hero-bg.jpg";
 
 const STATS = ["houses", "apartments", "commercial", "land"] as const;
@@ -22,7 +22,7 @@ export async function Hero() {
   const t = await getTranslations("Hero");
 
   return (
-    <section className="relative flex min-h-[560px] items-center overflow-hidden py-10 sm:min-h-[600px] lg:min-h-[660px]">
+    <section className="relative flex min-h-[680px] items-center overflow-hidden py-10 sm:min-h-[760px] lg:min-h-[840px]">
       <Image src={HERO_IMAGE_SRC} alt="" fill priority sizes="100vw" className="object-cover" />
       {/* Transparent at the top, deepening to near-black at the bottom, so white text stays
           legible over any part of the underlying photo. */}
