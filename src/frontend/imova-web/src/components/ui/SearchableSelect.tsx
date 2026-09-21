@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 import { normalizeForSearch } from "@/lib/utils/search";
 import { inputClass } from "@/components/ui/Field";
@@ -44,9 +44,16 @@ export function SearchableSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // The keyboard-highlighted option, by index into filteredOptions — defaults to the first item
+  // (index 0) rather than "none highlighted", so typing a query and immediately hitting Enter
+  // selects the top match without an extra ArrowDown first, matching how most search-driven
+  // dropdowns (command palettes, autocomplete widgets) behave. Kept in sync with the same choice
+  // in StreetAddressAutocomplete.tsx for consistency across every typeahead dropdown in this form.
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,7 +63,7 @@ export function SearchableSelect({
         setOpen(false);
       }
     }
-    function handleEscape(e: KeyboardEvent) {
+    function handleEscape(e: globalThis.KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
 
@@ -76,12 +83,43 @@ export function SearchableSelect({
     return options.filter((o) => normalizeForSearch(o.label).includes(q));
   }, [options, query]);
 
+  // Resets to the first item whenever the visible list changes (typing narrows/widens it) or the
+  // dropdown reopens (e.g. after Escape, with a query still typed from before) — the highlight
+  // should never point at a now-stale or now-hidden option.
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [filteredOptions, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    optionRefs.current[highlightedIndex]?.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex, open]);
+
   const selected = options.find((o) => o.id === value);
 
   function select(option: SearchableSelectOption) {
     onChange(option.id);
     setOpen(false);
     setQuery("");
+  }
+
+  function moveHighlight(delta: number) {
+    if (filteredOptions.length === 0) return;
+    setHighlightedIndex((i) => (i + delta + filteredOptions.length) % filteredOptions.length);
+  }
+
+  function handleSearchKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      moveHighlight(1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      moveHighlight(-1);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const option = filteredOptions[highlightedIndex];
+      if (option) select(option);
+    }
   }
 
   return (
@@ -110,21 +148,26 @@ export function SearchableSelect({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder={searchPlaceholder}
             className={cn(inputClass, "mb-2 h-9 text-sm")}
           />
           <ul role="listbox" className="max-h-64 overflow-y-auto">
             {filteredOptions.length === 0 && <li className="px-2 py-2 text-sm text-ink-400">{noResultsText}</li>}
-            {filteredOptions.map((option) => (
+            {filteredOptions.map((option, index) => (
               <li key={option.id}>
                 <button
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
                   type="button"
                   role="option"
                   aria-selected={option.id === value}
                   onClick={() => select(option)}
+                  onMouseEnter={() => setHighlightedIndex(index)}
                   className={cn(
                     "w-full truncate rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50",
-                    option.id === value && "bg-brand-100/60",
+                    index === highlightedIndex ? "bg-ink-50" : option.id === value && "bg-brand-100/60",
                   )}
                 >
                   {option.label}

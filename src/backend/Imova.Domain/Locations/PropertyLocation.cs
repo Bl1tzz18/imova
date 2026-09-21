@@ -17,7 +17,8 @@ public sealed class PropertyLocation : Entity
         string? chisinauSectorName,
         double? latitude,
         double? longitude,
-        string? street)
+        string? street,
+        string? buildingNumber)
         : base(id)
     {
         PropertyId = propertyId;
@@ -29,6 +30,7 @@ public sealed class PropertyLocation : Entity
         ChisinauSectorId = chisinauSectorId;
         ChisinauSectorName = chisinauSectorName;
         Street = street;
+        BuildingNumber = buildingNumber;
         Latitude = latitude;
         Longitude = longitude;
 
@@ -90,7 +92,8 @@ public sealed class PropertyLocation : Entity
         string? chisinauSectorName,
         double? latitude,
         double? longitude,
-        string? street = null)
+        string? street = null,
+        string? buildingNumber = null)
     {
         if (propertyId == Guid.Empty)
         {
@@ -111,7 +114,8 @@ public sealed class PropertyLocation : Entity
             chisinauSectorName,
             latitude,
             longitude,
-            street);
+            street,
+            buildingNumber);
     }
 
     public void UpdateDetails(
@@ -124,7 +128,8 @@ public sealed class PropertyLocation : Entity
         string? chisinauSectorName,
         double? latitude,
         double? longitude,
-        string? street = null)
+        string? street = null,
+        string? buildingNumber = null)
     {
         EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, chisinauSectorId, chisinauSectorName, latitude, longitude);
 
@@ -136,6 +141,7 @@ public sealed class PropertyLocation : Entity
         ChisinauSectorId = chisinauSectorId;
         ChisinauSectorName = chisinauSectorName;
         Street = street;
+        BuildingNumber = buildingNumber;
         Latitude = latitude;
         Longitude = longitude;
         Location = BuildPoint(latitude, longitude);

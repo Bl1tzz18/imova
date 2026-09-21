@@ -32,6 +32,7 @@ public static class UpdatePropertyEndpoint
                 request.LocalitateId,
                 request.ChisinauSectorId,
                 request.StreetAddress,
+                request.BuildingNumber,
                 request.Area,
                 request.Rooms,
                 request.Bathrooms,

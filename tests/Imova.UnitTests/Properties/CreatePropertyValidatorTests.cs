@@ -47,7 +47,8 @@ public class CreatePropertyValidatorTests
         bool? furnished = null,
         bool? parkingAvailable = null,
         bool? petsAllowed = null,
-        string? streetAddress = null,
+        string? streetAddress = "Str. Ismail",
+        string? buildingNumber = null,
         Guid? raionId = null,
         Guid? localitateId = null,
         Guid? chisinauSectorId = null) =>
@@ -69,6 +70,7 @@ public class CreatePropertyValidatorTests
             localitateId ?? (chisinauSectorId.HasValue ? null : _localitateId),
             chisinauSectorId,
             streetAddress,
+            buildingNumber,
             area,
             rooms,
             bathrooms,
@@ -295,10 +297,38 @@ public class CreatePropertyValidatorTests
     }
 
     [Fact]
-    public async Task Validate_WithoutStreetAddress_HasNoError()
+    public async Task Validate_WithoutStreetAddress_HasError()
     {
         var result = await _validator.ValidateAsync(ValidCommand(streetAddress: null));
 
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.StreetAddress));
+    }
+
+    [Fact]
+    public async Task Validate_WithBlankStreetAddress_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(streetAddress: "   "));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.StreetAddress));
+    }
+
+    [Fact]
+    public async Task Validate_WithoutBuildingNumber_HasNoError()
+    {
+        // BuildingNumber stays optional — only StreetAddress became required.
+        var result = await _validator.ValidateAsync(ValidCommand(buildingNumber: null));
+
         Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public async Task Validate_WithBuildingNumberOver20Chars_HasError()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(buildingNumber: new string('a', 21)));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreatePropertyCommand.BuildingNumber));
     }
 }

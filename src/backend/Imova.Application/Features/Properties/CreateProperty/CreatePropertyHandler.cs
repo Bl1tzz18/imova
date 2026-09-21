@@ -51,7 +51,8 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
         // provider unreachable) just means the listing saves without coordinates rather than
         // failing the whole request. Raion/Localitate names generally geocode more reliably than
         // free-text city names did.
-        var address = PropertyAddress.Compose(request.StreetAddress, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
+        var address = PropertyAddress.Compose(
+            request.StreetAddress, request.BuildingNumber, chisinauSector?.Name, localitate?.NameRo, raion.NameRo, request.Country);
         var geocoded = await geocodingService.GeocodeAsync(address, cancellationToken);
 
         var location = PropertyLocation.Create(
@@ -65,7 +66,8 @@ public class CreatePropertyHandler(IApplicationDbContext dbContext, IGeocodingSe
             chisinauSector?.Name,
             geocoded?.Latitude,
             geocoded?.Longitude,
-            request.StreetAddress);
+            request.StreetAddress,
+            request.BuildingNumber);
 
         dbContext.Properties.Add(property);
         dbContext.PropertyLocations.Add(location);

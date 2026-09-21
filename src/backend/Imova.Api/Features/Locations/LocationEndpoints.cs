@@ -1,6 +1,7 @@
 using Imova.Api.Features.Locations.GetChisinauSectors;
 using Imova.Api.Features.Locations.GetRaioane;
 using Imova.Api.Features.Locations.GetRaionLocalitati;
+using Imova.Api.Features.Locations.GetStreetSuggestions;
 
 namespace Imova.Api.Features.Locations;
 
@@ -11,5 +12,6 @@ public static class LocationEndpoints
         app.MapGetRaioane();
         app.MapGetRaionLocalitati();
         app.MapGetChisinauSectors();
+        app.MapGetStreetSuggestions();
     }
 }

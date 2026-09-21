@@ -60,7 +60,10 @@ public class UpdatePropertyValidator : AbstractValidator<UpdatePropertyCommand>
             .WithMessage("LocalitateId and ChisinauSectorId cannot both be set — pick a suburb or a sector, not both.")
             .OverridePropertyName(nameof(UpdatePropertyCommand.ChisinauSectorId));
 
-        RuleFor(c => c.StreetAddress).MaximumLength(200);
+        RuleFor(c => c.StreetAddress)
+            .NotEmpty().WithMessage("Street address is required.")
+            .MaximumLength(200);
+        RuleFor(c => c.BuildingNumber).MaximumLength(20);
 
         RuleFor(c => c.Area)
             .NotNull().WithMessage("Area is required for this property type.")

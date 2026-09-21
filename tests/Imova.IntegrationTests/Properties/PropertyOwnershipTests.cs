@@ -71,6 +71,9 @@ public class PropertyOwnershipTests : IClassFixture<WebApplicationFactory<Progra
             ["currency"] = "EUR",
             ["country"] = "Moldova",
             ["raionId"] = raioane!.First().Id,
+            // Now required (see CreatePropertyValidator) — not this file's concern, just needed
+            // to keep the body valid for the ownership behavior these tests actually exercise.
+            ["streetAddress"] = "Str. Ismail",
             ["area"] = 54,
             ["rooms"] = 2,
             ["floor"] = 3,

@@ -16,6 +16,7 @@ public record UpdatePropertyRequest(
     Guid? LocalitateId,
     Guid? ChisinauSectorId,
     string? StreetAddress,
+    string? BuildingNumber,
     decimal? Area,
     decimal? Rooms,
     short? Bathrooms,

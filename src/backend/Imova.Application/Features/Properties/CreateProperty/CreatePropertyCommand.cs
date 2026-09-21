@@ -44,9 +44,15 @@ public record CreatePropertyCommand(
     Guid RaionId,
     Guid? LocalitateId,
     Guid? ChisinauSectorId,
-    // Free-text, optional — fed into IGeocodingService alongside Localitate/Raion/Country for
-    // building-level precision (see PropertyAddress.Compose).
+    // Required (see CreatePropertyValidator's NotEmpty rule) — fed into IGeocodingService
+    // alongside Localitate/Raion/Country for building-level precision (see
+    // PropertyAddress.Compose). Still nullable at the type level since a malformed request could
+    // still send null; validation, not the C# type, is what actually enforces this.
     string? StreetAddress,
+    // Free-text, optional — the building/door number, e.g. "44" or "44A". Folded into the same
+    // geocoding token as StreetAddress, right after it (see PropertyAddress.Compose), rather than
+    // kept as a separate address-query part.
+    string? BuildingNumber,
     decimal? Area,
     decimal? Rooms,
     short? Bathrooms,

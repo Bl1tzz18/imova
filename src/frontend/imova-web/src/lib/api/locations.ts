@@ -100,3 +100,47 @@ export function getChisinauSectors(): Promise<ChisinauSector[]> {
     "chisinau sectors",
   );
 }
+
+export type StreetSuggestion = {
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+};
+
+// Deliberately not cached client-side like the reference-data lookups above — the query text
+// varies on every keystroke, so there's nothing stable to key an in-tab cache on (the backend has
+// its own short-lived cache for repeated/backspaced-then-retyped queries — see
+// GetStreetSuggestionsHandler). Never throws: an empty array on any failure (network error,
+// non-OK response, or an aborted request), matching the backend service's own never-throws
+// contract — this is a typeahead aid, not something that can block the form.
+//
+// raionId should be passed whenever it's known, even without localitateId — the backend still
+// needs it to narrow the search to that Raion (see GetStreetSuggestionsHandler), otherwise a bare
+// Raion selection with no Localitate falls through to an unbiased national search and Photon
+// returns whatever's most nationally prominent for that street name, which is usually the wrong
+// city entirely.
+//
+// signal lets the caller abort a stale in-flight request once a newer keystroke supersedes it —
+// see StreetAddressAutocomplete.tsx, which aborts the previous request on every new one so a slow
+// earlier response can never overwrite a faster later one, and so cancelled Photon requests don't
+// keep running server-side just to have their result thrown away.
+export async function getStreetSuggestions(
+  query: string,
+  raionId?: string,
+  localitateId?: string,
+  signal?: AbortSignal,
+): Promise<StreetSuggestion[]> {
+  try {
+    const params = new URLSearchParams({ query });
+    if (raionId) params.set("raionId", raionId);
+    if (localitateId) params.set("localitateId", localitateId);
+
+    const res = await fetch(`${getBrowserApiUrl()}/api/v1/locations/street-suggestions?${params.toString()}`, {
+      signal,
+    });
+    if (!res.ok) return [];
+    return (await res.json()) as StreetSuggestion[];
+  } catch {
+    return [];
+  }
+}
