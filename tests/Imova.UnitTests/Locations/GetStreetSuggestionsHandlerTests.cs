@@ -2,11 +2,15 @@ using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Locations.GetStreetSuggestions;
 using Imova.Domain.Locations;
 using Imova.UnitTests.TestSupport;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Imova.UnitTests.Locations;
 
 public class GetStreetSuggestionsHandlerTests
 {
+    private static GetStreetSuggestionsHandler CreateHandler(IApplicationDbContext dbContext, FakeStreetSuggestionService service) =>
+        new(dbContext, service, new MemoryCache(new MemoryCacheOptions()));
+
     [Fact]
     public async Task Handle_MapsServiceResultsToDtos()
     {
@@ -15,7 +19,7 @@ public class GetStreetSuggestionsHandlerTests
         {
             ResultToReturn = [new StreetSuggestion("Strada Ismail", 47.02, 28.83), new StreetSuggestion("Strada Ismail 2", null, null)],
         };
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         var result = await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, null), CancellationToken.None);
 
@@ -31,7 +35,7 @@ public class GetStreetSuggestionsHandlerTests
     {
         await using var dbContext = TestDbContextFactory.Create();
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, null), CancellationToken.None);
 
@@ -50,7 +54,7 @@ public class GetStreetSuggestionsHandlerTests
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Ismail", raion.Id, localitate.Id), CancellationToken.None);
 
@@ -62,7 +66,7 @@ public class GetStreetSuggestionsHandlerTests
     {
         await using var dbContext = TestDbContextFactory.Create();
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, Guid.NewGuid()), CancellationToken.None);
 
@@ -83,7 +87,7 @@ public class GetStreetSuggestionsHandlerTests
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Stefan cel Mare", raion.Id, null), CancellationToken.None);
 
@@ -102,7 +106,7 @@ public class GetStreetSuggestionsHandlerTests
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Stefan cel Mare", raion.Id, null), CancellationToken.None);
 
@@ -114,7 +118,7 @@ public class GetStreetSuggestionsHandlerTests
     {
         await using var dbContext = TestDbContextFactory.Create();
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Ismail", Guid.NewGuid(), null), CancellationToken.None);
 
@@ -134,10 +138,66 @@ public class GetStreetSuggestionsHandlerTests
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         var service = new FakeStreetSuggestionService();
-        var handler = new GetStreetSuggestionsHandler(dbContext, service);
+        var handler = CreateHandler(dbContext, service);
 
         await handler.Handle(new GetStreetSuggestionsQuery("Ismail", raion.Id, localitate.Id), CancellationToken.None);
 
         Assert.Equal("Durlești", service.LastLocalityRequested);
+    }
+
+    [Fact]
+    public async Task Handle_SecondCallForTheSameTuple_DoesNotReQueryTheServiceOrDatabase()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var service = new FakeStreetSuggestionService
+        {
+            ResultToReturn = [new StreetSuggestion("Strada Ismail", 47.02, 28.83)],
+        };
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var handler = new GetStreetSuggestionsHandler(dbContext, service, cache);
+        var first = await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, null), CancellationToken.None);
+
+        // Dispose the context to prove the second call can't be hitting the database or the
+        // (already-disposed-dbContext-dependent) service either — if it tried, EF Core would throw
+        // ObjectDisposedException instead of returning the cached list.
+        await dbContext.DisposeAsync();
+        var second = await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, null), CancellationToken.None);
+
+        Assert.Equal(1, service.CallCount);
+        Assert.Equal(first[0].Name, second[0].Name);
+    }
+
+    [Fact]
+    public async Task Handle_CacheKeyIsCaseAndWhitespaceInsensitiveOnTheQuery()
+    {
+        // Maximizes cache hits for the backspace-then-retype and stray-whitespace cases this
+        // cache exists for — " Ismail " and "ISMAIL" should hit the same entry as "Ismail".
+        await using var dbContext = TestDbContextFactory.Create();
+        var service = new FakeStreetSuggestionService
+        {
+            ResultToReturn = [new StreetSuggestion("Strada Ismail", 47.02, 28.83)],
+        };
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var handler = new GetStreetSuggestionsHandler(dbContext, service, cache);
+
+        await handler.Handle(new GetStreetSuggestionsQuery("Ismail", null, null), CancellationToken.None);
+        await handler.Handle(new GetStreetSuggestionsQuery("ISMAIL", null, null), CancellationToken.None);
+        await handler.Handle(new GetStreetSuggestionsQuery(" ismail ", null, null), CancellationToken.None);
+
+        Assert.Equal(1, service.CallCount);
+    }
+
+    [Fact]
+    public async Task Handle_DifferentRaionIds_AreNotConflatedInTheCache()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var service = new FakeStreetSuggestionService();
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var handler = new GetStreetSuggestionsHandler(dbContext, service, cache);
+
+        await handler.Handle(new GetStreetSuggestionsQuery("Ismail", Guid.NewGuid(), null), CancellationToken.None);
+        await handler.Handle(new GetStreetSuggestionsQuery("Ismail", Guid.NewGuid(), null), CancellationToken.None);
+
+        Assert.Equal(2, service.CallCount);
     }
 }

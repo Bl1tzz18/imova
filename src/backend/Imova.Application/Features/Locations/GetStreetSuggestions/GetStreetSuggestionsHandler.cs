@@ -2,18 +2,43 @@ using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Locations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Imova.Application.Features.Locations.GetStreetSuggestions;
 
-public class GetStreetSuggestionsHandler(IApplicationDbContext dbContext, IStreetSuggestionService streetSuggestionService)
+public class GetStreetSuggestionsHandler(IApplicationDbContext dbContext, IStreetSuggestionService streetSuggestionService, IMemoryCache cache)
     : IRequestHandler<GetStreetSuggestionsQuery, List<StreetSuggestionDto>>
 {
+    // Short-lived, unlike the indefinite cache on Raioane/Localitati/ChisinauSectors — those are
+    // seeded-once reference data, this is live third-party search results that should refresh
+    // reasonably soon, but a 60s window is still long enough to absorb typical backspace-then-
+    // retype churn and repeated identical queries across users without ever going stale for long.
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(60);
+
     public async Task<List<StreetSuggestionDto>> Handle(GetStreetSuggestionsQuery request, CancellationToken cancellationToken)
     {
+        var cacheKey = BuildCacheKey(request);
+        if (cache.TryGetValue(cacheKey, out List<StreetSuggestionDto>? cached))
+        {
+            return cached!;
+        }
+
         var locality = await ResolveLocalityBiasAsync(request, cancellationToken);
         var suggestions = await streetSuggestionService.SuggestStreetsAsync(request.Query, locality, cancellationToken);
-        return suggestions.Select(s => new StreetSuggestionDto(s.Name, s.Latitude, s.Longitude)).ToList();
+        var result = suggestions.Select(s => new StreetSuggestionDto(s.Name, s.Latitude, s.Longitude)).ToList();
+
+        // Cached even when empty — a query that legitimately matches nothing shouldn't keep
+        // re-hitting Photon every time the user pauses on it within the window either.
+        cache.Set(cacheKey, result, CacheDuration);
+        return result;
     }
+
+    // Trimmed/lowercased so "Ismail", " ismail ", and "ISMAIL" all hit the same cache entry —
+    // maximizes hits for the backspace-then-retype and multi-user-same-street cases this cache
+    // exists for, without changing the casing actually sent to Photon (SuggestStreetsAsync still
+    // gets request.Query verbatim).
+    private static string BuildCacheKey(GetStreetSuggestionsQuery request) =>
+        $"street-suggestions:{request.Query.Trim().ToLowerInvariant()}:{request.RaionId}:{request.LocalitateId}";
 
     // A bare Raion selection (no Localitate picked yet) must still narrow the Photon search —
     // otherwise it silently falls through to an unbiased national search, and Photon returns

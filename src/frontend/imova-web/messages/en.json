@@ -140,6 +140,7 @@
     "searchNoResults": "No results found.",
     "streetAddressLabel": "Street address",
     "streetAddressPlaceholder": "e.g. Str. Ismail 44",
+    "streetSearching": "Searching...",
     "areaLabel": "Area (m²)",
     "roomsLabel": "Rooms",
     "bathroomsLabel": "Bathrooms",
