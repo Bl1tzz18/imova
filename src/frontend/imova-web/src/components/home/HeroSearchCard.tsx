@@ -8,9 +8,9 @@ const LISTING_TYPES = ["Sale", "Rent"] as const;
 const LOCATIONS = ["Chisinau", "Balti", "Cahul", "Orhei", "Ungheni", "Soroca"] as const;
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 
-const fieldLabelClass = "mb-1.5 block text-xs font-bold uppercase tracking-wide text-white/70";
+const fieldLabelClass = "mb-1 block text-[11px] font-bold uppercase tracking-wide text-white/70 sm:mb-1.5 sm:text-xs";
 const fieldClass =
-  "h-12 w-full rounded-xl border border-white/20 bg-white/90 px-3.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-white focus:bg-white focus:ring-2 focus:ring-white/30";
+  "h-11 w-full rounded-xl border border-white/20 bg-white/90 px-3.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-white focus:bg-white focus:ring-2 focus:ring-white/30 sm:h-12";
 
 // The homepage search/filtering backend doesn't exist yet (see CLAUDE.md's known gaps) — this is
 // UI only for now. Sits directly on the hero image (see Hero.tsx), glass-styled to match — not a
@@ -26,15 +26,15 @@ export function HeroSearchCard() {
   }
 
   return (
-    <div className="rounded-[22px] border border-white/15 bg-white/10 p-4 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-6">
-      <div className="mb-4 inline-flex rounded-full border border-white/15 bg-white/10 p-1">
+    <div className="rounded-[22px] border border-white/15 bg-white/10 p-3.5 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-6">
+      <div className="mb-3 inline-flex rounded-full border border-white/15 bg-white/10 p-1 sm:mb-4">
         {LISTING_TYPES.map((type) => (
           <button
             key={type}
             type="button"
             onClick={() => setListingType(type)}
             className={cn(
-              "rounded-full px-5 py-2 text-sm font-semibold transition-colors",
+              "rounded-full px-4 py-1.5 text-sm font-semibold transition-colors sm:px-5 sm:py-2",
               listingType === type ? "bg-brand-500 text-white" : "text-white/70 hover:text-white",
             )}
           >
@@ -43,7 +43,7 @@ export function HeroSearchCard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] lg:items-end">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-[1.2fr_1.2fr_1fr_1fr_auto] lg:items-end">
         <label className="block text-left">
           <span className={fieldLabelClass}>{t("locationLabel")}</span>
           <select className={fieldClass} defaultValue="Chisinau">
@@ -80,7 +80,7 @@ export function HeroSearchCard() {
         <button
           type="button"
           onClick={handleSearch}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-600 lg:w-auto"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-600 sm:h-12 lg:w-auto"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
             <circle cx="11" cy="11" r="7" />

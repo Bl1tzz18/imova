@@ -37,19 +37,19 @@ export async function Hero() {
         </h1>
         <p className="mt-3 max-w-lg text-balance text-sm text-white/80 sm:text-base">{t("subtitle")}</p>
 
-        <div className="mt-7 grid w-full max-w-xs grid-cols-1 gap-2.5 sm:max-w-none sm:flex sm:flex-wrap sm:justify-center sm:gap-3">
+        <div className="mt-5 flex w-full flex-wrap justify-center gap-2 sm:mt-7 sm:gap-3">
           {STATS.map((key) => (
             <div
               key={key}
-              className="flex flex-col items-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 backdrop-blur-sm sm:min-w-[110px]"
+              className="flex flex-col items-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-sm sm:min-w-[110px] sm:px-4 sm:py-2.5"
             >
-              <span className="font-hero text-xl font-bold text-brand-200 sm:text-2xl">{STAT_VALUES[key]}</span>
-              <span className="text-[11px] font-medium text-white/75">{t(`stats.${key}`)}</span>
+              <span className="font-hero text-lg font-bold text-brand-200 sm:text-2xl">{STAT_VALUES[key]}</span>
+              <span className="text-[10px] font-medium text-white/75 sm:text-[11px]">{t(`stats.${key}`)}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-7 w-full">
+        <div className="mt-5 w-full sm:mt-7">
           <HeroSearchCard />
         </div>
       </div>
