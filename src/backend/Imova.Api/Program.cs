@@ -121,6 +121,12 @@ builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
+// Backs the in-process cache for Raioane/Localitati/ChisinauSectors (see GetRaioaneHandler etc.)
+// — static reference data seeded once at startup, so caching it indefinitely (no expiration,
+// cleared only on restart) avoids re-querying Postgres for data that can't change without a
+// reseed, which already implies a restart.
+builder.Services.AddMemoryCache();
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblyContaining<GetPropertiesQuery>();

@@ -9,9 +9,10 @@ public static class GetRaioaneEndpoint
     {
         // Public (no RequireAuthorization) — static reference data needed on the public listing
         // form, same treatment as GetPropertiesEndpoint.
-        app.MapGet("/api/v1/locations/raioane", async (ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("/api/v1/locations/raioane", async (HttpContext httpContext, ISender sender, CancellationToken cancellationToken) =>
         {
             var raioane = await sender.Send(new GetRaioaneQuery(), cancellationToken);
+            httpContext.Response.Headers.CacheControl = "public, max-age=86400";
             return Results.Ok(raioane);
         });
     }

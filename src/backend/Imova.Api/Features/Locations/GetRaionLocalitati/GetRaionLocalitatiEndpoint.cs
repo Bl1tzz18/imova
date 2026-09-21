@@ -12,11 +12,20 @@ public static class GetRaionLocalitatiEndpoint
         // matching GetPropertyByIdEndpoint's null-means-404 convention.
         app.MapGet("/api/v1/locations/raioane/{id:guid}/localitati", async (
             Guid id,
+            HttpContext httpContext,
             ISender sender,
             CancellationToken cancellationToken) =>
         {
             var localitati = await sender.Send(new GetRaionLocalitatiQuery(id), cancellationToken);
-            return localitati is null ? Results.NotFound() : Results.Ok(localitati);
+            if (localitati is null)
+            {
+                return Results.NotFound();
+            }
+
+            // Only the success path is cacheable — an unknown raion id isn't cached server-side
+            // either (see GetRaionLocalitatiHandler), so a 404 shouldn't get frozen by browsers/CDNs.
+            httpContext.Response.Headers.CacheControl = "public, max-age=86400";
+            return Results.Ok(localitati);
         });
     }
 }
