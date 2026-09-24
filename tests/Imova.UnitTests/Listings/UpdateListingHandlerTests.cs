@@ -83,7 +83,7 @@ public class UpdateListingHandlerTests
 
         var property = await _dbContext.Properties.SingleAsync();
         Assert.Equal(72m, property.TotalAreaM2);
-        Assert.Equal(new ApartmentAttributes(3, 4, 10), property.TypeSpecificAttributes);
+        Assert.Equal(new ApartmentAttributes(Rooms: 3, Floor: 4, TotalFloors: 10), property.TypeSpecificAttributes);
         Assert.Equal(PropertyCondition.New, property.Condition);
         Assert.Equal("Titlu nou", result!.Title);
         Assert.Equal(600m, result.Price.Amount);

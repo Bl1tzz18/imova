@@ -15,6 +15,7 @@ public class CreateListingValidatorTests
     private readonly Guid _chisinauSectorId;
     private readonly Guid _amenityId;
     private readonly Guid _furnishedAmenityId;
+    private readonly Guid _saunaAmenityId;
     private readonly CreateListingValidator _validator;
 
     public CreateListingValidatorTests()
@@ -30,7 +31,9 @@ public class CreateListingValidatorTests
         dbContext.Localitati.Add(localitate);
         dbContext.ChisinauSectors.Add(chisinauSector);
         var furnished = new Imova.Domain.Amenities.Amenity(Guid.NewGuid(), "furnished", "Mobilat", Imova.Domain.Amenities.AmenityCategory.Comfort);
-        dbContext.Amenities.AddRange(amenity, furnished);
+        var sauna = new Imova.Domain.Amenities.Amenity(
+            Guid.NewGuid(), "sauna", "Saună", Imova.Domain.Amenities.AmenityCategory.Leisure, [PropertyType.House]);
+        dbContext.Amenities.AddRange(amenity, furnished, sauna);
         dbContext.SaveChanges();
 
         _raionId = raion.Id;
@@ -39,12 +42,17 @@ public class CreateListingValidatorTests
         _chisinauSectorId = chisinauSector.Id;
         _amenityId = amenity.Id;
         _furnishedAmenityId = furnished.Id;
+        _saunaAmenityId = sauna.Id;
         _validator = new CreateListingValidator(dbContext);
     }
 
     private static JsonElement Json(string json) => JsonDocument.Parse(json).RootElement.Clone();
 
-    private static readonly JsonElement ApartmentJson = Json("""{"rooms":2,"floor":3,"totalFloors":9}""");
+    private static JsonElement Attrs(Imova.Domain.Properties.Attributes.PropertyAttributes attributes) =>
+        JsonSerializer.SerializeToElement(attributes, attributes.GetType(), Imova.Application.Features.Listings.Attributes.PropertyAttributesJson.WireOptions);
+
+    private static readonly JsonElement ApartmentJson =
+        JsonSerializer.SerializeToElement(TestAttributes.CompleteApartment, Imova.Application.Features.Listings.Attributes.PropertyAttributesJson.WireOptions);
 
     private CreateListingCommand ValidCommand(
         PropertyType propertyType = PropertyType.Apartment,
@@ -105,7 +113,7 @@ public class CreateListingValidatorTests
     public async Task Validate_LandWithApartmentFields_IsRejected()
     {
         var result = await _validator.ValidateAsync(ValidCommand(
-            propertyType: PropertyType.Land, attributes: Json("""{"landDesignation":"Intravilan","rooms":2}""")));
+            propertyType: PropertyType.Land, attributes: Json("""{"plotType":"Forest","rooms":2}""")));
 
         var error = Assert.Single(result.Errors);
         Assert.Equal("TypeSpecificAttributes", error.PropertyName);
@@ -117,7 +125,7 @@ public class CreateListingValidatorTests
     {
         Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
             propertyType: PropertyType.Land,
-            attributes: Json("""{"landDesignation":"Construction","roadAccess":"Paved","utilitiesAtBoundary":{"electricity":true}}"""))));
+            attributes: Attrs(TestAttributes.CompleteLand))));
     }
 
     [Fact]
@@ -126,7 +134,7 @@ public class CreateListingValidatorTests
         var errors = await ErrorPropertiesAsync(ValidCommand(attributes: Json("""{"rooms":2}""")));
 
         Assert.Contains("TypeSpecificAttributes.Floor", errors);
-        Assert.Contains("TypeSpecificAttributes.TotalFloors", errors);
+        Assert.Contains("TypeSpecificAttributes.HeatingSystem", errors);
         Assert.DoesNotContain("TypeSpecificAttributes.Rooms", errors);
     }
 
@@ -135,7 +143,7 @@ public class CreateListingValidatorTests
     {
         var errors = await ErrorPropertiesAsync(ValidCommand(propertyType: PropertyType.Garage, useDefaultAttributes: false));
 
-        Assert.Equal(["TypeSpecificAttributes.GarageType"], errors);
+        Assert.Equal(["TypeSpecificAttributes.ParkingType"], errors);
     }
 
     [Fact]
@@ -161,7 +169,7 @@ public class CreateListingValidatorTests
     {
         var errors = await ErrorPropertiesAsync(ValidCommand(
             propertyType: PropertyType.Land,
-            attributes: Json("""{"landDesignation":"Agricultural"}"""),
+            attributes: Attrs(TestAttributes.CompleteLand),
             yearBuilt: 2000,
             condition: PropertyCondition.New));
 
@@ -203,15 +211,62 @@ public class CreateListingValidatorTests
             transactionType: TransactionType.Sale, amenityIds: [_furnishedAmenityId])));
     }
 
-    [Fact]
-    public async Task Validate_HouseWithTheGenericCondition_IsRejected()
+    public static TheoryData<PropertyType> FinishConditionTypes() => [PropertyType.House, PropertyType.Apartment, PropertyType.Commercial];
+
+    private static Imova.Domain.Properties.Attributes.PropertyAttributes CompleteFor(PropertyType type) => type switch
+    {
+        PropertyType.Apartment => TestAttributes.CompleteApartment,
+        PropertyType.House => TestAttributes.CompleteHouse,
+        PropertyType.Land => TestAttributes.CompleteLand,
+        PropertyType.Commercial => TestAttributes.CompleteCommercial,
+        PropertyType.Garage => TestAttributes.CompleteGarage,
+        _ => TestAttributes.CompleteRoom,
+    };
+
+    [Theory]
+    [MemberData(nameof(FinishConditionTypes))]
+    public async Task Validate_TypesUsingFinishCondition_RejectTheGeneralCondition(PropertyType type)
     {
         var errors = await ErrorPropertiesAsync(ValidCommand(
-            propertyType: PropertyType.House,
-            attributes: JsonSerializer.SerializeToElement(TestAttributes.CompleteHouse, Imova.Application.Features.Listings.Attributes.PropertyAttributesJson.WireOptions),
-            condition: PropertyCondition.New));
+            propertyType: type, attributes: Attrs(CompleteFor(type)), condition: PropertyCondition.New));
 
         Assert.Equal(["Condition"], errors);
+    }
+
+    [Theory]
+    [InlineData(PropertyType.Garage)]
+    [InlineData(PropertyType.Room)]
+    public async Task Validate_GarageAndRoom_StillAcceptTheGeneralCondition(PropertyType type)
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            propertyType: type, attributes: Attrs(CompleteFor(type)), condition: PropertyCondition.Renovated)));
+    }
+
+    [Theory]
+    [InlineData(PropertyType.Apartment)]
+    [InlineData(PropertyType.House)]
+    [InlineData(PropertyType.Land)]
+    [InlineData(PropertyType.Commercial)]
+    [InlineData(PropertyType.Garage)]
+    [InlineData(PropertyType.Room)]
+    public async Task Validate_CompleteListingOfEachType_HasNoErrors(PropertyType type)
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            propertyType: type,
+            attributes: Attrs(CompleteFor(type)),
+            yearBuilt: type == PropertyType.Land ? null : 2010)));
+    }
+
+    [Fact]
+    public async Task Validate_AmenityThatDoesNotApplyToThePropertyType_IsRejected()
+    {
+        var errors = (await _validator.ValidateAsync(ValidCommand(
+            propertyType: PropertyType.Garage,
+            attributes: Attrs(TestAttributes.CompleteGarage),
+            transactionType: TransactionType.Sale,
+            amenityIds: [_saunaAmenityId]))).Errors;
+
+        Assert.Contains(errors, e => e.PropertyName == "AmenityIds" && e.ErrorMessage == "The 'sauna' amenity doesn't apply to a Garage.");
     }
 
     [Fact]

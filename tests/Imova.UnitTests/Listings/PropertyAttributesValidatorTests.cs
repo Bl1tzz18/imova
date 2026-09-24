@@ -9,38 +9,35 @@ public class PropertyAttributesValidatorTests
     private static IEnumerable<string> ErrorsFor(PropertyAttributes attributes) =>
         PropertyAttributesValidator.Validate(attributes).Errors.Select(e => e.PropertyName);
 
-    [Fact]
-    public void Apartment_WithRoomsFloorAndTotalFloors_IsValid()
+    public static TheoryData<PropertyAttributes> CompleteOfEachType() =>
+    [
+        TestAttributes.CompleteApartment,
+        TestAttributes.CompleteHouse,
+        TestAttributes.CompleteLand,
+        TestAttributes.CompleteCommercial,
+        TestAttributes.CompleteGarage,
+        TestAttributes.CompleteRoom,
+    ];
+
+    [Theory]
+    [MemberData(nameof(CompleteOfEachType))]
+    public void EveryType_WithEveryFieldFilledIn_IsValid(PropertyAttributes attributes)
     {
-        Assert.Empty(ErrorsFor(new ApartmentAttributes(Rooms: 2, Floor: 3, TotalFloors: 9)));
+        Assert.Empty(ErrorsFor(attributes));
     }
 
+    // --- Required fields per type ---
+
     [Fact]
-    public void Apartment_WithNothingFilledIn_RequiresRoomsFloorAndTotalFloors()
+    public void Apartment_WithNothingFilledIn_RequiresEveryNonOptionalField()
     {
         Assert.Equal(
-            new[] { "Floor", "Rooms", "TotalFloors" },
+            new[]
+            {
+                "BuildingMaterial", "FinishCondition", "Floor", "FloorMaterial", "GasSupply", "HeatingSystem",
+                "HousingStockType", "Layout", "Rooms", "TotalFloors",
+            },
             ErrorsFor(new ApartmentAttributes()).Distinct().Order());
-    }
-
-    [Fact]
-    public void Apartment_FloorAboveTotalFloors_IsInvalid()
-    {
-        var result = PropertyAttributesValidator.Validate(new ApartmentAttributes(Rooms: 2, Floor: 10, TotalFloors: 9));
-
-        Assert.Contains(result.Errors, e => e.ErrorMessage == "Floor cannot be greater than TotalFloors.");
-    }
-
-    [Fact]
-    public void Apartment_WithUndefinedHeatingType_IsInvalid()
-    {
-        Assert.Contains("HeatingType", ErrorsFor(new ApartmentAttributes(2, 3, 9, HeatingType: (HeatingType)42)));
-    }
-
-    [Fact]
-    public void House_WithEveryRequiredFieldFilledIn_IsValid()
-    {
-        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse));
     }
 
     [Fact]
@@ -49,80 +46,161 @@ public class PropertyAttributesValidatorTests
         Assert.Equal(
             new[]
             {
-                "BuildingMaterial", "FloorMaterial", "GasSupply", "HeatingSystem", "HouseCondition", "HouseFloors", "HouseType",
-                "LandAreaM2", "LivingAreaM2", "RoofMaterial", "Rooms", "Sewerage", "WaterSupply", "WindowType",
+                "BuildingMaterial", "FinishCondition", "FloorMaterial", "GasSupply", "HeatingSystem", "HouseFloors",
+                "HouseType", "LandAreaM2", "LivingAreaM2", "RoofMaterial", "Rooms", "Sewerage", "WaterSupply", "WindowType",
             },
             ErrorsFor(new HouseAttributes()).Distinct().Order());
     }
 
     [Fact]
-    public void House_OptionalAreasCeilingAndAtticMaterial_CanBeLeftEmpty()
+    public void Land_WithNothingFilledIn_RequiresTypeContextRoadAndEveryYesNoAnswer()
     {
-        var house = TestAttributes.CompleteHouse with
+        Assert.Equal(
+            new[]
+            {
+                "ElectricitySupplyAtBoundary", "GasPipelineAtBoundary", "IrrigationSystem", "LocationContext",
+                "PhoneLineAvailable", "PlotType", "RoadAccess", "SewerageAtBoundary",
+            },
+            ErrorsFor(new LandAttributes()).Distinct().Order());
+    }
+
+    [Fact]
+    public void Commercial_WithNothingFilledIn_RequiresEveryNonOptionalField()
+    {
+        Assert.Equal(
+            new[] { "Bathrooms", "FinishCondition", "Floor", "GasSupply", "MainStreetAccess", "SpaceType" },
+            ErrorsFor(new CommercialAttributes()).Distinct().Order());
+    }
+
+    [Fact]
+    public void GarageAndRoom_RequireOnlyTheirOneEnum()
+    {
+        Assert.Equal(["ParkingType"], ErrorsFor(new GarageAttributes()));
+        Assert.Equal(["BathroomType"], ErrorsFor(new RoomAttributes()));
+    }
+
+    [Fact]
+    public void OptionalFields_CanBeLeftEmpty()
+    {
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteApartment with { Bathrooms = null, LivingAreaM2 = null, KitchenAreaM2 = null }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse with
         {
             KitchenAreaM2 = null, AtticAreaM2 = null, BasementAreaM2 = null, CeilingHeightM = null, AtticMaterial = null,
-        };
-
-        Assert.Empty(ErrorsFor(house));
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void House_GasSupply_AcceptsAnExplicitYesOrNo(bool gasSupply)
-    {
-        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse with { GasSupply = gasSupply }));
-    }
-
-    [Fact]
-    public void House_GasSupply_MustBeAnswered()
-    {
-        Assert.Equal(["GasSupply"], ErrorsFor(TestAttributes.CompleteHouse with { GasSupply = null }));
-    }
-
-    [Theory]
-    [InlineData(HeatingSystem.OwnBoiler)]
-    [InlineData(HeatingSystem.HeatPump)]
-    [InlineData(HeatingSystem.SolarPanels)]
-    public void House_HeatingWithItsOwnSource_RequiresEnergySourceAndDistribution(HeatingSystem system)
-    {
-        var house = TestAttributes.CompleteHouse with
-        {
-            HeatingSystem = system, HeatingEnergySource = null, HeatingDistribution = null,
-        };
-
-        Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(house).Order());
-        Assert.Empty(ErrorsFor(house with
-        {
-            HeatingEnergySource = HeatingEnergySource.Electricity, HeatingDistribution = HeatingDistribution.Air,
         }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteLand with { SoilQualityScore = null }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteCommercial with
+        {
+            TotalFloorsInBuilding = null, WorkingAreaM2 = null, NumberOfOffices = null, PhoneLinesCount = null, ElectricalPower = null,
+        }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteRoom with { RoommateCount = null }));
+    }
+
+    // --- Conditional heating details (Apartment and House share the rule) ---
+
+    public static TheoryData<PropertyAttributes, string> HeatingCases()
+    {
+        var data = new TheoryData<PropertyAttributes, string>();
+        foreach (var system in Enum.GetValues<HeatingSystem>())
+        {
+            data.Add(TestAttributes.CompleteApartment with { HeatingSystem = system, HeatingEnergySource = null, HeatingDistribution = null }, system.ToString());
+            data.Add(TestAttributes.CompleteHouse with { HeatingSystem = system, HeatingEnergySource = null, HeatingDistribution = null }, system.ToString());
+        }
+
+        return data;
     }
 
     [Theory]
-    [InlineData(HeatingSystem.Convector)]
-    [InlineData(HeatingSystem.InfraredPanels)]
-    [InlineData(HeatingSystem.DistrictHeating)]
-    [InlineData(HeatingSystem.Stove)]
-    [InlineData(HeatingSystem.None)]
-    public void House_HeatingWithoutItsOwnSource_ForbidsEnergySourceAndDistribution(HeatingSystem system)
+    [MemberData(nameof(HeatingCases))]
+    public void HeatingDetails_AreRequiredExactlyForBoilerHeatPumpAndSolar(PropertyAttributes withoutDetails, string system)
     {
-        var withDetails = TestAttributes.CompleteHouse with { HeatingSystem = system };
+        var requiresDetails = system is "OwnBoiler" or "HeatPump" or "SolarPanels";
+        var withDetails = withoutDetails switch
+        {
+            ApartmentAttributes a => (PropertyAttributes)(a with { HeatingEnergySource = HeatingEnergySource.Electricity, HeatingDistribution = HeatingDistribution.Air }),
+            HouseAttributes h => h with { HeatingEnergySource = HeatingEnergySource.Electricity, HeatingDistribution = HeatingDistribution.Air },
+            _ => throw new InvalidOperationException(),
+        };
 
-        Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withDetails).Order());
-        Assert.Empty(ErrorsFor(withDetails with { HeatingEnergySource = null, HeatingDistribution = null }));
+        if (requiresDetails)
+        {
+            Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withoutDetails).Order());
+            Assert.Empty(ErrorsFor(withDetails));
+        }
+        else
+        {
+            Assert.Empty(ErrorsFor(withoutDetails));
+            Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withDetails).Order());
+        }
     }
 
     [Fact]
-    public void RequiresHeatingDetails_IsTrueOnlyForBoilerHeatPumpAndSolar()
+    public void Heating_RequiresDetails_IsTrueOnlyForBoilerHeatPumpAndSolar()
     {
-        var requiring = Enum.GetValues<HeatingSystem>().Where(s => HouseAttributes.RequiresHeatingDetails(s));
+        Assert.Equal(
+            [HeatingSystem.OwnBoiler, HeatingSystem.HeatPump, HeatingSystem.SolarPanels],
+            Enum.GetValues<HeatingSystem>().Where(s => Heating.RequiresDetails(s)));
+        Assert.False(Heating.RequiresDetails(null));
+    }
 
-        Assert.Equal([HeatingSystem.OwnBoiler, HeatingSystem.HeatPump, HeatingSystem.SolarPanels], requiring);
-        Assert.False(HouseAttributes.RequiresHeatingDetails(null));
+    // --- Other per-type conditional fields ---
+
+    [Theory]
+    [InlineData(PlotType.WithPlantations)]
+    [InlineData(PlotType.ForConstruction)]
+    [InlineData(PlotType.Forest)]
+    public void Land_SoilQualityScore_OnlyAppliesToAgriculturalPlots(PlotType plotType)
+    {
+        Assert.Equal(["SoilQualityScore"], ErrorsFor(TestAttributes.CompleteLand with { PlotType = plotType }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteLand with { PlotType = plotType, SoilQualityScore = null }));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    public void Land_SoilQualityScore_IsAOneToHundredIndex(int score)
+    {
+        Assert.Equal(["SoilQualityScore"], ErrorsFor(TestAttributes.CompleteLand with { SoilQualityScore = score }));
+    }
+
+    [Theory]
+    [InlineData(CommercialSpaceType.RetailSpace)]
+    [InlineData(CommercialSpaceType.Warehouse)]
+    public void Commercial_NumberOfOffices_OnlyAppliesToOfficeSpace(CommercialSpaceType spaceType)
+    {
+        Assert.Equal(["NumberOfOffices"], ErrorsFor(TestAttributes.CompleteCommercial with { SpaceType = spaceType }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteCommercial with { SpaceType = spaceType, NumberOfOffices = null }));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(4)]
+    public void Commercial_Floor_AllowsBasementLevels(int floor)
+    {
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteCommercial with { Floor = floor }));
     }
 
     [Fact]
-    public void House_RejectsOutOfRangeNumbersAndUnknownAtticMaterial()
+    public void FloorAboveTheBuildingsFloorCount_IsInvalid()
+    {
+        Assert.Contains(
+            PropertyAttributesValidator.Validate(TestAttributes.CompleteApartment with { Floor = 10, TotalFloors = 9 }).Errors,
+            e => e.ErrorMessage == "Floor cannot be greater than TotalFloors.");
+        Assert.Contains(
+            PropertyAttributesValidator.Validate(TestAttributes.CompleteCommercial with { Floor = 6, TotalFloorsInBuilding = 5 }).Errors,
+            e => e.ErrorMessage == "Floor cannot be greater than TotalFloorsInBuilding.");
+    }
+
+    [Fact]
+    public void YesNoAnswers_AcceptFalse()
+    {
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse with { GasSupply = false }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteCommercial with { MainStreetAccess = false }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteLand with { PhoneLineAvailable = false, IrrigationSystem = false }));
+    }
+
+    [Fact]
+    public void House_RejectsOutOfRangeNumbersAndUnknownEnums()
     {
         var house = TestAttributes.CompleteHouse with
         {
@@ -135,32 +213,8 @@ public class PropertyAttributesValidatorTests
     }
 
     [Fact]
-    public void Land_RequiresLandDesignationOnly()
+    public void Commercial_RejectsOverlongElectricalPower()
     {
-        Assert.Equal(new[] { "LandDesignation" }, ErrorsFor(new LandAttributes()));
-        Assert.Empty(ErrorsFor(new LandAttributes(LandDesignation.Intravilan)));
-    }
-
-    [Fact]
-    public void Commercial_RequiresSpaceType_AndCapsElectricalPowerLength()
-    {
-        Assert.Equal(new[] { "SpaceType" }, ErrorsFor(new CommercialAttributes()));
-        Assert.Contains(
-            "ElectricalPower",
-            ErrorsFor(new CommercialAttributes(CommercialSpaceType.Office, ElectricalPower: new string('x', 51))));
-    }
-
-    [Fact]
-    public void Garage_RequiresGarageType()
-    {
-        Assert.Equal(new[] { "GarageType" }, ErrorsFor(new GarageAttributes()));
-        Assert.Empty(ErrorsFor(new GarageAttributes(GarageType.Individual)));
-    }
-
-    [Fact]
-    public void Room_RequiresBathroomType_AndRejectsNegativeRoommates()
-    {
-        Assert.Equal(new[] { "PrivateOrSharedBathroom" }, ErrorsFor(new RoomAttributes()));
-        Assert.Contains("RoommateCount", ErrorsFor(new RoomAttributes(BathroomType.Private, -1)));
+        Assert.Equal(["ElectricalPower"], ErrorsFor(TestAttributes.CompleteCommercial with { ElectricalPower = new string('x', 51) }));
     }
 }

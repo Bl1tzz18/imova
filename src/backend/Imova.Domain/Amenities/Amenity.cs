@@ -1,5 +1,6 @@
 using Imova.Domain.Common;
 using Imova.Domain.Listings;
+using Imova.Domain.Properties;
 
 namespace Imova.Domain.Amenities;
 
@@ -10,12 +11,27 @@ public sealed class Amenity : Entity
 {
     public const string FurnishedKey = "furnished";
 
-    public Amenity(Guid id, string key, string labelRo, AmenityCategory category = AmenityCategory.General)
+    // For EF Core materialization only.
+    private Amenity()
+        : base(Guid.Empty)
+    {
+        Key = null!;
+        LabelRo = null!;
+        ApplicablePropertyTypes = [];
+    }
+
+    public Amenity(
+        Guid id,
+        string key,
+        string labelRo,
+        AmenityCategory category = AmenityCategory.General,
+        IEnumerable<PropertyType>? applicablePropertyTypes = null)
         : base(id)
     {
         Key = key;
         LabelRo = labelRo;
         Category = category;
+        ApplicablePropertyTypes = (applicablePropertyTypes ?? Enum.GetValues<PropertyType>()).Distinct().ToArray();
     }
 
     public string Key { get; private set; }
@@ -24,9 +40,15 @@ public sealed class Amenity : Entity
 
     public AmenityCategory Category { get; private set; }
 
-    // A rental states furnishing through RentalDetails.FurnishedStatus (unfurnished / partially /
-    // fully), so the plain "furnished" amenity isn't offered for rentals — two answers to the same
-    // question could disagree. Everything else is selectable for any transaction type.
-    public static bool IsSelectableFor(string key, TransactionType transactionType) =>
-        !(transactionType == TransactionType.Rent && key == FurnishedKey);
+    // Which property types the amenity makes sense for (a sauna for a House, not a Garage) — the
+    // listing form only offers these, and the backend rejects any other.
+    public PropertyType[] ApplicablePropertyTypes { get; private set; }
+
+    public bool AppliesTo(PropertyType propertyType) => ApplicablePropertyTypes.Contains(propertyType);
+
+    // Selectable when it applies to the property type — except "furnished" on a rental, which
+    // states furnishing through RentalDetails.FurnishedStatus (unfurnished / partially / fully),
+    // so two answers to the same question can't disagree.
+    public bool IsSelectableFor(PropertyType propertyType, TransactionType transactionType) =>
+        AppliesTo(propertyType) && !(transactionType == TransactionType.Rent && Key == FurnishedKey);
 }

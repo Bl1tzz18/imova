@@ -32,7 +32,7 @@ public class ListingMappingTests
 
         Assert.Equal("Room", dto.Property.PropertyType);
         Assert.Equal("NeedsRepair", dto.Property.Condition);
-        Assert.Equal("Shared", dto.Property.TypeSpecificAttributes.GetProperty("privateOrSharedBathroom").GetString());
+        Assert.Equal("Shared", dto.Property.TypeSpecificAttributes.GetProperty("bathroomType").GetString());
         Assert.Equal("parking", Assert.Single(dto.Property.Amenities).Key);
         Assert.Equal("Botanica", dto.Property.Location!.ChisinauSectorName);
         Assert.Equal("44", dto.Property.Location.BuildingNumber);
@@ -48,7 +48,7 @@ public class ListingMappingTests
     public void ToDto_WithoutContactDetails_BlanksPhoneAndEmailOnly()
     {
         var location = Location();
-        var property = Property.Create(PropertyType.Garage, 18m, null, null, location.Id, new GarageAttributes(GarageType.Box));
+        var property = Property.Create(PropertyType.Garage, 18m, null, null, location.Id, new GarageAttributes(ParkingType.Garage));
         var listing = ListingTestData.NewListing(property.Id, Publisher.Id);
 
         var dto = listing.ToDto(property, location, Publisher, new Dictionary<Guid, Amenity>(), [], false, includeContactDetails: false);
@@ -62,7 +62,7 @@ public class ListingMappingTests
     public void ToDto_WithNullCoordinatesOrNoLocation_MapsThemAsNull()
     {
         var location = Location(null, null);
-        var property = Property.Create(PropertyType.Garage, 18m, null, null, location.Id, new GarageAttributes(GarageType.Box));
+        var property = Property.Create(PropertyType.Garage, 18m, null, null, location.Id, new GarageAttributes(ParkingType.Garage));
         var listing = ListingTestData.NewListing(property.Id, Publisher.Id);
         var amenities = new Dictionary<Guid, Amenity>();
 

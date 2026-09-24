@@ -1,12 +1,5 @@
 namespace Imova.Domain.Properties.Attributes;
 
-public enum HeatingType
-{
-    Centralized = 1,
-    Autonomous = 2,
-    Other = 3,
-}
-
 public enum HouseType
 {
     Individual = 1,
@@ -34,8 +27,9 @@ public enum BuildingMaterial
     Other = 11,
 }
 
-// More granular than the general PropertyCondition, which a House doesn't use.
-public enum HouseCondition
+// The state of a building's finish — shared by House, Apartment and Commercial, which use it
+// instead of the coarser general PropertyCondition (kept for Garage and Room).
+public enum FinishCondition
 {
     ToBeDemolished = 1,
     IndividualDesign = 2,
@@ -124,15 +118,6 @@ public enum WindowType
     Other = 3,
 }
 
-// Intravilan/Extravilan: inside/outside a locality's built-up perimeter (Moldovan cadastral terms).
-public enum LandDesignation
-{
-    Intravilan = 1,
-    Extravilan = 2,
-    Agricultural = 3,
-    Construction = 4,
-}
-
 public enum RoadAccess
 {
     Paved = 1,
@@ -142,21 +127,66 @@ public enum RoadAccess
 
 public enum CommercialSpaceType
 {
-    Office = 1,
-    Retail = 2,
-    Warehouse = 3,
-    HoReCa = 4,
-}
-
-public enum GarageType
-{
-    Underground = 1,
-    Box = 2,
-    Individual = 3,
+    SportsSpace = 1,
+    DentalSpace = 2,
+    UniversalSpace = 3,
+    ResortOrHotel = 4,
+    AutoService = 5,
+    BeautySalon = 6,
+    ConferenceRoom = 7,
+    RetailSpace = 8,
+    IndustrialSpace = 9,
+    Warehouse = 10,
+    OfficeSpace = 11,
+    FoodServiceSpace = 12,
 }
 
 public enum BathroomType
 {
     Private = 1,
     Shared = 2,
+}
+
+// A deliberately simplified take on Moldovan building-series jargon ("seria 143", "135", ...),
+// which is too niche for a listing form.
+public enum ApartmentLayout
+{
+    Studio = 1,
+    IndividualLayout = 2,
+    // Soviet-era series such as the "hrușciovka".
+    SovietEra = 3,
+    // "Cămin" — former dormitory buildings.
+    Dormitory = 4,
+    Other = 5,
+}
+
+public enum HousingStockType
+{
+    Existing = 1,
+    NewConstruction = 2,
+}
+
+public enum PlotType
+{
+    Agricultural = 1,
+    WithPlantations = 2,
+    Forest = 3,
+    Garden = 4,
+    Industrial = 5,
+    NearLake = 6,
+    ForConstruction = 7,
+}
+
+// Intravilan / extravilan: inside or outside a locality's built-up perimeter.
+public enum LocationContext
+{
+    WithinTownLimits = 1,
+    OutsideTownLimits = 2,
+}
+
+public enum ParkingType
+{
+    Garage = 1,
+    ParkingSpot = 2,
+    UndergroundParking = 3,
 }

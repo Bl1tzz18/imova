@@ -28,10 +28,11 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
         RuleFor(c => c.Condition)
             .Null().WithMessage("Condition does not apply to Land.")
             .When(c => c.PropertyType == PropertyType.Land);
-        // A House describes its state with the more granular typeSpecificAttributes.houseCondition.
+        // House, Apartment and Commercial describe their state with the more granular
+        // typeSpecificAttributes.finishCondition; only Garage and Room use the general Condition.
         RuleFor(c => c.Condition)
-            .Null().WithMessage("Condition does not apply to a House — use TypeSpecificAttributes.houseCondition.")
-            .When(c => c.PropertyType == PropertyType.House);
+            .Null().WithMessage("Condition does not apply to this property type — use TypeSpecificAttributes.finishCondition.")
+            .When(c => c.PropertyType is PropertyType.House or PropertyType.Apartment or PropertyType.Commercial);
         RuleFor(c => c.Condition).IsInEnum();
 
         // Parse against the schema PropertyType selects (which rejects any field belonging to
@@ -65,15 +66,28 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
                 return known == distinct.Count;
             })
             .WithMessage("AmenityIds contains an unknown amenity.")
-            .MustAsync(async (command, ids, cancellationToken) =>
+            .CustomAsync(async (ids, context, cancellationToken) =>
             {
-                var keys = await dbContext.Amenities
+                var command = context.InstanceToValidate;
+                var amenities = await dbContext.Amenities
                     .Where(a => ids!.Contains(a.Id))
-                    .Select(a => a.Key)
                     .ToListAsync(cancellationToken);
-                return keys.All(key => Amenity.IsSelectableFor(key, command.TransactionType));
+
+                foreach (var amenity in amenities.Where(a => !a.AppliesTo(command.PropertyType)))
+                {
+                    context.AddFailure(
+                        nameof(IListingWriteCommand.AmenityIds),
+                        $"The '{amenity.Key}' amenity doesn't apply to a {command.PropertyType}.");
+                }
+
+                if (amenities.Any(a => a.AppliesTo(command.PropertyType)
+                        && !a.IsSelectableFor(command.PropertyType, command.TransactionType)))
+                {
+                    context.AddFailure(
+                        nameof(IListingWriteCommand.AmenityIds),
+                        "The furnished amenity doesn't apply to a rental — use RentalDetails.FurnishedStatus.");
+                }
             })
-            .WithMessage("The furnished amenity doesn't apply to a rental — use RentalDetails.FurnishedStatus.")
             .When(c => c.AmenityIds is { Count: > 0 });
 
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);

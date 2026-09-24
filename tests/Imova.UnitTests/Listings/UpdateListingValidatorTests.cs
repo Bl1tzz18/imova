@@ -53,7 +53,7 @@ public class UpdateListingValidatorTests
     [Fact]
     public async Task Validate_WithValidCommand_HasNoErrors()
     {
-        var result = await _validator.ValidateAsync(Command(Guid.NewGuid(), PropertyType.Garage, """{"garageType":"Box"}"""));
+        var result = await _validator.ValidateAsync(Command(Guid.NewGuid(), PropertyType.Garage, """{"parkingType":"Garage"}"""));
 
         Assert.True(result.IsValid, string.Join("; ", result.Errors));
     }
@@ -61,7 +61,7 @@ public class UpdateListingValidatorTests
     [Fact]
     public async Task Validate_WithEmptyId_HasError()
     {
-        var result = await _validator.ValidateAsync(Command(Guid.Empty, PropertyType.Garage, """{"garageType":"Box"}"""));
+        var result = await _validator.ValidateAsync(Command(Guid.Empty, PropertyType.Garage, """{"parkingType":"Garage"}"""));
 
         Assert.Contains(result.Errors, e => e.PropertyName == "Id");
     }
@@ -70,7 +70,7 @@ public class UpdateListingValidatorTests
     public async Task Validate_ChangingTypeWithoutMatchingAttributes_IsRejected()
     {
         // e.g. an Apartment edited into a Garage while the form still sends apartment fields.
-        var result = await _validator.ValidateAsync(Command(Guid.NewGuid(), PropertyType.Garage, """{"rooms":2,"garageType":"Box"}"""));
+        var result = await _validator.ValidateAsync(Command(Guid.NewGuid(), PropertyType.Garage, """{"rooms":2,"parkingType":"Garage"}"""));
 
         Assert.Contains(result.Errors, e => e.PropertyName == "TypeSpecificAttributes");
     }

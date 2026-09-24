@@ -61,7 +61,7 @@ public class CreateListingHandlerTests
             54m,
             1985,
             PropertyCondition.Renovated,
-            JsonDocument.Parse("""{"rooms":2,"floor":3,"totalFloors":9,"heatingType":"Autonomous"}""").RootElement.Clone(),
+            JsonDocument.Parse("""{"rooms":2,"floor":3,"totalFloors":9,"heatingSystem":"DistrictHeating"}""").RootElement.Clone(),
             amenityIds,
             "Moldova",
             _raion.Id,
@@ -87,7 +87,7 @@ public class CreateListingHandlerTests
         var location = Assert.Single(_dbContext.PropertyLocations);
         Assert.Equal(property.Id, listing.PropertyId);
         Assert.Equal(location.Id, property.LocationId);
-        Assert.Equal(new ApartmentAttributes(2, 3, 9, null, HeatingType.Autonomous), property.TypeSpecificAttributes);
+        Assert.Equal(new ApartmentAttributes(Rooms: 2, Floor: 3, TotalFloors: 9, HeatingSystem: HeatingSystem.DistrictHeating), property.TypeSpecificAttributes);
         Assert.Equal(1985, property.YearBuilt);
         Assert.Equal(PropertyCondition.Renovated, property.Condition);
 

@@ -15,12 +15,14 @@ public class PropertyAttributesJsonTests
     {
         var ok = PropertyAttributesJson.TryParse(
             PropertyType.Apartment,
-            Json("""{"rooms":2,"floor":3,"totalFloors":9,"bathrooms":1,"heatingType":"Autonomous"}"""),
+            Json("""{"rooms":2,"floor":3,"totalFloors":9,"bathrooms":1,"heatingSystem":"DistrictHeating","layout":"Studio"}"""),
             out var attributes,
             out var error);
 
         Assert.True(ok, error);
-        Assert.Equal(new ApartmentAttributes(2, 3, 9, 1, HeatingType.Autonomous), attributes);
+        Assert.Equal(
+            new ApartmentAttributes(Rooms: 2, Floor: 3, TotalFloors: 9, Bathrooms: 1, HeatingSystem: HeatingSystem.DistrictHeating, Layout: ApartmentLayout.Studio),
+            attributes);
     }
 
     [Fact]
@@ -56,16 +58,17 @@ public class PropertyAttributesJsonTests
     public void TryParse_IsCaseInsensitiveForKeysAndEnumNames()
     {
         var ok = PropertyAttributesJson.TryParse(
-            PropertyType.Garage, Json("""{"GarageType":"underground"}"""), out var attributes, out _);
+            PropertyType.Garage, Json("""{"ParkingType":"undergroundParking"}"""), out var attributes, out _);
 
         Assert.True(ok);
-        Assert.Equal(new GarageAttributes(GarageType.Underground), attributes);
+        Assert.Equal(new GarageAttributes(ParkingType.UndergroundParking), attributes);
     }
 
     [Theory]
     [InlineData(PropertyType.Land, """{"rooms":2}""", "'rooms' is not a field of PropertyType Land.")]
-    [InlineData(PropertyType.Garage, """{"floor":1,"garageType":"Box"}""", "'floor' is not a field of PropertyType Garage.")]
-    [InlineData(PropertyType.Apartment, """{"rooms":2,"landDesignation":"Intravilan"}""", "'landDesignation' is not a field of PropertyType Apartment.")]
+    [InlineData(PropertyType.Garage, """{"floor":1,"parkingType":"Garage"}""", "'floor' is not a field of PropertyType Garage.")]
+    [InlineData(PropertyType.Apartment, """{"rooms":2,"plotType":"Forest"}""", "'plotType' is not a field of PropertyType Apartment.")]
+    [InlineData(PropertyType.Apartment, """{"heatingType":"Autonomous"}""", "'heatingType' is not a field of PropertyType Apartment.")]
     public void TryParse_WithAFieldFromAnotherTypesSchema_IsRejectedByName(PropertyType type, string json, string expectedError)
     {
         var ok = PropertyAttributesJson.TryParse(type, Json(json), out var attributes, out var error);
@@ -79,7 +82,7 @@ public class PropertyAttributesJsonTests
     public void TryParse_WithUnknownNestedField_IsRejected()
     {
         var ok = PropertyAttributesJson.TryParse(
-            PropertyType.Land, Json("""{"utilitiesAtBoundary":{"water":true,"pool":true}}"""), out _, out var error);
+            PropertyType.Land, Json("""{"plotType":{"nested":true}}"""), out _, out var error);
 
         Assert.False(ok);
         Assert.StartsWith("TypeSpecificAttributes is malformed", error);
@@ -87,7 +90,7 @@ public class PropertyAttributesJsonTests
 
     [Theory]
     [InlineData("""{"rooms":"two"}""")]
-    [InlineData("""{"heatingType":"Solar"}""")]
+    [InlineData("""{"heatingSystem":"Solar"}""")]
     public void TryParse_WithWrongValueTypes_IsRejectedAsMalformed(string json)
     {
         var ok = PropertyAttributesJson.TryParse(PropertyType.Apartment, Json(json), out _, out var error);
@@ -118,7 +121,11 @@ public class PropertyAttributesJsonTests
     public void FieldNamesFor_ListsExactlyTheTypesSchemaInCamelCase()
     {
         Assert.Equal(
-            new[] { "electricalPower", "floor", "mainStreetAccess", "spaceType" },
+            new[]
+            {
+                "bathrooms", "electricalPower", "finishCondition", "floor", "gasSupply", "mainStreetAccess",
+                "numberOfOffices", "phoneLinesCount", "spaceType", "totalFloorsInBuilding", "workingAreaM2",
+            },
             PropertyAttributesJson.FieldNamesFor(PropertyType.Commercial).Order());
     }
 
@@ -127,12 +134,12 @@ public class PropertyAttributesJsonTests
     {
         PropertyAttributes[] all =
         [
-            new ApartmentAttributes(2, 3, 9, 1, HeatingType.Centralized),
+            TestAttributes.CompleteApartment,
             TestAttributes.CompleteHouse,
-            new LandAttributes(LandDesignation.Construction, RoadAccess.Gravel, new BoundaryUtilities(true, true, false)),
-            new CommercialAttributes(CommercialSpaceType.HoReCa, 0, true, "three-phase 380V"),
-            new GarageAttributes(GarageType.Box),
-            new RoomAttributes(BathroomType.Shared, 2),
+            TestAttributes.CompleteLand,
+            TestAttributes.CompleteCommercial,
+            TestAttributes.CompleteGarage,
+            TestAttributes.CompleteRoom,
         ];
 
         foreach (var attributes in all)
@@ -156,9 +163,9 @@ public class PropertyAttributesJsonTests
     [Fact]
     public void ToWireElement_UsesCamelCaseStringEnumsAndNoDiscriminator()
     {
-        var element = PropertyAttributesJson.ToWireElement(new GarageAttributes(GarageType.Underground));
+        var element = PropertyAttributesJson.ToWireElement(new GarageAttributes(ParkingType.UndergroundParking));
 
-        Assert.Equal("Underground", element.GetProperty("garageType").GetString());
+        Assert.Equal("UndergroundParking", element.GetProperty("parkingType").GetString());
         Assert.False(element.TryGetProperty("kind", out _));
     }
 }
