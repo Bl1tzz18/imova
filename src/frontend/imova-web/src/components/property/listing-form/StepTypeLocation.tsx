@@ -17,13 +17,13 @@ import { DealTypeTabs } from "./DealTypeTabs";
 import { StreetAddressAutocomplete } from "./StreetAddressAutocomplete";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
-const LISTING_TYPES = ["Sale", "Rent"] as const;
+const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
 
 export function StepTypeLocation({
   propertyType,
   onPropertyTypeChange,
-  listingType,
-  onListingTypeChange,
+  transactionType,
+  onTransactionTypeChange,
   raionId,
   onRaionIdChange,
   localitateId,
@@ -36,8 +36,8 @@ export function StepTypeLocation({
 }: {
   propertyType: string;
   onPropertyTypeChange: (value: string) => void;
-  listingType: string;
-  onListingTypeChange: (value: string) => void;
+  transactionType: string;
+  onTransactionTypeChange: (value: string) => void;
   raionId: string;
   onRaionIdChange: (value: string) => void;
   localitateId: string;
@@ -106,10 +106,10 @@ export function StepTypeLocation({
 
       <div className="mt-5">
         <DealTypeTabs
-          name="listingType"
-          value={listingType}
-          onChange={onListingTypeChange}
-          options={LISTING_TYPES.map((lt) => ({ value: lt, label: tListing(lt) }))}
+          name="transactionType"
+          value={transactionType}
+          onChange={onTransactionTypeChange}
+          options={TRANSACTION_TYPES.map((lt) => ({ value: lt, label: tListing(lt) }))}
         />
       </div>
 

@@ -9,18 +9,18 @@ public class SaveFavoriteHandler(IApplicationDbContext dbContext) : IRequestHand
 {
     public async Task<bool> Handle(SaveFavoriteCommand request, CancellationToken cancellationToken)
     {
-        var propertyExists = await dbContext.Properties.AnyAsync(p => p.Id == request.PropertyId, cancellationToken);
-        if (!propertyExists)
+        var listingExists = await dbContext.Listings.AnyAsync(l => l.Id == request.ListingId, cancellationToken);
+        if (!listingExists)
         {
             return false;
         }
 
         var alreadySaved = await dbContext.Favorites
-            .AnyAsync(f => f.UserId == request.UserId && f.PropertyId == request.PropertyId, cancellationToken);
+            .AnyAsync(f => f.UserId == request.UserId && f.ListingId == request.ListingId, cancellationToken);
 
         if (!alreadySaved)
         {
-            dbContext.Favorites.Add(Favorite.Create(request.UserId, request.PropertyId));
+            dbContext.Favorites.Add(Favorite.Create(request.UserId, request.ListingId));
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 

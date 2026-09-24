@@ -3,9 +3,9 @@ import { getTranslations } from "next-intl/server";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
-async function getSavedListings(token: string): Promise<Property[]> {
+async function getSavedListings(token: string): Promise<Listing[]> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const res = await fetch(`${apiUrl}/api/v1/users/me/favorites`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -25,7 +25,7 @@ export default async function SavedListingsPage() {
     redirect("/login?next=/saved-listings");
   }
 
-  const [properties, t] = await Promise.all([
+  const [listings, t] = await Promise.all([
     getSavedListings(token),
     getTranslations("SavedListingsPage"),
   ]);
@@ -34,13 +34,13 @@ export default async function SavedListingsPage() {
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <h1 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("title")}</h1>
       <p className="mt-1 text-sm text-ink-500">
-        {properties.length > 0 ? t("resultsCount", { count: properties.length }) : t("emptyTitle")}
+        {listings.length > 0 ? t("resultsCount", { count: listings.length }) : t("emptyTitle")}
       </p>
 
-      {properties.length > 0 ? (
+      {listings.length > 0 ? (
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
+          {listings.map((listing) => (
+            <PropertyCard key={listing.id} listing={listing} />
           ))}
         </div>
       ) : (

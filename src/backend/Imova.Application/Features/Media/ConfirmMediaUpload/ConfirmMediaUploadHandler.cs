@@ -2,8 +2,9 @@ using FluentValidation;
 using FluentValidation.Results;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
-using Imova.Contracts.Media;
-using Imova.Domain.Media;
+using Imova.Application.Features.Listings;
+using Imova.Contracts.Listings;
+using Imova.Domain.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,11 @@ namespace Imova.Application.Features.Media.ConfirmMediaUpload;
 // This is the "did the upload actually happen, and is it what it claims to be" checkpoint —
 // nothing here trusts the client-reported content-type or file extension.
 public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
-    : IRequestHandler<ConfirmMediaUploadCommand, PropertyMediaDto>
+    : IRequestHandler<ConfirmMediaUploadCommand, PhotoDto>
 {
-    public async Task<PropertyMediaDto> Handle(ConfirmMediaUploadCommand request, CancellationToken cancellationToken)
+    public async Task<PhotoDto> Handle(ConfirmMediaUploadCommand request, CancellationToken cancellationToken)
     {
-        var existing = await dbContext.PropertyMedias
+        var existing = await dbContext.Photos
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.BlobName == request.BlobName, cancellationToken);
 
@@ -35,9 +36,9 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
             throw ValidationErrorFor("The file was not found in storage — the upload may not have completed.");
         }
 
-        if (blobInfo.SizeBytes > PropertyMedia.MaxFileSizeBytes)
+        if (blobInfo.SizeBytes > Photo.MaxFileSizeBytes)
         {
-            throw ValidationErrorFor($"File exceeds the {PropertyMedia.MaxFileSizeBytes / (1024 * 1024)}MB limit.");
+            throw ValidationErrorFor($"File exceeds the {Photo.MaxFileSizeBytes / (1024 * 1024)}MB limit.");
         }
 
         var detectedContentType = ImageSignature.DetectContentType(blobInfo.LeadingBytes);
@@ -47,16 +48,19 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
             throw ValidationErrorFor("The uploaded file is not a recognized image format (JPEG, PNG, WebP).");
         }
 
-        var sortOrder = await dbContext.PropertyMedias
-            .Where(m => m.PropertyId == request.PropertyId)
+        var sortOrder = await dbContext.Photos
+            .Where(p => p.ListingId == request.ListingId)
             .CountAsync(cancellationToken);
 
-        var media = PropertyMedia.Create(request.PropertyId, request.BlobName, detectedContentType, blobInfo.SizeBytes, sortOrder);
+        // The first photo of a listing becomes its cover image; see DeleteMediaHandler for how
+        // that's handed on when the cover is removed.
+        var photo = Photo.Create(
+            request.ListingId, request.BlobName, detectedContentType, blobInfo.SizeBytes, sortOrder, isPrimary: sortOrder == 0);
 
-        dbContext.PropertyMedias.Add(media);
+        dbContext.Photos.Add(photo);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return media.ToDto(blobStorageService);
+        return photo.ToDto(blobStorageService);
     }
 
     private static ValidationException ValidationErrorFor(string message) =>

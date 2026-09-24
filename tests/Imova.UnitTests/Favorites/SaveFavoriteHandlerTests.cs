@@ -1,5 +1,5 @@
 using Imova.Application.Features.Favorites.SaveFavorite;
-using Imova.Domain.Properties;
+using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
 
@@ -7,50 +7,44 @@ namespace Imova.UnitTests.Favorites;
 
 public class SaveFavoriteHandlerTests
 {
-    private static Property AddProperty(ImovaDbContext dbContext)
-    {
-        var property = Property.Create(
-            Guid.NewGuid(), "Titlu", "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
-            54m, 2m, null, 3, 9);
-        dbContext.Properties.Add(property);
-        return property;
-    }
+    private static Listing AddListing(ImovaDbContext dbContext) =>
+        ListingTestData.AddListing(dbContext, ListingTestData.AddIndividualPublisher(dbContext).Id);
 
     [Fact]
-    public async Task Handle_ForExistingProperty_CreatesFavoriteAndReturnsTrue()
+    public async Task Handle_ForExistingListing_CreatesFavoriteAndReturnsTrue()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var property = AddProperty(dbContext);
+        var listing = AddListing(dbContext);
         await dbContext.SaveChangesAsync(CancellationToken.None);
         var userId = Guid.NewGuid();
 
         var handler = new SaveFavoriteHandler(dbContext);
-        var result = await handler.Handle(new SaveFavoriteCommand(userId, property.Id), CancellationToken.None);
+        var result = await handler.Handle(new SaveFavoriteCommand(userId, listing.Id), CancellationToken.None);
 
         Assert.True(result);
         var favorite = Assert.Single(dbContext.Favorites);
         Assert.Equal(userId, favorite.UserId);
-        Assert.Equal(property.Id, favorite.PropertyId);
+        Assert.Equal(listing.Id, favorite.ListingId);
     }
 
     [Fact]
-    public async Task Handle_CalledTwiceForSameUserAndProperty_IsIdempotent()
+    public async Task Handle_CalledTwiceForSameUserAndListing_IsIdempotent()
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var property = AddProperty(dbContext);
+        var listing = AddListing(dbContext);
         await dbContext.SaveChangesAsync(CancellationToken.None);
         var userId = Guid.NewGuid();
         var handler = new SaveFavoriteHandler(dbContext);
 
-        await handler.Handle(new SaveFavoriteCommand(userId, property.Id), CancellationToken.None);
-        var secondResult = await handler.Handle(new SaveFavoriteCommand(userId, property.Id), CancellationToken.None);
+        await handler.Handle(new SaveFavoriteCommand(userId, listing.Id), CancellationToken.None);
+        var secondResult = await handler.Handle(new SaveFavoriteCommand(userId, listing.Id), CancellationToken.None);
 
         Assert.True(secondResult);
         Assert.Single(dbContext.Favorites);
     }
 
     [Fact]
-    public async Task Handle_ForNonexistentProperty_ReturnsFalseAndCreatesNoFavorite()
+    public async Task Handle_ForNonexistentListing_ReturnsFalseAndCreatesNoFavorite()
     {
         await using var dbContext = TestDbContextFactory.Create();
         var handler = new SaveFavoriteHandler(dbContext);

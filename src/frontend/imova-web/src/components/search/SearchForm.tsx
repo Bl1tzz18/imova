@@ -11,7 +11,7 @@ export function SearchForm() {
       className="flex w-full flex-col gap-2 rounded-2xl bg-white p-2 shadow-[var(--shadow-card-hover)] sm:flex-row sm:items-center sm:rounded-full"
     >
       <select
-        name="listingType"
+        name="transactionType"
         defaultValue="Sale"
         className="h-12 shrink-0 rounded-full bg-transparent px-4 text-sm font-medium text-ink-800 outline-none sm:border-r sm:border-ink-100"
       >

@@ -1,5 +1,5 @@
 using Imova.Application.Common.Interfaces;
-using Imova.Domain.Media;
+using Imova.Domain.Listings;
 
 namespace Imova.Infrastructure.Storage;
 
@@ -16,7 +16,7 @@ public class ExternalImageFetcher(HttpClient httpClient) : IExternalImageFetcher
             }
 
             if (response.Content.Headers.ContentLength is { } declaredLength &&
-                declaredLength > PropertyMedia.MaxFileSizeBytes)
+                declaredLength > Photo.MaxFileSizeBytes)
             {
                 return null;
             }
@@ -29,7 +29,7 @@ public class ExternalImageFetcher(HttpClient httpClient) : IExternalImageFetcher
             int read;
             while ((read = await stream.ReadAsync(chunk, cancellationToken)) > 0)
             {
-                if (buffer.Length + read > PropertyMedia.MaxFileSizeBytes)
+                if (buffer.Length + read > Photo.MaxFileSizeBytes)
                 {
                     return null;
                 }

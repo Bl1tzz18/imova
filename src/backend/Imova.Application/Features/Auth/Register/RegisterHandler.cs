@@ -2,13 +2,17 @@ using FluentValidation;
 using FluentValidation.Results;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Imova.Application.Features.Auth.Register;
 
-public class RegisterHandler(UserManager<ApplicationUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
+public class RegisterHandler(
+    UserManager<ApplicationUser> userManager,
+    IJwtTokenGenerator jwtTokenGenerator,
+    IApplicationDbContext dbContext)
     : IRequestHandler<RegisterCommand, AuthResultDto>
 {
     public async Task<AuthResultDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -29,6 +33,11 @@ public class RegisterHandler(UserManager<ApplicationUser> userManager, IJwtToken
         }
 
         await userManager.AddToRoleAsync(user, Roles.User);
+
+        // Every account publishes as an Individual by default — see PublisherProvisioning.
+        dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
+        await dbContext.SaveChangesAsync(cancellationToken);
+
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
         var token = jwtTokenGenerator.GenerateToken(user, roles);

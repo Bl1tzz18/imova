@@ -4,7 +4,7 @@ namespace Imova.Application.Features.Users.UploadProfilePicture;
 
 public class UploadProfilePictureValidator : AbstractValidator<UploadProfilePictureCommand>
 {
-    // Deliberately tighter than PropertyMedia.MaxFileSizeBytes (10MB) — a single profile picture
+    // Deliberately tighter than Photo.MaxFileSizeBytes (10MB) — a single profile picture
     // has no business being that large.
     public const long MaxFileSizeBytes = 5 * 1024 * 1024;
 

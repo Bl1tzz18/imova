@@ -13,14 +13,14 @@ async function readActionError(res: Response): Promise<{ error?: string }> {
   return { error: message };
 }
 
-export async function approveListing(propertyId: string): Promise<{ error?: string }> {
+export async function approveListing(listingId: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
     redirect("/login?next=/admin/moderation");
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/approve`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/approve`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -33,14 +33,14 @@ export async function approveListing(propertyId: string): Promise<{ error?: stri
   return {};
 }
 
-export async function rejectListing(propertyId: string, reason: string): Promise<{ error?: string }> {
+export async function rejectListing(listingId: string, reason: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
     redirect("/login?next=/admin/moderation");
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/reject`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/reject`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ reason }),

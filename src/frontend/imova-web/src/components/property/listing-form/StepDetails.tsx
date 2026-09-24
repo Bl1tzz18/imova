@@ -1,170 +1,135 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
-import { getFieldRequirement, type DetailFieldName } from "@/lib/property/fieldRules";
-import type { Property } from "@/types/property";
+import { getAmenities } from "@/lib/api/amenities";
+import { squareMetersToAri } from "@/lib/listing/view";
+import { attributeSchemaFor, hasBuilding } from "@/lib/property/attributeSchema";
+import type { Amenity, Listing } from "@/types/listing";
+import { AttributeCheckboxes, AttributeInput } from "./AttributeFields";
 
 const CURRENT_YEAR = new Date().getFullYear();
+const CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
 
-function boolDefault(value: boolean | null | undefined): string {
-  return value == null ? "" : String(value);
-}
-
-export function StepDetails({
-  propertyType,
-  listingType,
-  property,
-}: {
-  propertyType: string;
-  listingType: string;
-  property?: Property;
-}) {
+export function StepDetails({ propertyType, listing }: { propertyType: string; listing?: Listing }) {
   const t = useTranslations("PropertyForm");
-  const req = (field: DetailFieldName) => getFieldRequirement(field, propertyType, listingType);
+  const tCondition = useTranslations("Condition");
+  const tAmenity = useTranslations("Amenity");
+
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+  useEffect(() => {
+    getAmenities()
+      .then(setAmenities)
+      .catch(() => setAmenities([]));
+  }, []);
+
+  const property = listing?.property;
+  const [area, setArea] = useState(property ? String(property.totalAreaM2) : "");
+
+  // Type-specific values only pre-fill while the form still shows the listing's own type —
+  // switching to another type starts that type's fields blank (their keys don't carry over).
+  const initialAttributes = property?.propertyType === propertyType ? property.typeSpecificAttributes : {};
+  const selectedAmenityIds = new Set(property?.amenities.map((a) => a.id) ?? []);
+  const schema = attributeSchemaFor(propertyType);
+  const scalarFields = schema.filter((f) => f.kind !== "bool" && f.kind !== "flags");
+  const checkboxFields = schema.filter((f) => f.kind === "bool" || f.kind === "flags");
+  const isLand = propertyType === "Land";
+  const areaNumber = Number(area);
 
   return (
     <div>
       <h2 className="font-display text-xl font-medium text-ink-950">{t("step2Heading")}</h2>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 space-y-5">
         <label className="block">
           <FieldLabel required>{t("titleLabel")}</FieldLabel>
           <TextInput
             name="title"
             required
             maxLength={200}
-            defaultValue={property?.title}
+            defaultValue={listing?.title}
             placeholder={t("titlePlaceholder")}
           />
         </label>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {req("area") !== "hidden" && (
+        {/* Keyed by type so switching type remounts every type-dependent input with fresh defaults. */}
+        <div key={propertyType} className="space-y-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block">
-              <FieldLabel required={req("area") === "required"}>{t("areaLabel")}</FieldLabel>
+              <FieldLabel required>{t("areaLabel")}</FieldLabel>
               <TextInput
-                name="area"
+                name="totalAreaM2"
                 type="number"
                 min="0.01"
                 step="0.01"
-                defaultValue={property?.area ?? undefined}
-                required={req("area") === "required"}
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                required
               />
+              {isLand && areaNumber > 0 && (
+                <span className="mt-1 block text-xs text-ink-500">
+                  {t("areaInAri", { ari: squareMetersToAri(areaNumber) })}
+                </span>
+              )}
             </label>
-          )}
-          {req("rooms") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("rooms") === "required"}>{t("roomsLabel")}</FieldLabel>
-              <TextInput
-                name="rooms"
-                type="number"
-                min="1"
-                step="1"
-                defaultValue={property?.rooms ?? undefined}
-                required={req("rooms") === "required"}
-              />
-            </label>
-          )}
-          {req("floor") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("floor") === "required"}>{t("floorLabel")}</FieldLabel>
-              <TextInput
-                name="floor"
-                type="number"
-                min="-5"
-                max="200"
-                step="1"
-                defaultValue={property?.floor ?? undefined}
-                required={req("floor") === "required"}
-              />
-            </label>
-          )}
-          {req("totalFloors") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("totalFloors") === "required"}>{t("totalFloorsLabel")}</FieldLabel>
-              <TextInput
-                name="totalFloors"
-                type="number"
-                min="1"
-                step="1"
-                defaultValue={property?.totalFloors ?? undefined}
-                required={req("totalFloors") === "required"}
-              />
-            </label>
-          )}
-          {req("yearBuilt") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("yearBuilt") === "required"}>{t("yearBuiltLabel")}</FieldLabel>
-              <TextInput
-                name="yearBuilt"
-                type="number"
-                min="1800"
-                max={CURRENT_YEAR + 1}
-                step="1"
-                defaultValue={property?.yearBuilt ?? undefined}
-                required={req("yearBuilt") === "required"}
-              />
-            </label>
-          )}
-          {req("bathrooms") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("bathrooms") === "required"}>{t("bathroomsLabel")}</FieldLabel>
-              <TextInput
-                name="bathrooms"
-                type="number"
-                min="0"
-                step="1"
-                defaultValue={property?.bathrooms ?? undefined}
-                required={req("bathrooms") === "required"}
-              />
-            </label>
-          )}
-          {req("furnished") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("furnished") === "required"}>{t("furnishedLabel")}</FieldLabel>
-              <SelectInput
-                name="furnished"
-                defaultValue={boolDefault(property?.furnished)}
-                required={req("furnished") === "required"}
-              >
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
-          {req("parkingAvailable") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("parkingAvailable") === "required"}>
-                {t("parkingAvailableLabel")}
-              </FieldLabel>
-              <SelectInput
-                name="parkingAvailable"
-                defaultValue={boolDefault(property?.parkingAvailable)}
-                required={req("parkingAvailable") === "required"}
-              >
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
-          {req("petsAllowed") !== "hidden" && (
-            <label className="block">
-              <FieldLabel required={req("petsAllowed") === "required"}>{t("petsAllowedLabel")}</FieldLabel>
-              <SelectInput
-                name="petsAllowed"
-                defaultValue={boolDefault(property?.petsAllowed)}
-                required={req("petsAllowed") === "required"}
-              >
-                <option value="">{t("notSpecified")}</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
-              </SelectInput>
-            </label>
-          )}
+
+            {hasBuilding(propertyType) && (
+              <>
+                <label className="block">
+                  <FieldLabel>{t("yearBuiltLabel")}</FieldLabel>
+                  <TextInput
+                    name="yearBuilt"
+                    type="number"
+                    min="1800"
+                    max={CURRENT_YEAR + 1}
+                    step="1"
+                    defaultValue={property?.yearBuilt ?? undefined}
+                  />
+                </label>
+                <label className="block">
+                  <FieldLabel>{t("conditionLabel")}</FieldLabel>
+                  <SelectInput name="condition" defaultValue={property?.condition ?? ""}>
+                    <option value="">{t("notSpecified")}</option>
+                    {CONDITIONS.map((condition) => (
+                      <option key={condition} value={condition}>
+                        {tCondition(condition)}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+              </>
+            )}
+
+            {scalarFields.map((field) => (
+              <AttributeInput key={field.name} field={field} initial={initialAttributes} />
+            ))}
+          </div>
+
+          {checkboxFields.map((field) => (
+            <AttributeCheckboxes key={field.name} field={field} initial={initialAttributes} />
+          ))}
         </div>
+
+        {amenities.length > 0 && (
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-ink-700">{t("amenitiesLabel")}</legend>
+            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+              {amenities.map((amenity) => (
+                <Checkbox
+                  key={amenity.id}
+                  name="amenityIds"
+                  value={amenity.id}
+                  defaultChecked={selectedAmenityIds.has(amenity.id)}
+                  className="text-ink-700"
+                >
+                  {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
+                </Checkbox>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <label className="block">
           <FieldLabel required>{t("descriptionLabel")}</FieldLabel>
@@ -173,7 +138,7 @@ export function StepDetails({
             required
             maxLength={4000}
             rows={5}
-            defaultValue={property?.description}
+            defaultValue={listing?.description}
             placeholder={t("descriptionPlaceholder")}
           />
         </label>

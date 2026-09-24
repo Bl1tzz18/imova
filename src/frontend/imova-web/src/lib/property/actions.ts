@@ -4,16 +4,16 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
-import { buildPropertyPayload } from "@/lib/property/formPayload";
+import { buildListingPayload } from "@/lib/property/formPayload";
 
-export async function setFavorite(propertyId: string, saved: boolean, next: string): Promise<{ error?: string }> {
+export async function setFavorite(listingId: string, saved: boolean, next: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
     redirect(`/login?next=${encodeURIComponent(next)}`);
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/favorite`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/favorite`, {
     method: saved ? "POST" : "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -26,9 +26,9 @@ export async function setFavorite(propertyId: string, saved: boolean, next: stri
   return {};
 }
 
-async function postPropertyStatusAction(
-  propertyId: string,
-  action: "submit-for-review" | "archive" | "republish",
+async function postListingStatusAction(
+  listingId: string,
+  action: "submit-for-review" | "archive" | "publish",
 ): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
@@ -36,7 +36,7 @@ async function postPropertyStatusAction(
     redirect("/login?next=/my-listings");
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/${action}`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/${action}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -54,40 +54,40 @@ async function postPropertyStatusAction(
 }
 
 // Submits a Draft (or resubmits a Rejected) listing for admin review — see
-// Property.SubmitForReview(). Never goes straight to Published; only Approve() (admin-only,
-// backend-only for now) does that.
-export async function submitForReview(propertyId: string): Promise<{ error?: string }> {
-  return postPropertyStatusAction(propertyId, "submit-for-review");
+// Listing.SubmitForReview(). Never goes straight to Active; only Approve() (admin-only) does that.
+export async function submitForReview(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "submit-for-review");
 }
 
-export async function archiveProperty(propertyId: string): Promise<{ error?: string }> {
-  return postPropertyStatusAction(propertyId, "archive");
+export async function archiveListing(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "archive");
 }
 
-export async function republishProperty(propertyId: string): Promise<{ error?: string }> {
-  return postPropertyStatusAction(propertyId, "republish");
+// The owner re-activating their own Archived/Expired listing — see Listing.Publish().
+export async function publishListing(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "publish");
 }
 
-export type UpdatePropertyState = { error?: string; success?: boolean };
+export type UpdateListingState = { error?: string; success?: boolean };
 
-// Bound with the property id from the client (updatePropertyDetails.bind(null, id)) so it fits
+// Bound with the listing id from the client (updateListingDetails.bind(null, id)) so it fits
 // useActionState's (prevState, formData) signature — see PropertyForm, which reuses the exact
 // same multi-step create flow (and therefore the same field set) for editing.
-export async function updatePropertyDetails(
-  propertyId: string,
-  _prevState: UpdatePropertyState,
+export async function updateListingDetails(
+  listingId: string,
+  _prevState: UpdateListingState,
   formData: FormData,
-): Promise<UpdatePropertyState> {
+): Promise<UpdateListingState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect(`/login?next=${encodeURIComponent(`/my-listings/${propertyId}/edit`)}`);
+    redirect(`/login?next=${encodeURIComponent(`/my-listings/${listingId}/edit`)}`);
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify(buildPropertyPayload(formData)),
+    body: JSON.stringify(buildListingPayload(formData)),
   });
 
   if (!res.ok) {
@@ -100,11 +100,11 @@ export async function updatePropertyDetails(
 
   // Photos the owner removed on this edit page (ImageUploader, deferDeletes mode) are only
   // hidden client-side up to this point — this is the actual commit, and it only runs once the
-  // property update above has already succeeded, so an abandoned/failed edit never deletes them.
+  // listing update above has already succeeded, so an abandoned/failed edit never deletes them.
   const deleteMediaIds = formData.getAll("deleteMediaIds").filter((id): id is string => typeof id === "string");
   await Promise.allSettled(
     deleteMediaIds.map((mediaId) =>
-      fetch(`${apiUrl}/api/v1/properties/${propertyId}/media/${mediaId}`, {
+      fetch(`${apiUrl}/api/v1/listings/${listingId}/media/${mediaId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       }),
@@ -112,8 +112,8 @@ export async function updatePropertyDetails(
   );
 
   revalidatePath("/my-listings");
-  revalidatePath(`/my-listings/${propertyId}/edit`);
-  revalidatePath(`/property/${propertyId}`);
+  revalidatePath(`/my-listings/${listingId}/edit`);
+  revalidatePath(`/property/${listingId}`);
   return { success: true };
 }
 
@@ -121,14 +121,14 @@ export async function updatePropertyDetails(
 // setFavorite. Routed through a server action (rather than a direct browser fetch like
 // requestUploadUrl/confirmMediaUpload) specifically so the httpOnly session cookie can be
 // attached as a Bearer token: the new DELETE endpoint requires auth + an owner/admin check.
-export async function deletePropertyMedia(propertyId: string, mediaId: string): Promise<{ error?: string }> {
+export async function deleteListingPhoto(listingId: string, mediaId: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
     return { error: "Not authenticated." };
   }
 
-  const res = await fetch(`${apiUrl}/api/v1/properties/${propertyId}/media/${mediaId}`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/media/${mediaId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -137,6 +137,6 @@ export async function deletePropertyMedia(propertyId: string, mediaId: string): 
     return { error: `Request failed (${res.status})` };
   }
 
-  revalidatePath(`/my-listings/${propertyId}/edit`);
+  revalidatePath(`/my-listings/${listingId}/edit`);
   return {};
 }

@@ -4,11 +4,11 @@ import { Footer } from "@/components/layout/Footer";
 import { LinkButton } from "@/components/ui/Button";
 import { OwnerListingsList } from "@/components/property/OwnerListingsList";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
-async function getMyProperties(token: string): Promise<Property[]> {
+async function getMyListings(token: string): Promise<Listing[]> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/users/me/properties`, {
+  const res = await fetch(`${apiUrl}/api/v1/users/me/listings`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -26,8 +26,8 @@ export default async function MyListingsPage() {
     redirect("/login?next=/my-listings");
   }
 
-  const [properties, t] = await Promise.all([
-    getMyProperties(token),
+  const [listings, t] = await Promise.all([
+    getMyListings(token),
     getTranslations("MyListingsPage"),
   ]);
 
@@ -44,7 +44,7 @@ export default async function MyListingsPage() {
           </div>
 
           <div className="mt-8">
-            <OwnerListingsList properties={properties} />
+            <OwnerListingsList listings={listings} />
           </div>
         </div>
       </main>

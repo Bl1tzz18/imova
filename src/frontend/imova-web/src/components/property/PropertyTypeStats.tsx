@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 
-export async function PropertyTypeStats({ properties }: { properties: Property[] }) {
+export async function PropertyTypeStats({ listings }: { listings: Listing[] }) {
   const locale = await getLocale();
   const t = await getTranslations("PropertyType");
   const formatter = new Intl.NumberFormat(locale);
@@ -12,7 +12,7 @@ export async function PropertyTypeStats({ properties }: { properties: Property[]
   const counts = PROPERTY_TYPES.map((type) => ({
     type,
     label: t(type),
-    count: properties.filter((p) => p.propertyType === type).length,
+    count: listings.filter((p) => p.property.propertyType === type).length,
   }));
 
   return (

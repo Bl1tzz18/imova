@@ -8,13 +8,15 @@ import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
+import { squareMetersToAri } from "@/lib/listing/view";
+import { attributeSchemaFor } from "@/lib/property/attributeSchema";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
-async function getProperty(id: string): Promise<Property | null> {
+async function getListing(id: string): Promise<Listing | null> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
-  const res = await fetch(`${apiUrl}/api/v1/properties/${id}`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${id}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     cache: "no-store",
   });
@@ -24,7 +26,7 @@ async function getProperty(id: string): Promise<Property | null> {
   }
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch property: ${res.status}`);
+    throw new Error(`Failed to fetch listing: ${res.status}`);
   }
 
   return res.json();
@@ -36,41 +38,86 @@ export default async function ProprietatePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: id } = await params;
-  const property = await getProperty(id);
+  const listing = await getListing(id);
 
-  if (!property) {
+  if (!listing) {
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tFurnished, tAmenity] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
     getTranslations("ListingType"),
     getTranslations("PropertyCard"),
+    getTranslations("Attributes"),
+    getTranslations("Condition"),
+    getTranslations("FurnishedStatus"),
+    getTranslations("Amenity"),
   ]);
 
-  const location = formatFullLocation(property.location);
+  const location = formatFullLocation(listing.property.location);
 
+  const { property, rentalDetails, publisher } = listing;
+  const yesNo = (value: boolean) => (value ? t("yes") : t("no"));
+
+  // Physical facts: area, building data, then whatever the property type's attribute schema
+  // defines (see ATTRIBUTE_SCHEMA) — only the fields actually filled in are shown.
   const facts: { label: string; value: string }[] = [];
-  if (property.area != null) facts.push({ label: t("area"), value: `${property.area} m²` });
-  if (property.rooms != null) facts.push({ label: t("rooms"), value: String(property.rooms) });
-  if (property.bathrooms != null) facts.push({ label: t("bathrooms"), value: String(property.bathrooms) });
-  if (property.floor != null) {
-    facts.push({
-      label: t("floor"),
-      value:
-        property.totalFloors != null
-          ? t("floorOf", { floor: property.floor, totalFloors: property.totalFloors })
-          : String(property.floor),
-    });
-  }
+  facts.push({
+    label: t("area"),
+    value:
+      property.propertyType === "Land"
+        ? `${property.totalAreaM2} m² (${squareMetersToAri(property.totalAreaM2)} ari)`
+        : `${property.totalAreaM2} m²`,
+  });
   if (property.yearBuilt != null) facts.push({ label: t("yearBuilt"), value: String(property.yearBuilt) });
-  if (property.furnished != null) facts.push({ label: t("furnished"), value: property.furnished ? t("yes") : t("no") });
-  if (property.parkingAvailable != null)
-    facts.push({ label: t("parkingAvailable"), value: property.parkingAvailable ? t("yes") : t("no") });
-  if (property.petsAllowed != null)
-    facts.push({ label: t("petsAllowed"), value: property.petsAllowed ? t("yes") : t("no") });
+  if (property.condition) facts.push({ label: t("condition"), value: tCondition(property.condition) });
+
+  const attributes = property.typeSpecificAttributes;
+  for (const field of attributeSchemaFor(property.propertyType)) {
+    const value = attributes[field.name];
+    // totalFloors is folded into the floor fact ("3 of 9") when both are present.
+    if (value == null || (field.name === "totalFloors" && typeof attributes.floor === "number")) continue;
+    const label = t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`);
+
+    if (field.name === "floor" && typeof attributes.totalFloors === "number") {
+      facts.push({ label, value: t("floorOf", { floor: String(value), totalFloors: attributes.totalFloors }) });
+    } else if (field.kind === "enum") {
+      facts.push({ label, value: tAttr(`${field.name}.options.${String(value)}`) });
+    } else if (field.kind === "bool") {
+      facts.push({ label, value: yesNo(value === true) });
+    } else if (field.kind === "flags") {
+      const present = field.flags.filter((flag) => (value as Record<string, unknown>)[flag] === true);
+      if (present.length > 0) {
+        facts.push({ label, value: present.map((flag) => tAttr(`utilityFlags.${flag}`)).join(", ") });
+      }
+    } else if (field.name === "landAreaM2") {
+      facts.push({ label, value: `${String(value)} m²` });
+    } else {
+      facts.push({ label, value: String(value) });
+    }
+  }
+
+  // Terms of this particular rental offer, not of the property itself.
+  const rentalFacts: { label: string; value: string }[] = [];
+  if (rentalDetails) {
+    rentalFacts.push({ label: t("furnished"), value: tFurnished(rentalDetails.furnishedStatus) });
+    if (rentalDetails.minLeasePeriodMonths != null) {
+      rentalFacts.push({ label: t("minLeasePeriod"), value: t("months", { count: rentalDetails.minLeasePeriodMonths }) });
+    }
+    if (rentalDetails.securityDepositAmount != null) {
+      rentalFacts.push({
+        label: t("securityDeposit"),
+        value: formatPrice(rentalDetails.securityDepositAmount, listing.price.currency),
+      });
+    }
+    if (rentalDetails.availableFrom) {
+      rentalFacts.push({ label: t("availableFrom"), value: formatDate(rentalDetails.availableFrom, locale) });
+    }
+    rentalFacts.push({ label: t("utilitiesIncluded"), value: yesNo(rentalDetails.utilitiesIncluded) });
+    rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -86,22 +133,22 @@ export default async function ProprietatePage({
             {t("back")}
           </Link>
 
-          <PropertyGallery media={property.media} title={property.title} propertyType={property.propertyType} />
+          <PropertyGallery media={listing.photos} title={listing.title} propertyType={property.propertyType} />
 
           <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone={property.listingType === "Rent" ? "accent" : "brand"}>
-                    {tListing(property.listingType)}
+                  <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
+                    {tListing(listing.transactionType)}
                   </Badge>
-                  <Badge tone="neutral">{tType(property.propertyType)}</Badge>
+                  <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
                 </div>
-                <SaveListingButton propertyId={property.id} initialSaved={property.isSaved} variant="labeled" />
+                <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
               </div>
 
               <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">
-                {property.title}
+                {listing.title}
               </h1>
 
               {location && (
@@ -114,13 +161,13 @@ export default async function ProprietatePage({
                 </p>
               )}
 
-              {property.location &&
-                (property.location.latitude != null && property.location.longitude != null ? (
+              {listing.property.location &&
+                (listing.property.location.latitude != null && listing.property.location.longitude != null ? (
                   <div className="mt-4">
                     <PropertyLocationPreview
-                      property={property}
-                      lat={property.location.latitude}
-                      lng={property.location.longitude}
+                      listing={listing}
+                      lat={listing.property.location.latitude}
+                      lng={listing.property.location.longitude}
                     />
                   </div>
                 ) : (
@@ -132,21 +179,37 @@ export default async function ProprietatePage({
               <div className="mt-8">
                 <h2 className="font-display text-xl font-medium text-ink-950">{t("description")}</h2>
                 <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-600">
-                  {property.description}
+                  {listing.description}
                 </p>
               </div>
 
               {facts.length > 0 && (
                 <div className="mt-8">
                   <h2 className="font-display text-xl font-medium text-ink-950">{t("details")}</h2>
-                  <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {facts.map((fact) => (
-                      <div key={fact.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3">
-                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{fact.label}</dt>
-                        <dd className="mt-1 text-sm font-semibold text-ink-900">{fact.value}</dd>
-                      </div>
+                  <FactGrid facts={facts} />
+                </div>
+              )}
+
+              {property.amenities.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-display text-xl font-medium text-ink-950">{t("amenities")}</h2>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {property.amenities.map((amenity) => (
+                      <li
+                        key={amenity.id}
+                        className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
+                      >
+                        {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
+                      </li>
                     ))}
-                  </dl>
+                  </ul>
+                </div>
+              )}
+
+              {rentalFacts.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-display text-xl font-medium text-ink-950">{t("rentalTerms")}</h2>
+                  <FactGrid facts={rentalFacts} />
                 </div>
               )}
             </div>
@@ -154,38 +217,55 @@ export default async function ProprietatePage({
             <aside className="w-full shrink-0 lg:w-80">
               <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:sticky lg:top-24">
                 <p className="font-display text-3xl font-semibold text-ink-950">
-                  {formatPrice(property.price, property.currency)}
-                  {property.listingType === "Rent" && (
+                  {formatPrice(listing.price.amount, listing.price.currency)}
+                  {listing.transactionType === "Rent" && (
                     <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
                   )}
                 </p>
+                {listing.price.currency !== "EUR" && (
+                  <p className="mt-1 text-sm text-ink-500">
+                    {t("approxEur", { price: formatPrice(listing.price.priceEur, "EUR") })}
+                  </p>
+                )}
+                {listing.price.isNegotiable && (
+                  <Badge tone="neutral" className="mt-3">
+                    {t("negotiable")}
+                  </Badge>
+                )}
 
                 <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
-                  <p>{t("listedOn", { date: formatDate(property.publishedAt ?? property.createdAt, locale) })}</p>
-                  {property.updatedAt !== property.createdAt && (
-                    <p>{t("updatedOn", { date: formatDate(property.updatedAt, locale) })}</p>
+                  <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
+                  {listing.updatedAt !== listing.createdAt && (
+                    <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
                   )}
                 </div>
               </div>
 
-              {property.owner && (
+              {(publisher.email || publisher.phone) && (
                 <div className="mt-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
                   <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
+                  <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
+                    {publisher.displayName}
+                    {publisher.publisherType === "Agency" && <Badge tone="brand">{t("agency")}</Badge>}
+                  </p>
+                  {publisher.bio && <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>}
                   <dl className="mt-3 space-y-3 text-sm">
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
-                      <dd className="mt-0.5">
-                        <a href={`mailto:${property.owner.email}`} className="font-medium text-brand-700 hover:underline">
-                          {property.owner.email}
-                        </a>
-                      </dd>
-                    </div>
+                    {publisher.email && (
+                      <div>
+                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
+                        <dd className="mt-0.5">
+                          <a href={`mailto:${publisher.email}`} className="font-medium text-brand-700 hover:underline">
+                            {publisher.email}
+                          </a>
+                        </dd>
+                      </div>
+                    )}
                     <div>
                       <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
                       <dd className="mt-0.5">
-                        {property.owner.phone ? (
-                          <a href={`tel:${property.owner.phone}`} className="font-medium text-brand-700 hover:underline">
-                            {property.owner.phone}
+                        {publisher.phone ? (
+                          <a href={`tel:${publisher.phone}`} className="font-medium text-brand-700 hover:underline">
+                            {publisher.phone}
                           </a>
                         ) : (
                           <span className="text-ink-400">{t("phoneNotProvided")}</span>
@@ -211,7 +291,20 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: id } = await params;
-  const property = await getProperty(id);
+  const listing = await getListing(id);
 
-  return { title: property ? `${property.title} — IMOVA` : "IMOVA" };
+  return { title: listing ? `${listing.title} — IMOVA` : "IMOVA" };
+}
+
+function FactGrid({ facts }: { facts: { label: string; value: string }[] }) {
+  return (
+    <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {facts.map((fact) => (
+        <div key={fact.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3">
+          <dt className="text-[11px] uppercase tracking-wide text-ink-400">{fact.label}</dt>
+          <dd className="mt-1 text-sm font-semibold text-ink-900">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }

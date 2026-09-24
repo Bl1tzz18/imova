@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 import type { MapPoint } from "@/components/property/PropertyMapFull";
 
 const PropertyMapFull = dynamic(
@@ -54,10 +54,10 @@ function GoogleMapsLink({ lat, lng, label, className }: { lat: number; lng: numb
 // map-rendering setup needed for this one-marker preview on the listing detail page. Unlike
 // /map (already a full-page explorer), this preview is small by default, so it gets its own
 // expand-to-modal control; PropertyMapFull itself stays unaware of fullscreen state.
-export function PropertyLocationPreview({ property, lat, lng }: { property: Property; lat: number; lng: number }) {
+export function PropertyLocationPreview({ listing, lat, lng }: { listing: Listing; lat: number; lng: number }) {
   const t = useTranslations("PropertyDetail");
   const [isExpanded, setIsExpanded] = useState(false);
-  const points: MapPoint[] = [{ property, lat, lng }];
+  const points: MapPoint[] = [{ listing, lat, lng }];
 
   const close = useCallback(() => setIsExpanded(false), []);
 
@@ -82,7 +82,7 @@ export function PropertyLocationPreview({ property, lat, lng }: { property: Prop
     <>
       <div className="relative isolate">
         <div className="h-56 overflow-hidden rounded-2xl border border-ink-100">
-          <PropertyMapFull points={points} selectedId={property.id} onSelect={() => {}} />
+          <PropertyMapFull points={points} selectedId={listing.id} onSelect={() => {}} />
         </div>
         <button
           type="button"
@@ -107,7 +107,7 @@ export function PropertyLocationPreview({ property, lat, lng }: { property: Prop
           className="fixed inset-0 z-50 flex flex-col bg-black/70 p-4"
           role="dialog"
           aria-modal="true"
-          aria-label={property.title}
+          aria-label={listing.title}
           onClick={close}
         >
           <div
@@ -132,7 +132,7 @@ export function PropertyLocationPreview({ property, lat, lng }: { property: Prop
               </button>
             </div>
             <div className="relative isolate flex-1">
-              <PropertyMapFull points={points} selectedId={property.id} onSelect={() => {}} />
+              <PropertyMapFull points={points} selectedId={listing.id} onSelect={() => {}} />
             </div>
           </div>
         </div>

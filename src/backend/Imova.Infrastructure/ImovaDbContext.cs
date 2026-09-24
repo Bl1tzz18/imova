@@ -1,9 +1,11 @@
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
+using Imova.Domain.Listings;
 using Imova.Domain.Locations;
-using Imova.Domain.Media;
 using Imova.Domain.Properties;
+using Imova.Domain.Publishers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,16 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<Property> Properties => Set<Property>();
 
+    public DbSet<PropertyAmenity> PropertyAmenities => Set<PropertyAmenity>();
+
+    public DbSet<Amenity> Amenities => Set<Amenity>();
+
+    public DbSet<Listing> Listings => Set<Listing>();
+
+    public DbSet<Publisher> Publishers => Set<Publisher>();
+
+    public DbSet<Photo> Photos => Set<Photo>();
+
     public DbSet<PropertyLocation> PropertyLocations => Set<PropertyLocation>();
 
     public DbSet<Raion> Raioane => Set<Raion>();
@@ -28,8 +40,6 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<Localitate> Localitati => Set<Localitate>();
 
     public DbSet<ChisinauSector> ChisinauSectors => Set<ChisinauSector>();
-
-    public DbSet<PropertyMedia> PropertyMedias => Set<PropertyMedia>();
 
     public DbSet<Favorite> Favorites => Set<Favorite>();
 

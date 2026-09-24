@@ -147,7 +147,6 @@
     "descriptionLabel": "Описание",
     "descriptionPlaceholder": "Опишите объект: планировка, состояние, удобства, район...",
     "propertyTypeLabel": "Тип недвижимости",
-    "listingTypeLabel": "Тип объявления",
     "priceLabel": "Цена",
     "currencyLabel": "Валюта",
     "raionLabel": "Район / Муниципий",
@@ -171,17 +170,9 @@
     "buildingNumberLabel": "Номер",
     "buildingNumberPlaceholder": "напр., 44",
     "areaLabel": "Площадь (м²)",
-    "roomsLabel": "Комнаты",
-    "bathroomsLabel": "Санузлы",
-    "floorLabel": "Этаж",
-    "totalFloorsLabel": "Этажей всего",
     "yearBuiltLabel": "Год постройки",
-    "furnishedLabel": "Меблировка",
-    "parkingAvailableLabel": "Парковка",
     "petsAllowedLabel": "Можно с животными",
     "notSpecified": "Не указано",
-    "yes": "Да",
-    "no": "Нет",
     "draftNotice": "После публикации объявление отправляется на проверку и станет видимым сразу после одобрения — обычно вскоре после отправки.",
     "publish": "Опубликовать объявление",
     "saving": "Сохранение...",
@@ -200,7 +191,20 @@
     "successTitle": "Ваше объявление отправлено на проверку",
     "successSubtitle": "Оно станет видимым сразу после одобрения — обычно вскоре после отправки. Статус можно отслеживать в разделе «Мои объявления».",
     "successViewMine": "Посмотреть мои объявления",
-    "successBackHome": "На главную"
+    "successBackHome": "На главную",
+    "areaInAri": "≈ {ari} соток",
+    "conditionLabel": "Состояние",
+    "amenitiesLabel": "Удобства",
+    "isNegotiableLabel": "Цена договорная",
+    "rentalTermsHeading": "Условия аренды",
+    "furnishedStatusLabel": "Меблировка",
+    "minLeasePeriodLabel": "Минимальный срок (мес.)",
+    "securityDepositLabel": "Залог",
+    "availableFromLabel": "Доступно с",
+    "utilitiesIncludedLabel": "Коммунальные услуги включены",
+    "publishAsLabel": "Опубликовать от имени",
+    "publisherIndividual": "Частное лицо",
+    "publisherAgency": "Агентство"
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
@@ -213,7 +217,6 @@
     "floorOf": "{floor} из {totalFloors}",
     "yearBuilt": "Год постройки",
     "furnished": "Меблировано",
-    "parkingAvailable": "Парковка",
     "petsAllowed": "Можно с животными",
     "yes": "Да",
     "no": "Нет",
@@ -230,12 +233,23 @@
     "openInGoogleMaps": "Открыть в Google Картах",
     "expandMap": "Развернуть карту",
     "closeMap": "Закрыть карту",
-  "locationPending": "Точное местоположение уточняется.",
+    "locationPending": "Точное местоположение уточняется.",
     "photoCount": "{count, plural, one {# фото} few {# фото} many {# фото} other {# фото}}",
     "photoCounter": "{current} из {total}",
     "closeGallery": "Закрыть галерею",
     "previousPhoto": "Предыдущее фото",
-    "nextPhoto": "Следующее фото"
+    "nextPhoto": "Следующее фото",
+    "condition": "Состояние",
+    "amenities": "Удобства",
+    "rentalTerms": "Условия аренды",
+    "minLeasePeriod": "Минимальный срок",
+    "months": "{count, plural, one {# месяц} few {# месяца} many {# месяцев} other {# месяца}}",
+    "securityDeposit": "Залог",
+    "availableFrom": "Доступно с",
+    "utilitiesIncluded": "Коммунальные включены",
+    "approxEur": "≈ {price}",
+    "negotiable": "Торг уместен",
+    "agency": "Агентство"
   },
   "DashboardPage": {
     "title": "Панель управления"
@@ -340,7 +354,8 @@
     "emptyTitle": "У вас пока нет объявлений",
     "emptyBody": "Опубликуйте своё первое объявление, и оно появится здесь.",
     "emptyTitleFiltered": "Нет объявлений в этой категории",
-    "emptyBodyFiltered": "Попробуйте другую вкладку или вернитесь позже."
+    "emptyBodyFiltered": "Попробуйте другую вкладку или вернитесь позже.",
+    "statusExpired": "Истекло"
   },
   "EditListingPage": {
     "title": "Редактировать объявление",
@@ -370,5 +385,134 @@
     "cancel": "Отмена",
     "reasonRequired": "Причина обязательна.",
     "actionError": "Произошла ошибка. Попробуйте снова."
+  },
+  "Condition": {
+    "New": "Новое",
+    "Renovated": "С ремонтом",
+    "NeedsRepair": "Требует ремонта",
+    "GrayStructure": "Серый вариант",
+    "RedStructure": "Коробка без отделки"
+  },
+  "FurnishedStatus": {
+    "Unfurnished": "Без мебели",
+    "PartiallyFurnished": "Частично меблировано",
+    "Furnished": "Меблировано"
+  },
+  "Amenity": {
+    "parking": "Парковка",
+    "balcony": "Балкон/Лоджия",
+    "elevator": "Лифт",
+    "air_conditioning": "Кондиционер",
+    "furnished": "Мебель",
+    "garage": "Гараж",
+    "yard": "Двор",
+    "autonomous_heating": "Автономное отопление",
+    "centralized_heating": "Центральное отопление",
+    "wheelchair_access": "Доступ для колясок",
+    "storage_room": "Кладовая",
+    "video_surveillance": "Видеонаблюдение",
+    "internet": "Интернет"
+  },
+  "Attributes": {
+    "choose": "Выберите",
+    "notSpecified": "Не указано",
+    "rooms": {
+      "label": "Комнаты"
+    },
+    "floor": {
+      "label": "Этаж"
+    },
+    "totalFloors": {
+      "label": "Всего этажей"
+    },
+    "bathrooms": {
+      "label": "Санузлы"
+    },
+    "heatingType": {
+      "label": "Отопление",
+      "options": {
+        "Centralized": "Центральное",
+        "Autonomous": "Автономное",
+        "Other": "Другое"
+      }
+    },
+    "landAreaM2": {
+      "label": "Площадь участка (м²)"
+    },
+    "houseFloors": {
+      "label": "Этажность"
+    },
+    "constructionType": {
+      "label": "Материал стен",
+      "options": {
+        "Brick": "Кирпич",
+        "Stone": "Камень",
+        "Wood": "Дерево",
+        "Other": "Другое"
+      }
+    },
+    "utilities": {
+      "label": "Коммуникации"
+    },
+    "landDesignation": {
+      "label": "Назначение земли",
+      "options": {
+        "Intravilan": "В черте населённого пункта",
+        "Extravilan": "За чертой населённого пункта",
+        "Agricultural": "Сельхозназначения",
+        "Construction": "Под строительство"
+      }
+    },
+    "roadAccess": {
+      "label": "Подъезд",
+      "options": {
+        "Paved": "Асфальт",
+        "Gravel": "Гравий",
+        "None": "Нет"
+      }
+    },
+    "utilitiesAtBoundary": {
+      "label": "Коммуникации по границе"
+    },
+    "spaceType": {
+      "label": "Тип помещения",
+      "options": {
+        "Office": "Офис",
+        "Retail": "Торговое",
+        "Warehouse": "Склад",
+        "HoReCa": "HoReCa"
+      }
+    },
+    "mainStreetAccess": {
+      "label": "Выход на главную улицу"
+    },
+    "electricalPower": {
+      "label": "Электромощность",
+      "placeholder": "напр.: 380 В, три фазы"
+    },
+    "garageType": {
+      "label": "Тип гаража",
+      "options": {
+        "Underground": "Подземный",
+        "Box": "Бокс",
+        "Individual": "Отдельный"
+      }
+    },
+    "privateOrSharedBathroom": {
+      "label": "Санузел",
+      "options": {
+        "Private": "Отдельный",
+        "Shared": "Общий"
+      }
+    },
+    "roommateCount": {
+      "label": "Соседи"
+    },
+    "utilityFlags": {
+      "water": "Вода",
+      "sewage": "Канализация",
+      "gas": "Газ",
+      "electricity": "Электричество"
+    }
   }
 }

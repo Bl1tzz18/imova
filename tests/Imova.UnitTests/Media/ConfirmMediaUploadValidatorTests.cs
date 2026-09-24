@@ -7,22 +7,22 @@ public class ConfirmMediaUploadValidatorTests
     private readonly ConfirmMediaUploadValidator _validator = new();
 
     [Fact]
-    public void Validate_WithBlobNameScopedUnderPropertyId_HasNoErrors()
+    public void Validate_WithBlobNameScopedUnderListingId_HasNoErrors()
     {
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg"));
 
         Assert.True(result.IsValid);
     }
 
     [Fact]
-    public void Validate_WithEmptyPropertyId_HasError()
+    public void Validate_WithEmptyListingId_HasError()
     {
         var result = _validator.Validate(new ConfirmMediaUploadCommand(Guid.Empty, "photo.jpg"));
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.PropertyId));
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.ListingId));
     }
 
     [Fact]
@@ -35,12 +35,12 @@ public class ConfirmMediaUploadValidatorTests
     }
 
     [Fact]
-    public void Validate_WithBlobNameScopedUnderADifferentPropertyId_HasError()
+    public void Validate_WithBlobNameScopedUnderADifferentListingId_HasError()
     {
-        var propertyId = Guid.NewGuid();
-        var otherPropertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
+        var otherListingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(propertyId, $"{otherPropertyId}/photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{otherListingId}/photo.jpg"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));
@@ -49,9 +49,9 @@ public class ConfirmMediaUploadValidatorTests
     [Fact]
     public void Validate_WithBlobNameNotScopedAtAll_HasError()
     {
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(propertyId, "photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, "photo.jpg"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));

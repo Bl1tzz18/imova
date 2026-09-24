@@ -35,7 +35,7 @@ public class LayeringTests
     [Fact]
     public void Application_Should_Not_DependOn_Api()
     {
-        var result = Types.InAssembly(typeof(Application.Features.Properties.PropertyMapping).Assembly)
+        var result = Types.InAssembly(typeof(Application.Features.Listings.ListingMapping).Assembly)
             .Should()
             .NotHaveDependencyOn(ApiNamespace)
             .GetResult();
@@ -46,7 +46,7 @@ public class LayeringTests
     [Fact]
     public void Application_Should_Not_DependOn_Infrastructure()
     {
-        var result = Types.InAssembly(typeof(Application.Features.Properties.PropertyMapping).Assembly)
+        var result = Types.InAssembly(typeof(Application.Features.Listings.ListingMapping).Assembly)
             .Should()
             .NotHaveDependencyOn(InfrastructureNamespace)
             .GetResult();

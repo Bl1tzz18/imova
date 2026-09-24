@@ -1,6 +1,8 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Auth.GoogleLogin;
+using Imova.Domain.Publishers;
+using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -12,14 +14,55 @@ public class GoogleLoginHandlerTests
         FakeUserStore store,
         FakeGoogleTokenValidator googleTokenValidator,
         FakeExternalImageFetcher? imageFetcher = null,
-        FakeBlobStorageService? blobStorageService = null) =>
+        FakeBlobStorageService? blobStorageService = null,
+        ImovaDbContext? dbContext = null) =>
         new(
             googleTokenValidator,
             TestUserManagerFactory.Create(store),
             new FakeJwtTokenGenerator(),
             imageFetcher ?? new FakeExternalImageFetcher(),
             blobStorageService ?? new FakeBlobStorageService(),
+            dbContext ?? TestDbContextFactory.Create(),
             NullLogger<GoogleLoginHandler>.Instance);
+
+    [Fact]
+    public async Task Handle_WithNoExistingAccount_CreatesAnIndividualPublisherForTheNewUser()
+    {
+        var store = new FakeUserStore();
+        var validator = new FakeGoogleTokenValidator
+        {
+            UserToReturn = new GoogleUserInfo("new.user@example.com", "New User", null),
+        };
+        await using var dbContext = TestDbContextFactory.Create();
+        var handler = CreateHandler(store, validator, dbContext: dbContext);
+
+        await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+
+        var publisher = Assert.Single(dbContext.Publishers);
+        Assert.Equal(Assert.Single(store.Users).Id, publisher.UserId);
+        Assert.Equal(PublisherType.Individual, publisher.PublisherType);
+        Assert.Equal("New User", publisher.DisplayName);
+        Assert.Equal("new.user@example.com", publisher.Email);
+        // Google accounts have no phone number until the user completes their profile.
+        Assert.Null(publisher.Phone);
+    }
+
+    [Fact]
+    public async Task Handle_WithExistingAccount_DoesNotCreateAnotherPublisher()
+    {
+        var store = new FakeUserStore();
+        store.SeedUser("existing@example.com", emailConfirmed: true);
+        var validator = new FakeGoogleTokenValidator
+        {
+            UserToReturn = new GoogleUserInfo("existing@example.com", "Existing", null),
+        };
+        await using var dbContext = TestDbContextFactory.Create();
+        var handler = CreateHandler(store, validator, dbContext: dbContext);
+
+        await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+
+        Assert.Empty(dbContext.Publishers);
+    }
 
     [Fact]
     public async Task Handle_WithNoExistingAccount_CreatesConfirmedUserAndAssignsUserRole()

@@ -1,5 +1,4 @@
 using Imova.Domain.Locations;
-using Imova.Domain.Properties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,10 +9,6 @@ public class PropertyLocationConfiguration : IEntityTypeConfiguration<PropertyLo
     public void Configure(EntityTypeBuilder<PropertyLocation> builder)
     {
         builder.HasKey(l => l.Id);
-
-        builder.Property(l => l.PropertyId).IsRequired();
-        builder.HasOne<Property>().WithMany().HasForeignKey(l => l.PropertyId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasIndex(l => l.PropertyId).IsUnique();
 
         builder.Property(l => l.Country).IsRequired().HasMaxLength(100);
         builder.Property(l => l.Region).HasMaxLength(100);

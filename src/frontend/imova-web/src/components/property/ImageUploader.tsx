@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { confirmMediaUpload, requestUploadUrl, uploadFileToBlob } from "@/lib/api/media";
-import { deletePropertyMedia } from "@/lib/property/actions";
-import type { PropertyMedia } from "@/types/property";
+import { deleteListingPhoto } from "@/lib/property/actions";
+import type { Photo } from "@/types/listing";
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif"];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -28,40 +28,40 @@ type UploadItem = {
   status: "uploading" | "done" | "deleting" | "error";
   error?: string;
   // Set once the row is actually persisted on the backend — either pre-loaded from an existing
-  // listing's media (see `initialMedia`) or after a fresh upload's confirmMediaUpload resolves.
-  // A remove on an item with a mediaId has to call the backend (deletePropertyMedia); a remove
+  // listing's photos (see `initialPhotos`) or after a fresh upload's confirmMediaUpload resolves.
+  // A remove on an item with a mediaId has to call the backend (deleteListingPhoto); a remove
   // on one still uploading/errored (no row exists yet) is purely local state.
   mediaId?: string;
 };
 
 // Uploads each selected image straight to Blob Storage via a short-lived SAS URL (see
-// lib/api/media.ts), then tells the backend to confirm+validate it. `initialMedia` seeds already-
+// lib/api/media.ts), then tells the backend to confirm+validate it. `initialPhotos` seeds already-
 // uploaded photos (editing an existing listing) as already-"done" items so they show up alongside
 // anything newly added, and can be removed the same way.
 //
 // `deferDeletes` (edit mode only — see PropertyForm.tsx): the listing being edited already exists
 // and is live, so removing a photo must not take effect until the surrounding form is actually
-// saved. Instead of calling deletePropertyMedia immediately, the item is hidden locally and its
+// saved. Instead of calling deleteListingPhoto immediately, the item is hidden locally and its
 // id is recorded as a hidden `deleteMediaIds` field (rendered inside the same <form>, so it rides
-// along in the real submit's FormData); updatePropertyDetails only deletes those media rows after
-// the property update itself has succeeded. Create mode leaves this off — the property doesn't
+// along in the real submit's FormData); updateListingDetails only deletes those photo rows after
+// the listing update itself has succeeded. Create mode leaves this off — the listing doesn't
 // exist yet, so there's nothing "live" to protect, and immediate cleanup avoids leaking rows/blobs
 // for photos the owner uploaded then reconsidered before ever publishing.
 export function ImageUploader({
-  propertyId,
-  initialMedia,
+  listingId,
+  initialPhotos,
   deferDeletes,
 }: {
-  propertyId: string;
-  initialMedia?: PropertyMedia[];
+  listingId: string;
+  initialPhotos?: Photo[];
   deferDeletes?: boolean;
 }) {
   const [items, setItems] = useState<UploadItem[]>(
     () =>
-      initialMedia?.map((media) => ({
-        id: media.id,
-        mediaId: media.id,
-        previewUrl: media.url,
+      initialPhotos?.map((photo) => ({
+        id: photo.id,
+        mediaId: photo.id,
+        previewUrl: photo.url,
         status: "done" as const,
       })) ?? [],
   );
@@ -96,9 +96,9 @@ export function ImageUploader({
 
       void (async () => {
         try {
-          const { uploadUrl, blobName } = await requestUploadUrl(propertyId, extension);
+          const { uploadUrl, blobName } = await requestUploadUrl(listingId, extension);
           await uploadFileToBlob(uploadUrl, file);
-          const confirmed = await confirmMediaUpload(propertyId, blobName);
+          const confirmed = await confirmMediaUpload(listingId, blobName);
           setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: "done", mediaId: confirmed.id } : it)));
         } catch {
           setItems((prev) =>
@@ -126,7 +126,7 @@ export function ImageUploader({
     setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, status: "deleting" } : it)));
 
     void (async () => {
-      const result = await deletePropertyMedia(propertyId, item.mediaId!);
+      const result = await deleteListingPhoto(listingId, item.mediaId!);
       if (result.error) {
         setItems((prev) =>
           prev.map((it) => (it.id === item.id ? { ...it, status: "error", error: result.error } : it))

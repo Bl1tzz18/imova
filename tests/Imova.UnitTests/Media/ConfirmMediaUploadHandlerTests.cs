@@ -1,7 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Media.ConfirmMediaUpload;
-using Imova.Domain.Media;
+using Imova.Domain.Listings;
 using Imova.UnitTests.TestSupport;
 
 namespace Imova.UnitTests.Media;
@@ -20,13 +20,13 @@ public class ConfirmMediaUploadHandlerTests
             BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
         };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
-        var blobName = $"{propertyId}/photo.jpg";
+        var listingId = Guid.NewGuid();
+        var blobName = $"{listingId}/photo.jpg";
 
-        var result = await handler.Handle(new ConfirmMediaUploadCommand(propertyId, blobName), CancellationToken.None);
+        var result = await handler.Handle(new ConfirmMediaUploadCommand(listingId, blobName), CancellationToken.None);
 
         Assert.Equal("image/png", result.ContentType);
-        Assert.Single(dbContext.PropertyMedias);
+        Assert.Single(dbContext.Photos);
     }
 
     [Fact]
@@ -38,14 +38,14 @@ public class ConfirmMediaUploadHandlerTests
             BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
         };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
-        var blobName = $"{propertyId}/photo.jpg";
+        var listingId = Guid.NewGuid();
+        var blobName = $"{listingId}/photo.jpg";
 
-        var first = await handler.Handle(new ConfirmMediaUploadCommand(propertyId, blobName), CancellationToken.None);
-        var second = await handler.Handle(new ConfirmMediaUploadCommand(propertyId, blobName), CancellationToken.None);
+        var first = await handler.Handle(new ConfirmMediaUploadCommand(listingId, blobName), CancellationToken.None);
+        var second = await handler.Handle(new ConfirmMediaUploadCommand(listingId, blobName), CancellationToken.None);
 
         Assert.Equal(first.Id, second.Id);
-        Assert.Single(dbContext.PropertyMedias);
+        Assert.Single(dbContext.Photos);
     }
 
     [Fact]
@@ -54,12 +54,12 @@ public class ConfirmMediaUploadHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var blobStorage = new FakeBlobStorageService { BlobInfoToReturn = null };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<ValidationException>(() => handler.Handle(
-            new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/photo.jpg"), CancellationToken.None));
+            new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg"), CancellationToken.None));
 
-        Assert.Empty(dbContext.PropertyMedias);
+        Assert.Empty(dbContext.Photos);
     }
 
     [Fact]
@@ -68,15 +68,15 @@ public class ConfirmMediaUploadHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var blobStorage = new FakeBlobStorageService
         {
-            BlobInfoToReturn = new UploadedBlobInfo(PropertyMedia.MaxFileSizeBytes + 1, "image/png", PngHeader),
+            BlobInfoToReturn = new UploadedBlobInfo(Photo.MaxFileSizeBytes + 1, "image/png", PngHeader),
         };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<ValidationException>(() => handler.Handle(
-            new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/photo.jpg"), CancellationToken.None));
+            new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg"), CancellationToken.None));
 
-        Assert.Empty(dbContext.PropertyMedias);
+        Assert.Empty(dbContext.Photos);
     }
 
     [Fact]
@@ -88,16 +88,16 @@ public class ConfirmMediaUploadHandlerTests
             BlobInfoToReturn = new UploadedBlobInfo(1024, "text/plain", [0x00, 0x01, 0x02]),
         };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
         await Assert.ThrowsAsync<ValidationException>(() => handler.Handle(
-            new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/photo.jpg"), CancellationToken.None));
+            new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg"), CancellationToken.None));
 
-        Assert.Empty(dbContext.PropertyMedias);
+        Assert.Empty(dbContext.Photos);
     }
 
     [Fact]
-    public async Task Handle_AssignsIncrementingSortOrderPerProperty()
+    public async Task Handle_AssignsIncrementingSortOrderPerListing()
     {
         await using var dbContext = TestDbContextFactory.Create();
         var blobStorage = new FakeBlobStorageService
@@ -105,12 +105,30 @@ public class ConfirmMediaUploadHandlerTests
             BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
         };
         var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var first = await handler.Handle(new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/first.jpg"), CancellationToken.None);
-        var second = await handler.Handle(new ConfirmMediaUploadCommand(propertyId, $"{propertyId}/second.jpg"), CancellationToken.None);
+        var first = await handler.Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/first.jpg"), CancellationToken.None);
+        var second = await handler.Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/second.jpg"), CancellationToken.None);
 
         Assert.Equal(0, first.SortOrder);
         Assert.Equal(1, second.SortOrder);
+    }
+
+    [Fact]
+    public async Task Handle_MakesOnlyTheListingsFirstPhotoPrimary()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var blobStorage = new FakeBlobStorageService
+        {
+            BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
+        };
+        var handler = new ConfirmMediaUploadHandler(dbContext, blobStorage);
+        var listingId = Guid.NewGuid();
+
+        var first = await handler.Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/first.jpg"), CancellationToken.None);
+        var second = await handler.Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/second.jpg"), CancellationToken.None);
+
+        Assert.True(first.IsPrimary);
+        Assert.False(second.IsPrimary);
     }
 }

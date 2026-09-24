@@ -9,7 +9,7 @@ public class RemoveFavoriteHandler(IApplicationDbContext dbContext) : IRequestHa
     public async Task Handle(RemoveFavoriteCommand request, CancellationToken cancellationToken)
     {
         var favorite = await dbContext.Favorites
-            .FirstOrDefaultAsync(f => f.UserId == request.UserId && f.PropertyId == request.PropertyId, cancellationToken);
+            .FirstOrDefaultAsync(f => f.UserId == request.UserId && f.ListingId == request.ListingId, cancellationToken);
 
         if (favorite is not null)
         {

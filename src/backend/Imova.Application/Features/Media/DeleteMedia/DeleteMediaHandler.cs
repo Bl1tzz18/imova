@@ -1,5 +1,5 @@
-using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,32 +10,44 @@ public class DeleteMediaHandler(IApplicationDbContext dbContext, IBlobStorageSer
 {
     public async Task<bool> Handle(DeleteMediaCommand request, CancellationToken cancellationToken)
     {
-        var media = await dbContext.PropertyMedias
-            .FirstOrDefaultAsync(m => m.Id == request.MediaId && m.PropertyId == request.PropertyId, cancellationToken);
+        var photo = await dbContext.Photos
+            .FirstOrDefaultAsync(p => p.Id == request.MediaId && p.ListingId == request.ListingId, cancellationToken);
 
-        if (media is null)
+        if (photo is null)
         {
             return false;
         }
 
-        var property = await dbContext.Properties
+        // Photos uploaded for a listing that was never actually created have no owner to check
+        // against — treated as not found, same as before listings/publishers existed.
+        var listing = await dbContext.Listings
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == request.PropertyId, cancellationToken);
+            .FirstOrDefaultAsync(l => l.Id == request.ListingId, cancellationToken);
 
-        if (property is null)
+        if (listing is null)
         {
             return false;
         }
 
-        if (!request.IsAdmin && property.OwnerId != request.RequestingUserId)
+        await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
+        dbContext.Photos.Remove(photo);
+
+        // Hand the cover-image role on to the next photo in order, so a listing with photos
+        // always has one.
+        if (photo.IsPrimary)
         {
-            throw new ForbiddenAccessException();
+            var next = await dbContext.Photos
+                .Where(p => p.ListingId == request.ListingId && p.Id != photo.Id)
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+            next?.MarkAsPrimary();
         }
 
-        dbContext.PropertyMedias.Remove(media);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await blobStorageService.DeleteAsync(media.BlobName, cancellationToken);
+        await blobStorageService.DeleteAsync(photo.BlobName, cancellationToken);
 
         return true;
     }

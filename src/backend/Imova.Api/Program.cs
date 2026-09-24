@@ -2,21 +2,24 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Imova.Api.Features.Amenities;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
+using Imova.Api.Features.Listings;
 using Imova.Api.Features.Locations;
 using Imova.Api.Features.Media;
-using Imova.Api.Features.Properties;
+using Imova.Api.Features.Publishers;
 using Imova.Api.Features.Users;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
-using Imova.Application.Features.Properties.GetProperties;
+using Imova.Application.Features.Listings.GetListings;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
 using Imova.Infrastructure.Locations;
+using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -140,13 +143,20 @@ builder.Services.AddHttpClient<IStreetSuggestionService, PhotonStreetSuggestionS
 // reseed, which already implies a restart.
 builder.Services.AddMemoryCache();
 
+// Fixed, configurable EUR rates for Price.PriceEur (see ExchangeRateOptions) — defaults apply when
+// the "ExchangeRates" section is absent.
+var exchangeRateOptions = builder.Configuration.GetSection(ExchangeRateOptions.SectionName).Get<ExchangeRateOptions>()
+    ?? new ExchangeRateOptions();
+builder.Services.AddSingleton(exchangeRateOptions);
+builder.Services.AddSingleton<IExchangeRateProvider, ConfiguredExchangeRateProvider>();
+
 builder.Services.AddMediatR(cfg =>
 {
-    cfg.RegisterServicesFromAssemblyContaining<GetPropertiesQuery>();
+    cfg.RegisterServicesFromAssemblyContaining<GetListingsQuery>();
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-builder.Services.AddValidatorsFromAssemblyContaining<GetPropertiesQuery>();
+builder.Services.AddValidatorsFromAssemblyContaining<GetListingsQuery>();
 
 var app = builder.Build();
 
@@ -210,7 +220,9 @@ app.UseExceptionHandler(handler =>
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-app.MapPropertiesEndpoints();
+app.MapListingEndpoints();
+app.MapPublisherEndpoints();
+app.MapAmenityEndpoints();
 app.MapMediaEndpoints();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();

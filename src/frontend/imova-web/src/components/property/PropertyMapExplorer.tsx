@@ -7,7 +7,8 @@ import { ClusterOverflowPanel } from "@/components/property/ClusterOverflowPanel
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { cn } from "@/lib/utils/cn";
 import { formatPrice } from "@/lib/utils/format";
-import type { Property } from "@/types/property";
+import { coverPhoto } from "@/lib/listing/view";
+import type { Listing } from "@/types/listing";
 import type { MapPoint } from "@/components/property/PropertyMapFull";
 
 const PropertyMapFull = dynamic(
@@ -15,7 +16,7 @@ const PropertyMapFull = dynamic(
   { ssr: false, loading: () => <div className="h-full w-full animate-pulse bg-ink-100" /> },
 );
 
-export function PropertyMapExplorer({ properties }: { properties: Property[] }) {
+export function PropertyMapExplorer({ listings }: { listings: Listing[] }) {
   const t = useTranslations("MapPage");
   const tType = useTranslations("PropertyType");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -23,10 +24,10 @@ export function PropertyMapExplorer({ properties }: { properties: Property[] }) 
 
   const points = useMemo<MapPoint[]>(
     () =>
-      properties
-        .filter((property) => property.location?.latitude != null && property.location?.longitude != null)
-        .map((property) => ({ property, lat: property.location!.latitude!, lng: property.location!.longitude! })),
-    [properties],
+      listings
+        .filter((listing) => listing.property.location?.latitude != null && listing.property.location?.longitude != null)
+        .map((listing) => ({ listing, lat: listing.property.location!.latitude!, lng: listing.property.location!.longitude! })),
+    [listings],
   );
 
   const hasOverflow = overflowPoints != null && overflowPoints.length > 0;
@@ -41,28 +42,28 @@ export function PropertyMapExplorer({ properties }: { properties: Property[] }) 
       </div>
 
       <ul className="divide-y divide-ink-100">
-        {points.map(({ property }) => (
-          <li key={property.id}>
+        {points.map(({ listing }) => (
+          <li key={listing.id}>
             <button
               type="button"
-              onClick={() => setSelectedId(property.id)}
+              onClick={() => setSelectedId(listing.id)}
               className={cn(
                 "flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-ink-50",
-                selectedId === property.id && "bg-brand-50",
+                selectedId === listing.id && "bg-brand-50",
               )}
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-800">
-                {property.media[0] ? (
+                {coverPhoto(listing) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={property.media[0].url} alt="" className="h-full w-full object-cover" />
+                  <img src={coverPhoto(listing)!.url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <PropertyIcon type={property.propertyType} className="h-6 w-6 text-white/50" />
+                  <PropertyIcon type={listing.property.propertyType} className="h-6 w-6 text-white/50" />
                 )}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-ink-900">{property.title}</span>
+                <span className="block truncate text-sm font-medium text-ink-900">{listing.title}</span>
                 <span className="block text-xs text-ink-500">
-                  {formatPrice(property.price, property.currency)} · {tType(property.propertyType)}
+                  {formatPrice(listing.price.amount, listing.price.currency)} · {tType(listing.property.propertyType)}
                 </span>
               </span>
             </button>

@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
 // Leaflet touches `window` on import, so it can only ever run in the browser — dynamic import
 // with ssr:false is only valid from a Client Component, hence this wrapper around the server-fetched
@@ -13,7 +13,7 @@ const PropertyMapPreview = dynamic(
   { ssr: false, loading: () => <div className="h-full w-full animate-pulse bg-ink-100" /> },
 );
 
-export function PropertyMapPromo({ properties }: { properties: Property[] }) {
+export function PropertyMapPromo({ listings }: { listings: Listing[] }) {
   const t = useTranslations("MapPromo");
 
   return (
@@ -22,7 +22,7 @@ export function PropertyMapPromo({ properties }: { properties: Property[] }) {
       className="group flex flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)] sm:flex-row sm:items-stretch"
     >
       <div className="relative h-48 w-full shrink-0 overflow-hidden sm:h-auto sm:w-2/5">
-        <PropertyMapPreview properties={properties} />
+        <PropertyMapPreview listings={listings} />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white/10 via-transparent to-transparent sm:bg-gradient-to-r" />
       </div>
 

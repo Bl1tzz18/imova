@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import type { PropertyMedia } from "@/types/property";
+import type { Photo } from "@/types/listing";
 
 function ChevronIcon({ direction, className }: { direction: "left" | "right"; className?: string }) {
   return (
@@ -21,7 +21,7 @@ export function PropertyGallery({
   title,
   propertyType,
 }: {
-  media: PropertyMedia[];
+  media: Photo[];
   title: string;
   propertyType: string;
 }) {

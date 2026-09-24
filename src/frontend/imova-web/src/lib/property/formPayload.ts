@@ -1,7 +1,8 @@
-// Shared by the create and edit flows (see PropertyForm.tsx) — both submit the exact same field
-// set, just to different endpoints (POST vs PUT), so the FormData -> JSON mapping lives in one
-// place rather than being duplicated between app/properties/new/actions.ts and
-// lib/property/actions.ts.
+import { readAttributes } from "@/lib/property/attributeSchema";
+
+// Shared by the create and edit flows (see PropertyForm.tsx) — both submit the same Property +
+// Listing field set in one payload, just to different endpoints (POST vs PUT), so the
+// FormData -> JSON mapping lives in one place.
 
 function optionalNumber(value: FormDataEntryValue | null): number | null {
   if (value === null || value === "") return null;
@@ -9,34 +10,46 @@ function optionalNumber(value: FormDataEntryValue | null): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function optionalBoolean(value: FormDataEntryValue | null): boolean | null {
-  if (value === "true") return true;
-  if (value === "false") return false;
-  return null;
+function optionalString(value: FormDataEntryValue | null): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
-export function buildPropertyPayload(formData: FormData) {
+function readRentalDetails(formData: FormData) {
   return {
-    title: formData.get("title"),
-    description: formData.get("description"),
-    propertyType: formData.get("propertyType"),
-    listingType: formData.get("listingType"),
-    price: Number(formData.get("price")),
-    currency: formData.get("currency"),
+    furnishedStatus: optionalString(formData.get("rental.furnishedStatus")) ?? "Unfurnished",
+    minLeasePeriodMonths: optionalNumber(formData.get("rental.minLeasePeriodMonths")),
+    securityDepositAmount: optionalNumber(formData.get("rental.securityDepositAmount")),
+    availableFrom: optionalString(formData.get("rental.availableFrom")),
+    utilitiesIncluded: formData.get("rental.utilitiesIncluded") === "true",
+    petsAllowed: formData.get("rental.petsAllowed") === "true",
+  };
+}
+
+export function buildListingPayload(formData: FormData) {
+  const propertyType = String(formData.get("propertyType"));
+  const transactionType = formData.get("transactionType");
+
+  return {
+    // Property (the physical asset)
+    propertyType,
+    totalAreaM2: Number(formData.get("totalAreaM2")),
+    yearBuilt: optionalNumber(formData.get("yearBuilt")),
+    condition: optionalString(formData.get("condition")),
+    typeSpecificAttributes: readAttributes(propertyType, formData),
+    amenityIds: formData.getAll("amenityIds").filter((id): id is string => typeof id === "string"),
     country: formData.get("country"),
     raionId: formData.get("raionId"),
     localitateId: formData.get("localitateId") || null,
     chisinauSectorId: formData.get("chisinauSectorId") || null,
     streetAddress: formData.get("streetAddress") || null,
     buildingNumber: formData.get("buildingNumber") || null,
-    area: optionalNumber(formData.get("area")),
-    rooms: optionalNumber(formData.get("rooms")),
-    bathrooms: optionalNumber(formData.get("bathrooms")),
-    floor: optionalNumber(formData.get("floor")),
-    totalFloors: optionalNumber(formData.get("totalFloors")),
-    yearBuilt: optionalNumber(formData.get("yearBuilt")),
-    furnished: optionalBoolean(formData.get("furnished")),
-    parkingAvailable: optionalBoolean(formData.get("parkingAvailable")),
-    petsAllowed: optionalBoolean(formData.get("petsAllowed")),
+    // Listing (the offer)
+    transactionType,
+    title: formData.get("title"),
+    description: formData.get("description"),
+    price: Number(formData.get("price")),
+    currency: formData.get("currency"),
+    isNegotiable: formData.get("isNegotiable") === "true",
+    rentalDetails: transactionType === "Rent" ? readRentalDetails(formData) : null,
   };
 }

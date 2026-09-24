@@ -5,11 +5,11 @@ import { LinkButton } from "@/components/ui/Button";
 import { PropertyForm } from "@/app/properties/new/PropertyForm";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
-async function getProperty(id: string, token: string): Promise<Property | null> {
+async function getListing(id: string, token: string): Promise<Listing | null> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/properties/${id}`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -19,7 +19,7 @@ async function getProperty(id: string, token: string): Promise<Property | null> 
   }
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch property: ${res.status}`);
+    throw new Error(`Failed to fetch listing: ${res.status}`);
   }
 
   return res.json();
@@ -36,17 +36,18 @@ export default async function EditListingPage({
     redirect(`/login?next=${encodeURIComponent(`/my-listings/${id}/edit`)}`);
   }
 
-  const [property, profile, t] = await Promise.all([
-    getProperty(id, token),
+  const [listing, profile, t] = await Promise.all([
+    getListing(id, token),
     getCurrentUserProfile(),
     getTranslations("EditListingPage"),
   ]);
 
-  if (!property) {
+  if (!listing) {
     notFound();
   }
 
-  const isOwner = profile != null && (profile.id === property.ownerId || profile.roles.includes("Admin"));
+  // Ownership is via the listing's publisher — whichever of the user's publishers it went out under.
+  const isOwner = profile != null && (profile.id === listing.publisher.userId || profile.roles.includes("Admin"));
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -62,7 +63,7 @@ export default async function EditListingPage({
             <>
               <p className="mt-2 text-sm text-ink-500">{t("subtitle")}</p>
               <div className="mt-8">
-                <PropertyForm property={property} />
+                <PropertyForm listing={listing} />
               </div>
             </>
           ) : (

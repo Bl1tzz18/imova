@@ -6,31 +6,31 @@ namespace Imova.Domain.Favorites;
 // beyond its own fields, same shape as PropertyLocation).
 public sealed class Favorite : Entity
 {
-    private Favorite(Guid id, Guid userId, Guid propertyId) : base(id)
+    private Favorite(Guid id, Guid userId, Guid listingId) : base(id)
     {
         UserId = userId;
-        PropertyId = propertyId;
+        ListingId = listingId;
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
     public Guid UserId { get; private set; }
 
-    public Guid PropertyId { get; private set; }
+    public Guid ListingId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public static Favorite Create(Guid userId, Guid propertyId)
+    public static Favorite Create(Guid userId, Guid listingId)
     {
         if (userId == Guid.Empty)
         {
             throw new ArgumentException("UserId is required.", nameof(userId));
         }
 
-        if (propertyId == Guid.Empty)
+        if (listingId == Guid.Empty)
         {
-            throw new ArgumentException("PropertyId is required.", nameof(propertyId));
+            throw new ArgumentException("ListingId is required.", nameof(listingId));
         }
 
-        return new Favorite(Guid.NewGuid(), userId, propertyId);
+        return new Favorite(Guid.NewGuid(), userId, listingId);
     }
 }

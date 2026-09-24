@@ -1,12 +1,14 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
+using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Imova.Application.Features.Auth.UpdatePhoneNumber;
 
-public class UpdatePhoneNumberHandler(UserManager<ApplicationUser> userManager)
+public class UpdatePhoneNumberHandler(UserManager<ApplicationUser> userManager, IApplicationDbContext dbContext)
     : IRequestHandler<UpdatePhoneNumberCommand, AuthUserDto>
 {
     public async Task<AuthUserDto> Handle(UpdatePhoneNumberCommand request, CancellationToken cancellationToken)
@@ -16,6 +18,7 @@ public class UpdatePhoneNumberHandler(UserManager<ApplicationUser> userManager)
 
         user.PhoneNumber = request.PhoneNumber;
         await userManager.UpdateAsync(user);
+        await PublisherProvisioning.SyncIndividualAsync(dbContext, user, cancellationToken);
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         return new AuthUserDto(

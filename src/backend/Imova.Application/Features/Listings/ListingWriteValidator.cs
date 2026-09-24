@@ -1,0 +1,129 @@
+using FluentValidation;
+using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings.Attributes;
+using Imova.Domain.Listings;
+using Imova.Domain.Locations;
+using Imova.Domain.Properties;
+using Microsoft.EntityFrameworkCore;
+
+namespace Imova.Application.Features.Listings;
+
+// Rules shared by CreateListingValidator and UpdateListingValidator — an edit has to satisfy the
+// exact same invariants a fresh listing would, since every field is editable.
+public abstract class ListingWriteValidator<T> : AbstractValidator<T>
+    where T : IListingWriteCommand
+{
+    public const int MaxAmenities = 50;
+
+    protected ListingWriteValidator(IApplicationDbContext dbContext)
+    {
+        // --- Property ---
+        RuleFor(c => c.PropertyType).IsInEnum();
+        RuleFor(c => c.TotalAreaM2).GreaterThan(0).LessThan(100_000_000);
+        RuleFor(c => c.YearBuilt)
+            .Null().WithMessage("YearBuilt does not apply to Land.")
+            .When(c => c.PropertyType == PropertyType.Land);
+        RuleFor(c => c.YearBuilt).InclusiveBetween(1800, DateTime.UtcNow.Year + 1);
+        RuleFor(c => c.Condition)
+            .Null().WithMessage("Condition does not apply to Land.")
+            .When(c => c.PropertyType == PropertyType.Land);
+        RuleFor(c => c.Condition).IsInEnum();
+
+        // Parse against the schema PropertyType selects (which rejects any field belonging to
+        // another type), then apply that type's own required-field rules.
+        RuleFor(c => c.TypeSpecificAttributes)
+            .Custom((json, context) =>
+            {
+                var command = context.InstanceToValidate;
+                if (!PropertyAttributesJson.TryParse(command.PropertyType, json, out var attributes, out var error))
+                {
+                    context.AddFailure(nameof(IListingWriteCommand.TypeSpecificAttributes), error!);
+                    return;
+                }
+
+                foreach (var failure in PropertyAttributesValidator.Validate(attributes!).Errors)
+                {
+                    context.AddFailure(
+                        $"{nameof(IListingWriteCommand.TypeSpecificAttributes)}.{failure.PropertyName}",
+                        failure.ErrorMessage);
+                }
+            })
+            .When(c => Enum.IsDefined(c.PropertyType));
+
+        RuleFor(c => c.AmenityIds)
+            .Must(ids => ids!.Count <= MaxAmenities)
+            .WithMessage($"At most {MaxAmenities} amenities can be selected.")
+            .MustAsync(async (ids, cancellationToken) =>
+            {
+                var distinct = ids!.Distinct().ToList();
+                var known = await dbContext.Amenities.CountAsync(a => distinct.Contains(a.Id), cancellationToken);
+                return known == distinct.Count;
+            })
+            .WithMessage("AmenityIds contains an unknown amenity.")
+            .When(c => c.AmenityIds is { Count: > 0 });
+
+        RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
+
+        // RaionId/LocalitateId reference the CUATM-seeded reference tables; ChisinauSectorId the
+        // informal Chișinău neighborhood table (only meaningful when the raion is Chișinău).
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId, cancellationToken))
+            .WithMessage("RaionId does not reference a known raion.");
+        RuleFor(c => c.LocalitateId)
+            .MustAsync((command, localitateId, cancellationToken) =>
+                dbContext.Localitati.AnyAsync(
+                    l => l.Id == localitateId!.Value && l.RaionId == command.RaionId,
+                    cancellationToken))
+            .WithMessage("LocalitateId does not reference a known localitate belonging to the selected raion.")
+            .When(c => c.LocalitateId.HasValue);
+        RuleFor(c => c.ChisinauSectorId)
+            .MustAsync((chisinauSectorId, cancellationToken) =>
+                dbContext.ChisinauSectors.AnyAsync(s => s.Id == chisinauSectorId!.Value, cancellationToken))
+            .WithMessage("ChisinauSectorId does not reference a known sector.")
+            .When(c => c.ChisinauSectorId.HasValue);
+        RuleFor(c => c.RaionId)
+            .MustAsync((raionId, cancellationToken) =>
+                dbContext.Raioane.AnyAsync(r => r.Id == raionId && r.LocalityLabel == LocalityLabel.Sector, cancellationToken))
+            .WithMessage("ChisinauSectorId can only be set when the selected raion is Chișinău.")
+            .When(c => c.ChisinauSectorId.HasValue)
+            .OverridePropertyName(nameof(IListingWriteCommand.ChisinauSectorId));
+
+        // A listing can be in a suburb or an informal Chișinău neighborhood, never both at once
+        // (they're physically different places). Neither being set stays allowed.
+        RuleFor(c => c)
+            .Must(c => c.LocalitateId is null || c.ChisinauSectorId is null)
+            .WithMessage("LocalitateId and ChisinauSectorId cannot both be set — pick a suburb or a sector, not both.")
+            .OverridePropertyName(nameof(IListingWriteCommand.ChisinauSectorId));
+
+        RuleFor(c => c.StreetAddress)
+            .NotEmpty().WithMessage("Street address is required.")
+            .MaximumLength(200);
+        RuleFor(c => c.BuildingNumber).MaximumLength(20);
+
+        // --- Listing ---
+        RuleFor(c => c.TransactionType).IsInEnum();
+        RuleFor(c => c.Title).NotEmpty().MaximumLength(200);
+        RuleFor(c => c.Description).NotEmpty().MaximumLength(4000);
+        RuleFor(c => c.Price).GreaterThan(0).LessThan(10_000_000_000m);
+        RuleFor(c => c.Currency)
+            .IsInEnum()
+            .WithMessage($"Currency must be one of: {string.Join(", ", Enum.GetNames<Currency>())}.");
+
+        RuleFor(c => c.RentalDetails)
+            .Null().WithMessage("RentalDetails only applies to a rental listing.")
+            .When(c => c.TransactionType == TransactionType.Sale);
+        RuleFor(c => c.RentalDetails!.MinLeasePeriodMonths)
+            .InclusiveBetween(1, 120)
+            .OverridePropertyName("RentalDetails.MinLeasePeriodMonths")
+            .When(c => c.RentalDetails is not null);
+        RuleFor(c => c.RentalDetails!.SecurityDepositAmount)
+            .GreaterThanOrEqualTo(0).LessThan(10_000_000_000m)
+            .OverridePropertyName("RentalDetails.SecurityDepositAmount")
+            .When(c => c.RentalDetails is not null);
+        RuleFor(c => c.RentalDetails!.FurnishedStatus)
+            .IsInEnum()
+            .OverridePropertyName("RentalDetails.FurnishedStatus")
+            .When(c => c.RentalDetails is not null);
+    }
+}

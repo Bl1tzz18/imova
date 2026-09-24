@@ -3,16 +3,16 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import { createPropertyMarkerIcon } from "@/lib/map/propertyMarkerIcon";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
 const MOLDOVA_CENTER: [number, number] = [47.1, 28.6];
 
 // Non-interactive preview embedded in the homepage promo card — the whole card is a single
 // <Link>, so the map itself ignores pointer events and every click just navigates to /map.
-export function PropertyMapPreview({ properties }: { properties: Property[] }) {
-  const points = properties
-    .filter((p) => p.location?.latitude != null && p.location?.longitude != null)
-    .map((p) => ({ id: p.id, lat: p.location!.latitude!, lng: p.location!.longitude! }));
+export function PropertyMapPreview({ listings }: { listings: Listing[] }) {
+  const points = listings
+    .filter((p) => p.property.location?.latitude != null && p.property.location?.longitude != null)
+    .map((p) => ({ id: p.id, lat: p.property.location!.latitude!, lng: p.property.location!.longitude! }));
 
   return (
     <MapContainer

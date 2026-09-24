@@ -23,12 +23,12 @@ public class RequestUploadUrlValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptyPropertyId_HasError()
+    public void Validate_WithEmptyListingId_HasError()
     {
         var result = _validator.Validate(new RequestUploadUrlCommand(Guid.Empty, ".jpg"));
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(RequestUploadUrlCommand.PropertyId));
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(RequestUploadUrlCommand.ListingId));
     }
 
     [Fact]

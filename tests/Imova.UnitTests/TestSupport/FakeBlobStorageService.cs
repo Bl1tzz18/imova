@@ -16,7 +16,7 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
 
     public TimeSpan DefaultUploadExpiry => TimeSpan.FromMinutes(15);
 
-    public string GenerateBlobName(Guid propertyId, string fileExtension) => $"{propertyId}.{fileExtension}";
+    public string GenerateBlobName(Guid listingId, string fileExtension) => $"{listingId}.{fileExtension}";
 
     public string GenerateProfilePictureBlobName(Guid userId, string fileExtension) =>
         $"profile-pictures/{userId}.{fileExtension}";

@@ -3,11 +3,11 @@ using NetTopologySuite.Geometries;
 
 namespace Imova.Domain.Locations;
 
+// Referenced by Property.LocationId (one location per property) — this row holds no pointer back.
 public sealed class PropertyLocation : Entity
 {
     private PropertyLocation(
         Guid id,
-        Guid propertyId,
         string country,
         Guid raionId,
         string raionName,
@@ -21,7 +21,6 @@ public sealed class PropertyLocation : Entity
         string? buildingNumber)
         : base(id)
     {
-        PropertyId = propertyId;
         Country = country;
         RaionId = raionId;
         RaionName = raionName;
@@ -37,17 +36,14 @@ public sealed class PropertyLocation : Entity
         Location = BuildPoint(latitude, longitude);
     }
 
-    public Guid PropertyId { get; private set; }
-
     public string Country { get; private set; }
 
     public string? Region { get; private set; }
 
     public Guid RaionId { get; private set; }
 
-    // Denormalized snapshot of Raion.NameRo at write time — every property-returning handler
-    // (17+ call sites through PropertyMapping.ToDto) reads location fields with zero extra DB
-    // calls today; resolving RaionId/LocalitateId to a name at every read would mean batch-joining
+    // Denormalized snapshot of Raion.NameRo at write time — every listing-returning handler
+    // (through ListingDtoLoader) reads location fields with zero extra DB calls today; resolving RaionId/LocalitateId to a name at every read would mean batch-joining
     // Raion/Localitate in each of those handlers instead. CUATM administrative names are static,
     // so staleness risk is negligible.
     public string RaionName { get; private set; }
@@ -82,7 +78,6 @@ public sealed class PropertyLocation : Entity
     public Point? Location { get; private set; }
 
     public static PropertyLocation Create(
-        Guid propertyId,
         string country,
         Guid raionId,
         string raionName,
@@ -95,16 +90,10 @@ public sealed class PropertyLocation : Entity
         string? street = null,
         string? buildingNumber = null)
     {
-        if (propertyId == Guid.Empty)
-        {
-            throw new ArgumentException("PropertyId is required.", nameof(propertyId));
-        }
-
         EnsureValidDetails(country, raionId, raionName, localitateId, localitateName, chisinauSectorId, chisinauSectorName, latitude, longitude);
 
         return new PropertyLocation(
             Guid.NewGuid(),
-            propertyId,
             country,
             raionId,
             raionName,

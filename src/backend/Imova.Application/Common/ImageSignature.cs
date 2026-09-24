@@ -1,5 +1,5 @@
 using System.Text;
-using Imova.Domain.Media;
+using Imova.Domain.Listings;
 
 namespace Imova.Application.Common;
 
@@ -7,11 +7,11 @@ namespace Imova.Application.Common;
 // client-reported content-type or file extension, which are easy to spoof.
 public static class ImageSignature
 {
-    // Built from PropertyMedia's own extension->contentType map (the existing source of truth
+    // Built from Photo's own extension->contentType map (the existing source of truth
     // for "which image formats does this app accept") rather than a second, separately
     // maintained list — reused by both the profile-picture upload and Google picture sync flows.
     private static readonly IReadOnlyDictionary<string, string> ExtensionByContentType =
-        PropertyMedia.AllowedContentTypesByExtension
+        Photo.AllowedContentTypesByExtension
             .GroupBy(kvp => kvp.Value, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First().Key, StringComparer.OrdinalIgnoreCase);
 
