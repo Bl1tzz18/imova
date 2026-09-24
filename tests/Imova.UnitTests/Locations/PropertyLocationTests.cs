@@ -4,7 +4,6 @@ namespace Imova.UnitTests.Locations;
 
 public class PropertyLocationTests
 {
-    private static readonly Guid PropertyId = Guid.NewGuid();
     private static readonly Guid RaionId = Guid.NewGuid();
     private static readonly Guid LocalitateId = Guid.NewGuid();
     private static readonly Guid ChisinauSectorId = Guid.NewGuid();
@@ -13,11 +12,10 @@ public class PropertyLocationTests
     public void Create_WithValidData_SetsAllFieldsAndBuildsAPoint()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null,
             47.0105, 28.8638);
 
         Assert.NotEqual(Guid.Empty, location.Id);
-        Assert.Equal(PropertyId, location.PropertyId);
         Assert.Equal("Moldova", location.Country);
         Assert.Equal(RaionId, location.RaionId);
         Assert.Equal("Chisinau", location.RaionName);
@@ -34,7 +32,7 @@ public class PropertyLocationTests
     public void Create_WithNullLocalitate_Succeeds()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
 
         Assert.Null(location.LocalitateId);
         Assert.Null(location.LocalitateName);
@@ -44,7 +42,7 @@ public class PropertyLocationTests
     public void Create_WithChisinauSectorButNoLocalitate_Succeeds()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", null, null, ChisinauSectorId, "Botanica", 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", null, null, ChisinauSectorId, "Botanica", 47.0105, 28.8638);
 
         Assert.Null(location.LocalitateId);
         Assert.Equal(ChisinauSectorId, location.ChisinauSectorId);
@@ -58,7 +56,7 @@ public class PropertyLocationTests
         // those represent physically different places.
         Assert.ThrowsAny<ArgumentException>(() =>
             PropertyLocation.Create(
-                PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Durlesti", ChisinauSectorId, "Botanica",
+                "Moldova", RaionId, "Chisinau", LocalitateId, "Durlesti", ChisinauSectorId, "Botanica",
                 47.0105, 28.8638));
     }
 
@@ -66,56 +64,50 @@ public class PropertyLocationTests
     public void Create_WithChisinauSectorIdButNoChisinauSectorName_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, ChisinauSectorId, null, 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, ChisinauSectorId, null, 47.0105, 28.8638));
     }
 
     [Fact]
     public void Create_WithChisinauSectorNameButNoChisinauSectorId_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, "Botanica", 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, "Botanica", 47.0105, 28.8638));
     }
 
-    [Fact]
-    public void Create_WithEmptyPropertyId_Throws()
-    {
-        Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(Guid.Empty, "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638));
-    }
 
     [Fact]
     public void Create_WithMissingCountry_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638));
+            PropertyLocation.Create("", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638));
     }
 
     [Fact]
     public void Create_WithEmptyRaionId_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", Guid.Empty, "Chisinau", null, null, null, null, 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", Guid.Empty, "Chisinau", null, null, null, null, 47.0105, 28.8638));
     }
 
     [Fact]
     public void Create_WithBlankRaionName_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "", null, null, null, null, 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "", null, null, null, null, 47.0105, 28.8638));
     }
 
     [Fact]
     public void Create_WithLocalitateIdButNoLocalitateName_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, null, null, null, 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", LocalitateId, null, null, null, 47.0105, 28.8638));
     }
 
     [Fact]
     public void Create_WithLocalitateNameButNoLocalitateId_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, "Botanica", null, null, 47.0105, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, "Botanica", null, null, 47.0105, 28.8638));
     }
 
     [Theory]
@@ -124,7 +116,7 @@ public class PropertyLocationTests
     public void Create_WithLatitudeOutOfRange_Throws(double latitude)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, latitude, 28.8638));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, null, latitude, 28.8638));
     }
 
     [Theory]
@@ -133,7 +125,7 @@ public class PropertyLocationTests
     public void Create_WithLongitudeOutOfRange_Throws(double longitude)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, longitude));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, longitude));
     }
 
     [Theory]
@@ -141,7 +133,7 @@ public class PropertyLocationTests
     [InlineData(90)]
     public void Create_WithLatitudeAtBoundary_Succeeds(double latitude)
     {
-        var location = PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, latitude, 28.8638);
+        var location = PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, null, latitude, 28.8638);
 
         Assert.Equal(latitude, location.Latitude);
     }
@@ -150,7 +142,7 @@ public class PropertyLocationTests
     public void UpdateDetails_ChangesFieldsAndRebuildsThePoint()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
 
         var newRaionId = Guid.NewGuid();
         var newLocalitateId = Guid.NewGuid();
@@ -170,7 +162,7 @@ public class PropertyLocationTests
     public void UpdateDetails_ChangesChisinauSector()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
 
         var newSectorId = Guid.NewGuid();
         location.UpdateDetails("Moldova", RaionId, "Chisinau", null, null, newSectorId, "Botanica", 47.0105, 28.8638);
@@ -182,7 +174,7 @@ public class PropertyLocationTests
     [Fact]
     public void UpdateDetails_WithMissingCountry_Throws()
     {
-        var location = PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
+        var location = PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638);
 
         Assert.ThrowsAny<ArgumentException>(() =>
             location.UpdateDetails("", RaionId, "Chisinau", null, null, null, null, 47.0105, 28.8638));
@@ -194,7 +186,7 @@ public class PropertyLocationTests
         // Geocoding failing (or not having run yet) must not block creating the listing — see
         // IGeocodingService.
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, null, null);
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, null, null);
 
         Assert.Null(location.Latitude);
         Assert.Null(location.Longitude);
@@ -207,14 +199,14 @@ public class PropertyLocationTests
     public void Create_WithOnlyOneCoordinateSet_Throws(double? latitude, double? longitude)
     {
         Assert.Throws<ArgumentException>(() =>
-            PropertyLocation.Create(PropertyId, "Moldova", RaionId, "Chisinau", null, null, null, null, latitude, longitude));
+            PropertyLocation.Create("Moldova", RaionId, "Chisinau", null, null, null, null, latitude, longitude));
     }
 
     [Fact]
     public void UpdateDetails_WithNullCoordinates_ClearsTheLocationPoint()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
 
         location.UpdateDetails("Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, null, null);
 
@@ -227,7 +219,7 @@ public class PropertyLocationTests
     public void Create_WithStreet_SetsStreet()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail 44");
 
         Assert.Equal("Str. Ismail 44", location.Street);
@@ -237,7 +229,7 @@ public class PropertyLocationTests
     public void Create_WithoutStreet_LeavesStreetNull()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
 
         Assert.Null(location.Street);
     }
@@ -246,7 +238,7 @@ public class PropertyLocationTests
     public void UpdateDetails_WithStreet_ChangesStreet()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail 44");
 
         location.UpdateDetails(
@@ -259,7 +251,7 @@ public class PropertyLocationTests
     public void UpdateDetails_WithoutStreet_ClearsStreet()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail 44");
 
         location.UpdateDetails("Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638);
@@ -271,7 +263,7 @@ public class PropertyLocationTests
     public void Create_WithBuildingNumber_SetsBuildingNumber()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail", "44");
 
         Assert.Equal("Str. Ismail", location.Street);
@@ -282,7 +274,7 @@ public class PropertyLocationTests
     public void Create_WithoutBuildingNumber_LeavesBuildingNumberNull()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail");
 
         Assert.Null(location.BuildingNumber);
@@ -292,7 +284,7 @@ public class PropertyLocationTests
     public void UpdateDetails_WithBuildingNumber_ChangesBuildingNumber()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail", "44");
 
         location.UpdateDetails(
@@ -306,7 +298,7 @@ public class PropertyLocationTests
     public void UpdateDetails_WithoutBuildingNumber_ClearsBuildingNumber()
     {
         var location = PropertyLocation.Create(
-            PropertyId, "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
+            "Moldova", RaionId, "Chisinau", LocalitateId, "Botanica", null, null, 47.0105, 28.8638,
             "Str. Ismail", "44");
 
         location.UpdateDetails(

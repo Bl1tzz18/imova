@@ -1,34 +1,17 @@
-using Imova.Contracts.Media;
+using System.Text.Json;
+using Imova.Contracts.Amenities;
 
 namespace Imova.Contracts.Properties;
 
+// The physical asset behind a listing. TypeSpecificAttributes is the per-PropertyType object
+// (camelCase keys, enums as strings) — its exact shape depends on PropertyType; see
+// Imova.Domain.Properties.Attributes for the schemas.
 public record PropertyDto(
     Guid Id,
-    Guid OwnerId,
-    Guid? OrganizationId,
-    string Title,
-    string Description,
     string PropertyType,
-    string ListingType,
-    string Status,
-    decimal Price,
-    string Currency,
-    decimal? Area,
-    decimal? Rooms,
-    short? Bathrooms,
-    short? Floor,
-    short? TotalFloors,
-    short? YearBuilt,
-    bool? Furnished,
-    bool? ParkingAvailable,
-    bool? PetsAllowed,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt,
-    DateTimeOffset? PublishedAt,
-    DateTimeOffset? ExpiresAt,
-    string? RejectionReason,
-    string? SuspensionReason,
-    PropertyLocationDto? Location,
-    PropertyOwnerDto? Owner,
-    IReadOnlyList<PropertyMediaDto> Media,
-    bool IsSaved);
+    decimal TotalAreaM2,
+    int? YearBuilt,
+    string? Condition,
+    JsonElement TypeSpecificAttributes,
+    IReadOnlyList<AmenityDto> Amenities,
+    PropertyLocationDto? Location);

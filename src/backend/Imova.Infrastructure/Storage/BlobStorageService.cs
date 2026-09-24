@@ -66,8 +66,8 @@ public sealed class BlobStorageService : IBlobStorageService
             : new Uri(options.PublicBlobEndpoint, UriKind.Absolute);
     }
 
-    public string GenerateBlobName(Guid propertyId, string fileExtension) =>
-        $"{propertyId}/{Guid.NewGuid()}{fileExtension}";
+    public string GenerateBlobName(Guid listingId, string fileExtension) =>
+        $"{listingId}/{Guid.NewGuid()}{fileExtension}";
 
     public string GenerateProfilePictureBlobName(Guid userId, string fileExtension) =>
         $"profile-pictures/{userId}/{Guid.NewGuid()}{fileExtension}";

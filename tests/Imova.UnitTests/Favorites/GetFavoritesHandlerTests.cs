@@ -1,6 +1,6 @@
 using Imova.Application.Features.Favorites.GetFavorites;
 using Imova.Domain.Favorites;
-using Imova.Domain.Properties;
+using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
 
@@ -8,14 +8,8 @@ namespace Imova.UnitTests.Favorites;
 
 public class GetFavoritesHandlerTests
 {
-    private static Property AddProperty(ImovaDbContext dbContext, string title)
-    {
-        var property = Property.Create(
-            Guid.NewGuid(), title, "Descriere", PropertyType.Apartment, ListingType.Rent, 550m, "EUR",
-            54m, 2m, null, 3, 9);
-        dbContext.Properties.Add(property);
-        return property;
-    }
+    private static Listing AddListing(ImovaDbContext dbContext) =>
+        ListingTestData.AddListing(dbContext, ListingTestData.AddIndividualPublisher(dbContext).Id);
 
     [Fact]
     public async Task Handle_WithNoFavorites_ReturnsEmptyList()
@@ -34,8 +28,8 @@ public class GetFavoritesHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var userId = Guid.NewGuid();
         var otherUserId = Guid.NewGuid();
-        var savedByUser = AddProperty(dbContext, "Saved by user");
-        var savedByOther = AddProperty(dbContext, "Saved by other");
+        var savedByUser = AddListing(dbContext);
+        var savedByOther = AddListing(dbContext);
         dbContext.Favorites.Add(Favorite.Create(userId, savedByUser.Id));
         dbContext.Favorites.Add(Favorite.Create(otherUserId, savedByOther.Id));
         await dbContext.SaveChangesAsync(CancellationToken.None);
@@ -53,8 +47,8 @@ public class GetFavoritesHandlerTests
     {
         await using var dbContext = TestDbContextFactory.Create();
         var userId = Guid.NewGuid();
-        var first = AddProperty(dbContext, "First saved");
-        var second = AddProperty(dbContext, "Second saved");
+        var first = AddListing(dbContext);
+        var second = AddListing(dbContext);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         dbContext.Favorites.Add(Favorite.Create(userId, first.Id));
@@ -71,7 +65,7 @@ public class GetFavoritesHandlerTests
     [Fact]
     public async Task Handle_SkipsFavoritesWhoseListingWasDeleted()
     {
-        // A stale Favorite row pointing at a deleted property shouldn't happen (DeletePropertyHandler
+        // A stale Favorite row pointing at a deleted listing shouldn't happen (DeleteListingHandler
         // cleans these up), but the handler must not blow up if one somehow exists.
         await using var dbContext = TestDbContextFactory.Create();
         var userId = Guid.NewGuid();

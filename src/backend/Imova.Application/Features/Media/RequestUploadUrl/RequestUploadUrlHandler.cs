@@ -10,7 +10,7 @@ public class RequestUploadUrlHandler(IBlobStorageService blobStorageService)
     public Task<UploadUrlDto> Handle(RequestUploadUrlCommand request, CancellationToken cancellationToken)
     {
         var expiry = blobStorageService.DefaultUploadExpiry;
-        var blobName = blobStorageService.GenerateBlobName(request.PropertyId, request.FileExtension);
+        var blobName = blobStorageService.GenerateBlobName(request.ListingId, request.FileExtension);
         var uploadUrl = blobStorageService.GenerateUploadSasUrl(blobName, expiry);
 
         return Task.FromResult(new UploadUrlDto(uploadUrl, blobName, DateTimeOffset.UtcNow.Add(expiry)));

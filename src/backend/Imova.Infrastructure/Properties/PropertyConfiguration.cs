@@ -1,4 +1,5 @@
-using Imova.Application.Common.Identity;
+using Imova.Domain.Amenities;
+using Imova.Domain.Locations;
 using Imova.Domain.Properties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,22 +12,34 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
     {
         builder.HasKey(p => p.Id);
 
-        builder.Property(p => p.OwnerId).IsRequired();
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.Restrict);
-
-        builder.Property(p => p.Title).IsRequired().HasMaxLength(200);
-        builder.Property(p => p.Description).IsRequired().HasMaxLength(4000);
         builder.Property(p => p.PropertyType).IsRequired();
-        builder.Property(p => p.ListingType).IsRequired();
-        builder.Property(p => p.Status).IsRequired();
-        builder.Property(p => p.Price).HasColumnType("numeric(12,2)");
-        builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
-        builder.Property(p => p.Area).HasColumnType("numeric(8,2)");
-        builder.Property(p => p.Rooms).HasColumnType("numeric(4,1)");
-        builder.Property(p => p.RejectionReason).HasMaxLength(1000);
-        builder.Property(p => p.SuspensionReason).HasMaxLength(1000);
+        // Wide enough for large land plots, which are also stored in m².
+        builder.Property(p => p.TotalAreaM2).HasColumnType("numeric(12,2)");
+        builder.Property(p => p.Condition);
 
-        builder.HasIndex(p => p.OwnerId);
-        builder.HasIndex(p => p.Status);
+        builder.Property(p => p.LocationId).IsRequired();
+        builder.HasOne<PropertyLocation>().WithOne().HasForeignKey<Property>(p => p.LocationId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(p => p.LocationId).IsUnique();
+
+        builder.Property(p => p.TypeSpecificAttributes)
+            .HasColumnType("jsonb")
+            .HasConversion(new PropertyAttributesConverter())
+            .IsRequired();
+
+        builder.HasMany(p => p.Amenities).WithOne().HasForeignKey(a => a.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(p => p.Amenities).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasIndex(p => p.PropertyType);
+    }
+}
+
+public class PropertyAmenityConfiguration : IEntityTypeConfiguration<PropertyAmenity>
+{
+    public void Configure(EntityTypeBuilder<PropertyAmenity> builder)
+    {
+        builder.ToTable("PropertyAmenities");
+        builder.HasKey(a => new { a.PropertyId, a.AmenityId });
+        builder.HasOne<Amenity>().WithMany().HasForeignKey(a => a.AmenityId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(a => a.AmenityId);
     }
 }

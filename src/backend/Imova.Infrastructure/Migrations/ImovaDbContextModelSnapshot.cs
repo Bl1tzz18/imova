@@ -95,6 +95,110 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Amenities.Amenity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LabelRo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Amenities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000001"),
+                            Key = "parking",
+                            LabelRo = "Parcare"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000002"),
+                            Key = "balcony",
+                            LabelRo = "Balcon/Logie"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000003"),
+                            Key = "elevator",
+                            LabelRo = "Ascensor"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000004"),
+                            Key = "air_conditioning",
+                            LabelRo = "Aer condiționat"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000005"),
+                            Key = "furnished",
+                            LabelRo = "Mobilat"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000006"),
+                            Key = "garage",
+                            LabelRo = "Garaj"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000007"),
+                            Key = "yard",
+                            LabelRo = "Curte"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000008"),
+                            Key = "autonomous_heating",
+                            LabelRo = "Încălzire autonomă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000009"),
+                            Key = "centralized_heating",
+                            LabelRo = "Încălzire centralizată"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000a"),
+                            Key = "wheelchair_access",
+                            LabelRo = "Acces pentru scaun cu rotile"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000b"),
+                            Key = "storage_room",
+                            LabelRo = "Debara"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000c"),
+                            Key = "video_surveillance",
+                            LabelRo = "Supraveghere video"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000d"),
+                            Key = "internet",
+                            LabelRo = "Internet"
+                        });
+                });
+
             modelBuilder.Entity("Imova.Domain.Favorites.Favorite", b =>
                 {
                     b.Property<Guid>("Id")
@@ -104,7 +208,7 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("PropertyId")
+                    b.Property<Guid>("ListingId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
@@ -112,12 +216,124 @@ namespace Imova.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PropertyId");
+                    b.HasIndex("ListingId");
 
-                    b.HasIndex("UserId", "PropertyId")
+                    b.HasIndex("UserId", "ListingId")
                         .IsUnique();
 
                     b.ToTable("Favorites");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.Listing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PublisherId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("RentalDetails")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("SaleDetails")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SuspensionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("PublisherId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Listings");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.Photo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ModeratedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ModerationStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlobName")
+                        .IsUnique();
+
+                    b.HasIndex("ListingId");
+
+                    b.ToTable("Photos", (string)null);
                 });
 
             modelBuilder.Entity("Imova.Domain.Locations.ChisinauSector", b =>
@@ -218,9 +434,6 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
 
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("RaionId")
                         .HasColumnType("uuid");
 
@@ -250,9 +463,6 @@ namespace Imova.Infrastructure.Migrations
                     b.HasIndex("Location");
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "GIST");
-
-                    b.HasIndex("PropertyId")
-                        .IsUnique();
 
                     b.HasIndex("RaionId");
 
@@ -295,143 +505,105 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("Raioane", (string)null);
                 });
 
-            modelBuilder.Entity("Imova.Domain.Media.PropertyMedia", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BlobName")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("FileSizeBytes")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("ModeratedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ModerationStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("PropertyId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlobName")
-                        .IsUnique();
-
-                    b.HasIndex("PropertyId");
-
-                    b.ToTable("PropertyMedias");
-                });
-
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("Area")
-                        .HasColumnType("numeric(8,2)");
-
-                    b.Property<short?>("Bathrooms")
-                        .HasColumnType("smallint");
+                    b.Property<int?>("Condition")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<short?>("Floor")
-                        .HasColumnType("smallint");
-
-                    b.Property<bool?>("Furnished")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("ListingType")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("OrganizationId")
+                    b.Property<Guid>("LocationId")
                         .HasColumnType("uuid");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool?>("ParkingAvailable")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("PetsAllowed")
-                        .HasColumnType("boolean");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric(12,2)");
 
                     b.Property<int>("PropertyType")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("PublishedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<decimal>("TotalAreaM2")
+                        .HasColumnType("numeric(12,2)");
 
-                    b.Property<string>("RejectionReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<decimal?>("Rooms")
-                        .HasColumnType("numeric(4,1)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SuspensionReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("Title")
+                    b.Property<string>("TypeSpecificAttributes")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<short?>("TotalFloors")
-                        .HasColumnType("smallint");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<short?>("YearBuilt")
-                        .HasColumnType("smallint");
+                    b.Property<int?>("YearBuilt")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("LocationId")
+                        .IsUnique();
 
-                    b.HasIndex("Status");
+                    b.HasIndex("PropertyType");
 
                     b.ToTable("Properties");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyAmenity", b =>
+                {
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AmenityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PropertyId", "AmenityId");
+
+                    b.HasIndex("AmenityId");
+
+                    b.ToTable("PropertyAmenities", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("PublisherType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "PublisherType")
+                        .IsUnique();
+
+                    b.ToTable("Publishers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -566,9 +738,9 @@ namespace Imova.Infrastructure.Migrations
 
             modelBuilder.Entity("Imova.Domain.Favorites.Favorite", b =>
                 {
-                    b.HasOne("Imova.Domain.Properties.Property", null)
+                    b.HasOne("Imova.Domain.Listings.Listing", null)
                         .WithMany()
-                        .HasForeignKey("PropertyId")
+                        .HasForeignKey("ListingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -576,6 +748,55 @@ namespace Imova.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.Listing", b =>
+                {
+                    b.HasOne("Imova.Domain.Properties.Property", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Domain.Publishers.Publisher", null)
+                        .WithMany()
+                        .HasForeignKey("PublisherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("Imova.Domain.Listings.Price", "Price", b1 =>
+                        {
+                            b1.Property<Guid>("ListingId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("numeric(14,2)")
+                                .HasColumnName("PriceAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("PriceCurrency");
+
+                            b1.Property<bool>("IsNegotiable")
+                                .HasColumnType("boolean")
+                                .HasColumnName("PriceIsNegotiable");
+
+                            b1.Property<decimal>("PriceEur")
+                                .HasColumnType("numeric(14,2)")
+                                .HasColumnName("PriceEur");
+
+                            b1.HasKey("ListingId");
+
+                            b1.ToTable("Listings");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ListingId");
+                        });
+
+                    b.Navigation("Price")
                         .IsRequired();
                 });
 
@@ -605,12 +826,6 @@ namespace Imova.Infrastructure.Migrations
                         .HasForeignKey("LocalitateId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Imova.Domain.Properties.Property", null)
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Imova.Domain.Locations.Raion", null)
                         .WithMany()
                         .HasForeignKey("RaionId")
@@ -620,9 +835,33 @@ namespace Imova.Infrastructure.Migrations
 
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
+                    b.HasOne("Imova.Domain.Locations.PropertyLocation", null)
+                        .WithOne()
+                        .HasForeignKey("Imova.Domain.Properties.Property", "LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyAmenity", b =>
+                {
+                    b.HasOne("Imova.Domain.Amenities.Amenity", null)
+                        .WithMany()
+                        .HasForeignKey("AmenityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Domain.Properties.Property", null)
+                        .WithMany("Amenities")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
+                {
                     b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
                         .WithMany()
-                        .HasForeignKey("OwnerId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -676,6 +915,11 @@ namespace Imova.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
+                {
+                    b.Navigation("Amenities");
                 });
 #pragma warning restore 612, 618
         }

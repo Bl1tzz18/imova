@@ -9,7 +9,7 @@ public static class RemoveFavoriteEndpoint
 {
     public static void MapRemoveFavorite(this IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/v1/properties/{id:guid}/favorite", async (
+        app.MapDelete("/api/v1/listings/{id:guid}/favorite", async (
             Guid id,
             ClaimsPrincipal user,
             ISender sender,

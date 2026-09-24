@@ -3,6 +3,7 @@ using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,7 @@ public class GoogleLoginHandler(
     IJwtTokenGenerator jwtTokenGenerator,
     IExternalImageFetcher externalImageFetcher,
     IBlobStorageService blobStorageService,
+    IApplicationDbContext dbContext,
     ILogger<GoogleLoginHandler> logger) : IRequestHandler<GoogleLoginCommand, AuthResultDto>
 {
     public async Task<AuthResultDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,10 @@ public class GoogleLoginHandler(
             }
 
             await userManager.AddToRoleAsync(user, Roles.User);
+
+            // Every account publishes as an Individual by default — see PublisherProvisioning.
+            dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
+            await dbContext.SaveChangesAsync(cancellationToken);
 
             // New account only — a returning user who has since removed or replaced their
             // picture should never have it silently re-synced from Google on a later login.

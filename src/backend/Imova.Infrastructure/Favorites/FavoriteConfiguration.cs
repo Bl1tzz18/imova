@@ -1,6 +1,6 @@
 using Imova.Application.Common.Identity;
 using Imova.Domain.Favorites;
-using Imova.Domain.Properties;
+using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,10 +15,10 @@ public class FavoriteConfiguration : IEntityTypeConfiguration<Favorite>
         builder.Property(f => f.UserId).IsRequired();
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(f => f.PropertyId).IsRequired();
-        builder.HasOne<Property>().WithMany().HasForeignKey(f => f.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        builder.Property(f => f.ListingId).IsRequired();
+        builder.HasOne<Listing>().WithMany().HasForeignKey(f => f.ListingId).OnDelete(DeleteBehavior.Cascade);
 
         // The same listing can't be saved twice by the same user.
-        builder.HasIndex(f => new { f.UserId, f.PropertyId }).IsUnique();
+        builder.HasIndex(f => new { f.UserId, f.ListingId }).IsUnique();
     }
 }

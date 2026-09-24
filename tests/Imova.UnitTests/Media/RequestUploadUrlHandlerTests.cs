@@ -10,11 +10,11 @@ public class RequestUploadUrlHandlerTests
     {
         var blobStorage = new FakeBlobStorageService();
         var handler = new RequestUploadUrlHandler(blobStorage);
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var result = await handler.Handle(new RequestUploadUrlCommand(propertyId, ".jpg"), CancellationToken.None);
+        var result = await handler.Handle(new RequestUploadUrlCommand(listingId, ".jpg"), CancellationToken.None);
 
-        Assert.Equal(blobStorage.GenerateBlobName(propertyId, ".jpg"), result.BlobName);
+        Assert.Equal(blobStorage.GenerateBlobName(listingId, ".jpg"), result.BlobName);
         Assert.Equal(blobStorage.GenerateUploadSasUrl(result.BlobName, blobStorage.DefaultUploadExpiry), result.UploadUrl);
     }
 

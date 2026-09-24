@@ -11,9 +11,9 @@ public interface IBlobStorageService
     // Application -> Infrastructure dependency on BlobStorageOptions itself.
     TimeSpan DefaultUploadExpiry { get; }
 
-    string GenerateBlobName(Guid propertyId, string fileExtension);
+    string GenerateBlobName(Guid listingId, string fileExtension);
 
-    // Prefixed under "profile-pictures/" so these never collide with the flat "{propertyId}/..."
+    // Prefixed under "profile-pictures/" so these never collide with the flat "{listingId}/..."
     // scheme GenerateBlobName uses — both share the same container.
     string GenerateProfilePictureBlobName(Guid userId, string fileExtension);
 

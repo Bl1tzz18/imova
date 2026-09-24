@@ -8,13 +8,13 @@ public class FavoriteTests
     public void Create_WithValidData_SetsAllFields()
     {
         var userId = Guid.NewGuid();
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var favorite = Favorite.Create(userId, propertyId);
+        var favorite = Favorite.Create(userId, listingId);
 
         Assert.NotEqual(Guid.Empty, favorite.Id);
         Assert.Equal(userId, favorite.UserId);
-        Assert.Equal(propertyId, favorite.PropertyId);
+        Assert.Equal(listingId, favorite.ListingId);
         Assert.True(favorite.CreatedAt <= DateTimeOffset.UtcNow);
     }
 
@@ -25,7 +25,7 @@ public class FavoriteTests
     }
 
     [Fact]
-    public void Create_WithEmptyPropertyId_Throws()
+    public void Create_WithEmptyListingId_Throws()
     {
         Assert.ThrowsAny<ArgumentException>(() => Favorite.Create(Guid.NewGuid(), Guid.Empty));
     }
@@ -34,10 +34,10 @@ public class FavoriteTests
     public void Create_TwiceForSameUserAndProperty_ProducesDistinctIds()
     {
         var userId = Guid.NewGuid();
-        var propertyId = Guid.NewGuid();
+        var listingId = Guid.NewGuid();
 
-        var first = Favorite.Create(userId, propertyId);
-        var second = Favorite.Create(userId, propertyId);
+        var first = Favorite.Create(userId, listingId);
+        var second = Favorite.Create(userId, listingId);
 
         Assert.NotEqual(first.Id, second.Id);
     }

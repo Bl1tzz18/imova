@@ -1,8 +1,10 @@
 using Imova.Application.Common.Identity;
+using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
+using Imova.Domain.Listings;
 using Imova.Domain.Locations;
-using Imova.Domain.Media;
 using Imova.Domain.Properties;
+using Imova.Domain.Publishers;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Common.Interfaces;
@@ -11,6 +13,16 @@ public interface IApplicationDbContext
 {
     DbSet<Property> Properties { get; }
 
+    DbSet<PropertyAmenity> PropertyAmenities { get; }
+
+    DbSet<Amenity> Amenities { get; }
+
+    DbSet<Listing> Listings { get; }
+
+    DbSet<Publisher> Publishers { get; }
+
+    DbSet<Photo> Photos { get; }
+
     DbSet<PropertyLocation> PropertyLocations { get; }
 
     DbSet<Raion> Raioane { get; }
@@ -18,8 +30,6 @@ public interface IApplicationDbContext
     DbSet<Localitate> Localitati { get; }
 
     DbSet<ChisinauSector> ChisinauSectors { get; }
-
-    DbSet<PropertyMedia> PropertyMedias { get; }
 
     DbSet<Favorite> Favorites { get; }
 
