@@ -46,9 +46,10 @@ const FLOOR_MATERIALS = ["Parquet", "Laminate", "Tile", "Other"] as const;
 // Mirrors Heating.RequiresDetails on the backend.
 export const HEATING_WITH_OWN_SOURCE = ["OwnBoiler", "HeatPump", "SolarPanels"] as const;
 
-// Heating system + its conditional energy source/distribution — identical for House and Apartment.
+// Heating system (optional) + its conditional energy source/distribution, required only while
+// shown — identical for House and Apartment.
 const HEATING_FIELDS: readonly AttributeField[] = [
-  { name: "heatingSystem", kind: "enum", required: true, options: HEATING_SYSTEMS },
+  { name: "heatingSystem", kind: "enum", options: HEATING_SYSTEMS },
   {
     name: "heatingEnergySource",
     kind: "enum",
@@ -68,10 +69,10 @@ const HEATING_FIELDS: readonly AttributeField[] = [
 export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[]> = {
   Apartment: [
     // Type & structure
-    { name: "housingStockType", kind: "enum", required: true, options: ["Existing", "NewConstruction"] },
-    { name: "buildingMaterial", kind: "enum", required: true, options: BUILDING_MATERIALS },
-    { name: "finishCondition", kind: "enum", required: true, options: FINISH_CONDITIONS },
-    { name: "layout", kind: "enum", required: true, options: ["Studio", "IndividualLayout", "SovietEra", "Dormitory", "Other"] },
+    { name: "housingStockType", kind: "enum", options: ["Existing", "NewConstruction"] },
+    { name: "buildingMaterial", kind: "enum", options: BUILDING_MATERIALS },
+    { name: "finishCondition", kind: "enum", options: FINISH_CONDITIONS },
+    { name: "layout", kind: "enum", options: ["Studio", "IndividualLayout", "SovietEra", "Dormitory", "Other"] },
     { name: "rooms", kind: "int", required: true, min: 1, max: 50 },
     { name: "floor", kind: "int", required: true, min: -5, max: 200 },
     { name: "totalFloors", kind: "int", required: true, min: 1, max: 200 },
@@ -81,34 +82,34 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
     { name: "kitchenAreaM2", kind: "decimal", min: 0.01 },
     // Systems & utilities
     ...HEATING_FIELDS,
-    { name: "gasSupply", kind: "yesno", required: true },
+    { name: "gasSupply", kind: "yesno" },
     // Finishing materials
-    { name: "floorMaterial", kind: "enum", required: true, options: FLOOR_MATERIALS },
+    { name: "floorMaterial", kind: "enum", options: FLOOR_MATERIALS },
   ],
   House: [
     // Type & structure
     { name: "houseType", kind: "enum", required: true, options: ["Individual", "Duplex", "Triplex", "Townhouse", "Villa", "Other"] },
-    { name: "buildingMaterial", kind: "enum", required: true, options: BUILDING_MATERIALS },
-    { name: "finishCondition", kind: "enum", required: true, options: FINISH_CONDITIONS },
+    { name: "buildingMaterial", kind: "enum", options: BUILDING_MATERIALS },
+    { name: "finishCondition", kind: "enum", options: FINISH_CONDITIONS },
     { name: "houseFloors", kind: "int", required: true, min: 1, max: 10 },
     { name: "rooms", kind: "int", required: true, min: 1, max: 100 },
     { name: "ceilingHeightM", kind: "decimal", min: 1.5, max: 10 },
     // Areas
-    { name: "livingAreaM2", kind: "decimal", required: true, min: 0.01 },
+    { name: "livingAreaM2", kind: "decimal", min: 0.01 },
     { name: "landAreaM2", kind: "decimal", required: true, min: 0.01 },
     { name: "kitchenAreaM2", kind: "decimal", min: 0.01 },
     { name: "atticAreaM2", kind: "decimal", min: 0.01 },
     { name: "basementAreaM2", kind: "decimal", min: 0.01 },
     // Systems & utilities
     ...HEATING_FIELDS,
-    { name: "waterSupply", kind: "enum", required: true, options: ["CentralNetwork", "Well", "DrilledWell", "Cistern", "None"] },
-    { name: "sewerage", kind: "enum", required: true, options: ["Central", "SepticTank", "None"] },
-    { name: "gasSupply", kind: "yesno", required: true },
+    { name: "waterSupply", kind: "enum", options: ["CentralNetwork", "Well", "DrilledWell", "Cistern", "None"] },
+    { name: "sewerage", kind: "enum", options: ["Central", "SepticTank", "None"] },
+    { name: "gasSupply", kind: "yesno" },
     // Finishing materials
-    { name: "floorMaterial", kind: "enum", required: true, options: FLOOR_MATERIALS },
+    { name: "floorMaterial", kind: "enum", options: FLOOR_MATERIALS },
     { name: "atticMaterial", kind: "enum", options: ["Wood", "Drywall", "Osb", "Brick", "AeratedConcrete", "Other"] },
-    { name: "roofMaterial", kind: "enum", required: true, options: ["Tile", "Metal", "Other"] },
-    { name: "windowType", kind: "enum", required: true, options: ["Thermopane", "Wood", "Other"] },
+    { name: "roofMaterial", kind: "enum", options: ["Tile", "Metal", "Other"] },
+    { name: "windowType", kind: "enum", options: ["Thermopane", "Wood", "Other"] },
   ],
   Land: [
     // Type & area (the plot's area is the general totalAreaM2)
@@ -128,12 +129,12 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
       visibleWhen: { field: "plotType", values: ["Agricultural"] },
     },
     // Utilities & access
-    { name: "roadAccess", kind: "enum", required: true, options: ["Paved", "Gravel", "None"] },
-    { name: "gasPipelineAtBoundary", kind: "yesno", required: true },
-    { name: "electricitySupplyAtBoundary", kind: "yesno", required: true },
-    { name: "sewerageAtBoundary", kind: "yesno", required: true },
-    { name: "irrigationSystem", kind: "yesno", required: true },
-    { name: "phoneLineAvailable", kind: "yesno", required: true },
+    { name: "roadAccess", kind: "enum", options: ["Paved", "Gravel", "None"] },
+    { name: "gasPipelineAtBoundary", kind: "yesno" },
+    { name: "electricitySupplyAtBoundary", kind: "yesno" },
+    { name: "sewerageAtBoundary", kind: "yesno" },
+    { name: "irrigationSystem", kind: "yesno" },
+    { name: "phoneLineAvailable", kind: "yesno" },
   ],
   Commercial: [
     // Type & structure
@@ -146,7 +147,7 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
         "BeautySalon", "AutoService", "DentalSpace", "SportsSpace", "ConferenceRoom", "ResortOrHotel",
       ],
     },
-    { name: "finishCondition", kind: "enum", required: true, options: FINISH_CONDITIONS },
+    { name: "finishCondition", kind: "enum", options: FINISH_CONDITIONS },
     // Negative for basement levels: -1 = basement, 0 = semi-basement.
     { name: "floor", kind: "int", required: true, min: -5, max: 200 },
     { name: "totalFloorsInBuilding", kind: "int", min: 1, max: 200 },
@@ -162,9 +163,9 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
     // Systems & utilities
     { name: "bathrooms", kind: "int", required: true, min: 0, max: 50 },
     { name: "phoneLinesCount", kind: "int", min: 0, max: 100 },
-    { name: "mainStreetAccess", kind: "yesno", required: true },
+    { name: "mainStreetAccess", kind: "yesno" },
     { name: "electricalPower", kind: "text", maxLength: 50 },
-    { name: "gasSupply", kind: "yesno", required: true },
+    { name: "gasSupply", kind: "yesno" },
   ],
   Garage: [{ name: "parkingType", kind: "enum", required: true, options: ["Garage", "ParkingSpot", "UndergroundParking"] }],
   Room: [

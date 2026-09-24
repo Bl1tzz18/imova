@@ -32,11 +32,7 @@ public class PropertyAttributesValidatorTests
     public void Apartment_WithNothingFilledIn_RequiresEveryNonOptionalField()
     {
         Assert.Equal(
-            new[]
-            {
-                "BuildingMaterial", "FinishCondition", "Floor", "FloorMaterial", "GasSupply", "HeatingSystem",
-                "HousingStockType", "Layout", "Rooms", "TotalFloors",
-            },
+            new[] { "Floor", "Rooms", "TotalFloors" },
             ErrorsFor(new ApartmentAttributes()).Distinct().Order());
     }
 
@@ -44,23 +40,15 @@ public class PropertyAttributesValidatorTests
     public void House_WithNothingFilledIn_RequiresEveryNonOptionalField()
     {
         Assert.Equal(
-            new[]
-            {
-                "BuildingMaterial", "FinishCondition", "FloorMaterial", "GasSupply", "HeatingSystem", "HouseFloors",
-                "HouseType", "LandAreaM2", "LivingAreaM2", "RoofMaterial", "Rooms", "Sewerage", "WaterSupply", "WindowType",
-            },
+            new[] { "HouseFloors", "HouseType", "LandAreaM2", "Rooms" },
             ErrorsFor(new HouseAttributes()).Distinct().Order());
     }
 
     [Fact]
-    public void Land_WithNothingFilledIn_RequiresTypeContextRoadAndEveryYesNoAnswer()
+    public void Land_WithNothingFilledIn_RequiresOnlyPlotTypeAndLocationContext()
     {
         Assert.Equal(
-            new[]
-            {
-                "ElectricitySupplyAtBoundary", "GasPipelineAtBoundary", "IrrigationSystem", "LocationContext",
-                "PhoneLineAvailable", "PlotType", "RoadAccess", "SewerageAtBoundary",
-            },
+            new[] { "LocationContext", "PlotType" },
             ErrorsFor(new LandAttributes()).Distinct().Order());
     }
 
@@ -68,7 +56,7 @@ public class PropertyAttributesValidatorTests
     public void Commercial_WithNothingFilledIn_RequiresEveryNonOptionalField()
     {
         Assert.Equal(
-            new[] { "Bathrooms", "FinishCondition", "Floor", "GasSupply", "MainStreetAccess", "SpaceType" },
+            new[] { "Bathrooms", "Floor", "SpaceType" },
             ErrorsFor(new CommercialAttributes()).Distinct().Order());
     }
 
@@ -82,15 +70,28 @@ public class PropertyAttributesValidatorTests
     [Fact]
     public void OptionalFields_CanBeLeftEmpty()
     {
-        Assert.Empty(ErrorsFor(TestAttributes.CompleteApartment with { Bathrooms = null, LivingAreaM2 = null, KitchenAreaM2 = null }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteApartment with
+        {
+            Bathrooms = null, LivingAreaM2 = null, KitchenAreaM2 = null, HousingStockType = null, BuildingMaterial = null,
+            FinishCondition = null, Layout = null, HeatingSystem = null, HeatingEnergySource = null,
+            HeatingDistribution = null, GasSupply = null, FloorMaterial = null,
+        }));
         Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse with
         {
             KitchenAreaM2 = null, AtticAreaM2 = null, BasementAreaM2 = null, CeilingHeightM = null, AtticMaterial = null,
+            BuildingMaterial = null, FinishCondition = null, LivingAreaM2 = null, HeatingSystem = null,
+            HeatingEnergySource = null, HeatingDistribution = null, WaterSupply = null, Sewerage = null, GasSupply = null,
+            FloorMaterial = null, RoofMaterial = null, WindowType = null,
         }));
-        Assert.Empty(ErrorsFor(TestAttributes.CompleteLand with { SoilQualityScore = null }));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteLand with
+        {
+            SoilQualityScore = null, RoadAccess = null, GasPipelineAtBoundary = null, ElectricitySupplyAtBoundary = null,
+            SewerageAtBoundary = null, IrrigationSystem = null, PhoneLineAvailable = null,
+        }));
         Assert.Empty(ErrorsFor(TestAttributes.CompleteCommercial with
         {
             TotalFloorsInBuilding = null, WorkingAreaM2 = null, NumberOfOffices = null, PhoneLinesCount = null, ElectricalPower = null,
+            FinishCondition = null, MainStreetAccess = null, GasSupply = null,
         }));
         Assert.Empty(ErrorsFor(TestAttributes.CompleteRoom with { RoommateCount = null }));
     }
@@ -131,6 +132,34 @@ public class PropertyAttributesValidatorTests
             Assert.Empty(ErrorsFor(withoutDetails));
             Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withDetails).Order());
         }
+    }
+
+    [Fact]
+    public void HeatingDetails_WithNoHeatingSystem_AreRejected()
+    {
+        Assert.Equal(
+            new[] { "HeatingDistribution", "HeatingEnergySource" },
+            ErrorsFor(TestAttributes.CompleteApartment with { HeatingSystem = null }).Order());
+        Assert.Equal(
+            new[] { "HeatingDistribution", "HeatingEnergySource" },
+            ErrorsFor(TestAttributes.CompleteHouse with { HeatingSystem = null }).Order());
+    }
+
+    [Fact]
+    public void OptionalEnums_StillRejectUnknownValues()
+    {
+        Assert.Equal(
+            new[] { "BuildingMaterial", "FloorMaterial", "RoofMaterial", "Sewerage", "WaterSupply", "WindowType" },
+            ErrorsFor(TestAttributes.CompleteHouse with
+            {
+                BuildingMaterial = (BuildingMaterial)42, FloorMaterial = (FloorMaterial)42, RoofMaterial = (RoofMaterial)42,
+                Sewerage = (Sewerage)42, WaterSupply = (WaterSupply)42, WindowType = (WindowType)42,
+            }).Order());
+        Assert.Equal(
+            new[] { "HousingStockType", "Layout" },
+            ErrorsFor(TestAttributes.CompleteApartment with { HousingStockType = (HousingStockType)42, Layout = (ApartmentLayout)42 }).Order());
+        Assert.Equal(["RoadAccess"], ErrorsFor(TestAttributes.CompleteLand with { RoadAccess = (RoadAccess)42 }));
+        Assert.Equal(["FinishCondition"], ErrorsFor(TestAttributes.CompleteCommercial with { FinishCondition = (FinishCondition)42 }));
     }
 
     [Fact]

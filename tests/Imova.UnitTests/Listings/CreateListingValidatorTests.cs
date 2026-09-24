@@ -139,7 +139,8 @@ public class CreateListingValidatorTests
         var errors = await ErrorPropertiesAsync(ValidCommand(attributes: Json("""{"rooms":2}""")));
 
         Assert.Contains("TypeSpecificAttributes.Floor", errors);
-        Assert.Contains("TypeSpecificAttributes.HeatingSystem", errors);
+        Assert.Contains("TypeSpecificAttributes.TotalFloors", errors);
+        Assert.DoesNotContain("TypeSpecificAttributes.HeatingSystem", errors);
         Assert.DoesNotContain("TypeSpecificAttributes.Rooms", errors);
     }
 

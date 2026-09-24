@@ -75,8 +75,7 @@ public sealed record HouseAttributes(
     HeatingDistribution? HeatingDistribution = null,
     WaterSupply? WaterSupply = null,
     Sewerage? Sewerage = null,
-    // Nullable so "not answered" is distinguishable from "no" — the form asks it as a required
-    // Yes/No choice.
+    // Nullable so "not answered" is distinguishable from "no" — asked as an optional Yes/No.
     bool? GasSupply = null,
     // Finishing materials
     FloorMaterial? FloorMaterial = null,
@@ -95,7 +94,7 @@ public sealed record LandAttributes(
     LocationContext? LocationContext = null,
     // The "bonitate" soil-quality score — only for agricultural plots (see RequiresSoilQuality).
     int? SoilQualityScore = null,
-    // Utilities & access (all asked as required Yes/No choices)
+    // Utilities & access (optional Yes/No answers)
     RoadAccess? RoadAccess = null,
     bool? GasPipelineAtBoundary = null,
     bool? ElectricitySupplyAtBoundary = null,

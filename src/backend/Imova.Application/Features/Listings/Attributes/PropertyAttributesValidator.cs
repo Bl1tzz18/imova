@@ -31,9 +31,9 @@ public static class PropertyAttributesValidator
     };
 }
 
-// The conditional heating-details rule shared by every type with a HeatingSystem: energy source
-// and distribution are required for heating that has them (Heating.RequiresDetails) and must be
-// empty otherwise.
+// The conditional heating-details rule shared by every type with a HeatingSystem (itself optional):
+// energy source and distribution are required for heating that has them (Heating.RequiresDetails)
+// and must be empty otherwise, including when no heating system is given.
 internal static class HeatingRules
 {
     public static void Apply<T>(
@@ -43,7 +43,7 @@ internal static class HeatingRules
         Expression<Func<T, HeatingEnergySource?>> energySource,
         Expression<Func<T, HeatingDistribution?>> distribution)
     {
-        validator.RuleFor(heatingSystemField).NotNull().IsInEnum();
+        validator.RuleFor(heatingSystemField).IsInEnum();
 
         validator.RuleFor(energySource)
             .NotNull().WithMessage("HeatingEnergySource is required for this heating system.")
@@ -68,10 +68,10 @@ public class ApartmentAttributesValidator : AbstractValidator<ApartmentAttribute
     public ApartmentAttributesValidator()
     {
         // Type & structure
-        RuleFor(a => a.HousingStockType).NotNull().IsInEnum();
-        RuleFor(a => a.BuildingMaterial).NotNull().IsInEnum();
-        RuleFor(a => a.FinishCondition).NotNull().IsInEnum();
-        RuleFor(a => a.Layout).NotNull().IsInEnum();
+        RuleFor(a => a.HousingStockType).IsInEnum();
+        RuleFor(a => a.BuildingMaterial).IsInEnum();
+        RuleFor(a => a.FinishCondition).IsInEnum();
+        RuleFor(a => a.Layout).IsInEnum();
         RuleFor(a => a.Rooms).NotNull().InclusiveBetween(1, 50);
         RuleFor(a => a.Floor).NotNull().InclusiveBetween(-5, 200);
         RuleFor(a => a.TotalFloors).NotNull().InclusiveBetween(1, 200);
@@ -87,10 +87,9 @@ public class ApartmentAttributesValidator : AbstractValidator<ApartmentAttribute
 
         // Systems & utilities
         HeatingRules.Apply(this, a => a.HeatingSystem, a => a.HeatingSystem, a => a.HeatingEnergySource, a => a.HeatingDistribution);
-        RuleFor(a => a.GasSupply).NotNull();
 
         // Finishing materials
-        RuleFor(a => a.FloorMaterial).NotNull().IsInEnum();
+        RuleFor(a => a.FloorMaterial).IsInEnum();
     }
 }
 
@@ -101,13 +100,13 @@ public class HouseAttributesValidator : AbstractValidator<HouseAttributes>
         // Type & structure
         RuleFor(h => h.Rooms).NotNull().InclusiveBetween(1, 100);
         RuleFor(h => h.HouseType).NotNull().IsInEnum();
-        RuleFor(h => h.BuildingMaterial).NotNull().IsInEnum();
-        RuleFor(h => h.FinishCondition).NotNull().IsInEnum();
+        RuleFor(h => h.BuildingMaterial).IsInEnum();
+        RuleFor(h => h.FinishCondition).IsInEnum();
         RuleFor(h => h.HouseFloors).NotNull().InclusiveBetween(1, 10);
         RuleFor(h => h.CeilingHeightM).InclusiveBetween(1.5m, 10m);
 
         // Areas
-        RuleFor(h => h.LivingAreaM2).NotNull().GreaterThan(0);
+        RuleFor(h => h.LivingAreaM2).GreaterThan(0);
         RuleFor(h => h.LandAreaM2).NotNull().GreaterThan(0);
         RuleFor(h => h.KitchenAreaM2).GreaterThan(0);
         RuleFor(h => h.AtticAreaM2).GreaterThan(0);
@@ -115,15 +114,14 @@ public class HouseAttributesValidator : AbstractValidator<HouseAttributes>
 
         // Systems & utilities
         HeatingRules.Apply(this, h => h.HeatingSystem, h => h.HeatingSystem, h => h.HeatingEnergySource, h => h.HeatingDistribution);
-        RuleFor(h => h.WaterSupply).NotNull().IsInEnum();
-        RuleFor(h => h.Sewerage).NotNull().IsInEnum();
-        RuleFor(h => h.GasSupply).NotNull();
+        RuleFor(h => h.WaterSupply).IsInEnum();
+        RuleFor(h => h.Sewerage).IsInEnum();
 
         // Finishing materials
-        RuleFor(h => h.FloorMaterial).NotNull().IsInEnum();
+        RuleFor(h => h.FloorMaterial).IsInEnum();
         RuleFor(h => h.AtticMaterial).IsInEnum();
-        RuleFor(h => h.RoofMaterial).NotNull().IsInEnum();
-        RuleFor(h => h.WindowType).NotNull().IsInEnum();
+        RuleFor(h => h.RoofMaterial).IsInEnum();
+        RuleFor(h => h.WindowType).IsInEnum();
     }
 }
 
@@ -142,12 +140,7 @@ public class LandAttributesValidator : AbstractValidator<LandAttributes>
             .When(l => !LandAttributes.AllowsSoilQuality(l.PlotType));
 
         // Utilities & access
-        RuleFor(l => l.RoadAccess).NotNull().IsInEnum();
-        RuleFor(l => l.GasPipelineAtBoundary).NotNull();
-        RuleFor(l => l.ElectricitySupplyAtBoundary).NotNull();
-        RuleFor(l => l.SewerageAtBoundary).NotNull();
-        RuleFor(l => l.IrrigationSystem).NotNull();
-        RuleFor(l => l.PhoneLineAvailable).NotNull();
+        RuleFor(l => l.RoadAccess).IsInEnum();
     }
 }
 
@@ -157,7 +150,7 @@ public class CommercialAttributesValidator : AbstractValidator<CommercialAttribu
     {
         // Type & structure
         RuleFor(c => c.SpaceType).NotNull().IsInEnum();
-        RuleFor(c => c.FinishCondition).NotNull().IsInEnum();
+        RuleFor(c => c.FinishCondition).IsInEnum();
         RuleFor(c => c.Floor).NotNull().InclusiveBetween(-5, 200);
         RuleFor(c => c.TotalFloorsInBuilding).InclusiveBetween(1, 200);
         RuleFor(c => c.Floor)
@@ -177,9 +170,7 @@ public class CommercialAttributesValidator : AbstractValidator<CommercialAttribu
         // Systems & utilities
         RuleFor(c => c.Bathrooms).NotNull().InclusiveBetween(0, 50);
         RuleFor(c => c.PhoneLinesCount).InclusiveBetween(0, 100);
-        RuleFor(c => c.MainStreetAccess).NotNull();
         RuleFor(c => c.ElectricalPower).MaximumLength(50);
-        RuleFor(c => c.GasSupply).NotNull();
     }
 }
 

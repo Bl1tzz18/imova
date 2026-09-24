@@ -139,17 +139,22 @@ describe("section completion", () => {
     expect(isSectionComplete(section("Apartment", "other"), "Apartment", getter({}), true)).toBe(true);
   });
 
-  it("requires every Yes/No answer in the Land utilities section", () => {
+  it("counts the Land utilities section complete once opened — every answer there is optional", () => {
     const utilities = section("Land", "utilitiesAccess");
-    const answered = {
-      roadAccess: "Paved",
-      gasPipelineAtBoundary: "false",
-      electricitySupplyAtBoundary: "true",
-      sewerageAtBoundary: "false",
-      irrigationSystem: "false",
-    };
-    expect(isSectionComplete(utilities, "Land", getter(answered), false)).toBe(false);
-    expect(isSectionComplete(utilities, "Land", getter({ ...answered, phoneLineAvailable: "true" }), false)).toBe(true);
+    expect(isSectionComplete(utilities, "Land", getter({}), false)).toBe(false);
+    expect(isSectionComplete(utilities, "Land", getter({}), true)).toBe(true);
+  });
+
+  it("don't wait on the optional House/Apartment materials and systems", () => {
+    const houseStructure = { houseType: "Villa", houseFloors: "2", rooms: "5" };
+    expect(isSectionComplete(section("House", "structure"), "House", getter(houseStructure), false)).toBe(true);
+    expect(isSectionComplete(section("House", "areas"), "House", getter({ totalAreaM2: "180", landAreaM2: "600" }), false)).toBe(
+      true,
+    );
+    expect(isSectionComplete(section("House", "systems"), "House", getter({}), false)).toBe(true);
+    const apartmentStructure = { rooms: "2", floor: "3", totalFloors: "9" };
+    expect(isSectionComplete(section("Apartment", "structure"), "Apartment", getter(apartmentStructure), false)).toBe(true);
+    expect(isSectionComplete(section("Apartment", "systems"), "Apartment", getter({}), false)).toBe(true);
   });
 });
 
