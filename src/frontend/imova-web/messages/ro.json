@@ -651,7 +651,14 @@
     },
     "atticMaterial": {
       "label": "Material mansardă",
-      "placeholder": "ex: lemn izolat"
+      "options": {
+        "Wood": "Lemn",
+        "Drywall": "Gips-carton",
+        "Osb": "Plăci OSB",
+        "Brick": "Cărămidă",
+        "AeratedConcrete": "BCA (beton celular)",
+        "Other": "Alt material"
+      }
     },
     "roofMaterial": {
       "label": "Acoperiș",
@@ -668,6 +675,8 @@
         "Wood": "Lemn",
         "Other": "Alt tip"
       }
-    }
+    },
+    "yes": "Da",
+    "no": "Nu"
   }
 }

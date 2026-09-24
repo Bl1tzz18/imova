@@ -77,7 +77,7 @@ describe("house sections", () => {
 
 describe("conditional heating details", () => {
   const systems = section("systems");
-  const base = { waterSupply: "Well", sewerage: "SepticTank" };
+  const base = { waterSupply: "Well", sewerage: "SepticTank", gasSupply: "false" };
 
   it.each(["OwnBoiler", "HeatPump", "SolarPanels"])("are required with %s heating", (heatingSystem) => {
     expect(isSectionComplete(systems, getter({ ...base, heatingSystem }), false)).toBe(false);
@@ -125,5 +125,39 @@ describe("conditional heating details", () => {
       gasSupply: true,
       livingAreaM2: 140.5,
     });
+  });
+});
+
+describe("gas supply (Yes/No dropdown)", () => {
+  const systems = section("systems");
+  const answered = { heatingSystem: "Stove", waterSupply: "Well", sewerage: "None" };
+
+  it("must be answered for the systems section to be complete", () => {
+    expect(isSectionComplete(systems, getter(answered), false)).toBe(false);
+    expect(isSectionComplete(systems, getter({ ...answered, gasSupply: "false" }), false)).toBe(true);
+  });
+
+  it.each([
+    ["true", true],
+    ["false", false],
+  ])("submits %s as a boolean", (raw, expected) => {
+    const form = new FormData();
+    form.set(attributeInputName("gasSupply"), raw);
+    expect(readAttributes("House", form).gasSupply).toBe(expected);
+  });
+
+  it("is omitted when not answered", () => {
+    const form = new FormData();
+    form.set(attributeInputName("gasSupply"), "");
+    expect(readAttributes("House", form)).not.toHaveProperty("gasSupply");
+  });
+});
+
+describe("house condition options", () => {
+  it("list the most common conditions first", () => {
+    const field = ATTRIBUTE_SCHEMA.House.find((f) => f.name === "houseCondition");
+    expect(field && "options" in field ? field.options.slice(0, 3) : []).toEqual([
+      "EuroRenovated", "CosmeticRepair", "WhiteStructure",
+    ]);
   });
 });

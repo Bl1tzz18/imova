@@ -28,7 +28,7 @@ public class PropertyAttributesJsonTests
     {
         var ok = PropertyAttributesJson.TryParse(
             PropertyType.House,
-            Json("""{"rooms":4,"houseType":"Duplex","buildingMaterial":"LimestoneBlock","livingAreaM2":140.5,"heatingSystem":"OwnBoiler","heatingEnergySource":"Gas","gasSupply":true,"atticMaterial":"lemn"}"""),
+            Json("""{"rooms":4,"houseType":"Duplex","buildingMaterial":"LimestoneBlock","livingAreaM2":140.5,"heatingSystem":"OwnBoiler","heatingEnergySource":"Gas","gasSupply":true,"atticMaterial":"Drywall"}"""),
             out var attributes,
             out _);
 
@@ -39,7 +39,7 @@ public class PropertyAttributesJsonTests
         Assert.Equal(140.5m, house.LivingAreaM2);
         Assert.Equal(HeatingEnergySource.Gas, house.HeatingEnergySource);
         Assert.True(house.GasSupply);
-        Assert.Equal("lemn", house.AtticMaterial);
+        Assert.Equal(AtticMaterial.Drywall, house.AtticMaterial);
     }
 
     [Fact]

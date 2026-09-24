@@ -651,7 +651,14 @@
     },
     "atticMaterial": {
       "label": "Attic material",
-      "placeholder": "e.g. insulated timber"
+      "options": {
+        "Wood": "Wood",
+        "Drywall": "Drywall",
+        "Osb": "OSB boards",
+        "Brick": "Brick",
+        "AeratedConcrete": "Aerated concrete",
+        "Other": "Other"
+      }
     },
     "roofMaterial": {
       "label": "Roof",
@@ -668,6 +675,8 @@
         "Wood": "Wood",
         "Other": "Other"
       }
-    }
+    },
+    "yes": "Yes",
+    "no": "No"
   }
 }

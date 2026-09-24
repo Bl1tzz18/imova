@@ -60,11 +60,13 @@ public sealed record HouseAttributes(
     HeatingDistribution? HeatingDistribution = null,
     WaterSupply? WaterSupply = null,
     Sewerage? Sewerage = null,
-    bool GasSupply = false,
+    // Nullable so "not answered" is distinguishable from "no" — the form asks it as a required
+    // Yes/No choice.
+    bool? GasSupply = null,
     // Finishing materials
     FloorMaterial? FloorMaterial = null,
-    // Free text: attic finishes vary too much to enumerate usefully.
-    string? AtticMaterial = null,
+    // Optional: not every house has an attic.
+    AtticMaterial? AtticMaterial = null,
     RoofMaterial? RoofMaterial = null,
     WindowType? WindowType = null) : PropertyAttributes
 {

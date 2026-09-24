@@ -25,7 +25,7 @@ internal static class TestAttributes
         Sewerage: Sewerage.Central,
         GasSupply: true,
         FloorMaterial: FloorMaterial.Parquet,
-        AtticMaterial: "Lemn izolat",
+        AtticMaterial: AtticMaterial.Wood,
         RoofMaterial: RoofMaterial.Tile,
         WindowType: WindowType.Thermopane);
 }

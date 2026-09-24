@@ -83,10 +83,11 @@ public class HouseAttributesValidator : AbstractValidator<HouseAttributes>
             .When(h => !HouseAttributes.RequiresHeatingDetails(h.HeatingSystem));
         RuleFor(h => h.WaterSupply).NotNull().IsInEnum();
         RuleFor(h => h.Sewerage).NotNull().IsInEnum();
+        RuleFor(h => h.GasSupply).NotNull();
 
         // Finishing materials
         RuleFor(h => h.FloorMaterial).NotNull().IsInEnum();
-        RuleFor(h => h.AtticMaterial).MaximumLength(100);
+        RuleFor(h => h.AtticMaterial).IsInEnum();
         RuleFor(h => h.RoofMaterial).NotNull().IsInEnum();
         RuleFor(h => h.WindowType).NotNull().IsInEnum();
     }

@@ -126,7 +126,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
             ["gasSupply"] = true,
             // Finishing materials
             ["floorMaterial"] = "Parquet",
-            ["atticMaterial"] = "Lemn izolat",
+            ["atticMaterial"] = "Osb",
             ["roofMaterial"] = "Tile",
             ["windowType"] = "Thermopane",
         };
@@ -164,7 +164,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
             ["rooms"] = 3, ["houseType"] = "Individual", ["buildingMaterial"] = "Brick", ["houseCondition"] = "NoRepair",
             ["houseFloors"] = 1, ["livingAreaM2"] = 90, ["landAreaM2"] = 400, ["heatingSystem"] = "DistrictHeating",
             ["heatingEnergySource"] = "Gas", ["waterSupply"] = "CentralNetwork", ["sewerage"] = "Central",
-            ["floorMaterial"] = "Laminate", ["roofMaterial"] = "Metal", ["windowType"] = "Thermopane",
+            ["gasSupply"] = false, ["floorMaterial"] = "Laminate", ["roofMaterial"] = "Metal", ["windowType"] = "Thermopane",
         };
 
         var response = await client.PostAsJsonAsync("/api/v1/listings", body);

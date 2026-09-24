@@ -86,7 +86,7 @@ export default async function ProprietatePage({
       facts.push({ label, value: t("floorOf", { floor: String(value), totalFloors: attributes.totalFloors }) });
     } else if (field.kind === "enum") {
       facts.push({ label, value: tAttr(`${field.name}.options.${String(value)}`) });
-    } else if (field.kind === "bool") {
+    } else if (field.kind === "bool" || field.kind === "yesno") {
       facts.push({ label, value: yesNo(value === true) });
     } else if (field.kind === "flags") {
       const present = field.flags.filter((flag) => (value as Record<string, unknown>)[flag] === true);

@@ -49,7 +49,7 @@ public class PropertyAttributesValidatorTests
         Assert.Equal(
             new[]
             {
-                "BuildingMaterial", "FloorMaterial", "HeatingSystem", "HouseCondition", "HouseFloors", "HouseType",
+                "BuildingMaterial", "FloorMaterial", "GasSupply", "HeatingSystem", "HouseCondition", "HouseFloors", "HouseType",
                 "LandAreaM2", "LivingAreaM2", "RoofMaterial", "Rooms", "Sewerage", "WaterSupply", "WindowType",
             },
             ErrorsFor(new HouseAttributes()).Distinct().Order());
@@ -64,6 +64,20 @@ public class PropertyAttributesValidatorTests
         };
 
         Assert.Empty(ErrorsFor(house));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void House_GasSupply_AcceptsAnExplicitYesOrNo(bool gasSupply)
+    {
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse with { GasSupply = gasSupply }));
+    }
+
+    [Fact]
+    public void House_GasSupply_MustBeAnswered()
+    {
+        Assert.Equal(["GasSupply"], ErrorsFor(TestAttributes.CompleteHouse with { GasSupply = null }));
     }
 
     [Theory]
@@ -108,11 +122,11 @@ public class PropertyAttributesValidatorTests
     }
 
     [Fact]
-    public void House_RejectsOutOfRangeNumbersAndOverlongAtticMaterial()
+    public void House_RejectsOutOfRangeNumbersAndUnknownAtticMaterial()
     {
         var house = TestAttributes.CompleteHouse with
         {
-            LivingAreaM2 = 0, KitchenAreaM2 = -1, CeilingHeightM = 12m, HouseFloors = 11, AtticMaterial = new string('x', 101),
+            LivingAreaM2 = 0, KitchenAreaM2 = -1, CeilingHeightM = 12m, HouseFloors = 11, AtticMaterial = (AtticMaterial)42,
         };
 
         Assert.Equal(

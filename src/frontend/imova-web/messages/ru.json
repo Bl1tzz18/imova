@@ -651,7 +651,14 @@
     },
     "atticMaterial": {
       "label": "Материал мансарды",
-      "placeholder": "напр.: утеплённое дерево"
+      "options": {
+        "Wood": "Дерево",
+        "Drywall": "Гипсокартон",
+        "Osb": "Плиты OSB",
+        "Brick": "Кирпич",
+        "AeratedConcrete": "Газобетон",
+        "Other": "Другое"
+      }
     },
     "roofMaterial": {
       "label": "Кровля",
@@ -668,6 +675,8 @@
         "Wood": "Деревянные",
         "Other": "Другие"
       }
-    }
+    },
+    "yes": "Да",
+    "no": "Нет"
   }
 }

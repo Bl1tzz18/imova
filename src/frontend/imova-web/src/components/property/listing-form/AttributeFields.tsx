@@ -7,7 +7,9 @@ import { attributeInputName, type AttributeField } from "@/lib/property/attribut
 import type { TypeSpecificAttributes } from "@/types/listing";
 
 function asString(value: unknown): string | undefined {
-  return typeof value === "number" || typeof value === "string" ? String(value) : undefined;
+  return typeof value === "number" || typeof value === "string" || typeof value === "boolean"
+    ? String(value)
+    : undefined;
 }
 
 // One input per TypeSpecificAttributes field of the selected PropertyType (see
@@ -62,6 +64,17 @@ export function AttributeInput({
                 {t(`${field.name}.options.${option}`)}
               </option>
             ))}
+          </SelectInput>
+        </label>
+      );
+    case "yesno":
+      return (
+        <label className="block">
+          <FieldLabel required={field.required}>{label}</FieldLabel>
+          <SelectInput name={name} defaultValue={defaultValue ?? ""} required={field.required}>
+            <option value="">{field.required ? t("choose") : t("notSpecified")}</option>
+            <option value="true">{t("yes")}</option>
+            <option value="false">{t("no")}</option>
           </SelectInput>
         </label>
       );

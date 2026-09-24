@@ -99,6 +99,17 @@ public enum FloorMaterial
     Other = 4,
 }
 
+// What the attic (mansardă) is built/finished with.
+public enum AtticMaterial
+{
+    Wood = 1,
+    Drywall = 2,
+    Osb = 3,
+    Brick = 4,
+    AeratedConcrete = 5,
+    Other = 6,
+}
+
 public enum RoofMaterial
 {
     Tile = 1,

@@ -19,6 +19,8 @@ export type AttributeField = FieldBase &
     | { kind: "decimal"; required?: boolean; min: number; max?: number }
     | { kind: "enum"; required?: boolean; options: readonly string[] }
     | { kind: "bool" }
+    // A true/false answer asked as a Yes/No dropdown (so "not answered" is distinct from "no").
+    | { kind: "yesno"; required?: boolean }
     | { kind: "text"; maxLength: number }
     // A nested object of booleans, e.g. utilitiesAtBoundary: { water, electricity, gas }.
     | { kind: "flags"; flags: readonly string[] }
@@ -52,9 +54,11 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
       name: "houseCondition",
       kind: "enum",
       required: true,
+      // Most common first, as house listings in Moldova typically describe themselves (display
+      // order only — no usage stats exist yet to sort by).
       options: [
-        "ToBeDemolished", "IndividualDesign", "GrayStructure", "EuroRenovated", "WhiteStructure", "NeedsRepair",
-        "Unfinished", "CosmeticRepair", "NoRepair",
+        "EuroRenovated", "CosmeticRepair", "WhiteStructure", "GrayStructure", "IndividualDesign", "NeedsRepair",
+        "NoRepair", "Unfinished", "ToBeDemolished",
       ],
     },
     { name: "houseFloors", kind: "int", required: true, min: 1, max: 10 },
@@ -89,10 +93,10 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
     },
     { name: "waterSupply", kind: "enum", required: true, options: ["CentralNetwork", "Well", "DrilledWell", "Cistern", "None"] },
     { name: "sewerage", kind: "enum", required: true, options: ["Central", "SepticTank", "None"] },
-    { name: "gasSupply", kind: "bool" },
+    { name: "gasSupply", kind: "yesno", required: true },
     // Finishing materials
     { name: "floorMaterial", kind: "enum", required: true, options: ["Parquet", "Laminate", "Tile", "Other"] },
-    { name: "atticMaterial", kind: "text", maxLength: 100 },
+    { name: "atticMaterial", kind: "enum", options: ["Wood", "Drywall", "Osb", "Brick", "AeratedConcrete", "Other"] },
     { name: "roofMaterial", kind: "enum", required: true, options: ["Tile", "Metal", "Other"] },
     { name: "windowType", kind: "enum", required: true, options: ["Thermopane", "Wood", "Other"] },
   ],
@@ -175,6 +179,9 @@ export function readAttributes(propertyType: string, formData: FormData): Record
         break;
       case "bool":
         result[field.name] = raw === "true";
+        break;
+      case "yesno":
+        if (raw === "true" || raw === "false") result[field.name] = raw === "true";
         break;
       case "flags": {
         const values = Object.fromEntries(
