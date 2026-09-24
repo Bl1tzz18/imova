@@ -207,7 +207,18 @@
     "publisherAgency": "Agenție",
     "datePlaceholder": "zz.ll.aaaa",
     "invalidDate": "Introdu o dată validă (zz.ll.aaaa).",
-    "openCalendar": "Deschide calendarul"
+    "openCalendar": "Deschide calendarul",
+    "houseTotalAreaLabel": "Suprafață totală (m²)",
+    "sectionsCompleted": "{completed}/{total} secțiuni completate",
+    "houseSections": {
+      "structure": "Tip și structură",
+      "areas": "Suprafețe",
+      "systems": "Sisteme și utilități",
+      "finishing": "Materiale de finisaj",
+      "comfort": "Confort și interior",
+      "security": "Securitate și acces",
+      "leisure": "Agrement și spații auxiliare"
+    }
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",
@@ -414,7 +425,25 @@
     "wheelchair_access": "Acces pentru scaun cu rotile",
     "storage_room": "Debara",
     "video_surveillance": "Supraveghere video",
-    "internet": "Internet"
+    "internet": "Internet",
+    "fireplace": "Șemineu",
+    "underfloor_heating": "Încălzire în pardoseală",
+    "smart_home": "Sistem casă inteligentă",
+    "appliances": "Cu tehnică de uz casnic",
+    "cable_tv": "Televiziune prin cablu",
+    "landline": "Telefon fix",
+    "intercom": "Interfon",
+    "alarm_system": "Sistem de alarmă",
+    "remote_gate": "Poartă cu telecomandă",
+    "sauna": "Saună",
+    "basement": "Beci/subsol",
+    "gazebo": "Foișor",
+    "pool": "Piscină",
+    "terrace": "Terasă",
+    "garden": "Grădină/seră",
+    "staff_room": "Cameră pentru personal/pază",
+    "backup_generator": "Generator de rezervă",
+    "water_purification": "Sistem de purificare a apei"
   },
   "Attributes": {
     "choose": "Alege",
@@ -444,18 +473,6 @@
     },
     "houseFloors": {
       "label": "Niveluri"
-    },
-    "constructionType": {
-      "label": "Material construcție",
-      "options": {
-        "Brick": "Cărămidă",
-        "Stone": "Piatră",
-        "Wood": "Lemn",
-        "Other": "Altul"
-      }
-    },
-    "utilities": {
-      "label": "Utilități"
     },
     "landDesignation": {
       "label": "Destinație teren",
@@ -513,9 +530,144 @@
     },
     "utilityFlags": {
       "water": "Apă",
-      "sewage": "Canalizare",
       "gas": "Gaz",
       "electricity": "Electricitate"
+    },
+    "houseType": {
+      "label": "Tip casă",
+      "options": {
+        "Individual": "Casă individuală",
+        "Duplex": "Duplex",
+        "Triplex": "Triplex",
+        "Townhouse": "Townhouse",
+        "Villa": "Vilă",
+        "Other": "Alt tip"
+      }
+    },
+    "buildingMaterial": {
+      "label": "Material pereți",
+      "options": {
+        "Brick": "Cărămidă",
+        "Panel": "Panouri",
+        "ConcreteBlock": "Blocuri de beton",
+        "LimestoneBlock": "Cotileț",
+        "Monolith": "Monolit",
+        "Concrete": "Beton",
+        "Combined": "Mixt",
+        "AeratedConcrete": "BCA (beton celular)",
+        "Wood": "Lemn",
+        "Adobe": "Chirpici",
+        "Other": "Alt material"
+      }
+    },
+    "houseCondition": {
+      "label": "Starea casei",
+      "options": {
+        "ToBeDemolished": "Pentru demolare",
+        "IndividualDesign": "Design individual",
+        "GrayStructure": "Variantă sură",
+        "EuroRenovated": "Euroreparație",
+        "WhiteStructure": "Variantă albă",
+        "NeedsRepair": "Necesită reparație",
+        "Unfinished": "Construcție nefinisată",
+        "CosmeticRepair": "Reparație cosmetică",
+        "NoRepair": "Fără reparație"
+      }
+    },
+    "ceilingHeightM": {
+      "label": "Înălțimea tavanului (m)"
+    },
+    "livingAreaM2": {
+      "label": "Suprafață locuibilă (m²)"
+    },
+    "kitchenAreaM2": {
+      "label": "Suprafață bucătărie (m²)"
+    },
+    "atticAreaM2": {
+      "label": "Suprafață mansardă (m²)"
+    },
+    "basementAreaM2": {
+      "label": "Suprafață subsol (m²)"
+    },
+    "heatingSystem": {
+      "label": "Sistem de încălzire",
+      "options": {
+        "OwnBoiler": "Cazan propriu",
+        "Convector": "Convectoare",
+        "InfraredPanels": "Panouri infraroșii",
+        "DistrictHeating": "Termoficare",
+        "HeatPump": "Pompă de căldură",
+        "SolarPanels": "Panouri solare",
+        "Stove": "Sobă",
+        "None": "Fără încălzire"
+      }
+    },
+    "heatingEnergySource": {
+      "label": "Sursa de energie",
+      "options": {
+        "Gas": "Gaz",
+        "Electricity": "Electricitate",
+        "Wood": "Lemne",
+        "Combined": "Combinată"
+      }
+    },
+    "heatingDistribution": {
+      "label": "Distribuția căldurii",
+      "options": {
+        "Radiators": "Calorifere",
+        "UnderfloorHeating": "Încălzire în pardoseală",
+        "Air": "Prin aer"
+      }
+    },
+    "waterSupply": {
+      "label": "Alimentare cu apă",
+      "options": {
+        "CentralNetwork": "Rețea centralizată",
+        "Well": "Fântână",
+        "DrilledWell": "Sondă",
+        "Cistern": "Rezervor",
+        "None": "Fără apă"
+      }
+    },
+    "sewerage": {
+      "label": "Canalizare",
+      "options": {
+        "Central": "Centralizată",
+        "SepticTank": "Fosă septică",
+        "None": "Fără canalizare"
+      }
+    },
+    "gasSupply": {
+      "label": "Conectat la rețeaua de gaz"
+    },
+    "floorMaterial": {
+      "label": "Pardoseală",
+      "options": {
+        "Parquet": "Parchet",
+        "Laminate": "Laminat",
+        "Tile": "Gresie",
+        "Other": "Altă pardoseală"
+      }
+    },
+    "atticMaterial": {
+      "label": "Material mansardă",
+      "placeholder": "ex: lemn izolat"
+    },
+    "roofMaterial": {
+      "label": "Acoperiș",
+      "options": {
+        "Tile": "Țiglă",
+        "Metal": "Tablă",
+        "Other": "Alt material"
+      }
+    },
+    "windowType": {
+      "label": "Ferestre",
+      "options": {
+        "Thermopane": "Termopan",
+        "Wood": "Lemn",
+        "Other": "Alt tip"
+      }
     }
   }
 }

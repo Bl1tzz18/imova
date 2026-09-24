@@ -34,17 +34,49 @@ public sealed record ApartmentAttributes(
     public override PropertyType GetPropertyType() => PropertyType.Apartment;
 }
 
+// Everything a house listing describes about the building itself — identical for sale and rent.
+// Replaces the earlier ConstructionType/Utilities fields (see the AddHouseDetailsAndAmenity
+// Categories migration). Its HouseCondition stands in for Property.Condition, which stays null
+// for a House.
 public sealed record HouseAttributes(
+    // Type & structure
     int? Rooms = null,
-    decimal? LandAreaM2 = null,
+    HouseType? HouseType = null,
+    BuildingMaterial? BuildingMaterial = null,
+    HouseCondition? HouseCondition = null,
     int? HouseFloors = null,
-    ConstructionType? ConstructionType = null,
-    HouseUtilities? Utilities = null) : PropertyAttributes
+    decimal? CeilingHeightM = null,
+    // Areas (m²)
+    decimal? LivingAreaM2 = null,
+    decimal? LandAreaM2 = null,
+    decimal? KitchenAreaM2 = null,
+    decimal? AtticAreaM2 = null,
+    decimal? BasementAreaM2 = null,
+    // Systems & utilities
+    HeatingSystem? HeatingSystem = null,
+    // Only meaningful (and then required) for heating that has its own energy source and
+    // distribution — see RequiresHeatingDetails.
+    HeatingEnergySource? HeatingEnergySource = null,
+    HeatingDistribution? HeatingDistribution = null,
+    WaterSupply? WaterSupply = null,
+    Sewerage? Sewerage = null,
+    bool GasSupply = false,
+    // Finishing materials
+    FloorMaterial? FloorMaterial = null,
+    // Free text: attic finishes vary too much to enumerate usefully.
+    string? AtticMaterial = null,
+    RoofMaterial? RoofMaterial = null,
+    WindowType? WindowType = null) : PropertyAttributes
 {
     public override PropertyType GetPropertyType() => PropertyType.House;
-}
 
-public sealed record HouseUtilities(bool Water, bool Sewage, bool Gas, bool Electricity);
+    // A boiler, heat pump or solar setup has a fuel/energy source and a way heat is distributed
+    // around the house; district heating, convectors, IR panels, a stove, or no heating don't.
+    public static bool RequiresHeatingDetails(HeatingSystem? heatingSystem) =>
+        heatingSystem is Attributes.HeatingSystem.OwnBoiler
+            or Attributes.HeatingSystem.HeatPump
+            or Attributes.HeatingSystem.SolarPanels;
+}
 
 public sealed record LandAttributes(
     LandDesignation? LandDesignation = null,

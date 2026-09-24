@@ -79,7 +79,8 @@ export default async function ProprietatePage({
     const value = attributes[field.name];
     // totalFloors is folded into the floor fact ("3 of 9") when both are present.
     if (value == null || (field.name === "totalFloors" && typeof attributes.floor === "number")) continue;
-    const label = t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`);
+    // Form labels carry their unit ("Living area (m²)"); here the value already shows it.
+    const label = (t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`)).replace(/\s*\((m²|m|м²|м)\)$/, "");
 
     if (field.name === "floor" && typeof attributes.totalFloors === "number") {
       facts.push({ label, value: t("floorOf", { floor: String(value), totalFloors: attributes.totalFloors }) });
@@ -92,8 +93,10 @@ export default async function ProprietatePage({
       if (present.length > 0) {
         facts.push({ label, value: present.map((flag) => tAttr(`utilityFlags.${flag}`)).join(", ") });
       }
-    } else if (field.name === "landAreaM2") {
+    } else if (field.name.endsWith("AreaM2")) {
       facts.push({ label, value: `${String(value)} m²` });
+    } else if (field.name === "ceilingHeightM") {
+      facts.push({ label, value: `${String(value)} m` });
     } else {
       facts.push({ label, value: String(value) });
     }

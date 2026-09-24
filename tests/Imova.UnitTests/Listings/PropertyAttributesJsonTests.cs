@@ -2,6 +2,7 @@ using System.Text.Json;
 using Imova.Application.Features.Listings.Attributes;
 using Imova.Domain.Properties;
 using Imova.Domain.Properties.Attributes;
+using Imova.UnitTests.TestSupport;
 
 namespace Imova.UnitTests.Listings;
 
@@ -23,18 +24,32 @@ public class PropertyAttributesJsonTests
     }
 
     [Fact]
-    public void TryParse_HouseWithNestedUtilities_ParsesTheNestedObject()
+    public void TryParse_HouseDetails_ParsesEnumsDecimalsAndBooleans()
     {
         var ok = PropertyAttributesJson.TryParse(
             PropertyType.House,
-            Json("""{"rooms":4,"houseFloors":2,"landAreaM2":600.5,"constructionType":"Brick","utilities":{"water":true,"gas":true}}"""),
+            Json("""{"rooms":4,"houseType":"Duplex","buildingMaterial":"LimestoneBlock","livingAreaM2":140.5,"heatingSystem":"OwnBoiler","heatingEnergySource":"Gas","gasSupply":true,"atticMaterial":"lemn"}"""),
             out var attributes,
             out _);
 
         Assert.True(ok);
         var house = Assert.IsType<HouseAttributes>(attributes);
-        Assert.Equal(600.5m, house.LandAreaM2);
-        Assert.Equal(new HouseUtilities(Water: true, Sewage: false, Gas: true, Electricity: false), house.Utilities);
+        Assert.Equal(HouseType.Duplex, house.HouseType);
+        Assert.Equal(BuildingMaterial.LimestoneBlock, house.BuildingMaterial);
+        Assert.Equal(140.5m, house.LivingAreaM2);
+        Assert.Equal(HeatingEnergySource.Gas, house.HeatingEnergySource);
+        Assert.True(house.GasSupply);
+        Assert.Equal("lemn", house.AtticMaterial);
+    }
+
+    [Fact]
+    public void TryParse_HouseWithTheRetiredUtilitiesObject_IsRejected()
+    {
+        var ok = PropertyAttributesJson.TryParse(
+            PropertyType.House, Json("""{"utilities":{"water":true}}"""), out _, out var error);
+
+        Assert.False(ok);
+        Assert.Equal("'utilities' is not a field of PropertyType House.", error);
     }
 
     [Fact]
@@ -64,7 +79,7 @@ public class PropertyAttributesJsonTests
     public void TryParse_WithUnknownNestedField_IsRejected()
     {
         var ok = PropertyAttributesJson.TryParse(
-            PropertyType.House, Json("""{"utilities":{"water":true,"pool":true}}"""), out _, out var error);
+            PropertyType.Land, Json("""{"utilitiesAtBoundary":{"water":true,"pool":true}}"""), out _, out var error);
 
         Assert.False(ok);
         Assert.StartsWith("TypeSpecificAttributes is malformed", error);
@@ -113,7 +128,7 @@ public class PropertyAttributesJsonTests
         PropertyAttributes[] all =
         [
             new ApartmentAttributes(2, 3, 9, 1, HeatingType.Centralized),
-            new HouseAttributes(4, 600m, 2, ConstructionType.Stone, new HouseUtilities(true, true, false, true)),
+            TestAttributes.CompleteHouse,
             new LandAttributes(LandDesignation.Construction, RoadAccess.Gravel, new BoundaryUtilities(true, true, false)),
             new CommercialAttributes(CommercialSpaceType.HoReCa, 0, true, "three-phase 380V"),
             new GarageAttributes(GarageType.Box),

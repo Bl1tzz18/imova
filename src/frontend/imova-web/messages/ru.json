@@ -207,7 +207,18 @@
     "publisherAgency": "Агентство",
     "datePlaceholder": "дд.мм.гггг",
     "invalidDate": "Введите корректную дату (дд.мм.гггг).",
-    "openCalendar": "Открыть календарь"
+    "openCalendar": "Открыть календарь",
+    "houseTotalAreaLabel": "Общая площадь (м²)",
+    "sectionsCompleted": "Заполнено разделов: {completed}/{total}",
+    "houseSections": {
+      "structure": "Тип и конструкция",
+      "areas": "Площади",
+      "systems": "Системы и коммуникации",
+      "finishing": "Отделочные материалы",
+      "comfort": "Комфорт и интерьер",
+      "security": "Безопасность и доступ",
+      "leisure": "Отдых и подсобные помещения"
+    }
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
@@ -414,7 +425,25 @@
     "wheelchair_access": "Доступ для колясок",
     "storage_room": "Кладовая",
     "video_surveillance": "Видеонаблюдение",
-    "internet": "Интернет"
+    "internet": "Интернет",
+    "fireplace": "Камин",
+    "underfloor_heating": "Тёплый пол",
+    "smart_home": "Система «умный дом»",
+    "appliances": "С бытовой техникой",
+    "cable_tv": "Кабельное ТВ",
+    "landline": "Стационарный телефон",
+    "intercom": "Домофон",
+    "alarm_system": "Сигнализация",
+    "remote_gate": "Ворота с пультом",
+    "sauna": "Сауна",
+    "basement": "Погреб/подвал",
+    "gazebo": "Беседка",
+    "pool": "Бассейн",
+    "terrace": "Терраса",
+    "garden": "Сад/теплица",
+    "staff_room": "Комната для персонала/охраны",
+    "backup_generator": "Резервный генератор",
+    "water_purification": "Система очистки воды"
   },
   "Attributes": {
     "choose": "Выберите",
@@ -444,18 +473,6 @@
     },
     "houseFloors": {
       "label": "Этажность"
-    },
-    "constructionType": {
-      "label": "Материал стен",
-      "options": {
-        "Brick": "Кирпич",
-        "Stone": "Камень",
-        "Wood": "Дерево",
-        "Other": "Другое"
-      }
-    },
-    "utilities": {
-      "label": "Коммуникации"
     },
     "landDesignation": {
       "label": "Назначение земли",
@@ -513,9 +530,144 @@
     },
     "utilityFlags": {
       "water": "Вода",
-      "sewage": "Канализация",
       "gas": "Газ",
       "electricity": "Электричество"
+    },
+    "houseType": {
+      "label": "Тип дома",
+      "options": {
+        "Individual": "Индивидуальный дом",
+        "Duplex": "Дуплекс",
+        "Triplex": "Триплекс",
+        "Townhouse": "Таунхаус",
+        "Villa": "Вилла",
+        "Other": "Другое"
+      }
+    },
+    "buildingMaterial": {
+      "label": "Материал стен",
+      "options": {
+        "Brick": "Кирпич",
+        "Panel": "Панель",
+        "ConcreteBlock": "Бетонные блоки",
+        "LimestoneBlock": "Котелец",
+        "Monolith": "Монолит",
+        "Concrete": "Бетон",
+        "Combined": "Комбинированный",
+        "AeratedConcrete": "Газобетон",
+        "Wood": "Дерево",
+        "Adobe": "Саман",
+        "Other": "Другое"
+      }
+    },
+    "houseCondition": {
+      "label": "Состояние дома",
+      "options": {
+        "ToBeDemolished": "Под снос",
+        "IndividualDesign": "Индивидуальный дизайн",
+        "GrayStructure": "Серый вариант",
+        "EuroRenovated": "Евроремонт",
+        "WhiteStructure": "Белый вариант",
+        "NeedsRepair": "Требует ремонта",
+        "Unfinished": "Незавершённое строительство",
+        "CosmeticRepair": "Косметический ремонт",
+        "NoRepair": "Без ремонта"
+      }
+    },
+    "ceilingHeightM": {
+      "label": "Высота потолков (м)"
+    },
+    "livingAreaM2": {
+      "label": "Жилая площадь (м²)"
+    },
+    "kitchenAreaM2": {
+      "label": "Площадь кухни (м²)"
+    },
+    "atticAreaM2": {
+      "label": "Площадь мансарды (м²)"
+    },
+    "basementAreaM2": {
+      "label": "Площадь подвала (м²)"
+    },
+    "heatingSystem": {
+      "label": "Система отопления",
+      "options": {
+        "OwnBoiler": "Собственный котёл",
+        "Convector": "Конвекторы",
+        "InfraredPanels": "Инфракрасные панели",
+        "DistrictHeating": "Центральное отопление",
+        "HeatPump": "Тепловой насос",
+        "SolarPanels": "Солнечные панели",
+        "Stove": "Печь",
+        "None": "Без отопления"
+      }
+    },
+    "heatingEnergySource": {
+      "label": "Источник энергии",
+      "options": {
+        "Gas": "Газ",
+        "Electricity": "Электричество",
+        "Wood": "Дрова",
+        "Combined": "Комбинированный"
+      }
+    },
+    "heatingDistribution": {
+      "label": "Распределение тепла",
+      "options": {
+        "Radiators": "Радиаторы",
+        "UnderfloorHeating": "Тёплый пол",
+        "Air": "Воздушное"
+      }
+    },
+    "waterSupply": {
+      "label": "Водоснабжение",
+      "options": {
+        "CentralNetwork": "Центральный водопровод",
+        "Well": "Колодец",
+        "DrilledWell": "Скважина",
+        "Cistern": "Резервуар",
+        "None": "Нет"
+      }
+    },
+    "sewerage": {
+      "label": "Канализация",
+      "options": {
+        "Central": "Центральная",
+        "SepticTank": "Септик",
+        "None": "Нет"
+      }
+    },
+    "gasSupply": {
+      "label": "Подключён газ"
+    },
+    "floorMaterial": {
+      "label": "Покрытие пола",
+      "options": {
+        "Parquet": "Паркет",
+        "Laminate": "Ламинат",
+        "Tile": "Плитка",
+        "Other": "Другое"
+      }
+    },
+    "atticMaterial": {
+      "label": "Материал мансарды",
+      "placeholder": "напр.: утеплённое дерево"
+    },
+    "roofMaterial": {
+      "label": "Кровля",
+      "options": {
+        "Tile": "Черепица",
+        "Metal": "Металл",
+        "Other": "Другое"
+      }
+    },
+    "windowType": {
+      "label": "Окна",
+      "options": {
+        "Thermopane": "Стеклопакеты",
+        "Wood": "Деревянные",
+        "Other": "Другие"
+      }
     }
   }
 }

@@ -14,6 +14,7 @@ public class CreateListingValidatorTests
     private readonly Guid _otherRaionId;
     private readonly Guid _chisinauSectorId;
     private readonly Guid _amenityId;
+    private readonly Guid _furnishedAmenityId;
     private readonly CreateListingValidator _validator;
 
     public CreateListingValidatorTests()
@@ -28,7 +29,8 @@ public class CreateListingValidatorTests
         dbContext.Raioane.AddRange(raion, otherRaion);
         dbContext.Localitati.Add(localitate);
         dbContext.ChisinauSectors.Add(chisinauSector);
-        dbContext.Amenities.Add(amenity);
+        var furnished = new Imova.Domain.Amenities.Amenity(Guid.NewGuid(), "furnished", "Mobilat", Imova.Domain.Amenities.AmenityCategory.Comfort);
+        dbContext.Amenities.AddRange(amenity, furnished);
         dbContext.SaveChanges();
 
         _raionId = raion.Id;
@@ -36,6 +38,7 @@ public class CreateListingValidatorTests
         _localitateId = localitate.Id;
         _chisinauSectorId = chisinauSector.Id;
         _amenityId = amenity.Id;
+        _furnishedAmenityId = furnished.Id;
         _validator = new CreateListingValidator(dbContext);
     }
 
@@ -182,6 +185,41 @@ public class CreateListingValidatorTests
     public async Task Validate_WithUnknownAmenity_HasError()
     {
         Assert.Contains("AmenityIds", await ErrorPropertiesAsync(ValidCommand(amenityIds: [_amenityId, Guid.NewGuid()])));
+    }
+
+    [Fact]
+    public async Task Validate_FurnishedAmenityOnARental_IsRejected()
+    {
+        var result = await _validator.ValidateAsync(ValidCommand(amenityIds: [_amenityId, _furnishedAmenityId]));
+
+        Assert.Contains(result.Errors, e =>
+            e.PropertyName == "AmenityIds" && e.ErrorMessage.Contains("RentalDetails.FurnishedStatus"));
+    }
+
+    [Fact]
+    public async Task Validate_FurnishedAmenityOnASale_IsAllowed()
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            transactionType: TransactionType.Sale, amenityIds: [_furnishedAmenityId])));
+    }
+
+    [Fact]
+    public async Task Validate_HouseWithTheGenericCondition_IsRejected()
+    {
+        var errors = await ErrorPropertiesAsync(ValidCommand(
+            propertyType: PropertyType.House,
+            attributes: JsonSerializer.SerializeToElement(TestAttributes.CompleteHouse, Imova.Application.Features.Listings.Attributes.PropertyAttributesJson.WireOptions),
+            condition: PropertyCondition.New));
+
+        Assert.Equal(["Condition"], errors);
+    }
+
+    [Fact]
+    public async Task Validate_CompleteHouse_HasNoErrors()
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            propertyType: PropertyType.House,
+            attributes: JsonSerializer.SerializeToElement(TestAttributes.CompleteHouse, Imova.Application.Features.Listings.Attributes.PropertyAttributesJson.WireOptions))));
     }
 
     // --- Listing fields ---

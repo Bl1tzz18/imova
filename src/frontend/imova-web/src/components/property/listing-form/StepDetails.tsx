@@ -6,14 +6,24 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
 import { getAmenities } from "@/lib/api/amenities";
 import { squareMetersToAri } from "@/lib/listing/view";
-import { attributeSchemaFor, hasBuilding } from "@/lib/property/attributeSchema";
+import { attributeSchemaFor, hasBuilding, usesGeneralCondition } from "@/lib/property/attributeSchema";
+import { selectableAmenities } from "@/lib/property/houseSections";
 import type { Amenity, Listing } from "@/types/listing";
 import { AttributeCheckboxes, AttributeInput } from "./AttributeFields";
+import { HouseDetailsAccordion } from "./HouseDetailsAccordion";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
 
-export function StepDetails({ propertyType, listing }: { propertyType: string; listing?: Listing }) {
+export function StepDetails({
+  propertyType,
+  transactionType,
+  listing,
+}: {
+  propertyType: string;
+  transactionType: string;
+  listing?: Listing;
+}) {
   const t = useTranslations("PropertyForm");
   const tCondition = useTranslations("Condition");
   const tAmenity = useTranslations("Amenity");
@@ -37,6 +47,8 @@ export function StepDetails({ propertyType, listing }: { propertyType: string; l
   const checkboxFields = schema.filter((f) => f.kind === "bool" || f.kind === "flags");
   const isLand = propertyType === "Land";
   const areaNumber = Number(area);
+  // "Furnished" isn't offered for a rental — RentalDetails' furnishing status covers it.
+  const offeredAmenities = selectableAmenities(amenities, transactionType);
 
   return (
     <div>
@@ -54,81 +66,95 @@ export function StepDetails({ propertyType, listing }: { propertyType: string; l
           />
         </label>
 
-        {/* Keyed by type so switching type remounts every type-dependent input with fresh defaults. */}
-        <div key={propertyType} className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block">
-              <FieldLabel required>{t("areaLabel")}</FieldLabel>
-              <TextInput
-                name="totalAreaM2"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                required
-              />
-              {isLand && areaNumber > 0 && (
-                <span className="mt-1 block text-xs text-ink-500">
-                  {t("areaInAri", { ari: squareMetersToAri(areaNumber) })}
-                </span>
-              )}
-            </label>
-
-            {hasBuilding(propertyType) && (
-              <>
+        {propertyType === "House" ? (
+          // A House has many more details, grouped into collapsible sections (area, year built and
+          // the House amenities included).
+          <HouseDetailsAccordion
+            key={propertyType}
+            property={property}
+            initialAttributes={initialAttributes}
+            transactionType={transactionType}
+            amenities={amenities}
+          />
+        ) : (
+          <>
+            {/* Keyed by type so switching type remounts every type-dependent input with fresh defaults. */}
+            <div key={propertyType} className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <FieldLabel>{t("yearBuiltLabel")}</FieldLabel>
+                  <FieldLabel required>{t("areaLabel")}</FieldLabel>
                   <TextInput
-                    name="yearBuilt"
+                    name="totalAreaM2"
                     type="number"
-                    min="1800"
-                    max={CURRENT_YEAR + 1}
-                    step="1"
-                    defaultValue={property?.yearBuilt ?? undefined}
+                    min="0.01"
+                    step="0.01"
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    required
                   />
+                  {isLand && areaNumber > 0 && (
+                    <span className="mt-1 block text-xs text-ink-500">
+                      {t("areaInAri", { ari: squareMetersToAri(areaNumber) })}
+                    </span>
+                  )}
                 </label>
-                <label className="block">
-                  <FieldLabel>{t("conditionLabel")}</FieldLabel>
-                  <SelectInput name="condition" defaultValue={property?.condition ?? ""}>
-                    <option value="">{t("notSpecified")}</option>
-                    {CONDITIONS.map((condition) => (
-                      <option key={condition} value={condition}>
-                        {tCondition(condition)}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </label>
-              </>
-            )}
 
-            {scalarFields.map((field) => (
-              <AttributeInput key={field.name} field={field} initial={initialAttributes} />
-            ))}
-          </div>
+                {hasBuilding(propertyType) && (
+                  <label className="block">
+                    <FieldLabel>{t("yearBuiltLabel")}</FieldLabel>
+                    <TextInput
+                      name="yearBuilt"
+                      type="number"
+                      min="1800"
+                      max={CURRENT_YEAR + 1}
+                      step="1"
+                      defaultValue={property?.yearBuilt ?? undefined}
+                    />
+                  </label>
+                )}
+                {usesGeneralCondition(propertyType) && (
+                  <label className="block">
+                    <FieldLabel>{t("conditionLabel")}</FieldLabel>
+                    <SelectInput name="condition" defaultValue={property?.condition ?? ""}>
+                      <option value="">{t("notSpecified")}</option>
+                      {CONDITIONS.map((condition) => (
+                        <option key={condition} value={condition}>
+                          {tCondition(condition)}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+                )}
 
-          {checkboxFields.map((field) => (
-            <AttributeCheckboxes key={field.name} field={field} initial={initialAttributes} />
-          ))}
-        </div>
+                {scalarFields.map((field) => (
+                  <AttributeInput key={field.name} field={field} initial={initialAttributes} />
+                ))}
+              </div>
 
-        {amenities.length > 0 && (
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium text-ink-700">{t("amenitiesLabel")}</legend>
-            <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-              {amenities.map((amenity) => (
-                <Checkbox
-                  key={amenity.id}
-                  name="amenityIds"
-                  value={amenity.id}
-                  defaultChecked={selectedAmenityIds.has(amenity.id)}
-                  className="text-ink-700"
-                >
-                  {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
-                </Checkbox>
+              {checkboxFields.map((field) => (
+                <AttributeCheckboxes key={field.name} field={field} initial={initialAttributes} />
               ))}
             </div>
-          </fieldset>
+
+            {offeredAmenities.length > 0 && (
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium text-ink-700">{t("amenitiesLabel")}</legend>
+                <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {offeredAmenities.map((amenity) => (
+                    <Checkbox
+                      key={amenity.id}
+                      name="amenityIds"
+                      value={amenity.id}
+                      defaultChecked={selectedAmenityIds.has(amenity.id)}
+                      className="text-ink-700"
+                    >
+                      {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
+                    </Checkbox>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+          </>
         )}
 
         <label className="block">

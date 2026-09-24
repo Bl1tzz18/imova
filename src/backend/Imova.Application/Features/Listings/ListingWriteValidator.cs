@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings.Attributes;
+using Imova.Domain.Amenities;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -27,6 +28,10 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
         RuleFor(c => c.Condition)
             .Null().WithMessage("Condition does not apply to Land.")
             .When(c => c.PropertyType == PropertyType.Land);
+        // A House describes its state with the more granular typeSpecificAttributes.houseCondition.
+        RuleFor(c => c.Condition)
+            .Null().WithMessage("Condition does not apply to a House — use TypeSpecificAttributes.houseCondition.")
+            .When(c => c.PropertyType == PropertyType.House);
         RuleFor(c => c.Condition).IsInEnum();
 
         // Parse against the schema PropertyType selects (which rejects any field belonging to
@@ -60,6 +65,15 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
                 return known == distinct.Count;
             })
             .WithMessage("AmenityIds contains an unknown amenity.")
+            .MustAsync(async (command, ids, cancellationToken) =>
+            {
+                var keys = await dbContext.Amenities
+                    .Where(a => ids!.Contains(a.Id))
+                    .Select(a => a.Key)
+                    .ToListAsync(cancellationToken);
+                return keys.All(key => Amenity.IsSelectableFor(key, command.TransactionType));
+            })
+            .WithMessage("The furnished amenity doesn't apply to a rental — use RentalDetails.FurnishedStatus.")
             .When(c => c.AmenityIds is { Count: > 0 });
 
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);

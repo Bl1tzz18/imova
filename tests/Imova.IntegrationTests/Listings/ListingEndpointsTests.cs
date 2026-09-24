@@ -88,6 +88,106 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task CreateListing_CompleteHouseWithEverySectionFilledIn_RoundTripsEveryDetail()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var amenities = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!;
+        // One amenity from each of the House form's three amenity sections.
+        string[] chosenKeys = ["fireplace", "alarm_system", "sauna"];
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["propertyType"] = "House";
+        body["totalAreaM2"] = 180;
+        body["yearBuilt"] = 2015;
+        body["condition"] = null;
+        body["transactionType"] = "Sale";
+        body["rentalDetails"] = null;
+        body["amenityIds"] = amenities.Where(a => chosenKeys.Contains(a.Key)).Select(a => a.Id).ToArray();
+        var attributes = new Dictionary<string, object?>
+        {
+            // Type & structure
+            ["rooms"] = 5,
+            ["houseType"] = "Duplex",
+            ["buildingMaterial"] = "LimestoneBlock",
+            ["houseCondition"] = "EuroRenovated",
+            ["houseFloors"] = 2,
+            ["ceilingHeightM"] = 2.8,
+            // Areas
+            ["livingAreaM2"] = 150,
+            ["landAreaM2"] = 600,
+            ["kitchenAreaM2"] = 20,
+            ["atticAreaM2"] = 35,
+            ["basementAreaM2"] = 25,
+            // Systems & utilities
+            ["heatingSystem"] = "OwnBoiler",
+            ["heatingEnergySource"] = "Gas",
+            ["heatingDistribution"] = "UnderfloorHeating",
+            ["waterSupply"] = "DrilledWell",
+            ["sewerage"] = "SepticTank",
+            ["gasSupply"] = true,
+            // Finishing materials
+            ["floorMaterial"] = "Parquet",
+            ["atticMaterial"] = "Lemn izolat",
+            ["roofMaterial"] = "Tile",
+            ["windowType"] = "Thermopane",
+        };
+        body["typeSpecificAttributes"] = attributes;
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        var stored = (await client.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{created.Id}"))!;
+        Assert.Equal("House", stored.Property.PropertyType);
+        Assert.Null(stored.Property.Condition);
+        foreach (var (key, expected) in attributes)
+        {
+            var actual = stored.Property.TypeSpecificAttributes.GetProperty(key);
+            Assert.Equal(Convert.ToString(expected, System.Globalization.CultureInfo.InvariantCulture)!.ToLowerInvariant(),
+                actual.ValueKind == JsonValueKind.String ? actual.GetString()!.ToLowerInvariant() : actual.GetRawText().ToLowerInvariant());
+        }
+
+        Assert.Equal(chosenKeys.Order(), stored.Property.Amenities.Select(a => a.Key).Order());
+        Assert.Equal(["Comfort", "Leisure", "Security"], stored.Property.Amenities.Select(a => a.Category).Order());
+
+        await client.DeleteAsync($"/api/v1/listings/{created.Id}");
+    }
+
+    [Fact]
+    public async Task CreateListing_HouseWithDistrictHeatingButABoilerEnergySource_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["propertyType"] = "House";
+        body["condition"] = null;
+        body["typeSpecificAttributes"] = new Dictionary<string, object?>
+        {
+            ["rooms"] = 3, ["houseType"] = "Individual", ["buildingMaterial"] = "Brick", ["houseCondition"] = "NoRepair",
+            ["houseFloors"] = 1, ["livingAreaM2"] = 90, ["landAreaM2"] = 400, ["heatingSystem"] = "DistrictHeating",
+            ["heatingEnergySource"] = "Gas", ["waterSupply"] = "CentralNetwork", ["sewerage"] = "Central",
+            ["floorMaterial"] = "Laminate", ["roofMaterial"] = "Metal", ["windowType"] = "Thermopane",
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("TypeSpecificAttributes.HeatingEnergySource", out _));
+    }
+
+    [Fact]
+    public async Task CreateListing_RentalWithTheFurnishedAmenity_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var furnished = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "furnished");
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["amenityIds"] = new[] { furnished.Id };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ApprovedListing_AppearsInPublicSearch_FilteredByPriceEurAcrossCurrencies()
     {
         var admin = await ListingApi.RegisterAdminAsync(_factory);

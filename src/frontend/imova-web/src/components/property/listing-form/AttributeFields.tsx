@@ -14,7 +14,16 @@ function asString(value: unknown): string | undefined {
 // ATTRIBUTE_SCHEMA). Scalar fields go in the caller's grid; bool/flags fields render as
 // checkbox groups via <AttributeCheckboxes>. Inputs are named "attr.<field>" so
 // readAttributes() can rebuild the object on submit.
-export function AttributeInput({ field, initial }: { field: AttributeField; initial: TypeSpecificAttributes }) {
+export function AttributeInput({
+  field,
+  initial,
+  onChange,
+}: {
+  field: AttributeField;
+  initial: TypeSpecificAttributes;
+  // Lets a parent track a value other fields depend on (e.g. a House's heatingSystem).
+  onChange?: (value: string) => void;
+}) {
   const t = useTranslations("Attributes");
   const name = attributeInputName(field.name);
   const label = t(`${field.name}.label`);
@@ -30,7 +39,7 @@ export function AttributeInput({ field, initial }: { field: AttributeField; init
             name={name}
             type="number"
             min={field.min}
-            max={field.kind === "int" ? field.max : undefined}
+            max={field.max}
             step={field.kind === "int" ? "1" : "0.01"}
             defaultValue={defaultValue}
             required={field.required}
@@ -41,7 +50,12 @@ export function AttributeInput({ field, initial }: { field: AttributeField; init
       return (
         <label className="block">
           <FieldLabel required={field.required}>{label}</FieldLabel>
-          <SelectInput name={name} defaultValue={defaultValue ?? ""} required={field.required}>
+          <SelectInput
+            name={name}
+            defaultValue={defaultValue ?? ""}
+            required={field.required}
+            onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          >
             <option value="">{field.required ? t("choose") : t("notSpecified")}</option>
             {field.options.map((option) => (
               <option key={option} value={option}>

@@ -18,7 +18,8 @@ public class GetAmenitiesHandlerTests
             .Handle(new GetAmenitiesQuery(), CancellationToken.None);
 
         Assert.Equal(AmenityConfiguration.Seed.Count, result.Count);
-        Assert.Contains(result, a => a.Key == "parking" && a.LabelRo == "Parcare");
+        Assert.Contains(result, a => a.Key == "parking" && a.LabelRo == "Parcare" && a.Category == "Leisure");
+        Assert.Contains(result, a => a.Key == "sauna" && a.Category == "Leisure");
         Assert.Equal(result.Select(a => a.LabelRo).Order(StringComparer.Ordinal), result.Select(a => a.LabelRo));
     }
 
@@ -47,9 +48,16 @@ public class GetAmenitiesHandlerTests
                  {
                      "parking", "balcony", "elevator", "air_conditioning", "furnished", "garage", "yard",
                      "autonomous_heating", "centralized_heating", "wheelchair_access",
+                     // House amenities
+                     "fireplace", "underfloor_heating", "smart_home", "appliances", "internet", "cable_tv", "landline",
+                     "intercom", "alarm_system", "video_surveillance", "remote_gate",
+                     "sauna", "basement", "gazebo", "pool", "terrace", "garden", "staff_room", "backup_generator",
+                     "water_purification",
                  })
         {
             Assert.Contains(required, keys);
         }
+
+        Assert.Equal(AmenityConfiguration.Seed.Count, AmenityConfiguration.Seed.Select(a => a.Id).Distinct().Count());
     }
 }

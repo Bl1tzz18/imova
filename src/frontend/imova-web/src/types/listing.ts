@@ -21,6 +21,8 @@ export type Amenity = {
   id: string;
   key: string;
   labelRo: string;
+  // "General" | "Comfort" | "Security" | "Leisure" — groups amenities for display.
+  category: string;
 };
 
 export type PublisherType = "Individual" | "Agency";

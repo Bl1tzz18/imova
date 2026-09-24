@@ -1,5 +1,6 @@
 using Imova.Application.Features.Listings.Attributes;
 using Imova.Domain.Properties.Attributes;
+using Imova.UnitTests.TestSupport;
 
 namespace Imova.UnitTests.Listings;
 
@@ -37,11 +38,86 @@ public class PropertyAttributesValidatorTests
     }
 
     [Fact]
-    public void House_RequiresRoomsAndHouseFloors_AndRejectsNonPositiveLandArea()
+    public void House_WithEveryRequiredFieldFilledIn_IsValid()
     {
-        Assert.Equal(new[] { "HouseFloors", "Rooms" }, ErrorsFor(new HouseAttributes()).Distinct().Order());
-        Assert.Contains("LandAreaM2", ErrorsFor(new HouseAttributes(Rooms: 3, HouseFloors: 1, LandAreaM2: 0)));
-        Assert.Empty(ErrorsFor(new HouseAttributes(Rooms: 3, HouseFloors: 1)));
+        Assert.Empty(ErrorsFor(TestAttributes.CompleteHouse));
+    }
+
+    [Fact]
+    public void House_WithNothingFilledIn_RequiresEveryNonOptionalField()
+    {
+        Assert.Equal(
+            new[]
+            {
+                "BuildingMaterial", "FloorMaterial", "HeatingSystem", "HouseCondition", "HouseFloors", "HouseType",
+                "LandAreaM2", "LivingAreaM2", "RoofMaterial", "Rooms", "Sewerage", "WaterSupply", "WindowType",
+            },
+            ErrorsFor(new HouseAttributes()).Distinct().Order());
+    }
+
+    [Fact]
+    public void House_OptionalAreasCeilingAndAtticMaterial_CanBeLeftEmpty()
+    {
+        var house = TestAttributes.CompleteHouse with
+        {
+            KitchenAreaM2 = null, AtticAreaM2 = null, BasementAreaM2 = null, CeilingHeightM = null, AtticMaterial = null,
+        };
+
+        Assert.Empty(ErrorsFor(house));
+    }
+
+    [Theory]
+    [InlineData(HeatingSystem.OwnBoiler)]
+    [InlineData(HeatingSystem.HeatPump)]
+    [InlineData(HeatingSystem.SolarPanels)]
+    public void House_HeatingWithItsOwnSource_RequiresEnergySourceAndDistribution(HeatingSystem system)
+    {
+        var house = TestAttributes.CompleteHouse with
+        {
+            HeatingSystem = system, HeatingEnergySource = null, HeatingDistribution = null,
+        };
+
+        Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(house).Order());
+        Assert.Empty(ErrorsFor(house with
+        {
+            HeatingEnergySource = HeatingEnergySource.Electricity, HeatingDistribution = HeatingDistribution.Air,
+        }));
+    }
+
+    [Theory]
+    [InlineData(HeatingSystem.Convector)]
+    [InlineData(HeatingSystem.InfraredPanels)]
+    [InlineData(HeatingSystem.DistrictHeating)]
+    [InlineData(HeatingSystem.Stove)]
+    [InlineData(HeatingSystem.None)]
+    public void House_HeatingWithoutItsOwnSource_ForbidsEnergySourceAndDistribution(HeatingSystem system)
+    {
+        var withDetails = TestAttributes.CompleteHouse with { HeatingSystem = system };
+
+        Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withDetails).Order());
+        Assert.Empty(ErrorsFor(withDetails with { HeatingEnergySource = null, HeatingDistribution = null }));
+    }
+
+    [Fact]
+    public void RequiresHeatingDetails_IsTrueOnlyForBoilerHeatPumpAndSolar()
+    {
+        var requiring = Enum.GetValues<HeatingSystem>().Where(s => HouseAttributes.RequiresHeatingDetails(s));
+
+        Assert.Equal([HeatingSystem.OwnBoiler, HeatingSystem.HeatPump, HeatingSystem.SolarPanels], requiring);
+        Assert.False(HouseAttributes.RequiresHeatingDetails(null));
+    }
+
+    [Fact]
+    public void House_RejectsOutOfRangeNumbersAndOverlongAtticMaterial()
+    {
+        var house = TestAttributes.CompleteHouse with
+        {
+            LivingAreaM2 = 0, KitchenAreaM2 = -1, CeilingHeightM = 12m, HouseFloors = 11, AtticMaterial = new string('x', 101),
+        };
+
+        Assert.Equal(
+            new[] { "AtticMaterial", "CeilingHeightM", "HouseFloors", "KitchenAreaM2", "LivingAreaM2" },
+            ErrorsFor(house).Order());
     }
 
     [Fact]
