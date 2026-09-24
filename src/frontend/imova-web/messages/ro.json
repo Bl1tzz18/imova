@@ -50,11 +50,38 @@
     "statusSold": "Vândut",
     "statusUnavailable": "Indisponibil"
   },
+  "Hero": {
+    "eyebrow": "Piața imobiliară din Moldova, într-un singur loc",
+    "title": "Găsește o locuință, nu doar un anunț.",
+    "subtitle": "Anunțuri verificate, actualizate zilnic și filtre care chiar funcționează — ca să nu mai pierzi timpul cu ce nu se potrivește.",
+    "stats": {
+      "houses": "Case",
+      "apartments": "Apartamente",
+      "commercial": "Com. și oficii",
+      "land": "Terenuri"
+    },
+    "searchCard": {
+      "buyTab": "Cumpără",
+      "rentTab": "Închiriază",
+      "locationLabel": "Localitate",
+      "typeLabel": "Tip",
+      "anyType": "Orice tip",
+      "minPriceLabel": "Preț minim, €",
+      "minPricePlaceholder": "de la",
+      "maxPriceLabel": "Preț maxim, €",
+      "maxPricePlaceholder": "până la",
+      "searchButton": "Caută",
+      "locations": {
+        "Chisinau": "Chișinău",
+        "Balti": "Bălți",
+        "Cahul": "Cahul",
+        "Orhei": "Orhei",
+        "Ungheni": "Ungheni",
+        "Soroca": "Soroca"
+      }
+    }
+  },
   "Home": {
-    "badge": "Imobiliare din Moldova, fără intermediari",
-    "heroTitleStart": "Găsește-ți următoarea casă,",
-    "heroTitleHighlight": "direct din Moldova",
-    "heroSubtitle": "Apartamente, case și terenuri de vânzare sau de închiriat — publicate de proprietari și agenții.",
     "valueProps": {
       "noCommission": {
         "title": "Fără comision",
@@ -287,9 +314,9 @@
     "tabPublished": "Active",
     "tabPendingReview": "În verificare",
     "tabRejected": "Respinse",
-    "tabDraft": "Ciorne",
+    "tabDraft": "Schițe",
     "tabArchived": "Dezactivate",
-    "statusDraft": "Ciornă",
+    "statusDraft": "Schiță",
     "statusPendingReview": "În verificare",
     "statusPublished": "Activ",
     "statusRejected": "Respins",

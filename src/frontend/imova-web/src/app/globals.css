@@ -3,6 +3,7 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-hero: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 
   --color-ink-950: #0b1620;
   --color-ink-900: #101f2e;

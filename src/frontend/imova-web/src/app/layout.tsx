@@ -1,4 +1,4 @@
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Inter, Sora } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
@@ -17,6 +17,16 @@ const fraunces = Fraunces({
   axes: ["opsz"],
 });
 
+// Bold geometric sans used specifically for the homepage hero heading (see Hero.tsx's
+// font-hero class, mapped in globals.css) — distinct from font-display (Fraunces, a serif used
+// for regular section headings elsewhere) since the hero calls for a punchier, more modern look.
+const sora = Sora({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sora",
+  display: "swap",
+  weight: ["700", "800"],
+});
+
 export const metadata = {
   title: "IMOVA — Imobiliare în Moldova",
   description: "Imobiliare de la persoane fizice și agenții, în Moldova",
@@ -31,7 +41,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${fraunces.variable} ${sora.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Header />
