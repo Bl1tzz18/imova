@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { DateInput } from "@/components/ui/DateInput";
@@ -24,7 +25,10 @@ export function StepPriceContact({
   publishers: Publisher[];
 }) {
   const t = useTranslations("PropertyForm");
+  const tAttr = useTranslations("Attributes");
   const rental = listing?.rentalDetails;
+  // Tracked so the deposit field can show the same currency as the price, live.
+  const [currency, setCurrency] = useState(listing?.price.currency ?? DEFAULT_CURRENCY);
   // Pets are asked on the Details step; furnishing is the "furnished" amenity there.
   const rentalTerms = rentalFieldsForStep("priceTerms", transactionType, listing?.property.propertyType ?? "");
 
@@ -39,7 +43,7 @@ export function StepPriceContact({
         </label>
         <label className="block">
           <FieldLabel required>{t("currencyLabel")}</FieldLabel>
-          <SelectInput name="currency" required defaultValue={listing?.price.currency ?? DEFAULT_CURRENCY}>
+          <SelectInput name="currency" required value={currency} onChange={(e) => setCurrency(e.target.value)}>
             {SUPPORTED_CURRENCIES.map((currency) => (
               <option key={currency} value={currency}>
                 {currency}
@@ -77,13 +81,20 @@ export function StepPriceContact({
             {rentalTerms.includes("securityDepositAmount") && (
               <label className="block">
                 <FieldLabel>{t("securityDepositLabel")}</FieldLabel>
-                <TextInput
-                  name={rentalInputName("securityDepositAmount")}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  defaultValue={rental?.securityDepositAmount ?? undefined}
-                />
+                {/* The deposit is in the listing's currency — shown right on the field. */}
+                <div className="relative">
+                  <TextInput
+                    name={rentalInputName("securityDepositAmount")}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    defaultValue={rental?.securityDepositAmount ?? undefined}
+                    className="pr-14"
+                  />
+                  <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm font-medium text-ink-500">
+                    {currency}
+                  </span>
+                </div>
               </label>
             )}
             {rentalTerms.includes("availableFrom") && (
@@ -100,14 +111,20 @@ export function StepPriceContact({
             )}
           </div>
           {rentalTerms.includes("utilitiesIncluded") && (
-            <Checkbox
-              name={rentalInputName("utilitiesIncluded")}
-              value="true"
-              defaultChecked={rental?.utilitiesIncluded ?? false}
-              className="mt-3 text-ink-700"
-            >
-              {t("utilitiesIncludedLabel")}
-            </Checkbox>
+            // A Yes/No dropdown like the app's other yes/no questions; still the same boolean, and
+            // still optional ("No" unless the owner says otherwise).
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="block">
+                <FieldLabel>{t("utilitiesIncludedLabel")}</FieldLabel>
+                <SelectInput
+                  name={rentalInputName("utilitiesIncluded")}
+                  defaultValue={String(rental?.utilitiesIncluded ?? false)}
+                >
+                  <option value="true">{tAttr("yes")}</option>
+                  <option value="false">{tAttr("no")}</option>
+                </SelectInput>
+              </label>
+            </div>
           )}
         </fieldset>
       )}

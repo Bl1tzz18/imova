@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useLocale } from "next-intl";
 import { inputClass } from "@/components/ui/Field";
 import { cn } from "@/lib/utils/cn";
+import { digitsAfterEdit, formatDayFirst } from "@/lib/utils/dayFirstDate";
 
 // Day-first everywhere this site is offered (ro-MD, ru, and en as British-style dd/mm/yyyy —
 // the audience is Moldovan, US month-first ordering would read as a different date).
@@ -11,12 +12,6 @@ const SEPARATOR_BY_LOCALE: Record<string, string> = { ro: ".", ru: ".", en: "/" 
 
 function separatorFor(locale: string): string {
   return SEPARATOR_BY_LOCALE[locale.split("-")[0]] ?? ".";
-}
-
-// "01102026" -> "01.10.2026" (partial input gets separators as it grows).
-function formatDigits(digits: string, separator: string): string {
-  const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean);
-  return parts.join(separator);
 }
 
 // Full dd/mm/yyyy digits -> "yyyy-mm-dd", or null when it isn't a real calendar date.
@@ -68,7 +63,7 @@ export function DateInput({
   }, [isValid, invalidMessage]);
 
   function handleTextChange(e: ChangeEvent<HTMLInputElement>) {
-    setDigits(e.target.value.replace(/\D/g, "").slice(0, 8));
+    setDigits(digitsAfterEdit(digits, formatDayFirst(digits, separator), e.target.value));
   }
 
   function openPicker() {
@@ -89,7 +84,7 @@ export function DateInput({
         type="text"
         inputMode="numeric"
         autoComplete="off"
-        value={formatDigits(digits, separator)}
+        value={formatDayFirst(digits, separator)}
         onChange={handleTextChange}
         placeholder={placeholder}
         className={cn(inputClass, "pr-11")}
