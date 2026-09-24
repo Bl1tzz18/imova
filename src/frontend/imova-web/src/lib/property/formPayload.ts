@@ -10,18 +10,24 @@ function optionalNumber(value: FormDataEntryValue | null): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function yesNo(value: FormDataEntryValue | null): boolean | null {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
 function optionalString(value: FormDataEntryValue | null): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
 }
 
 function readRentalDetails(formData: FormData) {
   return {
-    furnishedStatus: optionalString(formData.get("rental.furnishedStatus")) ?? "Unfurnished",
     minLeasePeriodMonths: optionalNumber(formData.get("rental.minLeasePeriodMonths")),
     securityDepositAmount: optionalNumber(formData.get("rental.securityDepositAmount")),
     availableFrom: optionalString(formData.get("rental.availableFrom")),
     utilitiesIncluded: formData.get("rental.utilitiesIncluded") === "true",
-    petsAllowed: formData.get("rental.petsAllowed") === "true",
+    // A Yes/No dropdown, only rendered where pets apply — anything else means "not asked".
+    petsAllowed: yesNo(formData.get("rental.petsAllowed")),
   };
 }
 

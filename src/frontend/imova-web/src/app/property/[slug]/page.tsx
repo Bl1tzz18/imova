@@ -44,7 +44,7 @@ export default async function ProprietatePage({
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tFurnished, tAmenity] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
@@ -52,7 +52,6 @@ export default async function ProprietatePage({
     getTranslations("PropertyCard"),
     getTranslations("Attributes"),
     getTranslations("Condition"),
-    getTranslations("FurnishedStatus"),
     getTranslations("Amenity"),
   ]);
 
@@ -109,7 +108,6 @@ export default async function ProprietatePage({
   // Terms of this particular rental offer, not of the property itself.
   const rentalFacts: { label: string; value: string }[] = [];
   if (rentalDetails) {
-    rentalFacts.push({ label: t("furnished"), value: tFurnished(rentalDetails.furnishedStatus) });
     if (rentalDetails.minLeasePeriodMonths != null) {
       rentalFacts.push({ label: t("minLeasePeriod"), value: t("months", { count: rentalDetails.minLeasePeriodMonths }) });
     }
@@ -123,7 +121,9 @@ export default async function ProprietatePage({
       rentalFacts.push({ label: t("availableFrom"), value: formatDate(rentalDetails.availableFrom, locale) });
     }
     rentalFacts.push({ label: t("utilitiesIncluded"), value: yesNo(rentalDetails.utilitiesIncluded) });
-    rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
+    if (rentalDetails.petsAllowed != null) {
+      rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
+    }
   }
 
   return (

@@ -80,9 +80,9 @@ export type RentalDetails = {
   minLeasePeriodMonths: number | null;
   securityDepositAmount: number | null;
   utilitiesIncluded: boolean;
-  furnishedStatus: string;
   availableFrom: string | null;
-  petsAllowed: boolean;
+  // Null when not asked (rentals other than an apartment, house or room).
+  petsAllowed: boolean | null;
 };
 
 export type SaleDetails = {

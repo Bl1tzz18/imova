@@ -1,5 +1,4 @@
 using Imova.Domain.Common;
-using Imova.Domain.Listings;
 using Imova.Domain.Properties;
 
 namespace Imova.Domain.Amenities;
@@ -45,10 +44,4 @@ public sealed class Amenity : Entity
     public PropertyType[] ApplicablePropertyTypes { get; private set; }
 
     public bool AppliesTo(PropertyType propertyType) => ApplicablePropertyTypes.Contains(propertyType);
-
-    // Selectable when it applies to the property type — except "furnished" on a rental, which
-    // states furnishing through RentalDetails.FurnishedStatus (unfurnished / partially / fully),
-    // so two answers to the same question can't disagree.
-    public bool IsSelectableFor(PropertyType propertyType, TransactionType transactionType) =>
-        AppliesTo(propertyType) && !(transactionType == TransactionType.Rent && Key == FurnishedKey);
 }

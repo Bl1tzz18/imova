@@ -179,14 +179,14 @@ public class CreateListingHandlerTests
         var result = await Handler().Handle(Command(rentalDetails: null), CancellationToken.None);
 
         Assert.NotNull(result.RentalDetails);
-        Assert.Equal("Unfurnished", result.RentalDetails!.FurnishedStatus);
+        Assert.Null(result.RentalDetails!.PetsAllowed);
         Assert.Null(result.SaleDetails);
     }
 
     [Fact]
     public async Task Handle_RentalWithRentalDetails_PersistsThem()
     {
-        var terms = new RentalDetails(6, 500m, true, FurnishedStatus.Furnished, new DateTime(2026, 11, 1), true);
+        var terms = new RentalDetails(6, 500m, true, new DateTime(2026, 11, 1), PetsAllowed: true);
 
         await Handler().Handle(Command(rentalDetails: terms), CancellationToken.None);
 

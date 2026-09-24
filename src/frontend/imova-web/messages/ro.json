@@ -197,7 +197,6 @@
     "amenitiesLabel": "Dotări",
     "isNegotiableLabel": "Preț negociabil",
     "rentalTermsHeading": "Condiții de închiriere",
-    "furnishedStatusLabel": "Mobilare",
     "minLeasePeriodLabel": "Perioadă minimă (luni)",
     "securityDepositLabel": "Garanție",
     "availableFromLabel": "Disponibil din",
@@ -223,9 +222,9 @@
       "typeArea": "Tip și suprafață",
       "utilitiesAccess": "Utilități și acces",
       "surroundings": "Împrejurimi",
-      "amenities": "Dotări"
-    },
-    "rentalFurnishingHeading": "Mobilare și animale"
+      "amenities": "Dotări",
+      "rentalRules": "Reguli de închiriere"
+    }
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",
@@ -237,7 +236,6 @@
     "floor": "Etaj",
     "floorOf": "{floor} din {totalFloors}",
     "yearBuilt": "An construcție",
-    "furnished": "Mobilat",
     "petsAllowed": "Animale de companie",
     "yes": "Da",
     "no": "Nu",
@@ -413,11 +411,6 @@
     "NeedsRepair": "Necesită reparație",
     "GrayStructure": "Variantă sură",
     "RedStructure": "La roșu"
-  },
-  "FurnishedStatus": {
-    "Unfurnished": "Nemobilat",
-    "PartiallyFurnished": "Parțial mobilat",
-    "Furnished": "Mobilat"
   },
   "Amenity": {
     "parking": "Parcare",

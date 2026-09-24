@@ -197,7 +197,6 @@
     "amenitiesLabel": "Удобства",
     "isNegotiableLabel": "Цена договорная",
     "rentalTermsHeading": "Условия аренды",
-    "furnishedStatusLabel": "Меблировка",
     "minLeasePeriodLabel": "Минимальный срок (мес.)",
     "securityDepositLabel": "Залог",
     "availableFromLabel": "Доступно с",
@@ -223,9 +222,9 @@
       "typeArea": "Тип и площадь",
       "utilitiesAccess": "Коммуникации и подъезд",
       "surroundings": "Окрестности",
-      "amenities": "Удобства"
-    },
-    "rentalFurnishingHeading": "Мебель и животные"
+      "amenities": "Удобства",
+      "rentalRules": "Правила аренды"
+    }
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
@@ -237,7 +236,6 @@
     "floor": "Этаж",
     "floorOf": "{floor} из {totalFloors}",
     "yearBuilt": "Год постройки",
-    "furnished": "Меблировано",
     "petsAllowed": "Можно с животными",
     "yes": "Да",
     "no": "Нет",
@@ -413,11 +411,6 @@
     "NeedsRepair": "Требует ремонта",
     "GrayStructure": "Серый вариант",
     "RedStructure": "Коробка без отделки"
-  },
-  "FurnishedStatus": {
-    "Unfurnished": "Без мебели",
-    "PartiallyFurnished": "Частично меблировано",
-    "Furnished": "Меблировано"
   },
   "Amenity": {
     "parking": "Парковка",

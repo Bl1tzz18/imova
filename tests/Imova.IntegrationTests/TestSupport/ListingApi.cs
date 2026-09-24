@@ -94,7 +94,7 @@ internal static class ListingApi
             ["price"] = 550,
             ["currency"] = "EUR",
             ["isNegotiable"] = false,
-            ["rentalDetails"] = new Dictionary<string, object?> { ["furnishedStatus"] = "Furnished", ["petsAllowed"] = true },
+            ["rentalDetails"] = new Dictionary<string, object?> { ["petsAllowed"] = true, ["minLeasePeriodMonths"] = 12 },
         };
     }
 

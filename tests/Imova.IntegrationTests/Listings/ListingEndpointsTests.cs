@@ -33,8 +33,8 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("PendingReview", listing.Status);
         Assert.Equal(9, listing.Property.TypeSpecificAttributes.GetProperty("totalFloors").GetInt32());
         Assert.Equal(["balcony", "elevator"], listing.Property.Amenities.Select(a => a.Key).Order());
-        Assert.Equal("Furnished", listing.RentalDetails!.FurnishedStatus);
-        Assert.True(listing.RentalDetails.PetsAllowed);
+        Assert.True(listing.RentalDetails!.PetsAllowed);
+        Assert.Equal(12, listing.RentalDetails.MinLeasePeriodMonths);
 
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }
@@ -92,10 +92,9 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
     public async Task CreateListing_CompleteListingOfEachType_RoundTripsEveryDetail(string propertyType, string transactionType)
     {
         var (client, _) = await ListingApi.RegisterAsync(_factory);
-        // Every amenity the form would offer for this type/transaction (Furnished excluded on rent).
+        // Every amenity the form would offer for this type (Furnished included, for rentals too).
         var amenities = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!
             .Where(a => a.ApplicablePropertyTypes.Contains(propertyType))
-            .Where(a => !(transactionType == "Rent" && a.Key == "furnished"))
             .ToList();
         Assert.NotEmpty(amenities);
         var attributes = ListingApi.CompleteAttributes(propertyType);
@@ -106,8 +105,10 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         body["yearBuilt"] = propertyType == "Land" ? null : 2012;
         // Garage and Room keep the general condition; the others use finishCondition.
         body["condition"] = propertyType is "Garage" or "Room" ? "Renovated" : null;
+        // Pets are asked only for a rented home (apartment, house, room).
+        var petsApply = propertyType is "Apartment" or "House" or "Room";
         body["rentalDetails"] = transactionType == "Rent"
-            ? new Dictionary<string, object?> { ["furnishedStatus"] = "PartiallyFurnished", ["petsAllowed"] = false }
+            ? new Dictionary<string, object?> { ["petsAllowed"] = petsApply ? false : null, ["utilitiesIncluded"] = true }
             : null;
         body["amenityIds"] = amenities.Select(a => a.Id).ToArray();
         body["typeSpecificAttributes"] = attributes;
@@ -188,7 +189,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task CreateListing_RentalWithTheFurnishedAmenity_Returns400()
+    public async Task CreateListing_RentalWithTheFurnishedAmenity_IsAllowed()
     {
         var (client, _) = await ListingApi.RegisterAsync(_factory);
         var furnished = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "furnished");
@@ -197,7 +198,24 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
 
         var response = await client.PostAsJsonAsync("/api/v1/listings", body);
 
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Contains(listing.Property.Amenities, a => a.Key == "furnished");
+        await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
+    public async Task CreateListing_RentedApartmentWithoutThePetsAnswer_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["rentalDetails"] = new Dictionary<string, object?> { ["minLeasePeriodMonths"] = 12 };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("RentalDetails.PetsAllowed", out _));
     }
 
     [Fact]

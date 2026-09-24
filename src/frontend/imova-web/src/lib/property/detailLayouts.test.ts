@@ -5,6 +5,7 @@ import {
   amenitiesForSection,
   detailLayoutFor,
   isSectionComplete,
+  sectionsFor,
   selectableAmenities,
   type DetailLayout,
   type DetailSection,
@@ -36,8 +37,8 @@ const AMENITIES = [
 
 const layout = (type: string): DetailLayout => detailLayoutFor(type)!;
 const section = (type: string, id: string): DetailSection => layout(type).sections.find((s) => s.id === id)!;
-const keysIn = (type: string, id: string, transactionType = "Sale") =>
-  amenitiesForSection(layout(type), section(type, id), AMENITIES, type, transactionType).map((a) => a.key);
+const keysIn = (type: string, id: string) =>
+  amenitiesForSection(layout(type), section(type, id), AMENITIES, type).map((a) => a.key);
 
 // A getter over attribute values keyed by their bare field name, plus core fields by input name.
 function getter(values: Record<string, string>) {
@@ -68,12 +69,12 @@ describe("layouts", () => {
     expect(layout(type).sections.filter((s) => s.coreFields.includes("totalAreaM2"))).toHaveLength(1);
   });
 
-  it("use the requested section order", () => {
+  it("use the requested section order, with the rental-only rules section last", () => {
     expect(layout("House").sections.map((s) => s.id)).toEqual([
-      "structure", "areas", "systems", "finishing", "comfort", "security", "leisure",
+      "structure", "areas", "systems", "finishing", "comfort", "security", "leisure", "rentalRules",
     ]);
     expect(layout("Apartment").sections.map((s) => s.id)).toEqual([
-      "structure", "areas", "systems", "finishing", "comfort", "security", "other",
+      "structure", "areas", "systems", "finishing", "comfort", "security", "other", "rentalRules",
     ]);
     expect(layout("Land").sections.map((s) => s.id)).toEqual(["typeArea", "utilitiesAccess", "surroundings"]);
     expect(layout("Commercial").sections.map((s) => s.id)).toEqual(["structure", "areas", "systems", "amenities"]);
@@ -88,19 +89,21 @@ describe("layouts", () => {
 
 describe("amenities", () => {
   it("only offer amenities that apply to the property type", () => {
-    const garage = selectableAmenities(AMENITIES, "Garage", "Sale").map((a) => a.key);
+    const garage = selectableAmenities(AMENITIES, "Garage").map((a) => a.key);
     expect(garage.sort()).toEqual(["alarm_system", "electricity", "guarded"]);
     expect(garage).not.toContain("sauna");
   });
 
-  it.each(["Apartment", "House", "Room", "Commercial"])("hide Furnished for a %s rental but not a sale", (type) => {
-    expect(selectableAmenities(AMENITIES, type, "Rent").map((a) => a.key)).not.toContain("furnished");
-    expect(selectableAmenities(AMENITIES, type, "Sale").map((a) => a.key)).toContain("furnished");
+  it.each(["Apartment", "House", "Room", "Commercial"])("offer Furnished for a %s (sale and rent alike)", (type) => {
+    expect(selectableAmenities(AMENITIES, type).map((a) => a.key)).toContain("furnished");
+  });
+
+  it.each(["Apartment", "House"])("put Furnished in the %s comfort section", (type) => {
+    expect(keysIn(type, "comfort")).toContain("furnished");
   });
 
   it("group House amenities by category, with General ones in the catch-all leisure section", () => {
     expect(keysIn("House", "comfort").sort()).toEqual(["dishwasher", "fireplace", "furnished"]);
-    expect(keysIn("House", "comfort", "Rent").sort()).toEqual(["dishwasher", "fireplace"]);
     expect(keysIn("House", "security")).toEqual(["alarm_system"]);
     expect(keysIn("House", "leisure").sort()).toEqual(["balcony", "near_forest", "parking", "sauna"]);
   });
@@ -214,5 +217,24 @@ describe("finish condition options", () => {
         "EuroRenovated", "CosmeticRepair", "WhiteStructure",
       ]);
     }
+  });
+});
+
+describe("rental rules section (pets)", () => {
+  it.each(["House", "Apartment"])("only exists on a %s rental", (type) => {
+    expect(sectionsFor(layout(type), "Rent").map((s) => s.id)).toContain("rentalRules");
+    expect(sectionsFor(layout(type), "Sale").map((s) => s.id)).not.toContain("rentalRules");
+    expect(sectionsFor(layout(type), "Sale")).toHaveLength(7);
+    expect(sectionsFor(layout(type), "Rent")).toHaveLength(8);
+  });
+
+  it.each(["Land", "Commercial"])("is never shown for %s (pets don't apply)", (type) => {
+    expect(sectionsFor(layout(type), "Rent").map((s) => s.id)).not.toContain("rentalRules");
+  });
+
+  it("counts as complete only once pets is answered Yes or No", () => {
+    const rules = section("Apartment", "rentalRules");
+    expect(isSectionComplete(rules, "Apartment", getter({}), true)).toBe(false);
+    expect(isSectionComplete(rules, "Apartment", (name) => (name === "rental.petsAllowed" ? "false" : null), false)).toBe(true);
   });
 });

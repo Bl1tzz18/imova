@@ -64,7 +64,6 @@ public static class ListingMapping
             details.MinLeasePeriodMonths,
             details.SecurityDepositAmount,
             details.UtilitiesIncluded,
-            details.FurnishedStatus.ToString(),
             details.AvailableFrom,
             details.PetsAllowed);
 

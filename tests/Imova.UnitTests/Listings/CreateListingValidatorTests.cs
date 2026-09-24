@@ -66,6 +66,7 @@ public class CreateListingValidatorTests
         decimal price = 550m,
         Currency currency = Currency.EUR,
         RentalDetails? rentalDetails = null,
+        bool omitRentalDetails = false,
         string? streetAddress = "Str. Ismail",
         string? buildingNumber = null,
         Guid? raionId = null,
@@ -96,7 +97,11 @@ public class CreateListingValidatorTests
             price,
             currency,
             false,
-            rentalDetails);
+            omitRentalDetails
+                ? null
+                : rentalDetails ?? (transactionType == TransactionType.Rent && RentalDetails.PetsApplyTo(propertyType)
+                    ? new RentalDetails(PetsAllowed: false)
+                    : null));
 
     private async Task<List<string>> ErrorPropertiesAsync(CreateListingCommand command) =>
         (await _validator.ValidateAsync(command)).Errors.Select(e => e.PropertyName).ToList();
@@ -195,20 +200,54 @@ public class CreateListingValidatorTests
         Assert.Contains("AmenityIds", await ErrorPropertiesAsync(ValidCommand(amenityIds: [_amenityId, Guid.NewGuid()])));
     }
 
-    [Fact]
-    public async Task Validate_FurnishedAmenityOnARental_IsRejected()
+    [Theory]
+    [InlineData(TransactionType.Rent)]
+    [InlineData(TransactionType.Sale)]
+    public async Task Validate_FurnishedAmenity_IsAllowedForSaleAndRent(TransactionType transactionType)
     {
-        var result = await _validator.ValidateAsync(ValidCommand(amenityIds: [_amenityId, _furnishedAmenityId]));
-
-        Assert.Contains(result.Errors, e =>
-            e.PropertyName == "AmenityIds" && e.ErrorMessage.Contains("RentalDetails.FurnishedStatus"));
+        // Furnishing is the "furnished" amenity for both — there's no separate rental answer anymore.
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            transactionType: transactionType, amenityIds: [_amenityId, _furnishedAmenityId])));
     }
 
-    [Fact]
-    public async Task Validate_FurnishedAmenityOnASale_IsAllowed()
+    // --- Pets (rental terms, homes only) ---
+
+    [Theory]
+    [InlineData(PropertyType.Apartment)]
+    [InlineData(PropertyType.House)]
+    [InlineData(PropertyType.Room)]
+    public async Task Validate_RentedHome_RequiresThePetsAnswer(PropertyType type)
     {
-        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
-            transactionType: TransactionType.Sale, amenityIds: [_furnishedAmenityId])));
+        var errors = await ErrorPropertiesAsync(ValidCommand(
+            propertyType: type, attributes: Attrs(CompleteFor(type)), rentalDetails: new RentalDetails(PetsAllowed: null)));
+
+        Assert.Equal(["RentalDetails.PetsAllowed"], errors);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Validate_RentedHome_AcceptsEitherPetsAnswer(bool petsAllowed)
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(rentalDetails: new RentalDetails(PetsAllowed: petsAllowed))));
+    }
+
+    [Theory]
+    [InlineData(PropertyType.Land)]
+    [InlineData(PropertyType.Commercial)]
+    [InlineData(PropertyType.Garage)]
+    public async Task Validate_RentedNonHome_RejectsAPetsAnswer(PropertyType type)
+    {
+        var withPets = await ErrorPropertiesAsync(ValidCommand(
+            propertyType: type,
+            attributes: Attrs(CompleteFor(type)),
+            yearBuilt: null,
+            rentalDetails: new RentalDetails(PetsAllowed: false)));
+        var withoutPets = await ErrorPropertiesAsync(ValidCommand(
+            propertyType: type, attributes: Attrs(CompleteFor(type)), yearBuilt: null, rentalDetails: new RentalDetails()));
+
+        Assert.Equal(["RentalDetails.PetsAllowed"], withPets);
+        Assert.Empty(withoutPets);
     }
 
     public static TheoryData<PropertyType> FinishConditionTypes() => [PropertyType.House, PropertyType.Apartment, PropertyType.Commercial];
@@ -289,21 +328,27 @@ public class CreateListingValidatorTests
     }
 
     [Fact]
-    public async Task Validate_RentWithoutRentalDetails_HasNoErrors()
+    public async Task Validate_RentedHomeWithoutRentalDetails_IsMissingThePetsAnswer()
     {
-        // Optional for a rental — CreateListingHandler defaults it.
-        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(rentalDetails: null)));
+        Assert.Equal(["RentalDetails.PetsAllowed"], await ErrorPropertiesAsync(ValidCommand(omitRentalDetails: true)));
+    }
+
+    [Fact]
+    public async Task Validate_RentedGarageWithoutRentalDetails_HasNoErrors()
+    {
+        // Nothing is required there — CreateListingHandler defaults the terms.
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(
+            propertyType: PropertyType.Garage, attributes: Attrs(TestAttributes.CompleteGarage), omitRentalDetails: true)));
     }
 
     [Fact]
     public async Task Validate_RentWithInvalidRentalTerms_ReportsNestedFields()
     {
         var errors = await ErrorPropertiesAsync(ValidCommand(rentalDetails: new RentalDetails(
-            MinLeasePeriodMonths: 0, SecurityDepositAmount: -5, FurnishedStatus: (FurnishedStatus)9)));
+            MinLeasePeriodMonths: 0, SecurityDepositAmount: -5, PetsAllowed: true)));
 
         Assert.Contains("RentalDetails.MinLeasePeriodMonths", errors);
         Assert.Contains("RentalDetails.SecurityDepositAmount", errors);
-        Assert.Contains("RentalDetails.FurnishedStatus", errors);
     }
 
     [Theory]

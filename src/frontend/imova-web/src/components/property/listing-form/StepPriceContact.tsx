@@ -25,8 +25,8 @@ export function StepPriceContact({
 }) {
   const t = useTranslations("PropertyForm");
   const rental = listing?.rentalDetails;
-  // Furnishing and pets are asked on the Details step (see RentalFurnishingFields).
-  const rentalTerms = rentalFieldsForStep("priceTerms", transactionType);
+  // Pets are asked on the Details step; furnishing is the "furnished" amenity there.
+  const rentalTerms = rentalFieldsForStep("priceTerms", transactionType, listing?.property.propertyType ?? "");
 
   return (
     <div>

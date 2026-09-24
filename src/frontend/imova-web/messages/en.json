@@ -197,7 +197,6 @@
     "amenitiesLabel": "Amenities",
     "isNegotiableLabel": "Price is negotiable",
     "rentalTermsHeading": "Rental terms",
-    "furnishedStatusLabel": "Furnishing",
     "minLeasePeriodLabel": "Minimum lease (months)",
     "securityDepositLabel": "Security deposit",
     "availableFromLabel": "Available from",
@@ -223,9 +222,9 @@
       "typeArea": "Type & area",
       "utilitiesAccess": "Utilities & access",
       "surroundings": "Surroundings",
-      "amenities": "Amenities"
-    },
-    "rentalFurnishingHeading": "Furnishing & pets"
+      "amenities": "Amenities",
+      "rentalRules": "Rental rules"
+    }
   },
   "PropertyDetail": {
     "back": "Back to listings",
@@ -237,7 +236,6 @@
     "floor": "Floor",
     "floorOf": "{floor} of {totalFloors}",
     "yearBuilt": "Year built",
-    "furnished": "Furnished",
     "petsAllowed": "Pets allowed",
     "yes": "Yes",
     "no": "No",
@@ -413,11 +411,6 @@
     "NeedsRepair": "Needs repair",
     "GrayStructure": "Gray finish (plastered)",
     "RedStructure": "Bare structure"
-  },
-  "FurnishedStatus": {
-    "Unfurnished": "Unfurnished",
-    "PartiallyFurnished": "Partially furnished",
-    "Furnished": "Furnished"
   },
   "Amenity": {
     "parking": "Parking",

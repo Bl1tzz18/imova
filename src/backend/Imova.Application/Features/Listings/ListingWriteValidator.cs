@@ -79,14 +79,6 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
                         nameof(IListingWriteCommand.AmenityIds),
                         $"The '{amenity.Key}' amenity doesn't apply to a {command.PropertyType}.");
                 }
-
-                if (amenities.Any(a => a.AppliesTo(command.PropertyType)
-                        && !a.IsSelectableFor(command.PropertyType, command.TransactionType)))
-                {
-                    context.AddFailure(
-                        nameof(IListingWriteCommand.AmenityIds),
-                        "The furnished amenity doesn't apply to a rental — use RentalDetails.FurnishedStatus.");
-                }
             })
             .When(c => c.AmenityIds is { Count: > 0 });
 
@@ -149,9 +141,17 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
             .GreaterThanOrEqualTo(0).LessThan(10_000_000_000m)
             .OverridePropertyName("RentalDetails.SecurityDepositAmount")
             .When(c => c.RentalDetails is not null);
-        RuleFor(c => c.RentalDetails!.FurnishedStatus)
-            .IsInEnum()
-            .OverridePropertyName("RentalDetails.FurnishedStatus")
-            .When(c => c.RentalDetails is not null);
+
+        // Pets are a required Yes/No for a rented home and not asked for anything else.
+        RuleFor(c => c.RentalDetails)
+            .Must(details => details?.PetsAllowed is not null)
+            .WithMessage("RentalDetails.PetsAllowed is required for this property type.")
+            .OverridePropertyName("RentalDetails.PetsAllowed")
+            .When(c => c.TransactionType == TransactionType.Rent && Imova.Domain.Listings.RentalDetails.PetsApplyTo(c.PropertyType));
+        RuleFor(c => c.RentalDetails)
+            .Must(details => details?.PetsAllowed is null)
+            .WithMessage("RentalDetails.PetsAllowed does not apply to this property type.")
+            .OverridePropertyName("RentalDetails.PetsAllowed")
+            .When(c => c.TransactionType == TransactionType.Rent && !Imova.Domain.Listings.RentalDetails.PetsApplyTo(c.PropertyType));
     }
 }

@@ -7,10 +7,11 @@ import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/
 import { getAmenities } from "@/lib/api/amenities";
 import { attributeSchemaFor, hasBuilding, usesGeneralCondition } from "@/lib/property/attributeSchema";
 import { detailLayoutFor, selectableAmenities } from "@/lib/property/detailLayouts";
+import { rentalFieldsForStep } from "@/lib/property/rentalFields";
 import type { Amenity, Listing } from "@/types/listing";
 import { AttributeInput } from "./AttributeFields";
 import { DetailsAccordion } from "./DetailsAccordion";
-import { RentalFurnishingFields } from "./RentalFurnishingFields";
+import { PetsAllowedInput } from "./PetsAllowedInput";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
@@ -44,9 +45,11 @@ export function StepDetails({
   const selectedAmenityIds = new Set(property?.amenities.map((a) => a.id) ?? []);
   const schema = attributeSchemaFor(propertyType);
   const layout = detailLayoutFor(propertyType);
-  // Only amenities that apply to this type — and no "furnished" on a rental, which
-  // RentalDetails' furnishing status covers.
-  const offeredAmenities = selectableAmenities(amenities, propertyType, transactionType);
+  // Only amenities that apply to this type ("furnished" included, for sale and rent alike).
+  const offeredAmenities = selectableAmenities(amenities, propertyType);
+  // Rental questions asked on this step (pets, for a rented home) — the accordion types ask them
+  // in their own "Rental rules" section; the flat form (Room) asks them inline.
+  const rentalDetailFields = rentalFieldsForStep("details", transactionType, propertyType);
 
   return (
     <div>
@@ -74,6 +77,7 @@ export function StepDetails({
             property={property}
             initialAttributes={initialAttributes}
             transactionType={transactionType}
+            rental={listing?.rentalDetails}
             amenities={amenities}
           />
         ) : (
@@ -124,6 +128,9 @@ export function StepDetails({
                 {schema.map((field) => (
                   <AttributeInput key={field.name} field={field} initial={initialAttributes} />
                 ))}
+                {rentalDetailFields.includes("petsAllowed") && (
+                  <PetsAllowedInput defaultValue={listing?.rentalDetails?.petsAllowed} />
+                )}
               </div>
             </div>
 
@@ -147,9 +154,6 @@ export function StepDetails({
             )}
           </>
         )}
-
-        {/* Rental only: furnishing and pets (stored on the listing's RentalDetails). */}
-        <RentalFurnishingFields transactionType={transactionType} rental={listing?.rentalDetails} />
 
         <label className="block">
           <FieldLabel required>{t("descriptionLabel")}</FieldLabel>

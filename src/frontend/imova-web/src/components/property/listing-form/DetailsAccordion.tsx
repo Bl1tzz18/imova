@@ -16,12 +16,14 @@ import {
   amenitiesForSection,
   isAmenitySection,
   isSectionComplete,
+  sectionsFor,
   type DetailLayout,
   type DetailSection,
   type DetailSectionId,
 } from "@/lib/property/detailLayouts";
-import type { Amenity, PropertyDetails, TypeSpecificAttributes } from "@/types/listing";
+import type { Amenity, PropertyDetails, RentalDetails, TypeSpecificAttributes } from "@/types/listing";
 import { AttributeInput } from "./AttributeFields";
+import { PetsAllowedInput } from "./PetsAllowedInput";
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -38,6 +40,9 @@ const SECTION_ICONS: Record<DetailSectionId, ReactNode> = {
   surroundings: <path d="M12 3 5 13h4l-3 5h12l-3-5h4L12 3ZM12 18v3" />,
   other: <path d="M4 6h16M4 12h16M4 18h10" />,
   amenities: <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9L12 3Z" />,
+  rentalRules: (
+    <path d="M8.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM15.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM19 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 13c-2.5 0-5 3-5 5 0 1.5 1.5 2 2.5 2 1 0 1.5-.5 2.5-.5s1.5.5 2.5.5c1 0 2.5-.5 2.5-2 0-2-2.5-5-5-5Z" />
+  ),
 };
 
 // The sectioned "Details" step for property types that have a DetailLayout (House, Apartment,
@@ -52,6 +57,7 @@ export function DetailsAccordion({
   property,
   initialAttributes,
   transactionType,
+  rental,
   amenities,
 }: {
   propertyType: string;
@@ -59,6 +65,7 @@ export function DetailsAccordion({
   property?: PropertyDetails;
   initialAttributes: TypeSpecificAttributes;
   transactionType: string;
+  rental?: RentalDetails | null;
   amenities: Amenity[];
 }) {
   const t = useTranslations("PropertyForm");
@@ -82,6 +89,8 @@ export function DetailsAccordion({
   );
 
   const schema = attributeSchemaFor(propertyType);
+  // Rental-only sections (pets) only exist for a rental.
+  const sections = sectionsFor(layout, transactionType);
   const selectedAmenityIds = new Set(property?.amenities.map((a) => a.id) ?? []);
   const visibilityGet: ValueGetter = (name) => controlling[name.replace(/^attr\./, "")] ?? null;
 
@@ -97,10 +106,12 @@ export function DetailsAccordion({
     };
     setCompleted(
       new Set(
-        layout.sections.filter((s) => isSectionComplete(s, propertyType, get, visited.has(s.id))).map((s) => s.id),
+        sectionsFor(layout, transactionType)
+          .filter((s) => isSectionComplete(s, propertyType, get, visited.has(s.id)))
+          .map((s) => s.id),
       ),
     );
-  }, [layout, propertyType, visited]);
+  }, [layout, propertyType, transactionType, visited]);
 
   // Also re-run after conditional fields appear/disappear and when sections get visited.
   useEffect(recompute, [recompute, controlling]);
@@ -130,8 +141,16 @@ export function DetailsAccordion({
   }
 
   function renderSectionBody(section: DetailSection) {
+    if (section.rentalFields) {
+      return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {section.rentalFields.includes("petsAllowed") && <PetsAllowedInput defaultValue={rental?.petsAllowed} />}
+        </div>
+      );
+    }
+
     if (isAmenitySection(section)) {
-      const items = amenitiesForSection(layout, section, amenities, propertyType, transactionType);
+      const items = amenitiesForSection(layout, section, amenities, propertyType);
       return (
         <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">
           {items.map((amenity) => (
@@ -189,7 +208,7 @@ export function DetailsAccordion({
     );
   }
 
-  const total = layout.sections.length;
+  const total = sections.length;
   const completedCount = completed.size;
   const progressLabel = t("sectionsCompleted", { completed: completedCount, total });
 
@@ -214,7 +233,7 @@ export function DetailsAccordion({
         </div>
       </div>
 
-      {layout.sections.map((section) => {
+      {sections.map((section) => {
         const isOpen = open.has(section.id);
         const isDone = completed.has(section.id);
         const panelId = `detail-section-${section.id}`;

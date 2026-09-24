@@ -7,6 +7,7 @@ import {
   type PropertyTypeName,
   type ValueGetter,
 } from "@/lib/property/attributeSchema";
+import { rentalInputName, type RentalField } from "@/lib/property/rentalFields";
 
 // How the listing form's "Details" step is split into collapsible sections, per property type.
 // Types without a layout (Garage, Room — only a field or two) use the flat form instead.
@@ -25,7 +26,8 @@ export type DetailSectionId =
   | "typeArea"
   | "utilitiesAccess"
   | "surroundings"
-  | "amenities";
+  | "amenities"
+  | "rentalRules";
 
 export type CoreField = "totalAreaM2" | "yearBuilt";
 
@@ -39,6 +41,8 @@ export type DetailSection = {
   // amenity whose category no other section of the layout shows.
   amenityCategories?: readonly AmenityCategory[];
   catchAllAmenities?: boolean;
+  // RentalDetails fields asked here; a section with these only exists for a rental.
+  rentalFields?: readonly RentalField[];
 };
 
 export type DetailLayout = {
@@ -48,6 +52,9 @@ export type DetailLayout = {
 };
 
 const noFields = { coreFields: [], attributeFields: [] } as const;
+
+// Rental-only: the house rules of a rented home (pets). Room asks the same on its flat form.
+const RENTAL_RULES: DetailSection = { id: "rentalRules", ...noFields, rentalFields: ["petsAllowed"] };
 
 export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
   House: {
@@ -72,6 +79,7 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
       { id: "comfort", ...noFields, amenityCategories: ["Comfort"] },
       { id: "security", ...noFields, amenityCategories: ["Security"] },
       { id: "leisure", ...noFields, amenityCategories: ["Leisure"], catchAllAmenities: true },
+      RENTAL_RULES,
     ],
   },
   Apartment: {
@@ -95,6 +103,7 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
       { id: "security", ...noFields, amenityCategories: ["Security"] },
       // Elevator, balcony, annex, separate entrance — and anything else that applies.
       { id: "other", ...noFields, amenityCategories: ["General"], catchAllAmenities: true },
+      RENTAL_RULES,
     ],
   },
   Land: {
@@ -135,6 +144,11 @@ export function detailLayoutFor(propertyType: string): DetailLayout | undefined 
   return DETAIL_LAYOUTS[propertyType as PropertyTypeName];
 }
 
+// The sections shown for a transaction type — rental-only ones disappear for a sale.
+export function sectionsFor(layout: DetailLayout, transactionType: string): DetailSection[] {
+  return layout.sections.filter((s) => !s.rentalFields || transactionType === "Rent");
+}
+
 // Core fields that must be filled in (yearBuilt is optional).
 const REQUIRED_CORE_FIELDS = new Set<CoreField>(["totalAreaM2"]);
 
@@ -154,6 +168,7 @@ export function isAmenitySection(section: DetailSection): boolean {
 
 export function hasRequiredFields(section: DetailSection, propertyType: string): boolean {
   return (
+    (section.rentalFields?.length ?? 0) > 0 ||
     section.coreFields.some((name) => REQUIRED_CORE_FIELDS.has(name)) ||
     section.attributeFields.some((name) => isFieldRequired(schemaField(propertyType, name)))
   );
@@ -179,20 +194,17 @@ export function isSectionComplete(
     .filter((field) => isFieldRequired(field) && isFieldVisible(field, get))
     .every((field) => isFilled(get(attributeInputName(field.name))));
 
-  return coreComplete && attributesComplete;
+  // Every rental field asked in the details step (pets) is a required Yes/No.
+  const rentalComplete = (section.rentalFields ?? []).every((field) => isFilled(get(rentalInputName(field))));
+
+  return coreComplete && attributesComplete && rentalComplete;
 }
 
 // The amenities the form offers for a property type: those that apply to it (mirrors
-// Amenity.ApplicablePropertyTypes on the backend) — minus "furnished" on a rental, which
-// RentalDetails.FurnishedStatus already captures (the backend rejects both cases too).
-export function selectableAmenities(
-  amenities: readonly Amenity[],
-  propertyType: string,
-  transactionType: string,
-): Amenity[] {
-  return amenities.filter(
-    (a) => a.applicablePropertyTypes.includes(propertyType) && !(transactionType === "Rent" && a.key === "furnished"),
-  );
+// Amenity.ApplicablePropertyTypes on the backend, which rejects any other). "Furnished" is offered
+// for sale and rent alike — it's the only furnishing question.
+export function selectableAmenities(amenities: readonly Amenity[], propertyType: string): Amenity[] {
+  return amenities.filter((a) => a.applicablePropertyTypes.includes(propertyType));
 }
 
 export function amenitiesForSection(
@@ -200,12 +212,11 @@ export function amenitiesForSection(
   section: DetailSection,
   amenities: readonly Amenity[],
   propertyType: string,
-  transactionType: string,
 ): Amenity[] {
   const shownElsewhere = new Set(layout.sections.flatMap((s) => (s === section ? [] : (s.amenityCategories ?? []))));
   const ownCategories = new Set(section.amenityCategories ?? []);
 
-  return selectableAmenities(amenities, propertyType, transactionType).filter(
+  return selectableAmenities(amenities, propertyType).filter(
     (a) =>
       ownCategories.has(a.category as AmenityCategory) ||
       (section.catchAllAmenities === true && !shownElsewhere.has(a.category as AmenityCategory)),

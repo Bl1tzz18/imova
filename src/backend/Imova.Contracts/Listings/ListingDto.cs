@@ -31,6 +31,6 @@ public record RentalDetailsDto(
     int? MinLeasePeriodMonths,
     decimal? SecurityDepositAmount,
     bool UtilitiesIncluded,
-    string FurnishedStatus,
     DateTime? AvailableFrom,
-    bool PetsAllowed);
+    // Null when not asked (rentals other than an apartment, house or room).
+    bool? PetsAllowed);

@@ -1,5 +1,4 @@
 using Imova.Domain.Amenities;
-using Imova.Domain.Listings;
 using Imova.Domain.Properties;
 using Imova.Infrastructure.Amenities;
 
@@ -10,23 +9,29 @@ public class AmenityTests
     private static Amenity Seeded(string key) => AmenityConfiguration.Seed.Single(a => a.Key == key);
 
     [Theory]
-    [InlineData(PropertyType.House)]
-    [InlineData(PropertyType.Room)]
     [InlineData(PropertyType.Apartment)]
-    public void Furnished_IsHiddenForRentals_BecauseRentalDetailsCarryFurnishedStatus(PropertyType propertyType)
+    [InlineData(PropertyType.House)]
+    [InlineData(PropertyType.Commercial)]
+    [InlineData(PropertyType.Room)]
+    public void Furnished_AppliesToEveryFurnishableType(PropertyType propertyType)
     {
-        Assert.False(Seeded(Amenity.FurnishedKey).IsSelectableFor(propertyType, TransactionType.Rent));
-        Assert.True(Seeded(Amenity.FurnishedKey).IsSelectableFor(propertyType, TransactionType.Sale));
+        Assert.True(Seeded(Amenity.FurnishedKey).AppliesTo(propertyType));
     }
 
     [Fact]
-    public void AnAmenity_IsOnlySelectableForItsApplicablePropertyTypes()
+    public void Furnished_IsInTheComfortCategory()
+    {
+        Assert.Equal(AmenityCategory.Comfort, Seeded(Amenity.FurnishedKey).Category);
+    }
+
+    [Fact]
+    public void AnAmenity_OnlyAppliesToItsPropertyTypes()
     {
         var sauna = Seeded("sauna");
 
-        Assert.True(sauna.IsSelectableFor(PropertyType.House, TransactionType.Sale));
-        Assert.False(sauna.IsSelectableFor(PropertyType.Garage, TransactionType.Sale));
-        Assert.False(sauna.IsSelectableFor(PropertyType.Apartment, TransactionType.Rent));
+        Assert.True(sauna.AppliesTo(PropertyType.House));
+        Assert.False(sauna.AppliesTo(PropertyType.Garage));
+        Assert.False(sauna.AppliesTo(PropertyType.Apartment));
     }
 
     [Theory]
