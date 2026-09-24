@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { DateInput } from "@/components/ui/DateInput";
 import { FieldLabel, PriceInput, SelectInput, TextInput } from "@/components/ui/Field";
 import { cn } from "@/lib/utils/cn";
 import type { Listing, Publisher } from "@/types/listing";
@@ -28,7 +29,7 @@ export function StepPriceContact({
 
   return (
     <div>
-      <h2 className="font-display text-xl font-medium text-ink-950">{t("step4Heading")}</h2>
+      <h2 className="font-hero text-xl font-bold text-ink-950">{t("step4Heading")}</h2>
 
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block">
@@ -57,7 +58,7 @@ export function StepPriceContact({
 
       {transactionType === "Rent" && (
         <fieldset className="mt-7">
-          <legend className="font-display text-base font-medium text-ink-950">{t("rentalTermsHeading")}</legend>
+          <legend className="font-hero text-base font-bold text-ink-950">{t("rentalTermsHeading")}</legend>
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block">
               <FieldLabel>{t("furnishedStatusLabel")}</FieldLabel>
@@ -92,10 +93,12 @@ export function StepPriceContact({
             </label>
             <label className="block">
               <FieldLabel>{t("availableFromLabel")}</FieldLabel>
-              <TextInput
+              <DateInput
                 name="rental.availableFrom"
-                type="date"
-                defaultValue={rental?.availableFrom ? rental.availableFrom.slice(0, 10) : undefined}
+                defaultValue={rental?.availableFrom}
+                placeholder={t("datePlaceholder")}
+                invalidMessage={t("invalidDate")}
+                pickerLabel={t("openCalendar")}
               />
             </label>
           </div>
@@ -124,7 +127,7 @@ export function StepPriceContact({
           omitting publisherId publishes under it, so a user without an agency sees nothing here. */}
       {publishers.length > 1 && (
         <fieldset className="mt-7">
-          <legend className="font-display text-base font-medium text-ink-950">{t("publishAsLabel")}</legend>
+          <legend className="font-hero text-base font-bold text-ink-950">{t("publishAsLabel")}</legend>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {publishers.map((publisher) => (
               <label

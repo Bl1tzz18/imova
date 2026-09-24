@@ -204,7 +204,10 @@
     "utilitiesIncludedLabel": "Utilități incluse în preț",
     "publishAsLabel": "Publică în numele",
     "publisherIndividual": "Persoană fizică",
-    "publisherAgency": "Agenție"
+    "publisherAgency": "Agenție",
+    "datePlaceholder": "zz.ll.aaaa",
+    "invalidDate": "Introdu o dată validă (zz.ll.aaaa).",
+    "openCalendar": "Deschide calendarul"
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",

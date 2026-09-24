@@ -17,9 +17,10 @@ const fraunces = Fraunces({
   axes: ["opsz"],
 });
 
-// Bold geometric sans used specifically for the homepage hero heading (see Hero.tsx's
+// Bold geometric sans for brand headings — the homepage hero and the add/edit listing form (the
 // font-hero class, mapped in globals.css) — distinct from font-display (Fraunces, a serif used
-// for regular section headings elsewhere) since the hero calls for a punchier, more modern look.
+// for regular section headings elsewhere). Latin only: Google Fonts ships no Cyrillic for Sora,
+// so Russian headings fall back to the system sans-serif.
 const sora = Sora({
   subsets: ["latin", "latin-ext"],
   variable: "--font-sora",

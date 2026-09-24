@@ -204,7 +204,10 @@
     "utilitiesIncludedLabel": "Utilities included",
     "publishAsLabel": "Publish as",
     "publisherIndividual": "Private individual",
-    "publisherAgency": "Agency"
+    "publisherAgency": "Agency",
+    "datePlaceholder": "dd/mm/yyyy",
+    "invalidDate": "Enter a valid date (dd/mm/yyyy).",
+    "openCalendar": "Open calendar"
   },
   "PropertyDetail": {
     "back": "Back to listings",

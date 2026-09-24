@@ -57,7 +57,7 @@ export default async function EditListingPage({
             ← {t("backToMyListings")}
           </LinkButton>
 
-          <h1 className="mt-4 font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("title")}</h1>
+          <h1 className="mt-4 font-hero text-2xl font-extrabold text-ink-950 sm:text-3xl">{t("title")}</h1>
 
           {isOwner ? (
             <>

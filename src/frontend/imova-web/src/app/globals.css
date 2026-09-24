@@ -53,3 +53,16 @@ body {
 .text-balance {
   text-wrap: balance;
 }
+
+/* No native increment/decrement arrows on number inputs anywhere — browsers otherwise show them
+   inconsistently (some fields on hover/focus only), which clashes with the minimalist inputs. */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

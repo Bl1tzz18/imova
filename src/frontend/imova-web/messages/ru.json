@@ -204,7 +204,10 @@
     "utilitiesIncludedLabel": "Коммунальные услуги включены",
     "publishAsLabel": "Опубликовать от имени",
     "publisherIndividual": "Частное лицо",
-    "publisherAgency": "Агентство"
+    "publisherAgency": "Агентство",
+    "datePlaceholder": "дд.мм.гггг",
+    "invalidDate": "Введите корректную дату (дд.мм.гггг).",
+    "openCalendar": "Открыть календарь"
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",

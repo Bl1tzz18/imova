@@ -40,7 +40,7 @@ export function StepDetails({ propertyType, listing }: { propertyType: string; l
 
   return (
     <div>
-      <h2 className="font-display text-xl font-medium text-ink-950">{t("step2Heading")}</h2>
+      <h2 className="font-hero text-xl font-bold text-ink-950">{t("step2Heading")}</h2>
 
       <div className="mt-5 space-y-5">
         <label className="block">
