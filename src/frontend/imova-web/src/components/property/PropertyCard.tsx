@@ -5,14 +5,15 @@ import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import type { Property } from "@/types/property";
+import { coverPhoto, numberAttribute } from "@/lib/listing/view";
+import type { Listing } from "@/types/listing";
 
 export function PropertyCard({
-  property,
+  listing,
   showFloor = false,
   hidePerMonthSuffix = false,
 }: {
-  property: Property;
+  listing: Listing;
   // Extra bits the cluster-overflow map panel wants (ClusterOverflowPanel.tsx) that the
   // regular search/saved-listings grids don't — kept optional so this stays the one card
   // implementation everywhere instead of a near-duplicate compact card.
@@ -23,20 +24,25 @@ export function PropertyCard({
   const tListing = useTranslations("ListingType");
   const tDetail = useTranslations("PropertyDetail");
   const tCard = useTranslations("PropertyCard");
-  const location = formatLocation(property.location);
-  const isUnavailable = property.status !== "Published";
+  const location = formatLocation(listing.property.location);
+  const isUnavailable = listing.status !== "Active";
+  // Rooms/floors live in the per-type attributes now — only some property types have them.
+  const rooms = numberAttribute(listing, "rooms");
+  const floor = numberAttribute(listing, "floor");
+  const totalFloors = numberAttribute(listing, "totalFloors");
+  const cover = coverPhoto(listing);
 
   return (
     <Link
-      href={`/property/${property.id}`}
+      href={`/property/${listing.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
     >
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-800 to-brand-600">
-        {property.media.length > 0 ? (
+        {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={property.media[0].url}
-            alt={property.title}
+            src={cover.url}
+            alt={listing.title}
             loading="lazy"
             className={cn(
               "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105",
@@ -45,7 +51,7 @@ export function PropertyCard({
           />
         ) : (
           <PropertyIcon
-            type={property.propertyType}
+            type={listing.property.propertyType}
             className={cn(
               "h-16 w-16 text-white/25 transition-transform duration-300 group-hover:scale-110",
               isUnavailable && "grayscale",
@@ -53,19 +59,19 @@ export function PropertyCard({
           />
         )}
         <div className="absolute left-3 top-3">
-          <Badge tone={property.listingType === "Rent" ? "accent" : "brand"} className="bg-white/90 backdrop-blur">
-            {tListing(property.listingType)}
+          <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"} className="bg-white/90 backdrop-blur">
+            {tListing(listing.transactionType)}
           </Badge>
         </div>
 
         <div className="absolute right-3 top-3 flex gap-1.5">
-          <SaveListingButton propertyId={property.id} initialSaved={property.isSaved} />
+          <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} />
         </div>
 
         {isUnavailable && (
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-ink-950/75 py-1.5 text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-white">
-              {statusOverlayLabel(tCard, property.status)}
+              {statusOverlayLabel(tCard, listing.status)}
             </span>
           </div>
         )}
@@ -73,38 +79,30 @@ export function PropertyCard({
 
       <div className={cn("flex flex-1 flex-col gap-2 p-4", isUnavailable && "opacity-60")}>
         <p className="font-display text-xl font-medium text-ink-950">
-          {formatPrice(property.price, property.currency)}
-          {property.listingType === "Rent" && !hidePerMonthSuffix && (
+          {formatPrice(listing.price.amount, listing.price.currency)}
+          {listing.transactionType === "Rent" && !hidePerMonthSuffix && (
             <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
           )}
         </p>
 
         <h3 className="line-clamp-2 text-sm font-medium leading-snug text-ink-800">
-          {property.title}
+          {listing.title}
         </h3>
 
         <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-2 text-xs text-ink-500">
-          <span>{tType(property.propertyType)}</span>
-          {property.area != null && (
+          <span>{tType(listing.property.propertyType)}</span>
+          <span className="h-1 w-1 rounded-full bg-ink-300" />
+          <span>{listing.property.totalAreaM2} m²</span>
+          {rooms != null && (
             <>
               <span className="h-1 w-1 rounded-full bg-ink-300" />
-              <span>{property.area} m²</span>
+              <span>{tCard("rooms", { count: rooms })}</span>
             </>
           )}
-          {property.rooms != null && (
+          {showFloor && floor != null && (
             <>
               <span className="h-1 w-1 rounded-full bg-ink-300" />
-              <span>{tCard("rooms", { count: property.rooms })}</span>
-            </>
-          )}
-          {showFloor && property.floor != null && (
-            <>
-              <span className="h-1 w-1 rounded-full bg-ink-300" />
-              <span>
-                {property.totalFloors != null
-                  ? tDetail("floorOf", { floor: property.floor, totalFloors: property.totalFloors })
-                  : property.floor}
-              </span>
+              <span>{totalFloors != null ? tDetail("floorOf", { floor, totalFloors }) : floor}</span>
             </>
           )}
         </div>

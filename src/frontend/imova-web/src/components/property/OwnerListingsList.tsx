@@ -6,19 +6,20 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import { archiveProperty, republishProperty, submitForReview } from "@/lib/property/actions";
+import { archiveListing, publishListing, submitForReview } from "@/lib/property/actions";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import type { Property } from "@/types/property";
+import { coverPhoto } from "@/lib/listing/view";
+import type { Listing } from "@/types/listing";
 
-type StatusFilter = "all" | "PendingReview" | "Rejected" | "Published" | "Draft" | "Archived";
+type StatusFilter = "all" | "PendingReview" | "Rejected" | "Active" | "Draft" | "Archived";
 
 // "accent" is this app's alert/attention color (same tone used for validation and error
 // banners elsewhere), so it's reserved for statuses that need the owner to act — Rejected and
 // Suspended — rather than for "live" statuses, so a rejected listing doesn't blend into the
 // rest of the gray/neutral bucket.
 const statusBadgeTone: Record<string, "brand" | "accent" | "neutral"> = {
-  Published: "brand",
+  Active: "brand",
   Rented: "brand",
   Sold: "brand",
   Draft: "neutral",
@@ -26,12 +27,16 @@ const statusBadgeTone: Record<string, "brand" | "accent" | "neutral"> = {
   Rejected: "accent",
   Suspended: "accent",
   Archived: "neutral",
+  Expired: "neutral",
 };
 
-// Archive() (the "deactivate" action) accepts these three statuses — see Property.Archive()'s guard.
-const ARCHIVABLE_STATUSES = new Set(["Published", "Rented", "Sold"]);
+// Archive() (the "deactivate" action) accepts these statuses — see Listing.Archive()'s guard.
+const ARCHIVABLE_STATUSES = new Set(["Active", "Rented", "Sold", "Expired"]);
 
-export function OwnerListingsList({ properties }: { properties: Property[] }) {
+// Publish() (the owner's "activate" action) accepts these — see Listing.Publish()'s guard.
+const REPUBLISHABLE_STATUSES = new Set(["Archived", "Expired"]);
+
+export function OwnerListingsList({ listings }: { listings: Listing[] }) {
   const t = useTranslations("MyListingsPage");
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -41,20 +46,20 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
 
   const tabs: { id: StatusFilter; label: string }[] = [
     { id: "all", label: t("tabAll") },
-    { id: "Published", label: t("tabPublished") },
+    { id: "Active", label: t("tabPublished") },
     { id: "Draft", label: t("tabDraft") },
     { id: "PendingReview", label: t("tabPendingReview") },
     { id: "Rejected", label: t("tabRejected") },
     { id: "Archived", label: t("tabArchived") },
   ];
 
-  const filtered = filter === "all" ? properties : properties.filter((p) => p.status === filter);
+  const filtered = filter === "all" ? listings : listings.filter((p) => p.status === filter);
 
-  function runAction(propertyId: string, action: (id: string) => Promise<{ error?: string }>) {
+  function runAction(listingId: string, action: (id: string) => Promise<{ error?: string }>) {
     setError(null);
-    setPendingId(propertyId);
+    setPendingId(listingId);
     startTransition(async () => {
-      const result = await action(propertyId);
+      const result = await action(listingId);
       setPendingId(null);
       if (result.error) {
         setError(result.error);
@@ -62,9 +67,9 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
     });
   }
 
-  function handleConfirmDeactivate(propertyId: string) {
+  function handleConfirmDeactivate(listingId: string) {
     setConfirmingId(null);
-    runAction(propertyId, archiveProperty);
+    runAction(listingId, archiveListing);
   }
 
   return (
@@ -95,63 +100,64 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
 
       {filtered.length > 0 ? (
         <div className="mt-5 flex flex-col gap-3">
-          {filtered.map((property) => {
-            const location = formatLocation(property.location);
-            const pending = pendingId === property.id;
-            const reason = property.status === "Rejected"
-              ? property.rejectionReason
-              : property.status === "Suspended"
-                ? property.suspensionReason
+          {filtered.map((listing) => {
+            const location = formatLocation(listing.property.location);
+            const cover = coverPhoto(listing);
+            const pending = pendingId === listing.id;
+            const reason = listing.status === "Rejected"
+              ? listing.rejectionReason
+              : listing.status === "Suspended"
+                ? listing.suspensionReason
                 : null;
 
             return (
               <div
-                key={property.id}
+                key={listing.id}
                 className="flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-3.5"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <Link
-                    href={`/property/${property.id}`}
+                    href={`/property/${listing.id}`}
                     className="flex h-[68px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600"
                   >
-                    {property.media.length > 0 ? (
+                    {cover ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={property.media[0].url}
-                        alt={property.title}
+                        src={cover.url}
+                        alt={listing.title}
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <PropertyIcon type={property.propertyType} className="h-7 w-7 text-white/40" />
+                      <PropertyIcon type={listing.property.propertyType} className="h-7 w-7 text-white/40" />
                     )}
                   </Link>
 
                   <div className="min-w-0 flex-1">
                     <Link
-                      href={`/property/${property.id}`}
+                      href={`/property/${listing.id}`}
                       className="block truncate text-sm font-medium text-ink-900 hover:underline"
                     >
-                      {property.title}
+                      {listing.title}
                     </Link>
                     {location && <p className="mt-0.5 truncate text-xs text-ink-500">{location}</p>}
                   </div>
 
                   <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">
-                    {formatPrice(property.price, property.currency)}
+                    {formatPrice(listing.price.amount, listing.price.currency)}
                   </p>
 
-                  <Badge tone={statusBadgeTone[property.status] ?? "neutral"} className="shrink-0">
-                    {statusLabel(t, property.status)}
+                  <Badge tone={statusBadgeTone[listing.status] ?? "neutral"} className="shrink-0">
+                    {statusLabel(t, listing.status)}
                   </Badge>
 
-                  {ARCHIVABLE_STATUSES.has(property.status) && confirmingId === property.id ? (
+                  {ARCHIVABLE_STATUSES.has(listing.status) && confirmingId === listing.id ? (
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
                       <span className="text-xs text-ink-600">{t("deactivateConfirm")}</span>
                       <Button
                         variant="primary"
                         size="sm"
                         disabled={pending}
-                        onClick={() => handleConfirmDeactivate(property.id)}
+                        onClick={() => handleConfirmDeactivate(listing.id)}
                       >
                         {t("deactivateConfirmYes")}
                       </Button>
@@ -162,39 +168,39 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
                   ) : (
                     <div className="flex shrink-0 gap-2">
                       <LinkButton
-                        href={`/my-listings/${property.id}/edit`}
-                        variant={property.status === "Rejected" ? "primary" : "secondary"}
+                        href={`/my-listings/${listing.id}/edit`}
+                        variant={listing.status === "Rejected" ? "primary" : "secondary"}
                         size="sm"
                       >
-                        {property.status === "Rejected" ? t("editAndResubmit") : t("edit")}
+                        {listing.status === "Rejected" ? t("editAndResubmit") : t("edit")}
                       </LinkButton>
 
-                      {property.status === "Draft" && (
+                      {listing.status === "Draft" && (
                         <Button
                           variant="primary"
                           size="sm"
                           disabled={pending}
-                          onClick={() => runAction(property.id, submitForReview)}
+                          onClick={() => runAction(listing.id, submitForReview)}
                         >
                           {t("submitForReview")}
                         </Button>
                       )}
-                      {ARCHIVABLE_STATUSES.has(property.status) && (
+                      {ARCHIVABLE_STATUSES.has(listing.status) && (
                         <Button
                           variant="secondary"
                           size="sm"
                           disabled={pending}
-                          onClick={() => setConfirmingId(property.id)}
+                          onClick={() => setConfirmingId(listing.id)}
                         >
                           {t("deactivate")}
                         </Button>
                       )}
-                      {property.status === "Archived" && (
+                      {REPUBLISHABLE_STATUSES.has(listing.status) && (
                         <Button
                           variant="secondary"
                           size="sm"
                           disabled={pending}
-                          onClick={() => runAction(property.id, republishProperty)}
+                          onClick={() => runAction(listing.id, publishListing)}
                         >
                           {t("activate")}
                         </Button>
@@ -206,7 +212,7 @@ export function OwnerListingsList({ properties }: { properties: Property[] }) {
                 {reason && (
                   <div className="rounded-xl border border-accent-100 bg-accent-100/60 px-3.5 py-2.5 text-sm text-accent-700">
                     <p className="font-medium">
-                      {property.status === "Rejected" ? t("rejectionReasonLabel") : t("suspensionReasonLabel")}
+                      {listing.status === "Rejected" ? t("rejectionReasonLabel") : t("suspensionReasonLabel")}
                     </p>
                     <p className="mt-0.5">{reason}</p>
                   </div>
@@ -235,7 +241,7 @@ function statusLabel(t: ReturnType<typeof useTranslations<"MyListingsPage">>, st
       return t("statusDraft");
     case "PendingReview":
       return t("statusPendingReview");
-    case "Published":
+    case "Active":
       return t("statusPublished");
     case "Rejected":
       return t("statusRejected");
@@ -247,6 +253,8 @@ function statusLabel(t: ReturnType<typeof useTranslations<"MyListingsPage">>, st
       return t("statusSold");
     case "Archived":
       return t("statusArchived");
+    case "Expired":
+      return t("statusExpired");
     default:
       return status;
   }

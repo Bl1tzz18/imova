@@ -2,15 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { ImageUploader } from "@/components/property/ImageUploader";
-import type { PropertyMedia } from "@/types/property";
+import type { Photo } from "@/types/listing";
 
 export function StepPhotos({
-  propertyId,
-  initialMedia,
+  listingId,
+  initialPhotos,
   deferDeletes,
 }: {
-  propertyId: string | null;
-  initialMedia?: PropertyMedia[];
+  listingId: string | null;
+  initialPhotos?: Photo[];
   deferDeletes?: boolean;
 }) {
   const t = useTranslations("PropertyForm");
@@ -19,8 +19,8 @@ export function StepPhotos({
     <div>
       <h2 className="font-display text-xl font-medium text-ink-950">{t("step3Heading")}</h2>
       <div className="mt-5">
-        {propertyId && (
-          <ImageUploader propertyId={propertyId} initialMedia={initialMedia} deferDeletes={deferDeletes} />
+        {listingId && (
+          <ImageUploader listingId={listingId} initialPhotos={initialPhotos} deferDeletes={deferDeletes} />
         )}
       </div>
     </div>

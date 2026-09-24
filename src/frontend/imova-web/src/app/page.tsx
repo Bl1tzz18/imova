@@ -5,26 +5,26 @@ import { PropertyCarousel } from "@/components/property/PropertyCarousel";
 import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
-async function getProperties(): Promise<Property[]> {
+async function getListings(): Promise<Listing[]> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
-  const res = await fetch(`${apiUrl}/api/v1/properties`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings`, {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     cache: "no-store",
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch properties: ${res.status}`);
+    throw new Error(`Failed to fetch listings: ${res.status}`);
   }
 
   return res.json();
 }
 
 export default async function Home() {
-  const [properties, t, tCommon] = await Promise.all([
-    getProperties(),
+  const [listings, t, tCommon] = await Promise.all([
+    getListings(),
     getTranslations("Home"),
     getTranslations("Common"),
   ]);
@@ -68,7 +68,7 @@ export default async function Home() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
-          <PropertyMapPromo properties={properties} />
+          <PropertyMapPromo listings={listings} />
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
@@ -78,8 +78,8 @@ export default async function Home() {
                 {t("recentListings")}
               </h2>
               <p className="mt-1 text-sm text-ink-500">
-                {properties.length > 0
-                  ? t("listingsAvailable", { count: properties.length })
+                {listings.length > 0
+                  ? t("listingsAvailable", { count: listings.length })
                   : t("noListingsYet")}
               </p>
             </div>
@@ -88,8 +88,8 @@ export default async function Home() {
             </LinkButton>
           </div>
 
-          {properties.length > 0 ? (
-            <PropertyCarousel properties={properties} />
+          {listings.length > 0 ? (
+            <PropertyCarousel listings={listings} />
           ) : (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
               <p className="text-sm text-ink-500">{t("emptyStateText")}</p>

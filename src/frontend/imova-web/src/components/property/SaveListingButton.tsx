@@ -23,12 +23,12 @@ function HeartIcon({ filled, className }: { filled: boolean; className?: string 
 
 // Icon-only (listing cards) or icon+label (listing detail page) — same toggle logic either way.
 export function SaveListingButton({
-  propertyId,
+  listingId,
   initialSaved,
   variant = "icon",
   className,
 }: {
-  propertyId: string;
+  listingId: string;
   initialSaved: boolean;
   variant?: "icon" | "labeled";
   className?: string;
@@ -47,7 +47,7 @@ export function SaveListingButton({
     setSaved(next);
 
     startTransition(async () => {
-      const result = await setFavorite(propertyId, next, pathname);
+      const result = await setFavorite(listingId, next, pathname);
       if (result.error) {
         setSaved(!next);
       }

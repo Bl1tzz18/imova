@@ -1,8 +1,8 @@
 namespace Imova.Domain.Properties;
 
-// GrayStructure/RedStructure are the Moldovan/Romanian real-estate terms for an unfinished
-// building: "variantă albă/sură" (walls/utilities in, no finishing) vs "variantă roșie" (bare
-// structure only).
+// GrayStructure/RedStructure are the Moldovan/Romanian real-estate stages of an unfinished
+// building: "variantă sură" (plastered, utilities in, no finishing) vs "la roșu" (bare structure
+// only).
 public enum PropertyCondition
 {
     New = 1,

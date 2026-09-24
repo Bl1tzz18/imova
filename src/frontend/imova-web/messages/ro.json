@@ -147,7 +147,6 @@
     "descriptionLabel": "Descriere",
     "descriptionPlaceholder": "Descrie proprietatea: compartimentare, stare, dotări, vecinătate...",
     "propertyTypeLabel": "Tip proprietate",
-    "listingTypeLabel": "Tip anunț",
     "priceLabel": "Preț",
     "currencyLabel": "Monedă",
     "raionLabel": "Raion / Municipiu",
@@ -171,17 +170,9 @@
     "buildingNumberLabel": "Număr",
     "buildingNumberPlaceholder": "ex: 44",
     "areaLabel": "Suprafață (m²)",
-    "roomsLabel": "Camere",
-    "bathroomsLabel": "Băi",
-    "floorLabel": "Etaj",
-    "totalFloorsLabel": "Total etaje",
     "yearBuiltLabel": "An construcției",
-    "furnishedLabel": "Mobilat",
-    "parkingAvailableLabel": "Parcare",
-    "petsAllowedLabel": "Animale de companie",
+    "petsAllowedLabel": "Animale de companie permise",
     "notSpecified": "Nespecificat",
-    "yes": "Da",
-    "no": "Nu",
     "draftNotice": "După publicare, anunțul este trimis spre verificare și va deveni vizibil imediat ce este aprobat — de obicei în scurt timp.",
     "publish": "Publică anunțul",
     "saving": "Se salvează...",
@@ -200,7 +191,20 @@
     "successTitle": "Anunțul tău a fost trimis spre verificare",
     "successSubtitle": "Va deveni vizibil imediat ce este aprobat — de obicei în scurt timp. Poți urmări statusul în anunțurile tale.",
     "successViewMine": "Vezi anunțurile mele",
-    "successBackHome": "Înapoi la pagina principală"
+    "successBackHome": "Înapoi la pagina principală",
+    "areaInAri": "≈ {ari} ari",
+    "conditionLabel": "Stare",
+    "amenitiesLabel": "Dotări",
+    "isNegotiableLabel": "Preț negociabil",
+    "rentalTermsHeading": "Condiții de închiriere",
+    "furnishedStatusLabel": "Mobilare",
+    "minLeasePeriodLabel": "Perioadă minimă (luni)",
+    "securityDepositLabel": "Garanție",
+    "availableFromLabel": "Disponibil din",
+    "utilitiesIncludedLabel": "Utilități incluse în preț",
+    "publishAsLabel": "Publică în numele",
+    "publisherIndividual": "Persoană fizică",
+    "publisherAgency": "Agenție"
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",
@@ -213,7 +217,6 @@
     "floorOf": "{floor} din {totalFloors}",
     "yearBuilt": "An construcție",
     "furnished": "Mobilat",
-    "parkingAvailable": "Parcare",
     "petsAllowed": "Animale de companie",
     "yes": "Da",
     "no": "Nu",
@@ -230,12 +233,23 @@
     "openInGoogleMaps": "Deschide în Google Maps",
     "expandMap": "Extinde harta",
     "closeMap": "Închide harta",
-  "locationPending": "Locația exactă este în curs de procesare.",
+    "locationPending": "Locația exactă este în curs de procesare.",
     "photoCount": "{count, plural, one {# fotografie} few {# fotografii} other {# de fotografii}}",
     "photoCounter": "{current} din {total}",
     "closeGallery": "Închide galeria",
     "previousPhoto": "Fotografia anterioară",
-    "nextPhoto": "Fotografia următoare"
+    "nextPhoto": "Fotografia următoare",
+    "condition": "Stare",
+    "amenities": "Dotări",
+    "rentalTerms": "Condiții de închiriere",
+    "minLeasePeriod": "Perioadă minimă",
+    "months": "{count, plural, one {# lună} few {# luni} other {# de luni}}",
+    "securityDeposit": "Garanție",
+    "availableFrom": "Disponibil din",
+    "utilitiesIncluded": "Utilități incluse",
+    "approxEur": "≈ {price}",
+    "negotiable": "Preț negociabil",
+    "agency": "Agenție"
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -340,7 +354,8 @@
     "emptyTitle": "Nu ai niciun anunț momentan",
     "emptyBody": "Publică primul tău anunț și va apărea aici.",
     "emptyTitleFiltered": "Niciun anunț în această categorie",
-    "emptyBodyFiltered": "Încearcă altă filă sau revino după ce anunțurile tale își schimbă statusul."
+    "emptyBodyFiltered": "Încearcă altă filă sau revino după ce anunțurile tale își schimbă statusul.",
+    "statusExpired": "Expirat"
   },
   "EditListingPage": {
     "title": "Editează anunțul",
@@ -370,5 +385,134 @@
     "cancel": "Anulează",
     "reasonRequired": "Motivul este obligatoriu.",
     "actionError": "A apărut o eroare. Încearcă din nou."
+  },
+  "Condition": {
+    "New": "Nou",
+    "Renovated": "Renovat",
+    "NeedsRepair": "Necesită reparație",
+    "GrayStructure": "Variantă sură",
+    "RedStructure": "La roșu"
+  },
+  "FurnishedStatus": {
+    "Unfurnished": "Nemobilat",
+    "PartiallyFurnished": "Parțial mobilat",
+    "Furnished": "Mobilat"
+  },
+  "Amenity": {
+    "parking": "Parcare",
+    "balcony": "Balcon/Logie",
+    "elevator": "Ascensor",
+    "air_conditioning": "Aer condiționat",
+    "furnished": "Mobilat",
+    "garage": "Garaj",
+    "yard": "Curte",
+    "autonomous_heating": "Încălzire autonomă",
+    "centralized_heating": "Încălzire centralizată",
+    "wheelchair_access": "Acces pentru scaun cu rotile",
+    "storage_room": "Debara",
+    "video_surveillance": "Supraveghere video",
+    "internet": "Internet"
+  },
+  "Attributes": {
+    "choose": "Alege",
+    "notSpecified": "Nespecificat",
+    "rooms": {
+      "label": "Camere"
+    },
+    "floor": {
+      "label": "Etaj"
+    },
+    "totalFloors": {
+      "label": "Total etaje"
+    },
+    "bathrooms": {
+      "label": "Băi"
+    },
+    "heatingType": {
+      "label": "Încălzire",
+      "options": {
+        "Centralized": "Centralizată",
+        "Autonomous": "Autonomă",
+        "Other": "Alta"
+      }
+    },
+    "landAreaM2": {
+      "label": "Suprafață teren (m²)"
+    },
+    "houseFloors": {
+      "label": "Niveluri"
+    },
+    "constructionType": {
+      "label": "Material construcție",
+      "options": {
+        "Brick": "Cărămidă",
+        "Stone": "Piatră",
+        "Wood": "Lemn",
+        "Other": "Altul"
+      }
+    },
+    "utilities": {
+      "label": "Utilități"
+    },
+    "landDesignation": {
+      "label": "Destinație teren",
+      "options": {
+        "Intravilan": "Intravilan",
+        "Extravilan": "Extravilan",
+        "Agricultural": "Agricol",
+        "Construction": "Pentru construcție"
+      }
+    },
+    "roadAccess": {
+      "label": "Acces drum",
+      "options": {
+        "Paved": "Asfaltat",
+        "Gravel": "Pietriș",
+        "None": "Fără"
+      }
+    },
+    "utilitiesAtBoundary": {
+      "label": "Utilități la hotar"
+    },
+    "spaceType": {
+      "label": "Tip spațiu",
+      "options": {
+        "Office": "Birou",
+        "Retail": "Comercial",
+        "Warehouse": "Depozit",
+        "HoReCa": "HoReCa"
+      }
+    },
+    "mainStreetAccess": {
+      "label": "Acces din stradă principală"
+    },
+    "electricalPower": {
+      "label": "Putere electrică",
+      "placeholder": "ex: trifazic 380V"
+    },
+    "garageType": {
+      "label": "Tip garaj",
+      "options": {
+        "Underground": "Subteran",
+        "Box": "Boxă",
+        "Individual": "Individual"
+      }
+    },
+    "privateOrSharedBathroom": {
+      "label": "Baie",
+      "options": {
+        "Private": "Proprie",
+        "Shared": "Comună"
+      }
+    },
+    "roommateCount": {
+      "label": "Colegi de locuință"
+    },
+    "utilityFlags": {
+      "water": "Apă",
+      "sewage": "Canalizare",
+      "gas": "Gaz",
+      "electricity": "Electricitate"
+    }
   }
 }

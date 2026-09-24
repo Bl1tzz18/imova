@@ -3,13 +3,13 @@
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyCard } from "@/components/property/PropertyCard";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
 function scrollByPage(el: HTMLDivElement, direction: 1 | -1) {
   el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: "smooth" });
 }
 
-export function PropertyCarousel({ properties }: { properties: Property[] }) {
+export function PropertyCarousel({ listings }: { listings: Listing[] }) {
   const tCommon = useTranslations("Common");
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -19,12 +19,12 @@ export function PropertyCarousel({ properties }: { properties: Property[] }) {
         ref={scrollerRef}
         className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {properties.map((property) => (
+        {listings.map((listing) => (
           <div
-            key={property.id}
+            key={listing.id}
             className="shrink-0 snap-start basis-[85%] sm:basis-[calc((100%-1.25rem)/2)] lg:basis-[calc((100%-2.5rem)/3)]"
           >
-            <PropertyCard property={property} />
+            <PropertyCard listing={listing} />
           </div>
         ))}
       </div>

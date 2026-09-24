@@ -4,13 +4,13 @@ import { Footer } from "@/components/layout/Footer";
 import { ModerationQueue } from "@/components/admin/ModerationQueue";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Property } from "@/types/property";
+import type { Listing } from "@/types/listing";
 
 type PagedResult<T> = { items: T[]; page: number; pageSize: number; totalCount: number };
 
-async function getPendingReviewProperties(token: string): Promise<PagedResult<Property>> {
+async function getPendingReviewListings(token: string): Promise<PagedResult<Listing>> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/admin/properties/pending-review?page=1&pageSize=50`, {
+  const res = await fetch(`${apiUrl}/api/v1/admin/listings/pending-review?page=1&pageSize=50`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -52,7 +52,7 @@ export default async function AdminModerationPage() {
     );
   }
 
-  const result = await getPendingReviewProperties(token);
+  const result = await getPendingReviewListings(token);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -65,7 +65,7 @@ export default async function AdminModerationPage() {
 
           <div className="mt-8">
             {result.items.length > 0 ? (
-              <ModerationQueue properties={result.items} />
+              <ModerationQueue listings={result.items} />
             ) : (
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
                 <p className="text-sm font-medium text-ink-700">{t("emptyTitle")}</p>

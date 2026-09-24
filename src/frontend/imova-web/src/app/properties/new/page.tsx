@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { getSessionToken } from "@/lib/auth/session";
+import { getMyPublishers } from "@/lib/api/publishers";
 import { PropertyForm } from "./PropertyForm";
 
 export default async function NewPropertyPage() {
@@ -10,7 +11,7 @@ export default async function NewPropertyPage() {
     redirect("/login?next=/properties/new");
   }
 
-  const t = await getTranslations("NewPropertyPage");
+  const [t, publishers] = await Promise.all([getTranslations("NewPropertyPage"), getMyPublishers(token)]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -20,7 +21,7 @@ export default async function NewPropertyPage() {
           <p className="mt-2 text-[15px] text-ink-500">{t("subtitle")}</p>
 
           <div className="mt-9">
-            <PropertyForm />
+            <PropertyForm publishers={publishers} />
           </div>
         </div>
       </main>

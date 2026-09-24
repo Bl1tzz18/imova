@@ -10,11 +10,12 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import type { LeafletMouseEvent, MarkerCluster } from "leaflet";
 import { createClusterIcon, createPropertyMarkerIcon, createPropertyPricePinIcon } from "@/lib/map/propertyMarkerIcon";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
-import type { Property } from "@/types/property";
+import { coverPhoto } from "@/lib/listing/view";
+import type { Listing } from "@/types/listing";
 
 const MOLDOVA_CENTER: [number, number] = [47.1, 28.6];
 
-export type MapPoint = { property: Property; lat: number; lng: number };
+export type MapPoint = { listing: Listing; lat: number; lng: number };
 
 function FlyToSelected({ point }: { point: MapPoint | null }) {
   const map = useMap();
@@ -28,20 +29,21 @@ function FlyToSelected({ point }: { point: MapPoint | null }) {
   return null;
 }
 
-function PropertyPopupContent({ property }: { property: Property }) {
+function PropertyPopupContent({ listing }: { listing: Listing }) {
   const t = useTranslations("MapPage");
-  const location = formatLocation(property.location);
+  const location = formatLocation(listing.property.location);
+  const cover = coverPhoto(listing);
 
   return (
-    <Link href={`/property/${property.id}`} className="flex w-52 flex-col gap-1">
+    <Link href={`/property/${listing.id}`} className="flex w-52 flex-col gap-1">
       <div className="-mx-3 -mt-3 mb-1 flex aspect-[16/10] items-center justify-center overflow-hidden bg-brand-800">
-        {property.media[0] ? (
+        {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={property.media[0].url} alt={property.title} className="h-full w-full object-cover" />
+          <img src={cover.url} alt={listing.title} className="h-full w-full object-cover" />
         ) : null}
       </div>
-      <p className="text-sm font-semibold text-ink-950">{formatPrice(property.price, property.currency)}</p>
-      <p className="line-clamp-2 text-xs text-ink-700">{property.title}</p>
+      <p className="text-sm font-semibold text-ink-950">{formatPrice(listing.price.amount, listing.price.currency)}</p>
+      <p className="line-clamp-2 text-xs text-ink-700">{listing.title}</p>
       {location && <p className="text-xs text-ink-400">{location}</p>}
       <span className="mt-1 text-xs font-semibold text-brand-700">{t("viewListing")}</span>
     </Link>
@@ -51,13 +53,13 @@ function PropertyPopupContent({ property }: { property: Property }) {
 function PropertyMarkers({ points, selectedId, onSelect }: { points: MapPoint[]; selectedId: string | null; onSelect: (id: string) => void }) {
   return points.map((point) => (
     <Marker
-      key={point.property.id}
+      key={point.listing.id}
       position={[point.lat, point.lng]}
-      icon={createPropertyMarkerIcon(point.property.id === selectedId)}
-      eventHandlers={{ click: () => onSelect(point.property.id) }}
+      icon={createPropertyMarkerIcon(point.listing.id === selectedId)}
+      eventHandlers={{ click: () => onSelect(point.listing.id) }}
     >
       <Popup>
-        <PropertyPopupContent property={point.property} />
+        <PropertyPopupContent listing={point.listing} />
       </Popup>
     </Marker>
   ));
@@ -136,13 +138,13 @@ function ClusteredPropertyMarkers({
     >
       {points.map((point) => (
         <Marker
-          key={point.property.id}
+          key={point.listing.id}
           position={[point.lat, point.lng]}
-          icon={createPropertyPricePinIcon(formatPrice(point.property.price, point.property.currency), point.property.id === selectedId)}
-          eventHandlers={{ click: () => onSelect(point.property.id) }}
+          icon={createPropertyPricePinIcon(formatPrice(point.listing.price.amount, point.listing.price.currency), point.listing.id === selectedId)}
+          eventHandlers={{ click: () => onSelect(point.listing.id) }}
         >
           <Popup>
-            <PropertyPopupContent property={point.property} />
+            <PropertyPopupContent listing={point.listing} />
           </Popup>
         </Marker>
       ))}
@@ -163,7 +165,7 @@ export function PropertyMapFull({
   cluster?: boolean;
   onClusterOverflow?: (points: MapPoint[] | null) => void;
 }) {
-  const selectedPoint = points.find((point) => point.property.id === selectedId) ?? null;
+  const selectedPoint = points.find((point) => point.listing.id === selectedId) ?? null;
 
   return (
     <MapContainer

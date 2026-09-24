@@ -147,7 +147,6 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe the property: layout, condition, amenities, neighborhood...",
     "propertyTypeLabel": "Property type",
-    "listingTypeLabel": "Listing type",
     "priceLabel": "Price",
     "currencyLabel": "Currency",
     "raionLabel": "Raion / Municipality",
@@ -171,17 +170,9 @@
     "buildingNumberLabel": "Number",
     "buildingNumberPlaceholder": "e.g. 44",
     "areaLabel": "Area (m²)",
-    "roomsLabel": "Rooms",
-    "bathroomsLabel": "Bathrooms",
-    "floorLabel": "Floor",
-    "totalFloorsLabel": "Total floors",
     "yearBuiltLabel": "Year built",
-    "furnishedLabel": "Furnished",
-    "parkingAvailableLabel": "Parking",
     "petsAllowedLabel": "Pets allowed",
     "notSpecified": "Not specified",
-    "yes": "Yes",
-    "no": "No",
     "draftNotice": "Once you publish, your listing is sent for review and will go live as soon as it's approved — usually shortly after.",
     "publish": "Publish listing",
     "saving": "Saving...",
@@ -200,7 +191,20 @@
     "successTitle": "Your listing was sent for review",
     "successSubtitle": "It'll go live as soon as it's approved — usually shortly. You can track its status in your listings.",
     "successViewMine": "View my listings",
-    "successBackHome": "Back to homepage"
+    "successBackHome": "Back to homepage",
+    "areaInAri": "≈ {ari} ares",
+    "conditionLabel": "Condition",
+    "amenitiesLabel": "Amenities",
+    "isNegotiableLabel": "Price is negotiable",
+    "rentalTermsHeading": "Rental terms",
+    "furnishedStatusLabel": "Furnishing",
+    "minLeasePeriodLabel": "Minimum lease (months)",
+    "securityDepositLabel": "Security deposit",
+    "availableFromLabel": "Available from",
+    "utilitiesIncludedLabel": "Utilities included",
+    "publishAsLabel": "Publish as",
+    "publisherIndividual": "Private individual",
+    "publisherAgency": "Agency"
   },
   "PropertyDetail": {
     "back": "Back to listings",
@@ -213,7 +217,6 @@
     "floorOf": "{floor} of {totalFloors}",
     "yearBuilt": "Year built",
     "furnished": "Furnished",
-    "parkingAvailable": "Parking",
     "petsAllowed": "Pets allowed",
     "yes": "Yes",
     "no": "No",
@@ -230,12 +233,23 @@
     "openInGoogleMaps": "Open in Google Maps",
     "expandMap": "Expand map",
     "closeMap": "Close map",
-  "locationPending": "Exact location is being processed.",
+    "locationPending": "Exact location is being processed.",
     "photoCount": "{count, plural, one {# photo} other {# photos}}",
     "photoCounter": "{current} of {total}",
     "closeGallery": "Close gallery",
     "previousPhoto": "Previous photo",
-    "nextPhoto": "Next photo"
+    "nextPhoto": "Next photo",
+    "condition": "Condition",
+    "amenities": "Amenities",
+    "rentalTerms": "Rental terms",
+    "minLeasePeriod": "Minimum lease",
+    "months": "{count, plural, one {# month} other {# months}}",
+    "securityDeposit": "Security deposit",
+    "availableFrom": "Available from",
+    "utilitiesIncluded": "Utilities included",
+    "approxEur": "≈ {price}",
+    "negotiable": "Negotiable",
+    "agency": "Agency"
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -340,7 +354,8 @@
     "emptyTitle": "You haven't listed anything yet",
     "emptyBody": "Publish your first listing and it'll show up here.",
     "emptyTitleFiltered": "No listings in this category",
-    "emptyBodyFiltered": "Try a different tab, or check back once your listings change status."
+    "emptyBodyFiltered": "Try a different tab, or check back once your listings change status.",
+    "statusExpired": "Expired"
   },
   "EditListingPage": {
     "title": "Edit listing",
@@ -370,5 +385,134 @@
     "cancel": "Cancel",
     "reasonRequired": "A reason is required.",
     "actionError": "Something went wrong. Please try again."
+  },
+  "Condition": {
+    "New": "New",
+    "Renovated": "Renovated",
+    "NeedsRepair": "Needs repair",
+    "GrayStructure": "Gray finish (plastered)",
+    "RedStructure": "Bare structure"
+  },
+  "FurnishedStatus": {
+    "Unfurnished": "Unfurnished",
+    "PartiallyFurnished": "Partially furnished",
+    "Furnished": "Furnished"
+  },
+  "Amenity": {
+    "parking": "Parking",
+    "balcony": "Balcony/Loggia",
+    "elevator": "Elevator",
+    "air_conditioning": "Air conditioning",
+    "furnished": "Furnished",
+    "garage": "Garage",
+    "yard": "Yard",
+    "autonomous_heating": "Autonomous heating",
+    "centralized_heating": "Central heating",
+    "wheelchair_access": "Wheelchair access",
+    "storage_room": "Storage room",
+    "video_surveillance": "Video surveillance",
+    "internet": "Internet"
+  },
+  "Attributes": {
+    "choose": "Choose",
+    "notSpecified": "Not specified",
+    "rooms": {
+      "label": "Rooms"
+    },
+    "floor": {
+      "label": "Floor"
+    },
+    "totalFloors": {
+      "label": "Total floors"
+    },
+    "bathrooms": {
+      "label": "Bathrooms"
+    },
+    "heatingType": {
+      "label": "Heating",
+      "options": {
+        "Centralized": "Central",
+        "Autonomous": "Autonomous",
+        "Other": "Other"
+      }
+    },
+    "landAreaM2": {
+      "label": "Land area (m²)"
+    },
+    "houseFloors": {
+      "label": "Floors"
+    },
+    "constructionType": {
+      "label": "Construction",
+      "options": {
+        "Brick": "Brick",
+        "Stone": "Stone",
+        "Wood": "Wood",
+        "Other": "Other"
+      }
+    },
+    "utilities": {
+      "label": "Utilities"
+    },
+    "landDesignation": {
+      "label": "Land designation",
+      "options": {
+        "Intravilan": "Within town limits",
+        "Extravilan": "Outside town limits",
+        "Agricultural": "Agricultural",
+        "Construction": "Building plot"
+      }
+    },
+    "roadAccess": {
+      "label": "Road access",
+      "options": {
+        "Paved": "Paved",
+        "Gravel": "Gravel",
+        "None": "None"
+      }
+    },
+    "utilitiesAtBoundary": {
+      "label": "Utilities at the boundary"
+    },
+    "spaceType": {
+      "label": "Space type",
+      "options": {
+        "Office": "Office",
+        "Retail": "Retail",
+        "Warehouse": "Warehouse",
+        "HoReCa": "HoReCa"
+      }
+    },
+    "mainStreetAccess": {
+      "label": "Main street access"
+    },
+    "electricalPower": {
+      "label": "Electrical power",
+      "placeholder": "e.g. three-phase 380V"
+    },
+    "garageType": {
+      "label": "Garage type",
+      "options": {
+        "Underground": "Underground",
+        "Box": "Box",
+        "Individual": "Standalone"
+      }
+    },
+    "privateOrSharedBathroom": {
+      "label": "Bathroom",
+      "options": {
+        "Private": "Private",
+        "Shared": "Shared"
+      }
+    },
+    "roommateCount": {
+      "label": "Roommates"
+    },
+    "utilityFlags": {
+      "water": "Water",
+      "sewage": "Sewage",
+      "gas": "Gas",
+      "electricity": "Electricity"
+    }
   }
 }

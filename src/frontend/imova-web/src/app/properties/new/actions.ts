@@ -3,26 +3,30 @@
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
-import { buildPropertyPayload } from "@/lib/property/formPayload";
+import { buildListingPayload } from "@/lib/property/formPayload";
 
-export type CreatePropertyState = {
+export type CreateListingState = {
   error?: string;
   success?: boolean;
 };
 
-export async function createProperty(
-  _prevState: CreatePropertyState,
+// Creates the Property and its Listing together in one request (the backend saves both
+// atomically — see CreateListingHandler).
+export async function createListing(
+  _prevState: CreateListingState,
   formData: FormData
-): Promise<CreatePropertyState> {
+): Promise<CreateListingState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
 
   const payload = {
     id: formData.get("id") || null,
-    ...buildPropertyPayload(formData),
+    // Omitted = the user's own Individual publisher; only sent when they picked their agency.
+    publisherId: formData.get("publisherId") || null,
+    ...buildListingPayload(formData),
   };
 
   const token = await getSessionToken();
-  const res = await fetch(`${apiUrl}/api/v1/properties`, {
+  const res = await fetch(`${apiUrl}/api/v1/listings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

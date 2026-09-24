@@ -10,49 +10,51 @@ import { StepPhotos } from "@/components/property/listing-form/StepPhotos";
 import { StepPriceContact } from "@/components/property/listing-form/StepPriceContact";
 import { ListingTips } from "@/components/property/listing-form/ListingTips";
 import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
-import { updatePropertyDetails } from "@/lib/property/actions";
-import { createProperty, type CreatePropertyState } from "./actions";
-import type { Property } from "@/types/property";
+import { updateListingDetails } from "@/lib/property/actions";
+import { createListing, type CreateListingState } from "./actions";
+import type { Listing, Publisher } from "@/types/listing";
 
-const initialState: CreatePropertyState = {};
+const initialState: CreateListingState = {};
 
 const STEP_COUNT = 4;
 
-// Reused as-is for both listing creation (no `property` prop) and editing an existing listing
-// (`property` supplied — see /my-listings/[id]/edit/page.tsx): same steps, same fields, all
-// pre-filled and editable in edit mode. Only the parts that genuinely differ between the two —
-// which id/action is used, the final button's label, and what happens after a successful submit
-// — branch on whether `property` is present.
-export function PropertyForm({ property }: { property?: Property }) {
-  const isEdit = property != null;
-  const boundUpdateAction = isEdit ? updatePropertyDetails.bind(null, property.id) : null;
+// Reused as-is for both listing creation (no `listing` prop) and editing an existing listing
+// (`listing` supplied — see /my-listings/[id]/edit/page.tsx): same steps, same fields, all
+// pre-filled and editable in edit mode. One submit carries both the physical Property and the
+// Listing offer. Only the parts that genuinely differ between create and edit — which id/action
+// is used, the publisher picker, the final button's label, and what happens after a successful
+// submit — branch on whether `listing` is present.
+export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; publishers?: Publisher[] }) {
+  const isEdit = listing != null;
+  const boundUpdateAction = isEdit ? updateListingDetails.bind(null, listing.id) : null;
   const [state, formAction, pending] = useActionState(
-    isEdit ? boundUpdateAction! : createProperty,
+    isEdit ? boundUpdateAction! : createListing,
     initialState,
   );
   const [step, setStep] = useState(1);
-  const [propertyType, setPropertyType] = useState(property?.propertyType ?? "Apartment");
-  const [listingType, setListingType] = useState(property?.listingType ?? "Rent");
-  const [raionId, setRaionId] = useState(property?.location?.raionId ?? "");
-  const [localitateId, setLocalitateId] = useState(property?.location?.localitateId ?? "");
-  const [chisinauSectorId, setChisinauSectorId] = useState(property?.location?.chisinauSectorId ?? "");
+  const location = listing?.property.location;
+  const [propertyType, setPropertyType] = useState(listing?.property.propertyType ?? "Apartment");
+  const [transactionType, setTransactionType] = useState<string>(listing?.transactionType ?? "Rent");
+  const [raionId, setRaionId] = useState(location?.raionId ?? "");
+  const [localitateId, setLocalitateId] = useState(location?.localitateId ?? "");
+  const [chisinauSectorId, setChisinauSectorId] = useState(location?.chisinauSectorId ?? "");
 
   // Frozen at mount so it keeps reflecting "this listing was Rejected when the owner opened the
   // edit page" for the whole session, regardless of the automatic background refresh Next.js
-  // runs after a successful server action (which would otherwise flip property.status to
+  // runs after a successful server action (which would otherwise flip listing.status to
   // PendingReview mid-edit and change the button label/notice out from under the user).
-  const [wasRejected] = useState(() => property?.status === "Rejected");
+  const [wasRejected] = useState(() => listing?.status === "Rejected");
 
   // Generated up front (client-side only, in an effect — crypto.randomUUID() during the
   // initial render would produce a different value on the server than on the client and
   // trigger a hydration mismatch) so photos can be uploaded and attached server-side (see
-  // ImageUploader/actions.ts) before the property itself is created. Editing an existing
+  // ImageUploader/actions.ts) before the listing itself is created. Editing an existing
   // listing already has a real id, so this only runs for create mode.
   const [generatedId, setGeneratedId] = useState<string | null>(null);
   useEffect(() => {
     if (!isEdit) setGeneratedId(crypto.randomUUID());
   }, [isEdit]);
-  const propertyId = property?.id ?? generatedId;
+  const listingId = listing?.id ?? generatedId;
 
   const formRef = useRef<HTMLFormElement>(null);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -136,12 +138,12 @@ export function PropertyForm({ property }: { property?: Property }) {
           action={formAction}
           className="min-w-0 flex-1 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8"
         >
-          {!isEdit && <input type="hidden" name="id" value={propertyId ?? ""} />}
+          {!isEdit && <input type="hidden" name="id" value={listingId ?? ""} />}
 
           {isEdit && wasRejected && (
             <div className="mb-6 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
               <p className="font-medium">{tEdit("rejectedNoticeTitle")}</p>
-              {property.rejectionReason && <p className="mt-0.5">{property.rejectionReason}</p>}
+              {listing.rejectionReason && <p className="mt-0.5">{listing.rejectionReason}</p>}
               <p className="mt-1.5">{tEdit("rejectedNoticeBody")}</p>
             </div>
           )}
@@ -155,17 +157,17 @@ export function PropertyForm({ property }: { property?: Property }) {
             <StepTypeLocation
               propertyType={propertyType}
               onPropertyTypeChange={setPropertyType}
-              listingType={listingType}
-              onListingTypeChange={setListingType}
+              transactionType={transactionType}
+              onTransactionTypeChange={setTransactionType}
               raionId={raionId}
               onRaionIdChange={handleRaionIdChange}
               localitateId={localitateId}
               onLocalitateIdChange={setLocalitateId}
               chisinauSectorId={chisinauSectorId}
               onChisinauSectorIdChange={setChisinauSectorId}
-              defaultCountry={property?.location?.country}
-              defaultStreetAddress={property?.location?.street}
-              defaultBuildingNumber={property?.location?.buildingNumber}
+              defaultCountry={location?.country}
+              defaultStreetAddress={location?.street}
+              defaultBuildingNumber={location?.buildingNumber}
             />
           </div>
 
@@ -175,7 +177,7 @@ export function PropertyForm({ property }: { property?: Property }) {
             }}
             className={step === 2 ? "" : "hidden"}
           >
-            <StepDetails propertyType={propertyType} listingType={listingType} property={property} />
+            <StepDetails propertyType={propertyType} listing={listing} />
           </div>
 
           <div
@@ -184,7 +186,7 @@ export function PropertyForm({ property }: { property?: Property }) {
             }}
             className={step === 3 ? "" : "hidden"}
           >
-            <StepPhotos propertyId={propertyId} initialMedia={property?.media} deferDeletes={isEdit} />
+            <StepPhotos listingId={listingId} initialPhotos={listing?.photos} deferDeletes={isEdit} />
           </div>
 
           <div
@@ -193,7 +195,7 @@ export function PropertyForm({ property }: { property?: Property }) {
             }}
             className={step === 4 ? "" : "hidden"}
           >
-            <StepPriceContact property={property} />
+            <StepPriceContact transactionType={transactionType} listing={listing} publishers={isEdit ? [] : publishers} />
           </div>
 
           {state.error && (

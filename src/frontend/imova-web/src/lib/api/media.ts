@@ -1,3 +1,5 @@
+import type { Photo } from "@/types/listing";
+
 // Runs in the browser (called from the client-side ImageUploader), so this needs the
 // browser-reachable API origin — NEXT_PUBLIC_API_URL, not the server-only API_URL used by
 // Server Components/Actions. Falls back to localhost:8080 to match the pattern used everywhere
@@ -12,16 +14,6 @@ export type UploadUrlResponse = {
   expiresAt: string;
 };
 
-export type PropertyMediaResponse = {
-  id: string;
-  propertyId: string;
-  url: string;
-  contentType: string;
-  fileSizeBytes: number;
-  moderationStatus: string;
-  sortOrder: number;
-  createdAt: string;
-};
 
 async function readErrorMessage(res: Response): Promise<string> {
   const problem = await res.json().catch(() => null);
@@ -31,8 +23,8 @@ async function readErrorMessage(res: Response): Promise<string> {
   return `Request failed (${res.status})`;
 }
 
-export async function requestUploadUrl(propertyId: string, fileExtension: string): Promise<UploadUrlResponse> {
-  const res = await fetch(`${getBrowserApiUrl()}/api/v1/properties/${propertyId}/media/upload-url`, {
+export async function requestUploadUrl(listingId: string, fileExtension: string): Promise<UploadUrlResponse> {
+  const res = await fetch(`${getBrowserApiUrl()}/api/v1/listings/${listingId}/media/upload-url`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fileExtension }),
@@ -63,8 +55,8 @@ export async function uploadFileToBlob(uploadUrl: string, file: File): Promise<v
   }
 }
 
-export async function confirmMediaUpload(propertyId: string, blobName: string): Promise<PropertyMediaResponse> {
-  const res = await fetch(`${getBrowserApiUrl()}/api/v1/properties/${propertyId}/media/confirm`, {
+export async function confirmMediaUpload(listingId: string, blobName: string): Promise<Photo> {
+  const res = await fetch(`${getBrowserApiUrl()}/api/v1/listings/${listingId}/media/confirm`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ blobName }),
