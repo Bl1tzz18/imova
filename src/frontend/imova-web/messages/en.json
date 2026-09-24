@@ -135,11 +135,11 @@
     "step1Label": "Type & location",
     "step2Label": "Details",
     "step3Label": "Photos",
-    "step4Label": "Price & contact",
+    "step4Label": "Price & terms",
     "step1Heading": "Listing type & location",
     "step2Heading": "Property details",
     "step3Heading": "Photos",
-    "step4Heading": "Price & contact",
+    "step4Heading": "Price & terms",
     "backLabel": "Back",
     "continueLabel": "Continue",
     "titleLabel": "Listing title",
@@ -224,7 +224,8 @@
       "utilitiesAccess": "Utilities & access",
       "surroundings": "Surroundings",
       "amenities": "Amenities"
-    }
+    },
+    "rentalFurnishingHeading": "Furnishing & pets"
   },
   "PropertyDetail": {
     "back": "Back to listings",

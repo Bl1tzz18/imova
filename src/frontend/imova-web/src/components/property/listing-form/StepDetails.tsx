@@ -10,6 +10,7 @@ import { detailLayoutFor, selectableAmenities } from "@/lib/property/detailLayou
 import type { Amenity, Listing } from "@/types/listing";
 import { AttributeInput } from "./AttributeFields";
 import { DetailsAccordion } from "./DetailsAccordion";
+import { RentalFurnishingFields } from "./RentalFurnishingFields";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
@@ -146,6 +147,9 @@ export function StepDetails({
             )}
           </>
         )}
+
+        {/* Rental only: furnishing and pets (stored on the listing's RentalDetails). */}
+        <RentalFurnishingFields transactionType={transactionType} rental={listing?.rentalDetails} />
 
         <label className="block">
           <FieldLabel required>{t("descriptionLabel")}</FieldLabel>

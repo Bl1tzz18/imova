@@ -135,11 +135,11 @@
     "step1Label": "Tip & locație",
     "step2Label": "Detalii",
     "step3Label": "Fotografii",
-    "step4Label": "Preț & contact",
+    "step4Label": "Preț & condiții",
     "step1Heading": "Tip anunț & locație",
     "step2Heading": "Detalii proprietate",
     "step3Heading": "Fotografii",
-    "step4Heading": "Preț & contact",
+    "step4Heading": "Preț & condiții",
     "backLabel": "Înapoi",
     "continueLabel": "Continuă",
     "titleLabel": "Titlu anunț",
@@ -224,7 +224,8 @@
       "utilitiesAccess": "Utilități și acces",
       "surroundings": "Împrejurimi",
       "amenities": "Dotări"
-    }
+    },
+    "rentalFurnishingHeading": "Mobilare și animale"
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",

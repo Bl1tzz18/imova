@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { DateInput } from "@/components/ui/DateInput";
 import { FieldLabel, PriceInput, SelectInput, TextInput } from "@/components/ui/Field";
+import { rentalFieldsForStep, rentalInputName } from "@/lib/property/rentalFields";
 import { cn } from "@/lib/utils/cn";
 import type { Listing, Publisher } from "@/types/listing";
 
@@ -11,7 +12,6 @@ import type { Listing, Publisher } from "@/types/listing";
 // validates independently. Keep the two in sync.
 const SUPPORTED_CURRENCIES = ["EUR", "MDL", "USD"] as const;
 const DEFAULT_CURRENCY = "EUR";
-const FURNISHED_STATUSES = ["Unfurnished", "PartiallyFurnished", "Furnished"] as const;
 
 export function StepPriceContact({
   transactionType,
@@ -24,8 +24,9 @@ export function StepPriceContact({
   publishers: Publisher[];
 }) {
   const t = useTranslations("PropertyForm");
-  const tFurnished = useTranslations("FurnishedStatus");
   const rental = listing?.rentalDetails;
+  // Furnishing and pets are asked on the Details step (see RentalFurnishingFields).
+  const rentalTerms = rentalFieldsForStep("priceTerms", transactionType);
 
   return (
     <div>
@@ -56,70 +57,58 @@ export function StepPriceContact({
         {t("isNegotiableLabel")}
       </Checkbox>
 
-      {transactionType === "Rent" && (
+      {rentalTerms.length > 0 && (
         <fieldset className="mt-7">
           <legend className="font-hero text-base font-bold text-ink-950">{t("rentalTermsHeading")}</legend>
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block">
-              <FieldLabel>{t("furnishedStatusLabel")}</FieldLabel>
-              <SelectInput name="rental.furnishedStatus" defaultValue={rental?.furnishedStatus ?? "Unfurnished"}>
-                {FURNISHED_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {tFurnished(status)}
-                  </option>
-                ))}
-              </SelectInput>
-            </label>
-            <label className="block">
-              <FieldLabel>{t("minLeasePeriodLabel")}</FieldLabel>
-              <TextInput
-                name="rental.minLeasePeriodMonths"
-                type="number"
-                min="1"
-                max="120"
-                step="1"
-                defaultValue={rental?.minLeasePeriodMonths ?? undefined}
-              />
-            </label>
-            <label className="block">
-              <FieldLabel>{t("securityDepositLabel")}</FieldLabel>
-              <TextInput
-                name="rental.securityDepositAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                defaultValue={rental?.securityDepositAmount ?? undefined}
-              />
-            </label>
-            <label className="block">
-              <FieldLabel>{t("availableFromLabel")}</FieldLabel>
-              <DateInput
-                name="rental.availableFrom"
-                defaultValue={rental?.availableFrom}
-                placeholder={t("datePlaceholder")}
-                invalidMessage={t("invalidDate")}
-                pickerLabel={t("openCalendar")}
-              />
-            </label>
+            {rentalTerms.includes("minLeasePeriodMonths") && (
+              <label className="block">
+                <FieldLabel>{t("minLeasePeriodLabel")}</FieldLabel>
+                <TextInput
+                  name={rentalInputName("minLeasePeriodMonths")}
+                  type="number"
+                  min="1"
+                  max="120"
+                  step="1"
+                  defaultValue={rental?.minLeasePeriodMonths ?? undefined}
+                />
+              </label>
+            )}
+            {rentalTerms.includes("securityDepositAmount") && (
+              <label className="block">
+                <FieldLabel>{t("securityDepositLabel")}</FieldLabel>
+                <TextInput
+                  name={rentalInputName("securityDepositAmount")}
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  defaultValue={rental?.securityDepositAmount ?? undefined}
+                />
+              </label>
+            )}
+            {rentalTerms.includes("availableFrom") && (
+              <label className="block">
+                <FieldLabel>{t("availableFromLabel")}</FieldLabel>
+                <DateInput
+                  name={rentalInputName("availableFrom")}
+                  defaultValue={rental?.availableFrom}
+                  placeholder={t("datePlaceholder")}
+                  invalidMessage={t("invalidDate")}
+                  pickerLabel={t("openCalendar")}
+                />
+              </label>
+            )}
           </div>
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+          {rentalTerms.includes("utilitiesIncluded") && (
             <Checkbox
-              name="rental.utilitiesIncluded"
+              name={rentalInputName("utilitiesIncluded")}
               value="true"
               defaultChecked={rental?.utilitiesIncluded ?? false}
-              className="text-ink-700"
+              className="mt-3 text-ink-700"
             >
               {t("utilitiesIncludedLabel")}
             </Checkbox>
-            <Checkbox
-              name="rental.petsAllowed"
-              value="true"
-              defaultChecked={rental?.petsAllowed ?? false}
-              className="text-ink-700"
-            >
-              {t("petsAllowedLabel")}
-            </Checkbox>
-          </div>
+          )}
         </fieldset>
       )}
 
