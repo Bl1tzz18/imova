@@ -3,8 +3,8 @@ import type { Amenity } from "@/types/listing";
 
 // Bump the version whenever the Amenity shape changes: a tab that cached the old shape would
 // otherwise keep using it for its whole session (v1 predated `category`, which left the House
-// form's amenity sections empty).
-const CACHE_KEY = "imova:amenities:v2";
+// form's amenity sections empty; v2 predated `applicablePropertyTypes`).
+const CACHE_KEY = "imova:amenities:v3";
 let inFlight: Promise<Amenity[]> | null = null;
 
 function isAmenity(value: unknown): value is Amenity {
@@ -14,7 +14,8 @@ function isAmenity(value: unknown): value is Amenity {
     typeof a.id === "string" &&
     typeof a.key === "string" &&
     typeof a.labelRo === "string" &&
-    typeof a.category === "string"
+    typeof a.category === "string" &&
+    Array.isArray(a.applicablePropertyTypes)
   );
 }
 

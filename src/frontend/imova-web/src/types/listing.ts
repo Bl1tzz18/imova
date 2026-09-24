@@ -23,6 +23,8 @@ export type Amenity = {
   labelRo: string;
   // "General" | "Comfort" | "Security" | "Leisure" — groups amenities for display.
   category: string;
+  // PropertyType names the amenity can be selected for.
+  applicablePropertyTypes: string[];
 };
 
 export type PublisherType = "Individual" | "Agency";

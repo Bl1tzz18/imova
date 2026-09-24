@@ -5,12 +5,11 @@ import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, SelectInput, TextAreaInput, TextInput } from "@/components/ui/Field";
 import { getAmenities } from "@/lib/api/amenities";
-import { squareMetersToAri } from "@/lib/listing/view";
 import { attributeSchemaFor, hasBuilding, usesGeneralCondition } from "@/lib/property/attributeSchema";
-import { selectableAmenities } from "@/lib/property/houseSections";
+import { detailLayoutFor, selectableAmenities } from "@/lib/property/detailLayouts";
 import type { Amenity, Listing } from "@/types/listing";
-import { AttributeCheckboxes, AttributeInput } from "./AttributeFields";
-import { HouseDetailsAccordion } from "./HouseDetailsAccordion";
+import { AttributeInput } from "./AttributeFields";
+import { DetailsAccordion } from "./DetailsAccordion";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
@@ -43,12 +42,10 @@ export function StepDetails({
   const initialAttributes = property?.propertyType === propertyType ? property.typeSpecificAttributes : {};
   const selectedAmenityIds = new Set(property?.amenities.map((a) => a.id) ?? []);
   const schema = attributeSchemaFor(propertyType);
-  const scalarFields = schema.filter((f) => f.kind !== "bool" && f.kind !== "flags");
-  const checkboxFields = schema.filter((f) => f.kind === "bool" || f.kind === "flags");
-  const isLand = propertyType === "Land";
-  const areaNumber = Number(area);
-  // "Furnished" isn't offered for a rental — RentalDetails' furnishing status covers it.
-  const offeredAmenities = selectableAmenities(amenities, transactionType);
+  const layout = detailLayoutFor(propertyType);
+  // Only amenities that apply to this type — and no "furnished" on a rental, which
+  // RentalDetails' furnishing status covers.
+  const offeredAmenities = selectableAmenities(amenities, propertyType, transactionType);
 
   return (
     <div>
@@ -66,11 +63,13 @@ export function StepDetails({
           />
         </label>
 
-        {propertyType === "House" ? (
-          // A House has many more details, grouped into collapsible sections (area, year built and
-          // the House amenities included).
-          <HouseDetailsAccordion
+        {layout ? (
+          // Types with many details get collapsible sections (area, year built and the type's
+          // amenities included); Garage and Room keep the flat form below.
+          <DetailsAccordion
             key={propertyType}
+            propertyType={propertyType}
+            layout={layout}
             property={property}
             initialAttributes={initialAttributes}
             transactionType={transactionType}
@@ -92,11 +91,6 @@ export function StepDetails({
                     onChange={(e) => setArea(e.target.value)}
                     required
                   />
-                  {isLand && areaNumber > 0 && (
-                    <span className="mt-1 block text-xs text-ink-500">
-                      {t("areaInAri", { ari: squareMetersToAri(areaNumber) })}
-                    </span>
-                  )}
                 </label>
 
                 {hasBuilding(propertyType) && (
@@ -126,14 +120,10 @@ export function StepDetails({
                   </label>
                 )}
 
-                {scalarFields.map((field) => (
+                {schema.map((field) => (
                   <AttributeInput key={field.name} field={field} initial={initialAttributes} />
                 ))}
               </div>
-
-              {checkboxFields.map((field) => (
-                <AttributeCheckboxes key={field.name} field={field} initial={initialAttributes} />
-              ))}
             </div>
 
             {offeredAmenities.length > 0 && (

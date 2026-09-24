@@ -75,6 +75,13 @@ export default async function ProprietatePage({
   if (property.condition) facts.push({ label: t("condition"), value: tCondition(property.condition) });
 
   const attributes = property.typeSpecificAttributes;
+  // Below-ground levels read better by name: -1 = basement (subsol), 0 = semi-basement (demisol).
+  const formatFloor = (floor: unknown) => {
+    const n = Number(floor);
+    if (n < 0) return `${tAttr("floorLevels.basement")} (${n})`;
+    if (n === 0) return `${tAttr("floorLevels.semiBasement")} (0)`;
+    return String(floor);
+  };
   for (const field of attributeSchemaFor(property.propertyType)) {
     const value = attributes[field.name];
     // totalFloors is folded into the floor fact ("3 of 9") when both are present.
@@ -83,16 +90,13 @@ export default async function ProprietatePage({
     const label = (t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`)).replace(/\s*\((m²|m|м²|м)\)$/, "");
 
     if (field.name === "floor" && typeof attributes.totalFloors === "number") {
-      facts.push({ label, value: t("floorOf", { floor: String(value), totalFloors: attributes.totalFloors }) });
+      facts.push({ label, value: t("floorOf", { floor: formatFloor(value), totalFloors: attributes.totalFloors }) });
+    } else if (field.name === "floor") {
+      facts.push({ label, value: formatFloor(value) });
     } else if (field.kind === "enum") {
       facts.push({ label, value: tAttr(`${field.name}.options.${String(value)}`) });
-    } else if (field.kind === "bool" || field.kind === "yesno") {
+    } else if (field.kind === "yesno") {
       facts.push({ label, value: yesNo(value === true) });
-    } else if (field.kind === "flags") {
-      const present = field.flags.filter((flag) => (value as Record<string, unknown>)[flag] === true);
-      if (present.length > 0) {
-        facts.push({ label, value: present.map((flag) => tAttr(`utilityFlags.${flag}`)).join(", ") });
-      }
     } else if (field.name.endsWith("AreaM2")) {
       facts.push({ label, value: `${String(value)} m²` });
     } else if (field.name === "ceilingHeightM") {

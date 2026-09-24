@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { attributeInputName, type AttributeField } from "@/lib/property/attributeSchema";
 import type { TypeSpecificAttributes } from "@/types/listing";
@@ -13,9 +12,8 @@ function asString(value: unknown): string | undefined {
 }
 
 // One input per TypeSpecificAttributes field of the selected PropertyType (see
-// ATTRIBUTE_SCHEMA). Scalar fields go in the caller's grid; bool/flags fields render as
-// checkbox groups via <AttributeCheckboxes>. Inputs are named "attr.<field>" so
-// readAttributes() can rebuild the object on submit.
+// ATTRIBUTE_SCHEMA). Inputs are named "attr.<field>" so readAttributes() can rebuild the object
+// on submit.
 export function AttributeInput({
   field,
   initial,
@@ -46,6 +44,7 @@ export function AttributeInput({
             defaultValue={defaultValue}
             required={field.required}
           />
+          {t.has(`${field.name}.hint`) && <span className="mt-1 block text-xs text-ink-500">{t(`${field.name}.hint`)}</span>}
         </label>
       );
     case "enum":
@@ -93,43 +92,4 @@ export function AttributeInput({
     default:
       return null;
   }
-}
-
-export function AttributeCheckboxes({ field, initial }: { field: AttributeField; initial: TypeSpecificAttributes }) {
-  const t = useTranslations("Attributes");
-
-  if (field.kind === "bool") {
-    return (
-      <Checkbox
-        name={attributeInputName(field.name)}
-        value="true"
-        defaultChecked={initial[field.name] === true}
-        className="text-ink-700"
-      >
-        {t(`${field.name}.label`)}
-      </Checkbox>
-    );
-  }
-
-  if (field.kind !== "flags") return null;
-
-  const current = (initial[field.name] ?? {}) as Record<string, unknown>;
-  return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-medium text-ink-700">{t(`${field.name}.label`)}</legend>
-      <div className="flex flex-wrap gap-x-5 gap-y-2">
-        {field.flags.map((flag) => (
-          <Checkbox
-            key={flag}
-            name={attributeInputName(field.name, flag)}
-            value="true"
-            defaultChecked={current[flag] === true}
-            className="text-ink-700"
-          >
-            {t(`utilityFlags.${flag}`)}
-          </Checkbox>
-        ))}
-      </div>
-    </fieldset>
-  );
 }

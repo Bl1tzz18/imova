@@ -74,7 +74,7 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
     );
     if (invalid) {
       // Fires the element's "invalid" event — a collapsed accordion section (see
-      // HouseDetailsAccordion) opens itself in response. A hidden field can't show the browser's
+      // DetailsAccordion) opens itself in response. A hidden field can't show the browser's
       // validation bubble, so report again once the section has rendered open.
       const wasHidden = invalid.getClientRects().length === 0;
       invalid.reportValidity();

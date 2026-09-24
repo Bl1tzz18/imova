@@ -210,14 +210,20 @@
     "openCalendar": "Deschide calendarul",
     "houseTotalAreaLabel": "Suprafață totală (m²)",
     "sectionsCompleted": "{completed}/{total} secțiuni completate",
-    "houseSections": {
+    "landAreaLabel": "Suprafață teren (m²)",
+    "detailSections": {
       "structure": "Tip și structură",
       "areas": "Suprafețe",
       "systems": "Sisteme și utilități",
       "finishing": "Materiale de finisaj",
       "comfort": "Confort și interior",
       "security": "Securitate și acces",
-      "leisure": "Agrement și spații auxiliare"
+      "leisure": "Agrement și spații auxiliare",
+      "other": "Alte dotări",
+      "typeArea": "Tip și suprafață",
+      "utilitiesAccess": "Utilități și acces",
+      "surroundings": "Împrejurimi",
+      "amenities": "Dotări"
     }
   },
   "PropertyDetail": {
@@ -443,7 +449,19 @@
     "garden": "Grădină/seră",
     "staff_room": "Cameră pentru personal/pază",
     "backup_generator": "Generator de rezervă",
-    "water_purification": "Sistem de purificare a apei"
+    "water_purification": "Sistem de purificare a apei",
+    "dishwasher": "Mașină de spălat vase",
+    "armored_door": "Ușă blindată",
+    "storage_annex": "Anexă/boxă",
+    "separate_entrance": "Intrare separată",
+    "panoramic_windows": "Geamuri panoramice",
+    "separate_living_room": "Living separat",
+    "thermopane_windows": "Geamuri termopan",
+    "guarded": "Pază",
+    "near_water": "Lângă un bazin acvatic",
+    "near_forest": "Lângă pădure",
+    "electricity": "Electricitate",
+    "kitchen_access": "Acces la bucătărie"
   },
   "Attributes": {
     "choose": "Alege",
@@ -452,7 +470,8 @@
       "label": "Camere"
     },
     "floor": {
-      "label": "Etaj"
+      "label": "Etaj",
+      "hint": "-1 = subsol, 0 = demisol"
     },
     "totalFloors": {
       "label": "Total etaje"
@@ -460,28 +479,11 @@
     "bathrooms": {
       "label": "Băi"
     },
-    "heatingType": {
-      "label": "Încălzire",
-      "options": {
-        "Centralized": "Centralizată",
-        "Autonomous": "Autonomă",
-        "Other": "Alta"
-      }
-    },
     "landAreaM2": {
       "label": "Suprafață teren (m²)"
     },
     "houseFloors": {
       "label": "Niveluri"
-    },
-    "landDesignation": {
-      "label": "Destinație teren",
-      "options": {
-        "Intravilan": "Intravilan",
-        "Extravilan": "Extravilan",
-        "Agricultural": "Agricol",
-        "Construction": "Pentru construcție"
-      }
     },
     "roadAccess": {
       "label": "Acces drum",
@@ -491,18 +493,6 @@
         "None": "Fără"
       }
     },
-    "utilitiesAtBoundary": {
-      "label": "Utilități la hotar"
-    },
-    "spaceType": {
-      "label": "Tip spațiu",
-      "options": {
-        "Office": "Birou",
-        "Retail": "Comercial",
-        "Warehouse": "Depozit",
-        "HoReCa": "HoReCa"
-      }
-    },
     "mainStreetAccess": {
       "label": "Acces din stradă principală"
     },
@@ -510,28 +500,8 @@
       "label": "Putere electrică",
       "placeholder": "ex: trifazic 380V"
     },
-    "garageType": {
-      "label": "Tip garaj",
-      "options": {
-        "Underground": "Subteran",
-        "Box": "Boxă",
-        "Individual": "Individual"
-      }
-    },
-    "privateOrSharedBathroom": {
-      "label": "Baie",
-      "options": {
-        "Private": "Proprie",
-        "Shared": "Comună"
-      }
-    },
     "roommateCount": {
       "label": "Colegi de locuință"
-    },
-    "utilityFlags": {
-      "water": "Apă",
-      "gas": "Gaz",
-      "electricity": "Electricitate"
     },
     "houseType": {
       "label": "Tip casă",
@@ -558,20 +528,6 @@
         "Wood": "Lemn",
         "Adobe": "Chirpici",
         "Other": "Alt material"
-      }
-    },
-    "houseCondition": {
-      "label": "Starea casei",
-      "options": {
-        "ToBeDemolished": "Pentru demolare",
-        "IndividualDesign": "Design individual",
-        "GrayStructure": "Variantă sură",
-        "EuroRenovated": "Euroreparație",
-        "WhiteStructure": "Variantă albă",
-        "NeedsRepair": "Necesită reparație",
-        "Unfinished": "Construcție nefinisată",
-        "CosmeticRepair": "Reparație cosmetică",
-        "NoRepair": "Fără reparație"
       }
     },
     "ceilingHeightM": {
@@ -677,6 +633,123 @@
       }
     },
     "yes": "Da",
-    "no": "Nu"
+    "no": "Nu",
+    "finishCondition": {
+      "label": "Stare",
+      "options": {
+        "ToBeDemolished": "Pentru demolare",
+        "IndividualDesign": "Design individual",
+        "GrayStructure": "Variantă sură",
+        "EuroRenovated": "Euroreparație",
+        "WhiteStructure": "Variantă albă",
+        "NeedsRepair": "Necesită reparație",
+        "Unfinished": "Construcție nefinisată",
+        "CosmeticRepair": "Reparație cosmetică",
+        "NoRepair": "Fără reparație"
+      }
+    },
+    "housingStockType": {
+      "label": "Tip fond locativ",
+      "options": {
+        "Existing": "Fond secundar",
+        "NewConstruction": "Construcție nouă"
+      }
+    },
+    "layout": {
+      "label": "Planificare",
+      "options": {
+        "Studio": "Studio",
+        "IndividualLayout": "Planificare individuală",
+        "SovietEra": "Seria sovietică (hrușciovka)",
+        "Dormitory": "Cămin",
+        "Other": "Altă planificare"
+      }
+    },
+    "totalFloorsInBuilding": {
+      "label": "Total etaje în clădire"
+    },
+    "plotType": {
+      "label": "Tip teren",
+      "options": {
+        "Agricultural": "Agricol",
+        "WithPlantations": "Cu plantații",
+        "Forest": "Fond forestier",
+        "Garden": "Pomicol/grădină",
+        "Industrial": "Industrial",
+        "NearLake": "Lângă lac",
+        "ForConstruction": "Pentru construcție"
+      }
+    },
+    "locationContext": {
+      "label": "Amplasare",
+      "options": {
+        "WithinTownLimits": "Intravilan",
+        "OutsideTownLimits": "Extravilan"
+      }
+    },
+    "soilQualityScore": {
+      "label": "Bonitate (1–100)",
+      "hint": "Nota de bonitate a solului, pentru terenuri agricole"
+    },
+    "gasPipelineAtBoundary": {
+      "label": "Gaz la hotar"
+    },
+    "electricitySupplyAtBoundary": {
+      "label": "Electricitate la hotar"
+    },
+    "sewerageAtBoundary": {
+      "label": "Canalizare la hotar"
+    },
+    "irrigationSystem": {
+      "label": "Sistem de irigare"
+    },
+    "phoneLineAvailable": {
+      "label": "Linie telefonică"
+    },
+    "spaceType": {
+      "label": "Tip spațiu",
+      "options": {
+        "OfficeSpace": "Oficiu",
+        "RetailSpace": "Spațiu comercial",
+        "Warehouse": "Depozit",
+        "FoodServiceSpace": "Alimentație publică",
+        "IndustrialSpace": "Spațiu industrial",
+        "UniversalSpace": "Spațiu universal",
+        "BeautySalon": "Salon de frumusețe",
+        "AutoService": "Autoservice",
+        "DentalSpace": "Cabinet stomatologic",
+        "SportsSpace": "Spațiu sportiv",
+        "ConferenceRoom": "Sală de conferințe",
+        "ResortOrHotel": "Hotel/bază de odihnă"
+      }
+    },
+    "workingAreaM2": {
+      "label": "Suprafață utilă (m²)"
+    },
+    "numberOfOffices": {
+      "label": "Număr de birouri"
+    },
+    "phoneLinesCount": {
+      "label": "Linii telefonice"
+    },
+    "parkingType": {
+      "label": "Tip",
+      "options": {
+        "Garage": "Garaj",
+        "ParkingSpot": "Loc de parcare",
+        "UndergroundParking": "Parcare subterană"
+      }
+    },
+    "bathroomType": {
+      "label": "Baie",
+      "options": {
+        "Private": "Proprie",
+        "Shared": "Comună"
+      }
+    },
+    "floorLevels": {
+      "basement": "Subsol",
+      "semiBasement": "Demisol"
+    }
   }
 }

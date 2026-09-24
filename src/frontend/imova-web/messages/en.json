@@ -210,14 +210,20 @@
     "openCalendar": "Open calendar",
     "houseTotalAreaLabel": "Total area (m²)",
     "sectionsCompleted": "{completed}/{total} sections completed",
-    "houseSections": {
+    "landAreaLabel": "Plot area (m²)",
+    "detailSections": {
       "structure": "Type & structure",
       "areas": "Areas",
       "systems": "Systems & utilities",
       "finishing": "Finishing materials",
       "comfort": "Comfort & interior",
       "security": "Security & access",
-      "leisure": "Leisure & auxiliary spaces"
+      "leisure": "Leisure & auxiliary spaces",
+      "other": "Other amenities",
+      "typeArea": "Type & area",
+      "utilitiesAccess": "Utilities & access",
+      "surroundings": "Surroundings",
+      "amenities": "Amenities"
     }
   },
   "PropertyDetail": {
@@ -443,7 +449,19 @@
     "garden": "Garden/greenhouse",
     "staff_room": "Staff/security room",
     "backup_generator": "Backup generator",
-    "water_purification": "Water purification system"
+    "water_purification": "Water purification system",
+    "dishwasher": "Dishwasher",
+    "armored_door": "Armored door",
+    "storage_annex": "Storage annex",
+    "separate_entrance": "Separate entrance",
+    "panoramic_windows": "Panoramic windows",
+    "separate_living_room": "Separate living room",
+    "thermopane_windows": "Double-glazed windows",
+    "guarded": "Guarded",
+    "near_water": "Near a water body",
+    "near_forest": "Near a forest",
+    "electricity": "Electricity available",
+    "kitchen_access": "Kitchen access"
   },
   "Attributes": {
     "choose": "Choose",
@@ -452,7 +470,8 @@
       "label": "Rooms"
     },
     "floor": {
-      "label": "Floor"
+      "label": "Floor",
+      "hint": "-1 = basement, 0 = semi-basement"
     },
     "totalFloors": {
       "label": "Total floors"
@@ -460,28 +479,11 @@
     "bathrooms": {
       "label": "Bathrooms"
     },
-    "heatingType": {
-      "label": "Heating",
-      "options": {
-        "Centralized": "Central",
-        "Autonomous": "Autonomous",
-        "Other": "Other"
-      }
-    },
     "landAreaM2": {
       "label": "Land area (m²)"
     },
     "houseFloors": {
       "label": "Floors"
-    },
-    "landDesignation": {
-      "label": "Land designation",
-      "options": {
-        "Intravilan": "Within town limits",
-        "Extravilan": "Outside town limits",
-        "Agricultural": "Agricultural",
-        "Construction": "Building plot"
-      }
     },
     "roadAccess": {
       "label": "Road access",
@@ -491,18 +493,6 @@
         "None": "None"
       }
     },
-    "utilitiesAtBoundary": {
-      "label": "Utilities at the boundary"
-    },
-    "spaceType": {
-      "label": "Space type",
-      "options": {
-        "Office": "Office",
-        "Retail": "Retail",
-        "Warehouse": "Warehouse",
-        "HoReCa": "HoReCa"
-      }
-    },
     "mainStreetAccess": {
       "label": "Main street access"
     },
@@ -510,28 +500,8 @@
       "label": "Electrical power",
       "placeholder": "e.g. three-phase 380V"
     },
-    "garageType": {
-      "label": "Garage type",
-      "options": {
-        "Underground": "Underground",
-        "Box": "Box",
-        "Individual": "Standalone"
-      }
-    },
-    "privateOrSharedBathroom": {
-      "label": "Bathroom",
-      "options": {
-        "Private": "Private",
-        "Shared": "Shared"
-      }
-    },
     "roommateCount": {
       "label": "Roommates"
-    },
-    "utilityFlags": {
-      "water": "Water",
-      "gas": "Gas",
-      "electricity": "Electricity"
     },
     "houseType": {
       "label": "House type",
@@ -558,20 +528,6 @@
         "Wood": "Wood",
         "Adobe": "Adobe",
         "Other": "Other"
-      }
-    },
-    "houseCondition": {
-      "label": "House condition",
-      "options": {
-        "ToBeDemolished": "To be demolished",
-        "IndividualDesign": "Custom design",
-        "GrayStructure": "Gray finish (plastered)",
-        "EuroRenovated": "Euro-standard renovation",
-        "WhiteStructure": "White finish (ready to decorate)",
-        "NeedsRepair": "Needs repair",
-        "Unfinished": "Unfinished construction",
-        "CosmeticRepair": "Cosmetic renovation",
-        "NoRepair": "Not renovated"
       }
     },
     "ceilingHeightM": {
@@ -677,6 +633,123 @@
       }
     },
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "finishCondition": {
+      "label": "Condition",
+      "options": {
+        "ToBeDemolished": "To be demolished",
+        "IndividualDesign": "Custom design",
+        "GrayStructure": "Gray finish (plastered)",
+        "EuroRenovated": "Euro-standard renovation",
+        "WhiteStructure": "White finish (ready to decorate)",
+        "NeedsRepair": "Needs repair",
+        "Unfinished": "Unfinished construction",
+        "CosmeticRepair": "Cosmetic renovation",
+        "NoRepair": "Not renovated"
+      }
+    },
+    "housingStockType": {
+      "label": "Housing stock",
+      "options": {
+        "Existing": "Resale",
+        "NewConstruction": "New build"
+      }
+    },
+    "layout": {
+      "label": "Layout",
+      "options": {
+        "Studio": "Studio",
+        "IndividualLayout": "Custom layout",
+        "SovietEra": "Soviet-era (khrushchyovka)",
+        "Dormitory": "Former dormitory",
+        "Other": "Other"
+      }
+    },
+    "totalFloorsInBuilding": {
+      "label": "Floors in the building"
+    },
+    "plotType": {
+      "label": "Plot type",
+      "options": {
+        "Agricultural": "Agricultural",
+        "WithPlantations": "With plantations",
+        "Forest": "Forest",
+        "Garden": "Orchard/garden",
+        "Industrial": "Industrial",
+        "NearLake": "By a lake",
+        "ForConstruction": "Building plot"
+      }
+    },
+    "locationContext": {
+      "label": "Location",
+      "options": {
+        "WithinTownLimits": "Within town limits",
+        "OutsideTownLimits": "Outside town limits"
+      }
+    },
+    "soilQualityScore": {
+      "label": "Soil quality score (1–100)",
+      "hint": "Soil fertility rating, for agricultural land"
+    },
+    "gasPipelineAtBoundary": {
+      "label": "Gas at the boundary"
+    },
+    "electricitySupplyAtBoundary": {
+      "label": "Electricity at the boundary"
+    },
+    "sewerageAtBoundary": {
+      "label": "Sewerage at the boundary"
+    },
+    "irrigationSystem": {
+      "label": "Irrigation system"
+    },
+    "phoneLineAvailable": {
+      "label": "Phone line"
+    },
+    "spaceType": {
+      "label": "Space type",
+      "options": {
+        "OfficeSpace": "Office",
+        "RetailSpace": "Retail",
+        "Warehouse": "Warehouse",
+        "FoodServiceSpace": "Food service",
+        "IndustrialSpace": "Industrial",
+        "UniversalSpace": "Multi-purpose",
+        "BeautySalon": "Beauty salon",
+        "AutoService": "Car service",
+        "DentalSpace": "Dental clinic",
+        "SportsSpace": "Sports facility",
+        "ConferenceRoom": "Conference room",
+        "ResortOrHotel": "Hotel/resort"
+      }
+    },
+    "workingAreaM2": {
+      "label": "Working area (m²)"
+    },
+    "numberOfOffices": {
+      "label": "Number of offices"
+    },
+    "phoneLinesCount": {
+      "label": "Phone lines"
+    },
+    "parkingType": {
+      "label": "Type",
+      "options": {
+        "Garage": "Garage",
+        "ParkingSpot": "Parking spot",
+        "UndergroundParking": "Underground parking"
+      }
+    },
+    "bathroomType": {
+      "label": "Bathroom",
+      "options": {
+        "Private": "Private",
+        "Shared": "Shared"
+      }
+    },
+    "floorLevels": {
+      "basement": "Basement",
+      "semiBasement": "Semi-basement"
+    }
   }
 }
