@@ -1,16 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { ATTRIBUTE_SCHEMA, attributeInputName, readAttributes } from "@/lib/property/attributeSchema";
+import {
+  ATTRIBUTE_SCHEMA,
+  attributeInputName,
+  hasBuilding,
+  readAttributes,
+  usesGeneralCondition,
+} from "@/lib/property/attributeSchema";
 import {
   DETAIL_LAYOUTS,
   amenitiesForSection,
   detailLayoutFor,
+  isAmenitySection,
+  isProximitySection,
   isSectionComplete,
   sectionsFor,
   selectableAmenities,
+  selectableProximities,
   type DetailLayout,
   type DetailSection,
 } from "@/lib/property/detailLayouts";
-import type { Amenity } from "@/types/listing";
+import type { Amenity, Proximity } from "@/types/listing";
 
 const amenity = (key: string, category: string, types: string[]): Amenity => ({
   id: key,
@@ -29,8 +38,6 @@ const AMENITIES = [
   amenity("parking", "Leisure", ["Apartment", "House", "Commercial"]),
   amenity("balcony", "General", ["Apartment", "House", "Room"]),
   amenity("elevator", "General", ["Apartment", "Commercial"]),
-  amenity("guarded", "Security", ["Land", "Garage"]),
-  amenity("near_forest", "Leisure", ["Land", "House"]),
   amenity("electricity", "General", ["Garage"]),
   amenity("kitchen_access", "Comfort", ["Room"]),
 ];
@@ -52,45 +59,53 @@ function formWith(values: Record<string, string>) {
 }
 
 describe("layouts", () => {
-  it("exist for the detailed types and not for Garage/Room (flat form)", () => {
-    expect(Object.keys(DETAIL_LAYOUTS).sort()).toEqual(["Apartment", "Commercial", "House", "Land"]);
-    expect(detailLayoutFor("Garage")).toBeUndefined();
-    expect(detailLayoutFor("Room")).toBeUndefined();
+  it("exist for every property type — Garage and Room included, no flat form", () => {
+    expect(Object.keys(DETAIL_LAYOUTS).sort()).toEqual(["Apartment", "Commercial", "Garage", "House", "Land", "Room"]);
   });
 
-  it.each(["Apartment", "House", "Land", "Commercial"])("place every %s attribute in exactly one section", (type) => {
+  it.each(["Apartment", "House", "Land", "Commercial", "Garage", "Room"])("place every %s attribute in exactly one section", (type) => {
     const placed = layout(type).sections.flatMap((s) => s.attributeFields);
     const schema = ATTRIBUTE_SCHEMA[type as keyof typeof ATTRIBUTE_SCHEMA].map((f) => f.name);
     expect([...placed].sort()).toEqual([...schema].sort());
     expect(new Set(placed).size).toBe(placed.length);
   });
 
-  it.each(["Apartment", "House", "Land", "Commercial"])("put the %s total area in exactly one section", (type) => {
+  it.each(["Apartment", "House", "Land", "Commercial", "Garage", "Room"])("put the %s total area in exactly one section", (type) => {
     expect(layout(type).sections.filter((s) => s.coreFields.includes("totalAreaM2"))).toHaveLength(1);
   });
 
-  it("use the requested section order, with the rental-only rules section last", () => {
-    expect(layout("House").sections.map((s) => s.id)).toEqual([
-      "structure", "areas", "systems", "finishing", "comfort", "security", "leisure", "rentalRules",
-    ]);
-    expect(layout("Apartment").sections.map((s) => s.id)).toEqual([
-      "structure", "areas", "systems", "finishing", "comfort", "security", "other", "rentalRules",
-    ]);
-    expect(layout("Land").sections.map((s) => s.id)).toEqual(["typeArea", "utilitiesAccess", "surroundings"]);
-    expect(layout("Commercial").sections.map((s) => s.id)).toEqual(["structure", "areas", "systems", "amenities"]);
+  it.each(["Apartment", "House", "Land", "Commercial", "Garage", "Room"])("ask year built and the general condition only where they apply (%s)", (type) => {
+    const core = layout(type).sections.flatMap((s) => s.coreFields);
+    expect(core.filter((f) => f === "yearBuilt")).toHaveLength(hasBuilding(type) ? 1 : 0);
+    expect(core.filter((f) => f === "condition")).toHaveLength(usesGeneralCondition(type) ? 1 : 0);
   });
 
-  it("have exactly one catch-all amenity section per layout", () => {
-    for (const l of Object.values(DETAIL_LAYOUTS)) {
-      expect(l!.sections.filter((s) => s.catchAllAmenities)).toHaveLength(1);
-    }
+  it("use the requested section order: proximities right after the amenities, rental-only rules last", () => {
+    expect(layout("House").sections.map((s) => s.id)).toEqual([
+      "structure", "areas", "systems", "finishing", "comfort", "security", "leisure", "proximities", "rentalRules",
+    ]);
+    expect(layout("Apartment").sections.map((s) => s.id)).toEqual([
+      "structure", "areas", "systems", "finishing", "comfort", "security", "other", "proximities", "rentalRules",
+    ]);
+    expect(layout("Land").sections.map((s) => s.id)).toEqual(["typeArea", "utilitiesAccess", "proximities"]);
+    expect(layout("Commercial").sections.map((s) => s.id)).toEqual(["structure", "areas", "systems", "amenities", "proximities"]);
+    expect(layout("Garage").sections.map((s) => s.id)).toEqual(["typeArea", "amenities", "proximities"]);
+    expect(layout("Room").sections.map((s) => s.id)).toEqual(["typeArea", "comfort", "other", "proximities", "rentalRules"]);
+  });
+
+  it.each(["Apartment", "House", "Commercial", "Garage", "Room"])("give %s exactly one catch-all amenity section", (type) => {
+    expect(layout(type).sections.filter((s) => s.catchAllAmenities)).toHaveLength(1);
+  });
+
+  it("give Land no amenity section at all (no amenity applies to it)", () => {
+    expect(layout("Land").sections.filter(isAmenitySection)).toEqual([]);
   });
 });
 
 describe("amenities", () => {
   it("only offer amenities that apply to the property type", () => {
     const garage = selectableAmenities(AMENITIES, "Garage").map((a) => a.key);
-    expect(garage.sort()).toEqual(["alarm_system", "electricity", "guarded"]);
+    expect(garage.sort()).toEqual(["alarm_system", "electricity"]);
     expect(garage).not.toContain("sauna");
   });
 
@@ -105,7 +120,7 @@ describe("amenities", () => {
   it("group House amenities by category, with General ones in the catch-all leisure section", () => {
     expect(keysIn("House", "comfort").sort()).toEqual(["dishwasher", "fireplace", "furnished"]);
     expect(keysIn("House", "security")).toEqual(["alarm_system"]);
-    expect(keysIn("House", "leisure").sort()).toEqual(["balcony", "near_forest", "parking", "sauna"]);
+    expect(keysIn("House", "leisure").sort()).toEqual(["balcony", "parking", "sauna"]);
   });
 
   it("put Apartment elevator/balcony and leisure-type amenities in 'other'", () => {
@@ -113,9 +128,46 @@ describe("amenities", () => {
     expect(keysIn("Apartment", "other").sort()).toEqual(["balcony", "elevator", "parking"]);
   });
 
+  it("split Room amenities into comfort and a catch-all 'other'", () => {
+    expect(keysIn("Room", "comfort").sort()).toEqual(["dishwasher", "furnished", "kitchen_access"]);
+    expect(keysIn("Room", "other")).toEqual(["balcony"]);
+  });
+
   it("show every applicable amenity in single-section layouts", () => {
-    expect(keysIn("Land", "surroundings").sort()).toEqual(["guarded", "near_forest"]);
     expect(keysIn("Commercial", "amenities").sort()).toEqual(["alarm_system", "elevator", "furnished", "parking"]);
+    expect(keysIn("Garage", "amenities").sort()).toEqual(["alarm_system", "electricity"]);
+  });
+});
+
+describe("proximities (Vecinătăți)", () => {
+  const PROXIMITIES: Proximity[] = ["school", "park"].map((key) => ({
+    id: key,
+    key,
+    labelRo: key,
+    applicablePropertyTypes: ["Apartment", "House", "Land", "Commercial", "Garage", "Room"],
+  }));
+
+  it.each(["Apartment", "House", "Land", "Commercial"])("get exactly one section in the %s layout, apart from amenities", (type) => {
+    const sections = layout(type).sections.filter(isProximitySection);
+    expect(sections).toHaveLength(1);
+    expect(isAmenitySection(sections[0])).toBe(false);
+    // The catch-all amenity section doesn't pick them up either — they're a separate list.
+    expect(keysIn(type, sections[0].id)).toEqual([]);
+  });
+
+  it.each(["Apartment", "House", "Land", "Commercial", "Garage", "Room"])("are all offered for a %s", (type) => {
+    expect(selectableProximities(PROXIMITIES, type).map((p) => p.key)).toEqual(["school", "park"]);
+  });
+
+  it("only offer proximities that apply to the property type", () => {
+    const houseOnly = { ...PROXIMITIES[0], key: "ski_lift", applicablePropertyTypes: ["House"] };
+    expect(selectableProximities([houseOnly], "Garage")).toEqual([]);
+  });
+
+  it("are optional: the section counts as complete once opened, with nothing selected", () => {
+    const proximities = section("House", "proximities");
+    expect(isSectionComplete(proximities, "House", getter({}), false)).toBe(false);
+    expect(isSectionComplete(proximities, "House", getter({}), true)).toBe(true);
   });
 });
 
@@ -159,7 +211,7 @@ describe("section completion", () => {
 });
 
 describe("conditional fields", () => {
-  it.each(["House", "Apartment"])("%s heating details are required only for boiler/heat pump/solar", (type) => {
+  it.each(["House", "Apartment"])("%s heating details are required only for boiler/heat pump", (type) => {
     const systems = section(type, "systems");
     const base = { waterSupply: "Well", sewerage: "SepticTank", gasSupply: "false" };
     expect(isSectionComplete(systems, type, getter({ ...base, heatingSystem: "OwnBoiler" }), false)).toBe(false);
@@ -172,6 +224,22 @@ describe("conditional fields", () => {
       ),
     ).toBe(true);
     expect(isSectionComplete(systems, type, getter({ ...base, heatingSystem: "DistrictHeating" }), false)).toBe(true);
+  });
+
+  it.each(["House", "Apartment"])("%s solar heating asks for distribution but no energy source", (type) => {
+    const systems = section(type, "systems");
+    const base = { waterSupply: "Well", sewerage: "SepticTank", gasSupply: "false", heatingSystem: "SolarPanels" };
+    expect(isSectionComplete(systems, type, getter(base), false)).toBe(false);
+    expect(isSectionComplete(systems, type, getter({ ...base, heatingDistribution: "UnderfloorHeating" }), false)).toBe(true);
+  });
+
+  it("drop the energy source but keep the distribution for solar heating", () => {
+    const attributes = readAttributes(
+      "House",
+      formWith({ heatingSystem: "SolarPanels", heatingEnergySource: "Electricity", heatingDistribution: "UnderfloorHeating" }),
+    );
+    expect(attributes).not.toHaveProperty("heatingEnergySource");
+    expect(attributes.heatingDistribution).toBe("UnderfloorHeating");
   });
 
   it("drop heating details from the payload when the heating system doesn't use them", () => {
@@ -229,11 +297,16 @@ describe("rental rules section (pets)", () => {
   it.each(["House", "Apartment"])("only exists on a %s rental", (type) => {
     expect(sectionsFor(layout(type), "Rent").map((s) => s.id)).toContain("rentalRules");
     expect(sectionsFor(layout(type), "Sale").map((s) => s.id)).not.toContain("rentalRules");
-    expect(sectionsFor(layout(type), "Sale")).toHaveLength(7);
-    expect(sectionsFor(layout(type), "Rent")).toHaveLength(8);
+    expect(sectionsFor(layout(type), "Sale")).toHaveLength(8);
+    expect(sectionsFor(layout(type), "Rent")).toHaveLength(9);
   });
 
-  it.each(["Land", "Commercial"])("is never shown for %s (pets don't apply)", (type) => {
+  it("only exists on a Room rental", () => {
+    expect(sectionsFor(layout("Room"), "Sale").map((s) => s.id)).toEqual(["typeArea", "comfort", "other", "proximities"]);
+    expect(sectionsFor(layout("Room"), "Rent").map((s) => s.id)).toContain("rentalRules");
+  });
+
+  it.each(["Land", "Commercial", "Garage"])("is never shown for %s (pets don't apply)", (type) => {
     expect(sectionsFor(layout(type), "Rent").map((s) => s.id)).not.toContain("rentalRules");
   });
 

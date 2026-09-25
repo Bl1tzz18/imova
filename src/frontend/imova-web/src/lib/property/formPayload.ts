@@ -43,6 +43,7 @@ export function buildListingPayload(formData: FormData) {
     condition: optionalString(formData.get("condition")),
     typeSpecificAttributes: readAttributes(propertyType, formData),
     amenityIds: formData.getAll("amenityIds").filter((id): id is string => typeof id === "string"),
+    proximityIds: formData.getAll("proximityIds").filter((id): id is string => typeof id === "string"),
     country: formData.get("country"),
     raionId: formData.get("raionId"),
     localitateId: formData.get("localitateId") || null,

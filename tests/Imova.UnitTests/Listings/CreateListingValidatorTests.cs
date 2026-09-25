@@ -3,6 +3,7 @@ using Imova.Application.Features.Listings.CreateListing;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Proximities;
 using Imova.UnitTests.TestSupport;
 
 namespace Imova.UnitTests.Listings;
@@ -16,6 +17,8 @@ public class CreateListingValidatorTests
     private readonly Guid _amenityId;
     private readonly Guid _furnishedAmenityId;
     private readonly Guid _saunaAmenityId;
+    private readonly Guid _schoolProximityId;
+    private readonly Guid _houseOnlyProximityId;
     private readonly CreateListingValidator _validator;
 
     public CreateListingValidatorTests()
@@ -34,6 +37,9 @@ public class CreateListingValidatorTests
         var sauna = new Imova.Domain.Amenities.Amenity(
             Guid.NewGuid(), "sauna", "Saună", Imova.Domain.Amenities.AmenityCategory.Leisure, [PropertyType.House]);
         dbContext.Amenities.AddRange(amenity, furnished, sauna);
+        var school = new Proximity(Guid.NewGuid(), "school", "Școală");
+        var houseOnly = new Proximity(Guid.NewGuid(), "house_only", "Doar casă", [PropertyType.House]);
+        dbContext.Proximities.AddRange(school, houseOnly);
         dbContext.SaveChanges();
 
         _raionId = raion.Id;
@@ -43,6 +49,8 @@ public class CreateListingValidatorTests
         _amenityId = amenity.Id;
         _furnishedAmenityId = furnished.Id;
         _saunaAmenityId = sauna.Id;
+        _schoolProximityId = school.Id;
+        _houseOnlyProximityId = houseOnly.Id;
         _validator = new CreateListingValidator(dbContext);
     }
 
@@ -62,6 +70,7 @@ public class CreateListingValidatorTests
         int? yearBuilt = null,
         PropertyCondition? condition = null,
         IReadOnlyList<Guid>? amenityIds = null,
+        IReadOnlyList<Guid>? proximityIds = null,
         TransactionType transactionType = TransactionType.Rent,
         decimal price = 550m,
         Currency currency = Currency.EUR,
@@ -83,6 +92,7 @@ public class CreateListingValidatorTests
             condition,
             attributes ?? (useDefaultAttributes ? ApartmentJson : null),
             amenityIds,
+            proximityIds,
             "Moldova",
             raionId ?? _raionId,
             // Defaults to the seeded localitate only when the caller isn't testing
@@ -199,6 +209,50 @@ public class CreateListingValidatorTests
     public async Task Validate_WithUnknownAmenity_HasError()
     {
         Assert.Contains("AmenityIds", await ErrorPropertiesAsync(ValidCommand(amenityIds: [_amenityId, Guid.NewGuid()])));
+    }
+
+    [Fact]
+    public async Task Validate_WithKnownProximities_HasNoErrors()
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(proximityIds: [_schoolProximityId, _schoolProximityId])));
+    }
+
+    [Fact]
+    public async Task Validate_WithoutProximities_HasNoErrors()
+    {
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(proximityIds: [])));
+    }
+
+    [Fact]
+    public async Task Validate_WithUnknownProximity_HasError()
+    {
+        Assert.Equal(
+            ["ProximityIds"],
+            await ErrorPropertiesAsync(ValidCommand(proximityIds: [_schoolProximityId, Guid.NewGuid()])));
+    }
+
+    [Fact]
+    public async Task Validate_AnAmenityIdAsAProximity_IsRejected()
+    {
+        Assert.Equal(["ProximityIds"], await ErrorPropertiesAsync(ValidCommand(proximityIds: [_amenityId])));
+    }
+
+    [Fact]
+    public async Task Validate_WithTooManyProximities_HasError()
+    {
+        var tooMany = Enumerable.Repeat(_schoolProximityId, Imova.Application.Features.Listings.ListingWriteValidator<CreateListingCommand>.MaxProximities + 1).ToList();
+
+        Assert.Contains("ProximityIds", await ErrorPropertiesAsync(ValidCommand(proximityIds: tooMany)));
+    }
+
+    [Fact]
+    public async Task Validate_ProximityThatDoesNotApplyToThePropertyType_IsRejected()
+    {
+        var errors = (await _validator.ValidateAsync(ValidCommand(proximityIds: [_houseOnlyProximityId]))).Errors;
+
+        Assert.Contains(
+            errors,
+            e => e.PropertyName == "ProximityIds" && e.ErrorMessage == "The 'house_only' proximity doesn't apply to a Apartment.");
     }
 
     [Theory]

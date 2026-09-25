@@ -36,6 +36,7 @@ public class UpdateListingValidatorTests
             null,
             JsonDocument.Parse(attributesJson).RootElement.Clone(),
             null,
+            null,
             "Moldova",
             _raionId,
             null,

@@ -1,6 +1,7 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Amenities;
 using Imova.Application.Features.Listings.Attributes;
+using Imova.Application.Features.Proximities;
 using Imova.Application.Features.Publishers;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Properties;
@@ -9,6 +10,7 @@ using Imova.Domain.Amenities;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
 
 namespace Imova.Application.Features.Listings;
@@ -47,11 +49,12 @@ public static class ListingMapping
         PropertyLocation? location,
         Publisher publisher,
         IReadOnlyDictionary<Guid, Amenity> amenitiesById,
+        IReadOnlyDictionary<Guid, Proximity> proximitiesById,
         IReadOnlyList<PhotoDto> photos,
         bool isSaved,
         bool includeContactDetails) =>
         listing.ToDto(
-            property.ToDto(location, amenitiesById),
+            property.ToDto(location, amenitiesById, proximitiesById),
             publisher.ToDto(includeContactDetails),
             photos,
             isSaved);
@@ -70,7 +73,8 @@ public static class ListingMapping
     public static PropertyDto ToDto(
         this Property property,
         PropertyLocation? location,
-        IReadOnlyDictionary<Guid, Amenity> amenitiesById) =>
+        IReadOnlyDictionary<Guid, Amenity> amenitiesById,
+        IReadOnlyDictionary<Guid, Proximity> proximitiesById) =>
         new(
             property.Id,
             property.PropertyType.ToString(),
@@ -83,6 +87,13 @@ public static class ListingMapping
                 .OfType<Amenity>()
                 .OrderBy(a => a.LabelRo, StringComparer.Ordinal)
                 .Select(a => a.ToDto())
+                .ToList(),
+            // Seed order, same as GET /proximities.
+            property.Proximities
+                .Select(p => proximitiesById.GetValueOrDefault(p.ProximityId))
+                .OfType<Proximity>()
+                .OrderBy(p => p.Id)
+                .Select(p => p.ToDto())
                 .ToList(),
             location?.ToDto());
 

@@ -85,6 +85,7 @@ internal static class ListingApi
             ["condition"] = null,
             ["typeSpecificAttributes"] = CompleteAttributes("Apartment"),
             ["amenityIds"] = Array.Empty<Guid>(),
+            ["proximityIds"] = Array.Empty<Guid>(),
             ["country"] = "Moldova",
             ["raionId"] = raioane!.First().Id,
             ["streetAddress"] = "Str. Ismail",

@@ -60,11 +60,6 @@ public class AmenityConfiguration : IEntityTypeConfiguration<Amenity>
         new(Guid.Parse("a1000000-0000-0000-0000-000000000025"), "separate_living_room", "Living separat", AmenityCategory.Comfort, [PropertyType.Apartment]),
         new(Guid.Parse("a1000000-0000-0000-0000-000000000026"), "thermopane_windows", "Geamuri termopan", AmenityCategory.Comfort, [PropertyType.Apartment, PropertyType.Commercial, PropertyType.Room]),
 
-        // Land
-        new(Guid.Parse("a1000000-0000-0000-0000-000000000027"), "guarded", "Pază", AmenityCategory.Security, [PropertyType.Land, PropertyType.Garage]),
-        new(Guid.Parse("a1000000-0000-0000-0000-000000000028"), "near_water", "Lângă un bazin acvatic", AmenityCategory.Leisure, [PropertyType.Land, PropertyType.House]),
-        new(Guid.Parse("a1000000-0000-0000-0000-000000000029"), "near_forest", "Lângă pădure", AmenityCategory.Leisure, [PropertyType.Land, PropertyType.House]),
-
         // Garage and Room
         new(Guid.Parse("a1000000-0000-0000-0000-00000000002a"), "electricity", "Electricitate", AmenityCategory.General, [PropertyType.Garage]),
         new(Guid.Parse("a1000000-0000-0000-0000-00000000002b"), "kitchen_access", "Acces la bucătărie", AmenityCategory.Comfort, [PropertyType.Room]),

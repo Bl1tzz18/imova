@@ -434,30 +434,6 @@ namespace Imova.Infrastructure.Migrations
                         },
                         new
                         {
-                            Id = new Guid("a1000000-0000-0000-0000-000000000027"),
-                            ApplicablePropertyTypes = new[] { 3, 5 },
-                            Category = "Security",
-                            Key = "guarded",
-                            LabelRo = "Pază"
-                        },
-                        new
-                        {
-                            Id = new Guid("a1000000-0000-0000-0000-000000000028"),
-                            ApplicablePropertyTypes = new[] { 3, 2 },
-                            Category = "Leisure",
-                            Key = "near_water",
-                            LabelRo = "Lângă un bazin acvatic"
-                        },
-                        new
-                        {
-                            Id = new Guid("a1000000-0000-0000-0000-000000000029"),
-                            ApplicablePropertyTypes = new[] { 3, 2 },
-                            Category = "Leisure",
-                            Key = "near_forest",
-                            LabelRo = "Lângă pădure"
-                        },
-                        new
-                        {
                             Id = new Guid("a1000000-0000-0000-0000-00000000002a"),
                             ApplicablePropertyTypes = new[] { 5 },
                             Category = "General",
@@ -836,6 +812,121 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("PropertyAmenities", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyProximity", b =>
+                {
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProximityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PropertyId", "ProximityId");
+
+                    b.HasIndex("ProximityId");
+
+                    b.ToTable("PropertyProximities", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Proximities.Proximity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("ApplicablePropertyTypes")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LabelRo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Proximities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000001"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "kindergarten",
+                            LabelRo = "Grădiniță"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000002"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "school",
+                            LabelRo = "Școală"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000003"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "supermarket",
+                            LabelRo = "Supermarket / magazin alimentar"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000004"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "pharmacy",
+                            LabelRo = "Farmacie"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000005"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "public_transport",
+                            LabelRo = "Stație transport public"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000006"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "park",
+                            LabelRo = "Parc / zonă verde"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000007"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "city_center",
+                            LabelRo = "Centrul orașului"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000008"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "hospital",
+                            LabelRo = "Spital / policlinică"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000009"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "farmers_market",
+                            LabelRo = "Piață agroalimentară"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-00000000000a"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "bank",
+                            LabelRo = "Bancă / bancomat"
+                        });
+                });
+
             modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1132,6 +1223,21 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyProximity", b =>
+                {
+                    b.HasOne("Imova.Domain.Properties.Property", null)
+                        .WithMany("Proximities")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Domain.Proximities.Proximity", null)
+                        .WithMany()
+                        .HasForeignKey("ProximityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
                 {
                     b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
@@ -1195,6 +1301,8 @@ namespace Imova.Infrastructure.Migrations
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
                     b.Navigation("Amenities");
+
+                    b.Navigation("Proximities");
                 });
 #pragma warning restore 612, 618
         }

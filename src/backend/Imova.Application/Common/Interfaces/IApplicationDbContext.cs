@@ -4,6 +4,7 @@ using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,10 @@ public interface IApplicationDbContext
     DbSet<PropertyAmenity> PropertyAmenities { get; }
 
     DbSet<Amenity> Amenities { get; }
+
+    DbSet<PropertyProximity> PropertyProximities { get; }
+
+    DbSet<Proximity> Proximities { get; }
 
     DbSet<Listing> Listings { get; }
 

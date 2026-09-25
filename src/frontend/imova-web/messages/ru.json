@@ -195,6 +195,7 @@
     "areaInAri": "≈ {ari} соток",
     "conditionLabel": "Состояние",
     "amenitiesLabel": "Удобства",
+    "proximitiesLabel": "Поблизости",
     "isNegotiableLabel": "Цена договорная",
     "rentalTermsHeading": "Условия аренды",
     "minLeasePeriodLabel": "Минимальный срок (мес.)",
@@ -221,8 +222,8 @@
       "other": "Прочие удобства",
       "typeArea": "Тип и площадь",
       "utilitiesAccess": "Коммуникации и подъезд",
-      "surroundings": "Окрестности",
       "amenities": "Удобства",
+      "proximities": "Поблизости",
       "rentalRules": "Правила аренды"
     }
   },
@@ -260,6 +261,7 @@
     "nextPhoto": "Следующее фото",
     "condition": "Состояние",
     "amenities": "Удобства",
+    "proximities": "Поблизости",
     "rentalTerms": "Условия аренды",
     "minLeasePeriod": "Минимальный срок",
     "months": "{count, plural, one {# месяц} few {# месяца} many {# месяцев} other {# месяца}}",
@@ -451,11 +453,20 @@
     "panoramic_windows": "Панорамные окна",
     "separate_living_room": "Отдельная гостиная",
     "thermopane_windows": "Стеклопакеты",
-    "guarded": "Охрана",
-    "near_water": "Рядом с водоёмом",
-    "near_forest": "Рядом с лесом",
     "electricity": "Электричество",
     "kitchen_access": "Доступ к кухне"
+  },
+  "Proximity": {
+    "kindergarten": "Детский сад",
+    "school": "Школа",
+    "supermarket": "Супермаркет / продуктовый магазин",
+    "pharmacy": "Аптека",
+    "public_transport": "Остановка общественного транспорта",
+    "park": "Парк / зелёная зона",
+    "city_center": "Центр города",
+    "hospital": "Больница / поликлиника",
+    "farmers_market": "Продуктовый рынок",
+    "bank": "Банк / банкомат"
   },
   "Attributes": {
     "choose": "Выберите",

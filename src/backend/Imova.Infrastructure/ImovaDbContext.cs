@@ -5,6 +5,7 @@ using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -26,6 +27,10 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<PropertyAmenity> PropertyAmenities => Set<PropertyAmenity>();
 
     public DbSet<Amenity> Amenities => Set<Amenity>();
+
+    public DbSet<PropertyProximity> PropertyProximities => Set<PropertyProximity>();
+
+    public DbSet<Proximity> Proximities => Set<Proximity>();
 
     public DbSet<Listing> Listings => Set<Listing>();
 

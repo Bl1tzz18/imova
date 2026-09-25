@@ -32,8 +32,9 @@ public static class PropertyAttributesValidator
 }
 
 // The conditional heating-details rule shared by every type with a HeatingSystem (itself optional):
-// energy source and distribution are required for heating that has them (Heating.RequiresDetails)
-// and must be empty otherwise, including when no heating system is given.
+// energy source (Heating.RequiresEnergySource) and distribution (Heating.RequiresDistribution) are
+// each required for heating that has them and must be empty otherwise, including when no heating
+// system is given.
 internal static class HeatingRules
 {
     public static void Apply<T>(
@@ -48,18 +49,18 @@ internal static class HeatingRules
         validator.RuleFor(energySource)
             .NotNull().WithMessage("HeatingEnergySource is required for this heating system.")
             .IsInEnum()
-            .When(x => Heating.RequiresDetails(heatingSystem(x)));
+            .When(x => Heating.RequiresEnergySource(heatingSystem(x)));
         validator.RuleFor(energySource)
             .Null().WithMessage("HeatingEnergySource does not apply to this heating system.")
-            .When(x => !Heating.RequiresDetails(heatingSystem(x)));
+            .When(x => !Heating.RequiresEnergySource(heatingSystem(x)));
 
         validator.RuleFor(distribution)
             .NotNull().WithMessage("HeatingDistribution is required for this heating system.")
             .IsInEnum()
-            .When(x => Heating.RequiresDetails(heatingSystem(x)));
+            .When(x => Heating.RequiresDistribution(heatingSystem(x)));
         validator.RuleFor(distribution)
             .Null().WithMessage("HeatingDistribution does not apply to this heating system.")
-            .When(x => !Heating.RequiresDetails(heatingSystem(x)));
+            .When(x => !Heating.RequiresDistribution(heatingSystem(x)));
     }
 }
 

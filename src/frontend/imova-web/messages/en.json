@@ -195,6 +195,7 @@
     "areaInAri": "≈ {ari} ares",
     "conditionLabel": "Condition",
     "amenitiesLabel": "Amenities",
+    "proximitiesLabel": "Nearby",
     "isNegotiableLabel": "Price is negotiable",
     "rentalTermsHeading": "Rental terms",
     "minLeasePeriodLabel": "Minimum lease (months)",
@@ -221,8 +222,8 @@
       "other": "Other amenities",
       "typeArea": "Type & area",
       "utilitiesAccess": "Utilities & access",
-      "surroundings": "Surroundings",
       "amenities": "Amenities",
+      "proximities": "Nearby",
       "rentalRules": "Rental rules"
     }
   },
@@ -260,6 +261,7 @@
     "nextPhoto": "Next photo",
     "condition": "Condition",
     "amenities": "Amenities",
+    "proximities": "Nearby",
     "rentalTerms": "Rental terms",
     "minLeasePeriod": "Minimum lease",
     "months": "{count, plural, one {# month} other {# months}}",
@@ -451,11 +453,20 @@
     "panoramic_windows": "Panoramic windows",
     "separate_living_room": "Separate living room",
     "thermopane_windows": "Double-glazed windows",
-    "guarded": "Guarded",
-    "near_water": "Near a water body",
-    "near_forest": "Near a forest",
     "electricity": "Electricity available",
     "kitchen_access": "Kitchen access"
+  },
+  "Proximity": {
+    "kindergarten": "Kindergarten",
+    "school": "School",
+    "supermarket": "Supermarket / grocery store",
+    "pharmacy": "Pharmacy",
+    "public_transport": "Public transport stop",
+    "park": "Park / green area",
+    "city_center": "City center",
+    "hospital": "Hospital / clinic",
+    "farmers_market": "Farmers' market",
+    "bank": "Bank / ATM"
   },
   "Attributes": {
     "choose": "Choose",

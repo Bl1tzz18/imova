@@ -87,6 +87,8 @@ public static class ListingWriteSupport
 
     public static IReadOnlyList<Guid> AmenityIds(IListingWriteCommand command) => command.AmenityIds ?? [];
 
+    public static IReadOnlyList<Guid> ProximityIds(IListingWriteCommand command) => command.ProximityIds ?? [];
+
     public static Price BuildPrice(IListingWriteCommand command, IExchangeRateProvider exchangeRates) =>
         Price.Create(command.Price, command.Currency, command.IsNegotiable, exchangeRates.GetEurRate(command.Currency));
 

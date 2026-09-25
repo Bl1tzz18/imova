@@ -1,4 +1,4 @@
-import type { Amenity } from "@/types/listing";
+import type { Amenity, Proximity } from "@/types/listing";
 import {
   attributeInputName,
   attributeSchemaFor,
@@ -10,7 +10,6 @@ import {
 import { rentalInputName, type RentalField } from "@/lib/property/rentalFields";
 
 // How the listing form's "Details" step is split into collapsible sections, per property type.
-// Types without a layout (Garage, Room — only a field or two) use the flat form instead.
 
 export type AmenityCategory = "General" | "Comfort" | "Security" | "Leisure";
 
@@ -25,11 +24,12 @@ export type DetailSectionId =
   | "other"
   | "typeArea"
   | "utilitiesAccess"
-  | "surroundings"
   | "amenities"
+  | "proximities"
   | "rentalRules";
 
-export type CoreField = "totalAreaM2" | "yearBuilt";
+// condition is the general Property.Condition — only Garage and Room use it (see usesGeneralCondition).
+export type CoreField = "totalAreaM2" | "yearBuilt" | "condition";
 
 export type DetailSection = {
   id: DetailSectionId;
@@ -37,26 +37,34 @@ export type DetailSection = {
   coreFields: readonly CoreField[];
   // TypeSpecificAttributes placed in this section, in display order.
   attributeFields: readonly string[];
-  // Amenity sections list the categories they show; the catch-all one also takes every applicable
-  // amenity whose category no other section of the layout shows.
+  // Amenity sections list the categories they show; the catch-all one (at most one per layout —
+  // none for Land, which has no amenities) also takes every applicable amenity whose category no
+  // other section of the layout shows.
   amenityCategories?: readonly AmenityCategory[];
   catchAllAmenities?: boolean;
+  // The "Vecinătăți" section: what the property is close to (see Proximity), kept apart from the
+  // amenities, which describe the property itself.
+  proximities?: boolean;
   // RentalDetails fields asked here; a section with these only exists for a rental.
   rentalFields?: readonly RentalField[];
 };
 
 export type DetailLayout = {
-  // Which PropertyForm label the total-area input uses ("total area" vs. the plot's area).
-  totalAreaLabel: "houseTotalAreaLabel" | "landAreaLabel";
+  // Which PropertyForm label the total-area input uses ("total area", the plot's area, or plain
+  // "area" for a garage/room).
+  totalAreaLabel: "houseTotalAreaLabel" | "landAreaLabel" | "areaLabel";
   sections: readonly DetailSection[];
 };
 
 const noFields = { coreFields: [], attributeFields: [] } as const;
 
-// Rental-only: the house rules of a rented home (pets). Room asks the same on its flat form.
+// What the property is near (school, park, ...) — every layout lists it right after its amenities.
+const PROXIMITIES: DetailSection = { id: "proximities", ...noFields, proximities: true };
+
+// Rental-only: the house rules of a rented home (pets).
 const RENTAL_RULES: DetailSection = { id: "rentalRules", ...noFields, rentalFields: ["petsAllowed"] };
 
-export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
+export const DETAIL_LAYOUTS: Record<PropertyTypeName, DetailLayout> = {
   House: {
     totalAreaLabel: "houseTotalAreaLabel",
     sections: [
@@ -79,6 +87,7 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
       { id: "comfort", ...noFields, amenityCategories: ["Comfort"] },
       { id: "security", ...noFields, amenityCategories: ["Security"] },
       { id: "leisure", ...noFields, amenityCategories: ["Leisure"], catchAllAmenities: true },
+      PROXIMITIES,
       RENTAL_RULES,
     ],
   },
@@ -103,11 +112,13 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
       { id: "security", ...noFields, amenityCategories: ["Security"] },
       // Elevator, balcony, annex, separate entrance — and anything else that applies.
       { id: "other", ...noFields, amenityCategories: ["General"], catchAllAmenities: true },
+      PROXIMITIES,
       RENTAL_RULES,
     ],
   },
   Land: {
     totalAreaLabel: "landAreaLabel",
+    // No amenity section: no amenity applies to Land (its access/utilities are attributes).
     sections: [
       { id: "typeArea", coreFields: ["totalAreaM2"], attributeFields: ["plotType", "locationContext", "soilQualityScore"] },
       {
@@ -118,7 +129,7 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
           "phoneLineAvailable",
         ],
       },
-      { id: "surroundings", ...noFields, catchAllAmenities: true },
+      PROXIMITIES,
     ],
   },
   Commercial: {
@@ -136,6 +147,30 @@ export const DETAIL_LAYOUTS: Partial<Record<PropertyTypeName, DetailLayout>> = {
         attributeFields: ["bathrooms", "phoneLinesCount", "mainStreetAccess", "electricalPower", "gasSupply"],
       },
       { id: "amenities", ...noFields, catchAllAmenities: true },
+      PROXIMITIES,
+    ],
+  },
+  Garage: {
+    totalAreaLabel: "areaLabel",
+    sections: [
+      { id: "typeArea", coreFields: ["totalAreaM2", "yearBuilt", "condition"], attributeFields: ["parkingType"] },
+      { id: "amenities", ...noFields, catchAllAmenities: true },
+      PROXIMITIES,
+    ],
+  },
+  Room: {
+    totalAreaLabel: "areaLabel",
+    sections: [
+      {
+        id: "typeArea",
+        coreFields: ["totalAreaM2", "yearBuilt", "condition"],
+        attributeFields: ["bathroomType", "roommateCount"],
+      },
+      { id: "comfort", ...noFields, amenityCategories: ["Comfort"] },
+      // Balcony, building heating type — and anything else that applies.
+      { id: "other", ...noFields, amenityCategories: ["General"], catchAllAmenities: true },
+      PROXIMITIES,
+      RENTAL_RULES,
     ],
   },
 };
@@ -164,6 +199,10 @@ function schemaField(propertyType: string, name: string) {
 
 export function isAmenitySection(section: DetailSection): boolean {
   return section.amenityCategories !== undefined || section.catchAllAmenities === true;
+}
+
+export function isProximitySection(section: DetailSection): boolean {
+  return section.proximities === true;
 }
 
 export function hasRequiredFields(section: DetailSection, propertyType: string): boolean {
@@ -221,4 +260,10 @@ export function amenitiesForSection(
       ownCategories.has(a.category as AmenityCategory) ||
       (section.catchAllAmenities === true && !shownElsewhere.has(a.category as AmenityCategory)),
   );
+}
+
+// The proximities the form offers for a property type (mirrors Proximity.ApplicablePropertyTypes on
+// the backend — currently every one applies to every type).
+export function selectableProximities(proximities: readonly Proximity[], propertyType: string): Proximity[] {
+  return proximities.filter((p) => p.applicablePropertyTypes.includes(propertyType));
 }

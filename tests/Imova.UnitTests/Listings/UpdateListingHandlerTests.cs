@@ -2,6 +2,7 @@ using System.Text.Json;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Features.Listings.UpdateListing;
 using Imova.Domain.Amenities;
+using Imova.Domain.Proximities;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -22,6 +23,8 @@ public class UpdateListingHandlerTests
     private readonly Listing _listing;
     private readonly Guid _parking = Guid.NewGuid();
     private readonly Guid _balcony = Guid.NewGuid();
+    private readonly Guid _school = Guid.NewGuid();
+    private readonly Guid _park = Guid.NewGuid();
 
     public UpdateListingHandlerTests()
     {
@@ -30,8 +33,9 @@ public class UpdateListingHandlerTests
         _dbContext.Raioane.Add(_raion);
         _dbContext.ChisinauSectors.Add(_sector);
         _dbContext.Amenities.AddRange(new Amenity(_parking, "parking", "Parcare"), new Amenity(_balcony, "balcony", "Balcon/Logie"));
+        _dbContext.Proximities.AddRange(new Proximity(_school, "school", "Școală"), new Proximity(_park, "park", "Parc / zonă verde"));
         var publisher = ListingTestData.AddIndividualPublisher(_dbContext, _ownerId);
-        var property = ListingTestData.AddProperty(_dbContext, amenityIds: [_parking]);
+        var property = ListingTestData.AddProperty(_dbContext, amenityIds: [_parking], proximityIds: [_school]);
         _listing = ListingTestData.NewListing(property.Id, publisher.Id);
         _dbContext.Listings.Add(_listing);
         _dbContext.SaveChanges();
@@ -47,6 +51,7 @@ public class UpdateListingHandlerTests
         PropertyType propertyType = PropertyType.Apartment,
         string attributesJson = """{"rooms":3,"floor":4,"totalFloors":10}""",
         IReadOnlyList<Guid>? amenityIds = null,
+        IReadOnlyList<Guid>? proximityIds = null,
         TransactionType transactionType = TransactionType.Rent,
         RentalDetails? rentalDetails = null,
         Guid? chisinauSectorId = null,
@@ -62,6 +67,7 @@ public class UpdateListingHandlerTests
             PropertyCondition.New,
             JsonDocument.Parse(attributesJson).RootElement.Clone(),
             amenityIds,
+            proximityIds,
             "Moldova",
             _raion.Id,
             null,
@@ -156,6 +162,25 @@ public class UpdateListingHandlerTests
 
         var property = await _dbContext.Properties.Include(p => p.Amenities).SingleAsync();
         Assert.Equal(_balcony, Assert.Single(property.Amenities).AmenityId);
+    }
+
+    [Fact]
+    public async Task Handle_ReplacesProximities()
+    {
+        var result = await Handler().Handle(Command(proximityIds: [_park]), CancellationToken.None);
+
+        var property = await _dbContext.Properties.Include(p => p.Proximities).SingleAsync();
+        Assert.Equal(_park, Assert.Single(property.Proximities).ProximityId);
+        Assert.Equal("park", Assert.Single(result!.Property.Proximities).Key);
+    }
+
+    [Fact]
+    public async Task Handle_WithoutProximities_ClearsThem()
+    {
+        await Handler().Handle(Command(), CancellationToken.None);
+
+        var property = await _dbContext.Properties.Include(p => p.Proximities).SingleAsync();
+        Assert.Empty(property.Proximities);
     }
 
     [Fact]

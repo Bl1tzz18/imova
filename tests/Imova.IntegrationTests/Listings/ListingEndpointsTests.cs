@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Imova.Contracts.Amenities;
+using Imova.Contracts.Proximities;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Publishers;
 using Imova.IntegrationTests.TestSupport;
@@ -92,11 +93,14 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
     public async Task CreateListing_CompleteListingOfEachType_RoundTripsEveryDetail(string propertyType, string transactionType)
     {
         var (client, _) = await ListingApi.RegisterAsync(_factory);
-        // Every amenity the form would offer for this type (Furnished included, for rentals too).
+        // Every amenity the form would offer for this type (Furnished included, for rentals too) —
+        // none for Land.
         var amenities = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!
             .Where(a => a.ApplicablePropertyTypes.Contains(propertyType))
             .ToList();
-        Assert.NotEmpty(amenities);
+        Assert.Equal(propertyType == "Land", amenities.Count == 0);
+        // Every proximity applies to every type.
+        var proximities = (await client.GetFromJsonAsync<List<ProximityDto>>("/api/v1/proximities"))!;
         var attributes = ListingApi.CompleteAttributes(propertyType);
         var body = await ListingApi.ValidBodyAsync(client);
         body["propertyType"] = propertyType;
@@ -111,6 +115,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
             ? new Dictionary<string, object?> { ["petsAllowed"] = petsApply ? false : null, ["utilitiesIncluded"] = true }
             : null;
         body["amenityIds"] = amenities.Select(a => a.Id).ToArray();
+        body["proximityIds"] = proximities.Select(p => p.Id).ToArray();
         body["typeSpecificAttributes"] = attributes;
 
         var response = await client.PostAsJsonAsync("/api/v1/listings", body);
@@ -128,6 +133,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         }
 
         Assert.Equal(amenities.Select(a => a.Key).Order(), stored.Property.Amenities.Select(a => a.Key).Order());
+        Assert.Equal(proximities.Select(p => p.Key), stored.Property.Proximities.Select(p => p.Key));
         Assert.Equal(propertyType is "Garage" or "Room" ? "Renovated" : null, stored.Property.Condition);
 
         await client.DeleteAsync($"/api/v1/listings/{created.Id}");
@@ -349,6 +355,33 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.True(amenities.Count >= 10);
         Assert.Contains(amenities, a => a.Key == "parking" && a.LabelRo == "Parcare");
+        Assert.DoesNotContain(amenities, a => a.Key is "near_water" or "near_forest" or "guarded");
+    }
+
+    [Fact]
+    public async Task GetProximities_ReturnsTheSeededListForEveryType()
+    {
+        var proximities = (await _factory.CreateClient().GetFromJsonAsync<List<ProximityDto>>("/api/v1/proximities"))!;
+
+        Assert.Equal(10, proximities.Count);
+        Assert.Equal("kindergarten", proximities[0].Key);
+        Assert.Contains(proximities, p => p.Key == "public_transport" && p.LabelRo == "Stație transport public");
+        Assert.All(proximities, p => Assert.Equal(6, p.ApplicablePropertyTypes.Count));
+    }
+
+    [Fact]
+    public async Task CreateListing_WithAnAmenityIdAsAProximity_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var balcony = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "balcony");
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["proximityIds"] = new[] { balcony.Id };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("ProximityIds", out _));
     }
 
     [Fact]

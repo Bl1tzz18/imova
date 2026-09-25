@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Imova.Application.Features.Listings;
 
 // Builds ListingDtos for an already-loaded set of listings: one batched query each for their
-// properties (+ amenities), locations, publishers, photos, and the caller's favorites, instead of
+// properties (+ amenities, proximities), locations, publishers, photos, and the caller's favorites, instead of
 // every listing-returning handler repeating those joins. Output order matches the input order.
 public static class ListingDtoLoader
 {
@@ -32,6 +32,7 @@ public static class ListingDtoLoader
         var propertiesById = await dbContext.Properties
             .AsNoTracking()
             .Include(p => p.Amenities)
+            .Include(p => p.Proximities)
             .Where(p => propertyIds.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
@@ -46,8 +47,9 @@ public static class ListingDtoLoader
             .Where(p => publisherIds.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
-        // A small seeded reference table — cheaper to load whole than to collect ids first.
+        // Small seeded reference tables — cheaper to load whole than to collect ids first.
         var amenitiesById = await dbContext.Amenities.AsNoTracking().ToDictionaryAsync(a => a.Id, cancellationToken);
+        var proximitiesById = await dbContext.Proximities.AsNoTracking().ToDictionaryAsync(p => p.Id, cancellationToken);
 
         var photosByListingId = (await dbContext.Photos
                 .AsNoTracking()
@@ -77,6 +79,7 @@ public static class ListingDtoLoader
                     locationsById.GetValueOrDefault(property.LocationId),
                     publishersById[listing.PublisherId],
                     amenitiesById,
+                    proximitiesById,
                     photosByListingId.GetValueOrDefault(listing.Id) ?? [],
                     savedListingIds.Contains(listing.Id),
                     includeContactDetails);

@@ -27,6 +27,16 @@ export type Amenity = {
   applicablePropertyTypes: string[];
 };
 
+// Something a property is close to (school, park, ...) — separate from amenities, which describe
+// the property itself.
+export type Proximity = {
+  id: string;
+  key: string;
+  labelRo: string;
+  // PropertyType names the proximity can be selected for.
+  applicablePropertyTypes: string[];
+};
+
 export type PublisherType = "Individual" | "Agency";
 
 // phone/email are null wherever contact details aren't exposed (cards/search results) — only a
@@ -65,6 +75,7 @@ export type PropertyDetails = {
   condition: string | null;
   typeSpecificAttributes: TypeSpecificAttributes;
   amenities: Amenity[];
+  proximities: Proximity[];
   location: PropertyLocation | null;
 };
 

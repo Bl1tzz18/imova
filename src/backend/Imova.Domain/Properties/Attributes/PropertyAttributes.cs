@@ -70,7 +70,7 @@ public sealed record HouseAttributes(
     // Systems & utilities
     HeatingSystem? HeatingSystem = null,
     // Only meaningful (and then required) for heating that has its own energy source and
-    // distribution — see Heating.RequiresDetails.
+    // distribution — see Heating.RequiresEnergySource / RequiresDistribution.
     HeatingEnergySource? HeatingEnergySource = null,
     HeatingDistribution? HeatingDistribution = null,
     WaterSupply? WaterSupply = null,

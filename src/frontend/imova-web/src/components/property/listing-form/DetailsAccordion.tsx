@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { FieldLabel, TextInput } from "@/components/ui/Field";
+import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { squareMetersToAri } from "@/lib/listing/view";
 import { cn } from "@/lib/utils/cn";
 import {
+  GENERAL_CONDITIONS,
   attributeSchemaFor,
   controllingFields,
   isFieldVisible,
@@ -15,13 +16,15 @@ import {
 import {
   amenitiesForSection,
   isAmenitySection,
+  isProximitySection,
   isSectionComplete,
   sectionsFor,
+  selectableProximities,
   type DetailLayout,
   type DetailSection,
   type DetailSectionId,
 } from "@/lib/property/detailLayouts";
-import type { Amenity, PropertyDetails, RentalDetails, TypeSpecificAttributes } from "@/types/listing";
+import type { Amenity, PropertyDetails, Proximity, RentalDetails, TypeSpecificAttributes } from "@/types/listing";
 import { AttributeInput } from "./AttributeFields";
 import { PetsAllowedInput } from "./PetsAllowedInput";
 
@@ -37,20 +40,19 @@ const SECTION_ICONS: Record<DetailSectionId, ReactNode> = {
   comfort: <path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3M3 12a2 2 0 0 1 4 0v3h10v-3a2 2 0 0 1 4 0v6H3v-6ZM6 18v2M18 18v2" />,
   security: <path d="M12 3.5l7 2.6v5.2c0 5-3 8-7 9.2-4-1.2-7-4.2-7-9.2V6.1l7-2.6ZM9 12l2 2 4-4" />,
   leisure: <path d="M12 3a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6ZM12 9v12M8 21h8M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0" />,
-  surroundings: <path d="M12 3 5 13h4l-3 5h12l-3-5h4L12 3ZM12 18v3" />,
   other: <path d="M4 6h16M4 12h16M4 18h10" />,
   amenities: <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9L12 3Z" />,
+  proximities: <path d="M12 21s-6-5.3-6-10.5a6 6 0 0 1 12 0C18 15.7 12 21 12 21ZM12 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />,
   rentalRules: (
     <path d="M8.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM15.5 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM19 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM12 13c-2.5 0-5 3-5 5 0 1.5 1.5 2 2.5 2 1 0 1.5-.5 2.5-.5s1.5.5 2.5.5c1 0 2.5-.5 2.5-2 0-2-2.5-5-5-5Z" />
   ),
 };
 
-// The sectioned "Details" step for property types that have a DetailLayout (House, Apartment,
-// Land, Commercial): the type's attributes, the general Property fields that belong with them,
-// and the type's amenities, split into collapsible sections. Collapsed sections stay mounted
-// (only visually hidden) so their inputs are still submitted and validated; an invalid field
-// inside a collapsed section opens it (see onInvalidCapture), so the form's step validation can
-// point at it.
+// The "Details" step for every property type (see DETAIL_LAYOUTS): the type's attributes, the
+// general Property fields that belong with them, its amenities and what it's near (proximities),
+// split into collapsible sections. Collapsed sections stay mounted (only visually hidden) so their
+// inputs are still submitted and validated; an invalid field inside a collapsed section opens it
+// (see onInvalidCapture), so the form's step validation can point at it.
 export function DetailsAccordion({
   propertyType,
   layout,
@@ -59,6 +61,7 @@ export function DetailsAccordion({
   transactionType,
   rental,
   amenities,
+  proximities,
 }: {
   propertyType: string;
   layout: DetailLayout;
@@ -67,9 +70,12 @@ export function DetailsAccordion({
   transactionType: string;
   rental?: RentalDetails | null;
   amenities: Amenity[];
+  proximities: Proximity[];
 }) {
   const t = useTranslations("PropertyForm");
   const tAmenity = useTranslations("Amenity");
+  const tProximity = useTranslations("Proximity");
+  const tCondition = useTranslations("Condition");
   const containerRef = useRef<HTMLDivElement>(null);
   const firstSection = layout.sections[0].id;
   const [open, setOpen] = useState<Set<DetailSectionId>>(() => new Set([firstSection]));
@@ -92,6 +98,7 @@ export function DetailsAccordion({
   // Rental-only sections (pets) only exist for a rental.
   const sections = sectionsFor(layout, transactionType);
   const selectedAmenityIds = new Set(property?.amenities.map((a) => a.id) ?? []);
+  const selectedProximityIds = new Set(property?.proximities.map((p) => p.id) ?? []);
   const visibilityGet: ValueGetter = (name) => controlling[name.replace(/^attr\./, "")] ?? null;
 
   // Completion is read straight from the form's current values, so it covers every input
@@ -149,6 +156,24 @@ export function DetailsAccordion({
       );
     }
 
+    if (isProximitySection(section)) {
+      return (
+        <div className="grid grid-cols-1 gap-x-5 gap-y-2 sm:grid-cols-2">
+          {selectableProximities(proximities, propertyType).map((proximity) => (
+            <Checkbox
+              key={proximity.id}
+              name="proximityIds"
+              value={proximity.id}
+              defaultChecked={selectedProximityIds.has(proximity.id)}
+              className="text-ink-700"
+            >
+              {tProximity.has(proximity.key) ? tProximity(proximity.key) : proximity.labelRo}
+            </Checkbox>
+          ))}
+        </div>
+      );
+    }
+
     if (isAmenitySection(section)) {
       const items = amenitiesForSection(layout, section, amenities, propertyType);
       return (
@@ -201,6 +226,19 @@ export function DetailsAccordion({
                 {t("areaInAri", { ari: squareMetersToAri(areaNumber) })}
               </span>
             )}
+          </label>
+        )}
+        {section.coreFields.includes("condition") && (
+          <label className="block">
+            <FieldLabel>{t("conditionLabel")}</FieldLabel>
+            <SelectInput name="condition" defaultValue={property?.condition ?? ""}>
+              <option value="">{t("notSpecified")}</option>
+              {GENERAL_CONDITIONS.map((condition) => (
+                <option key={condition} value={condition}>
+                  {tCondition(condition)}
+                </option>
+              ))}
+            </SelectInput>
           </label>
         )}
         {section.attributeFields.map(renderField)}

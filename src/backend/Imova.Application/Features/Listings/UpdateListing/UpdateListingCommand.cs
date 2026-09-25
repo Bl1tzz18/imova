@@ -21,6 +21,7 @@ public record UpdateListingCommand(
     PropertyCondition? Condition,
     JsonElement? TypeSpecificAttributes,
     IReadOnlyList<Guid>? AmenityIds,
+    IReadOnlyList<Guid>? ProximityIds,
     string Country,
     Guid RaionId,
     Guid? LocalitateId,

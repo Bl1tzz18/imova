@@ -34,7 +34,8 @@ internal static class ListingTestData
         ImovaDbContext dbContext,
         PropertyType propertyType = PropertyType.Apartment,
         PropertyAttributes? attributes = null,
-        IEnumerable<Guid>? amenityIds = null)
+        IEnumerable<Guid>? amenityIds = null,
+        IEnumerable<Guid>? proximityIds = null)
     {
         var location = PropertyLocation.Create(
             "Moldova", Guid.NewGuid(), "Chișinău", null, null, null, null, 47.0105, 28.8638, "Strada Ismail", "44");
@@ -45,7 +46,8 @@ internal static class ListingTestData
             null,
             location.Id,
             attributes ?? (propertyType == PropertyType.Apartment ? TwoRoomApartment : PropertyAttributes.EmptyFor(propertyType)),
-            amenityIds);
+            amenityIds,
+            proximityIds);
         dbContext.PropertyLocations.Add(location);
         dbContext.Properties.Add(property);
         return property;

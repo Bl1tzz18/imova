@@ -44,7 +44,7 @@ export default async function ProprietatePage({
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity, tProximity] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
@@ -53,6 +53,7 @@ export default async function ProprietatePage({
     getTranslations("Attributes"),
     getTranslations("Condition"),
     getTranslations("Amenity"),
+    getTranslations("Proximity"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
@@ -207,6 +208,22 @@ export default async function ProprietatePage({
                         className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
                       >
                         {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {property.proximities.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-display text-xl font-medium text-ink-950">{t("proximities")}</h2>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {property.proximities.map((proximity) => (
+                      <li
+                        key={proximity.id}
+                        className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
+                      >
+                        {tProximity.has(proximity.key) ? tProximity(proximity.key) : proximity.labelRo}
                       </li>
                     ))}
                   </ul>

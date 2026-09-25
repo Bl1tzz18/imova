@@ -43,8 +43,10 @@ const HEATING_SYSTEMS = [
 
 const FLOOR_MATERIALS = ["Parquet", "Laminate", "Tile", "Other"] as const;
 
-// Mirrors Heating.RequiresDetails on the backend.
-export const HEATING_WITH_OWN_SOURCE = ["OwnBoiler", "HeatPump", "SolarPanels"] as const;
+// Mirror Heating.RequiresEnergySource / RequiresDistribution on the backend. Solar panels are
+// their own energy source, so they only ask for distribution.
+export const HEATING_WITH_ENERGY_SOURCE = ["OwnBoiler", "HeatPump"] as const;
+export const HEATING_WITH_DISTRIBUTION = ["OwnBoiler", "HeatPump", "SolarPanels"] as const;
 
 // Heating system (optional) + its conditional energy source/distribution, required only while
 // shown — identical for House and Apartment.
@@ -55,14 +57,14 @@ const HEATING_FIELDS: readonly AttributeField[] = [
     kind: "enum",
     required: true,
     options: ["Gas", "Electricity", "Wood", "Combined"],
-    visibleWhen: { field: "heatingSystem", values: HEATING_WITH_OWN_SOURCE },
+    visibleWhen: { field: "heatingSystem", values: HEATING_WITH_ENERGY_SOURCE },
   },
   {
     name: "heatingDistribution",
     kind: "enum",
     required: true,
     options: ["Radiators", "UnderfloorHeating", "Air"],
-    visibleWhen: { field: "heatingSystem", values: HEATING_WITH_OWN_SOURCE },
+    visibleWhen: { field: "heatingSystem", values: HEATING_WITH_DISTRIBUTION },
   },
 ];
 
@@ -178,6 +180,9 @@ export const ATTRIBUTE_SCHEMA: Record<PropertyTypeName, readonly AttributeField[
 export function hasBuilding(propertyType: string): boolean {
   return propertyType !== "Land";
 }
+
+// The general Property.Condition values (see usesGeneralCondition).
+export const GENERAL_CONDITIONS = ["New", "Renovated", "NeedsRepair", "GrayStructure", "RedStructure"] as const;
 
 // House, Apartment and Commercial describe their state with the finishCondition attribute; only
 // Garage and Room still use the general condition (Land has none).

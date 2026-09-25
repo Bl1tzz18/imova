@@ -112,9 +112,11 @@ public class PropertyAttributesValidatorTests
 
     [Theory]
     [MemberData(nameof(HeatingCases))]
-    public void HeatingDetails_AreRequiredExactlyForBoilerHeatPumpAndSolar(PropertyAttributes withoutDetails, string system)
+    public void HeatingDetails_AreRequiredExactlyWhenTheHeatingSystemHasThem(PropertyAttributes withoutDetails, string system)
     {
-        var requiresDetails = system is "OwnBoiler" or "HeatPump" or "SolarPanels";
+        // Solar panels are their own energy source, so they only take a distribution.
+        var requiresEnergySource = system is "OwnBoiler" or "HeatPump";
+        var requiresDistribution = system is "OwnBoiler" or "HeatPump" or "SolarPanels";
         var withDetails = withoutDetails switch
         {
             ApartmentAttributes a => (PropertyAttributes)(a with { HeatingEnergySource = HeatingEnergySource.Electricity, HeatingDistribution = HeatingDistribution.Air }),
@@ -122,17 +124,39 @@ public class PropertyAttributesValidatorTests
             _ => throw new InvalidOperationException(),
         };
 
-        if (requiresDetails)
-        {
-            Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withoutDetails).Order());
-            Assert.Empty(ErrorsFor(withDetails));
-        }
-        else
-        {
-            Assert.Empty(ErrorsFor(withoutDetails));
-            Assert.Equal(new[] { "HeatingDistribution", "HeatingEnergySource" }, ErrorsFor(withDetails).Order());
-        }
+        // Missing a required detail and supplying one that doesn't apply both fail on that field.
+        var missing = new List<string>();
+        var superfluous = new List<string>();
+        (requiresDistribution ? missing : superfluous).Add("HeatingDistribution");
+        (requiresEnergySource ? missing : superfluous).Add("HeatingEnergySource");
+
+        Assert.Equal(missing, ErrorsFor(withoutDetails).Order());
+        Assert.Equal(superfluous, ErrorsFor(withDetails).Order());
     }
+
+    [Theory]
+    [MemberData(nameof(ApartmentAndHouse))]
+    public void SolarPanels_TakeADistributionButNoEnergySource(PropertyAttributes complete)
+    {
+        var solar = complete switch
+        {
+            ApartmentAttributes a => (PropertyAttributes)(a with { HeatingSystem = HeatingSystem.SolarPanels, HeatingEnergySource = null, HeatingDistribution = HeatingDistribution.UnderfloorHeating }),
+            HouseAttributes h => h with { HeatingSystem = HeatingSystem.SolarPanels, HeatingEnergySource = null, HeatingDistribution = HeatingDistribution.UnderfloorHeating },
+            _ => throw new InvalidOperationException(),
+        };
+        var solarWithSource = solar switch
+        {
+            ApartmentAttributes a => (PropertyAttributes)(a with { HeatingEnergySource = HeatingEnergySource.Electricity }),
+            HouseAttributes h => h with { HeatingEnergySource = HeatingEnergySource.Electricity },
+            _ => throw new InvalidOperationException(),
+        };
+
+        Assert.Empty(ErrorsFor(solar));
+        Assert.Equal(["HeatingEnergySource"], ErrorsFor(solarWithSource));
+    }
+
+    public static TheoryData<PropertyAttributes> ApartmentAndHouse() =>
+        new() { TestAttributes.CompleteApartment, TestAttributes.CompleteHouse };
 
     [Fact]
     public void HeatingDetails_WithNoHeatingSystem_AreRejected()
@@ -163,12 +187,21 @@ public class PropertyAttributesValidatorTests
     }
 
     [Fact]
-    public void Heating_RequiresDetails_IsTrueOnlyForBoilerHeatPumpAndSolar()
+    public void Heating_RequiresEnergySource_IsTrueOnlyForBoilerAndHeatPump()
+    {
+        Assert.Equal(
+            [HeatingSystem.OwnBoiler, HeatingSystem.HeatPump],
+            Enum.GetValues<HeatingSystem>().Where(s => Heating.RequiresEnergySource(s)));
+        Assert.False(Heating.RequiresEnergySource(null));
+    }
+
+    [Fact]
+    public void Heating_RequiresDistribution_IsTrueOnlyForBoilerHeatPumpAndSolar()
     {
         Assert.Equal(
             [HeatingSystem.OwnBoiler, HeatingSystem.HeatPump, HeatingSystem.SolarPanels],
-            Enum.GetValues<HeatingSystem>().Where(s => Heating.RequiresDetails(s)));
-        Assert.False(Heating.RequiresDetails(null));
+            Enum.GetValues<HeatingSystem>().Where(s => Heating.RequiresDistribution(s)));
+        Assert.False(Heating.RequiresDistribution(null));
     }
 
     // --- Other per-type conditional fields ---

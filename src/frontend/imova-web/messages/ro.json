@@ -195,6 +195,7 @@
     "areaInAri": "≈ {ari} ari",
     "conditionLabel": "Stare",
     "amenitiesLabel": "Dotări",
+    "proximitiesLabel": "Vecinătăți",
     "isNegotiableLabel": "Preț negociabil",
     "rentalTermsHeading": "Condiții de închiriere",
     "minLeasePeriodLabel": "Perioadă minimă (luni)",
@@ -221,8 +222,8 @@
       "other": "Alte dotări",
       "typeArea": "Tip și suprafață",
       "utilitiesAccess": "Utilități și acces",
-      "surroundings": "Împrejurimi",
       "amenities": "Dotări",
+      "proximities": "Vecinătăți",
       "rentalRules": "Reguli de închiriere"
     }
   },
@@ -260,6 +261,7 @@
     "nextPhoto": "Fotografia următoare",
     "condition": "Stare",
     "amenities": "Dotări",
+    "proximities": "Vecinătăți",
     "rentalTerms": "Condiții de închiriere",
     "minLeasePeriod": "Perioadă minimă",
     "months": "{count, plural, one {# lună} few {# luni} other {# de luni}}",
@@ -451,11 +453,20 @@
     "panoramic_windows": "Geamuri panoramice",
     "separate_living_room": "Living separat",
     "thermopane_windows": "Geamuri termopan",
-    "guarded": "Pază",
-    "near_water": "Lângă un bazin acvatic",
-    "near_forest": "Lângă pădure",
     "electricity": "Electricitate",
     "kitchen_access": "Acces la bucătărie"
+  },
+  "Proximity": {
+    "kindergarten": "Grădiniță",
+    "school": "Școală",
+    "supermarket": "Supermarket / magazin alimentar",
+    "pharmacy": "Farmacie",
+    "public_transport": "Stație transport public",
+    "park": "Parc / zonă verde",
+    "city_center": "Centrul orașului",
+    "hospital": "Spital / policlinică",
+    "farmers_market": "Piață agroalimentară",
+    "bank": "Bancă / bancomat"
   },
   "Attributes": {
     "choose": "Alege",

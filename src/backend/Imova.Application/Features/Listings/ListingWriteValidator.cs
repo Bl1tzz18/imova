@@ -15,6 +15,7 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
     where T : IListingWriteCommand
 {
     public const int MaxAmenities = 50;
+    public const int MaxProximities = 20;
 
     protected ListingWriteValidator(IApplicationDbContext dbContext)
     {
@@ -81,6 +82,32 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
                 }
             })
             .When(c => c.AmenityIds is { Count: > 0 });
+
+        RuleFor(c => c.ProximityIds)
+            .Must(ids => ids!.Count <= MaxProximities)
+            .WithMessage($"At most {MaxProximities} proximities can be selected.")
+            .MustAsync(async (ids, cancellationToken) =>
+            {
+                var distinct = ids!.Distinct().ToList();
+                var known = await dbContext.Proximities.CountAsync(p => distinct.Contains(p.Id), cancellationToken);
+                return known == distinct.Count;
+            })
+            .WithMessage("ProximityIds contains an unknown proximity.")
+            .CustomAsync(async (ids, context, cancellationToken) =>
+            {
+                var command = context.InstanceToValidate;
+                var proximities = await dbContext.Proximities
+                    .Where(p => ids!.Contains(p.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var proximity in proximities.Where(p => !p.AppliesTo(command.PropertyType)))
+                {
+                    context.AddFailure(
+                        nameof(IListingWriteCommand.ProximityIds),
+                        $"The '{proximity.Key}' proximity doesn't apply to a {command.PropertyType}.");
+                }
+            })
+            .When(c => c.ProximityIds is { Count: > 0 });
 
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
 
