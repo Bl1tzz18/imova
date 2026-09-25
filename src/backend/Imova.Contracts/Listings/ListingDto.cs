@@ -21,7 +21,9 @@ public record ListingDto(
     PropertyDto Property,
     PublisherDto Publisher,
     IReadOnlyList<PhotoDto> Photos,
-    bool IsSaved);
+    bool IsSaved,
+    // Only on a listing's detail view (null on cards/search results) — see ListingContactDto.
+    ListingContactDto? Contact = null);
 
 public record PriceDto(decimal Amount, string Currency, decimal PriceEur, bool IsNegotiable);
 

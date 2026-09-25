@@ -54,6 +54,12 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
             .HasConversion(
                 details => details == null ? null : JsonSerializer.Serialize(details, DetailsJsonOptions),
                 json => json == null ? null : JsonSerializer.Deserialize<RentalDetails>(json, DetailsJsonOptions));
+        // Nullable only for listings created before the Contact step existed.
+        builder.Property(l => l.Contact)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                contact => contact == null ? null : JsonSerializer.Serialize(contact, DetailsJsonOptions),
+                json => json == null ? null : JsonSerializer.Deserialize<ListingContact>(json, DetailsJsonOptions));
 
         builder.HasIndex(l => l.PropertyId);
         builder.HasIndex(l => l.PublisherId);

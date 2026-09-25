@@ -37,6 +37,22 @@ export type Proximity = {
   applicablePropertyTypes: string[];
 };
 
+// Who to contact about a listing (detail view only). Name/email are already resolved — a "Self"
+// contact carries the publisher's own. phone is null when the owner hid it (unless the viewer is
+// the owner or an admin).
+export type ListingContact = {
+  personType: "Self" | "Other";
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  messagingApps: string[];
+  preferredContactMethod: "PhoneCall" | "PlatformMessages" | "Any";
+  hidePhoneNumber: boolean;
+  // "HH:mm", both or neither — e.g. 09:00 and 18:00.
+  callHoursFrom: string | null;
+  callHoursTo: string | null;
+};
+
 export type PublisherType = "Individual" | "Agency";
 
 // phone/email are null wherever contact details aren't exposed (cards/search results) — only a
@@ -130,4 +146,6 @@ export type Listing = {
   publisher: Publisher;
   photos: Photo[];
   isSaved: boolean;
+  // Only on the detail view — null/absent on cards and search results.
+  contact?: ListingContact | null;
 };

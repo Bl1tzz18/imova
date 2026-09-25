@@ -49,7 +49,8 @@ public class UpdateListingHandler(
             ListingWriteSupport.BuildPrice(request, exchangeRates),
             // Keep whatever sale terms exist while it stays a sale; switching to rent drops them.
             request.TransactionType == TransactionType.Sale ? listing.SaleDetails : null,
-            ListingWriteSupport.RentalDetails(request));
+            ListingWriteSupport.RentalDetails(request),
+            request.Contact);
 
         // Saving edits to a Rejected listing is the owner's way of addressing whatever an admin
         // flagged — resubmit it in the same step instead of making them press a separate button.
@@ -61,6 +62,7 @@ public class UpdateListingHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return await ListingDtoLoader.LoadOneAsync(
-            dbContext, blobStorageService, listing, request.RequestingUserId, cancellationToken, includeContactDetails: true);
+            dbContext, blobStorageService, listing, request.RequestingUserId, cancellationToken, includeContactDetails: true,
+            viewerIsAdmin: request.IsAdmin);
     }
 }

@@ -49,7 +49,8 @@ public class UpdateListingValidatorTests
             50_000m,
             Currency.EUR,
             true,
-            null);
+            null,
+            TestContacts.Self);
 
     [Fact]
     public async Task Validate_WithValidCommand_HasNoErrors()

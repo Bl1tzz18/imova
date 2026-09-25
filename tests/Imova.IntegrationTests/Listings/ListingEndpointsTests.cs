@@ -251,8 +251,100 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         Assert.DoesNotContain(outOfBand, l => l.Id == listing.Id);
         // Contact details stay off search results.
         Assert.Null(inBand.Single(l => l.Id == listing.Id).Publisher.Phone);
+        Assert.Null(inBand.Single(l => l.Id == listing.Id).Contact);
 
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
+    public async Task HiddenPhone_IsNotInThePublicResponse_ButTheOwnerStillSeesIt()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(owner);
+        body["contact"] = new Dictionary<string, object?>
+        {
+            ["personType"] = "Self",
+            ["phone"] = "+373 68 987 654",
+            ["messagingApps"] = new[] { "WhatsApp" },
+            ["preferredContactMethod"] = "PlatformMessages",
+            ["hidePhoneNumber"] = true,
+        };
+        var listing = (await (await owner.PostAsJsonAsync("/api/v1/listings", body)).Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Equal(HttpStatusCode.OK, (await admin.PostAsync($"/api/v1/listings/{listing.Id}/approve", null)).StatusCode);
+
+        var publicJson = await _factory.CreateClient().GetStringAsync($"/api/v1/listings/{listing.Id}");
+        var ownerView = (await owner.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
+
+        // Neither the listing's contact number nor the account's own number leaks anywhere.
+        Assert.DoesNotContain("987 654", publicJson);
+        Assert.DoesNotContain("123 456", publicJson);
+        var publicView = JsonSerializer.Deserialize<ListingDto>(publicJson, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
+        Assert.Null(publicView.Contact!.Phone);
+        Assert.True(publicView.Contact.HidePhoneNumber);
+        Assert.Equal("PlatformMessages", publicView.Contact.PreferredContactMethod);
+        Assert.Empty(publicView.Contact.MessagingApps);
+        Assert.Equal("+373 68 987 654", ownerView.Contact!.Phone);
+
+        await owner.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
+    public async Task HiddenPhone_WithCallsPreferred_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["contact"] = new Dictionary<string, object?>
+        {
+            ["personType"] = "Self", ["phone"] = "+373 68 987 654", ["preferredContactMethod"] = "PhoneCall", ["hidePhoneNumber"] = true,
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("Contact.PreferredContactMethod", out _));
+    }
+
+    [Fact]
+    public async Task OtherContact_RoundTripsItsOwnDetails()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["contact"] = new Dictionary<string, object?>
+        {
+            ["personType"] = "Other",
+            ["name"] = "Maria Popescu",
+            ["phone"] = "+373 79 333 444",
+            ["email"] = "maria@example.com",
+            ["preferredContactMethod"] = "PhoneCall",
+            ["callHoursFrom"] = "09:00",
+            ["callHoursTo"] = "18:00",
+        };
+
+        var created = (await (await client.PostAsJsonAsync("/api/v1/listings", body)).Content.ReadFromJsonAsync<ListingDto>())!;
+        var contact = (await client.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{created.Id}"))!.Contact!;
+
+        Assert.Equal("Other", contact.PersonType);
+        Assert.Equal("Maria Popescu", contact.Name);
+        Assert.Equal("maria@example.com", contact.Email);
+        Assert.Equal("+373 79 333 444", contact.Phone);
+        Assert.Equal("09:00", contact.CallHoursFrom);
+        Assert.Equal("18:00", contact.CallHoursTo);
+
+        await client.DeleteAsync($"/api/v1/listings/{created.Id}");
+    }
+
+    [Fact]
+    public async Task CreateListing_WithoutAContact_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body.Remove("contact");
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

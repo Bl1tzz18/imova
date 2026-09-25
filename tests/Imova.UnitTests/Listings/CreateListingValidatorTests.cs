@@ -81,7 +81,9 @@ public class CreateListingValidatorTests
         Guid? raionId = null,
         Guid? localitateId = null,
         Guid? chisinauSectorId = null,
-        Guid? publisherId = null) =>
+        Guid? publisherId = null,
+        ListingContact? contact = null,
+        bool omitContact = false) =>
         new(
             null,
             Guid.NewGuid(),
@@ -111,7 +113,8 @@ public class CreateListingValidatorTests
                 ? null
                 : rentalDetails ?? (transactionType == TransactionType.Rent && RentalDetails.PetsApplyTo(propertyType)
                     ? new RentalDetails(PetsAllowed: false)
-                    : null));
+                    : null),
+            omitContact ? null : contact ?? TestContacts.Self);
 
     private async Task<List<string>> ErrorPropertiesAsync(CreateListingCommand command) =>
         (await _validator.ValidateAsync(command)).Errors.Select(e => e.PropertyName).ToList();
@@ -209,6 +212,33 @@ public class CreateListingValidatorTests
     public async Task Validate_WithUnknownAmenity_HasError()
     {
         Assert.Contains("AmenityIds", await ErrorPropertiesAsync(ValidCommand(amenityIds: [_amenityId, Guid.NewGuid()])));
+    }
+
+    [Fact]
+    public async Task Validate_WithoutAContact_HasError()
+    {
+        Assert.Equal(["Contact"], await ErrorPropertiesAsync(ValidCommand(omitContact: true)));
+    }
+
+    [Fact]
+    public async Task Validate_ContactErrors_AreReportedUnderContact()
+    {
+        var errors = await ErrorPropertiesAsync(ValidCommand(contact: TestContacts.HiddenPhone with
+        {
+            PreferredContactMethod = PreferredContactMethod.PhoneCall,
+        }));
+
+        Assert.Equal(["Contact.PreferredContactMethod"], errors);
+    }
+
+    [Theory]
+    [InlineData(ContactPersonType.Self)]
+    [InlineData(ContactPersonType.Other)]
+    public async Task Validate_EitherContactPersonType_IsAccepted(ContactPersonType personType)
+    {
+        var contact = personType == ContactPersonType.Self ? TestContacts.Self : TestContacts.Other;
+
+        Assert.Empty(await ErrorPropertiesAsync(ValidCommand(contact: contact)));
     }
 
     [Fact]

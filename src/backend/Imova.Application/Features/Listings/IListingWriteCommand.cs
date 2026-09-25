@@ -59,4 +59,7 @@ public interface IListingWriteCommand
     // Only for TransactionType.Rent (defaults to an empty RentalDetails when omitted); must be
     // null for a sale.
     RentalDetails? RentalDetails { get; }
+
+    // --- Contact (the form's last step) --- required on every create/edit.
+    ListingContact? Contact { get; }
 }

@@ -27,15 +27,42 @@ public class GetListingByIdHandlerTests
     [Fact]
     public async Task Handle_ForActiveListing_ReturnsItWithPublisherContactAndExactLocation()
     {
+        // No Contact of its own (created before the Contact step) — falls back to the publisher's.
         var listing = ListingTestData.AddListing(_dbContext, _publisherId).MoveTo(ListingStatus.Active);
 
         var dto = await GetAsync(listing.Id);
 
         Assert.NotNull(dto);
-        Assert.Equal("+373 69 123 456", dto!.Publisher.Phone);
-        Assert.Equal("ion@example.com", dto.Publisher.Email);
+        Assert.Equal("+373 69 123 456", dto!.Contact!.Phone);
+        Assert.Equal("ion@example.com", dto.Contact.Email);
+        Assert.Null(dto.Publisher.Phone);
         Assert.Equal("Strada Ismail", dto.Property.Location!.Street);
         Assert.Equal(47.0105, dto.Property.Location.Latitude);
+    }
+
+    [Fact]
+    public async Task Handle_WithAHiddenPhone_LeavesItOutForAnonymousAndOtherUsers()
+    {
+        var listing = ListingTestData.AddListing(_dbContext, _publisherId, contact: TestContacts.HiddenPhone)
+            .MoveTo(ListingStatus.Active);
+
+        var anonymous = await GetAsync(listing.Id);
+        var otherUser = await GetAsync(listing.Id, Guid.NewGuid());
+
+        Assert.Null(anonymous!.Contact!.Phone);
+        Assert.Null(anonymous.Publisher.Phone);
+        Assert.True(anonymous.Contact.HidePhoneNumber);
+        Assert.Null(otherUser!.Contact!.Phone);
+    }
+
+    [Fact]
+    public async Task Handle_WithAHiddenPhone_StillShowsItToTheOwnerAndAdmins()
+    {
+        var listing = ListingTestData.AddListing(_dbContext, _publisherId, contact: TestContacts.HiddenPhone)
+            .MoveTo(ListingStatus.Active);
+
+        Assert.Equal("+373 69 555 666", (await GetAsync(listing.Id, _ownerId))!.Contact!.Phone);
+        Assert.Equal("+373 69 555 666", (await GetAsync(listing.Id, Guid.NewGuid(), isAdmin: true))!.Contact!.Phone);
     }
 
     [Fact]

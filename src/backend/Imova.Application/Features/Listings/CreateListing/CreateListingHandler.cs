@@ -43,6 +43,7 @@ public class CreateListingHandler(
             request.Description,
             ListingWriteSupport.BuildPrice(request, exchangeRates),
             rentalDetails: ListingWriteSupport.RentalDetails(request),
+            contact: request.Contact,
             id: request.Id);
 
         // A new listing goes straight into the admin review queue — the owner doesn't take a

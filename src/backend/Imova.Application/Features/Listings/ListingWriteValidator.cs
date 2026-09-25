@@ -169,6 +169,10 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
             .OverridePropertyName("RentalDetails.SecurityDepositAmount")
             .When(c => c.RentalDetails is not null);
 
+        // --- Contact ---
+        RuleFor(c => c.Contact).NotNull().WithMessage("Contact is required.");
+        RuleFor(c => c.Contact!).SetValidator(new ListingContactValidator()).When(c => c.Contact is not null);
+
         // Pets are a required Yes/No for a rented home and not asked for anything else.
         RuleFor(c => c.RentalDetails)
             .Must(details => details?.PetsAllowed is not null)

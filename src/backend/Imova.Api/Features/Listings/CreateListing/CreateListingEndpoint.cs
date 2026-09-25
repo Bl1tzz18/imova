@@ -38,7 +38,8 @@ public static class CreateListingEndpoint
                 request.Price,
                 request.Currency,
                 request.IsNegotiable,
-                request.RentalDetails);
+                request.RentalDetails,
+                request.Contact);
 
             var listing = await sender.Send(command, cancellationToken);
             return Results.Created($"/api/v1/listings/{listing.Id}", listing);

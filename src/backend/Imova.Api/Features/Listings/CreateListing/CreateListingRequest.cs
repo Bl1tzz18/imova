@@ -28,4 +28,5 @@ public record CreateListingRequest(
     decimal Price,
     Currency Currency,
     bool IsNegotiable,
-    RentalDetails? RentalDetails);
+    RentalDetails? RentalDetails,
+    ListingContact? Contact);

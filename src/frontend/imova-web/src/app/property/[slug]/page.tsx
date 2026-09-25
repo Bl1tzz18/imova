@@ -44,7 +44,7 @@ export default async function ProprietatePage({
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity, tProximity] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity, tProximity, tMethod] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
@@ -54,11 +54,12 @@ export default async function ProprietatePage({
     getTranslations("Condition"),
     getTranslations("Amenity"),
     getTranslations("Proximity"),
+    getTranslations("ContactMethod"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
 
-  const { property, rentalDetails, publisher } = listing;
+  const { property, rentalDetails, publisher, contact } = listing;
   const yesNo = (value: boolean) => (value ? t("yes") : t("no"));
 
   // Physical facts: area, building data, then whatever the property type's attribute schema
@@ -265,21 +266,25 @@ export default async function ProprietatePage({
                 </div>
               </div>
 
-              {(publisher.email || publisher.phone) && (
+              {contact && (
                 <div className="mt-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
                   <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
                   <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
-                    {publisher.displayName}
-                    {publisher.publisherType === "Agency" && <Badge tone="brand">{t("agency")}</Badge>}
+                    {contact.name ?? publisher.displayName}
+                    {contact.personType === "Self" && publisher.publisherType === "Agency" && (
+                      <Badge tone="brand">{t("agency")}</Badge>
+                    )}
                   </p>
-                  {publisher.bio && <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>}
+                  {contact.personType === "Self" && publisher.bio && (
+                    <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>
+                  )}
                   <dl className="mt-3 space-y-3 text-sm">
-                    {publisher.email && (
+                    {contact.email && (
                       <div>
                         <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
                         <dd className="mt-0.5">
-                          <a href={`mailto:${publisher.email}`} className="font-medium text-brand-700 hover:underline">
-                            {publisher.email}
+                          <a href={`mailto:${contact.email}`} className="font-medium text-brand-700 hover:underline">
+                            {contact.email}
                           </a>
                         </dd>
                       </div>
@@ -287,15 +292,43 @@ export default async function ProprietatePage({
                     <div>
                       <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
                       <dd className="mt-0.5">
-                        {publisher.phone ? (
-                          <a href={`tel:${publisher.phone}`} className="font-medium text-brand-700 hover:underline">
-                            {publisher.phone}
+                        {contact.phone ? (
+                          <a href={`tel:${contact.phone}`} className="font-medium text-brand-700 hover:underline">
+                            {contact.phone}
                           </a>
                         ) : (
-                          <span className="text-ink-400">{t("phoneNotProvided")}</span>
+                          <span className="text-ink-400">
+                            {contact.hidePhoneNumber ? t("phoneHidden") : t("phoneNotProvided")}
+                          </span>
                         )}
                       </dd>
                     </div>
+                    {contact.phone && contact.messagingApps.length > 0 && (
+                      <div>
+                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("availableOn")}</dt>
+                        <dd className="mt-1 flex flex-wrap gap-1.5">
+                          {contact.messagingApps.map((app) => (
+                            <Badge key={app} tone="neutral">
+                              {app}
+                            </Badge>
+                          ))}
+                        </dd>
+                      </div>
+                    )}
+                    {contact.preferredContactMethod !== "Any" && (
+                      <div>
+                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("preferredContact")}</dt>
+                        <dd className="mt-0.5 text-ink-900">{tMethod(contact.preferredContactMethod)}</dd>
+                      </div>
+                    )}
+                    {contact.phone && contact.callHoursFrom && contact.callHoursTo && (
+                      <div>
+                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("callHours")}</dt>
+                        <dd className="mt-0.5 text-ink-900">
+                          {contact.callHoursFrom}–{contact.callHoursTo}
+                        </dd>
+                      </div>
+                    )}
                   </dl>
                 </div>
               )}
