@@ -8,6 +8,7 @@ using Imova.Api.Features.Favorites;
 using Imova.Api.Features.Listings;
 using Imova.Api.Features.Locations;
 using Imova.Api.Features.Media;
+using Imova.Api.Features.Messaging;
 using Imova.Api.Features.Publishers;
 using Imova.Api.Features.Users;
 using Imova.Api.Features.Proximities;
@@ -16,7 +17,9 @@ using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings.GetListings;
+using Imova.Application.Features.Messaging;
 using Imova.Infrastructure;
+using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
 using Imova.Infrastructure.Locations;
@@ -94,9 +97,60 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = "role",
             NameClaimType = JwtRegisteredClaimNames.Email,
         };
+    })
+    // Only for the SignalR hub: short-lived tokens with their own audience (see
+    // GenerateRealtimeToken). Browsers can't set headers on a WebSocket, so the token arrives as
+    // the access_token query parameter.
+    .AddJwtBearer(RealtimeAuth.Scheme, options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.RealtimeAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1),
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments(MessagingHub.Path))
+                {
+                    context.Token = token;
+                }
+
+                return Task.CompletedTask;
+            },
+        };
     });
 
 builder.Services.AddAuthorization();
+
+// Messaging: realtime push over SignalR, presence, email notifications.
+builder.Services.AddSignalR();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<PresenceTracker>();
+builder.Services.AddSingleton<IPresenceTracker>(sp => sp.GetRequiredService<PresenceTracker>());
+builder.Services.AddSingleton<IRealtimeNotifier, RealtimeNotifier>();
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>() ?? new MessagingOptions());
+builder.Services.AddScoped<MessageDelivery>();
+var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+builder.Services.AddSingleton(emailOptions);
+if (string.IsNullOrWhiteSpace(emailOptions.Host))
+{
+    builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
+}
+else
+{
+    builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+}
 
 var blobStorageOptions = builder.Configuration.GetSection(BlobStorageOptions.SectionName).Get<BlobStorageOptions>()
     ?? throw new InvalidOperationException($"Configuration section \"{BlobStorageOptions.SectionName}\" is missing.");
@@ -208,6 +262,14 @@ app.UseExceptionHandler(handler =>
             return;
         }
 
+        if (exception is TooManyRequestsException tooManyRequestsException)
+        {
+            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            await Results.Problem(tooManyRequestsException.Message, statusCode: StatusCodes.Status429TooManyRequests)
+                .ExecuteAsync(context);
+            return;
+        }
+
         if (exception is ForbiddenAccessException forbiddenException)
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -230,6 +292,8 @@ app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapFavoriteEndpoints();
 app.MapLocationsEndpoints();
+app.MapMessagingEndpoints();
+app.MapHub<MessagingHub>(MessagingHub.Path);
 
 app.Run();
 

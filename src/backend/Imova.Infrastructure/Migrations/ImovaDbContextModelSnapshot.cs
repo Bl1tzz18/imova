@@ -47,6 +47,9 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsBannedFromMessaging")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
@@ -759,6 +762,185 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("Raioane", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Messaging.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ArchivedByInitiator")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ArchivedByPublisher")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("InitiatorNotifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InitiatorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PublisherNotifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PublisherUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorUserId", "CreatedAt");
+
+                    b.HasIndex("InitiatorUserId", "LastMessageAt");
+
+                    b.HasIndex("ListingId", "InitiatorUserId")
+                        .IsUnique();
+
+                    b.HasIndex("PublisherUserId", "LastMessageAt");
+
+                    b.ToTable("Conversations");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.ConversationReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("ReporterUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("ResolvedAt");
+
+                    b.ToTable("ConversationReports");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FlagReason")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsFlagged")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SenderUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsFlagged")
+                        .HasFilter("\"IsFlagged\"");
+
+                    b.HasIndex("ConversationId", "CreatedAt");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.MessageAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId");
+
+                    b.ToTable("MessageAttachments", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.UserBlock", b =>
+                {
+                    b.Property<Guid>("BlockerUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BlockedUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("BlockerUserId", "BlockedUserId");
+
+                    b.HasIndex("BlockedUserId");
+
+                    b.ToTable("UserBlocks");
+                });
+
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1202,6 +1384,33 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Messaging.ConversationReport", b =>
+                {
+                    b.HasOne("Imova.Domain.Messaging.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.Message", b =>
+                {
+                    b.HasOne("Imova.Domain.Messaging.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.MessageAttachment", b =>
+                {
+                    b.HasOne("Imova.Domain.Messaging.Message", null)
+                        .WithMany("Attachments")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
                     b.HasOne("Imova.Domain.Locations.PropertyLocation", null)
@@ -1299,6 +1508,11 @@ namespace Imova.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Messaging.Message", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>

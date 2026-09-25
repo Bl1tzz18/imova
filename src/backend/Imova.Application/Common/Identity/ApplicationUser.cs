@@ -18,4 +18,7 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     // sign-in (see GoogleLoginHandler) rather than linked to directly, since Google's URL can be
     // unreliable/temporary and we don't want a third party able to change what renders here.
     public string? ProfilePictureUrl { get; set; }
+
+    // Set by an admin (see SetMessagingBanHandler in Features/Messaging/Admin): the user can no longer send messages.
+    public bool IsBannedFromMessaging { get; set; }
 }

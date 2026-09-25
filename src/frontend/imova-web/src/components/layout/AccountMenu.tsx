@@ -64,6 +64,9 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
             <p className="truncate text-xs text-ink-400">{profile.email}</p>
           </div>
 
+          <Link href="/messages" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+            {t("messages")}
+          </Link>
           <Link href="/my-listings" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
             {t("myListings")}
           </Link>
@@ -76,6 +79,11 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
           {profile.roles.includes("Admin") && (
             <Link href="/admin/moderation" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
               {t("moderationQueue")}
+            </Link>
+          )}
+          {profile.roles.includes("Admin") && (
+            <Link href="/admin/messaging" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+              {t("messagingReports")}
             </Link>
           )}
 

@@ -3,6 +3,7 @@ using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
+using Imova.Domain.Messaging;
 using Imova.Domain.Properties;
 using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
@@ -37,6 +38,14 @@ public interface IApplicationDbContext
     DbSet<ChisinauSector> ChisinauSectors { get; }
 
     DbSet<Favorite> Favorites { get; }
+
+    DbSet<Conversation> Conversations { get; }
+
+    DbSet<Message> Messages { get; }
+
+    DbSet<UserBlock> UserBlocks { get; }
+
+    DbSet<ConversationReport> ConversationReports { get; }
 
     DbSet<ApplicationUser> Users { get; }
 

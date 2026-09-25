@@ -127,6 +127,13 @@ export function StepContact({
         </label>
 
         {!isSelf && (
+          // In-app messages have to go to an account — the publisher's, since this person has none.
+          <p className="rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700 sm:col-span-2">
+            {t("otherContactMessagesNotice")}
+          </p>
+        )}
+
+        {!isSelf && (
           <label className="block">
             <FieldLabel>{t("contactEmailLabel")}</FieldLabel>
             <TextInput

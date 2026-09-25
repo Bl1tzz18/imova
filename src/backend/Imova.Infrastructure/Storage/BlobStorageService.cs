@@ -72,6 +72,9 @@ public sealed class BlobStorageService : IBlobStorageService
     public string GenerateProfilePictureBlobName(Guid userId, string fileExtension) =>
         $"profile-pictures/{userId}/{Guid.NewGuid()}{fileExtension}";
 
+    public string GenerateMessageAttachmentBlobName(Guid senderUserId, string fileExtension) =>
+        $"messages/{senderUserId}/{Guid.NewGuid()}{fileExtension}";
+
     public string GenerateUploadSasUrl(string blobName, TimeSpan expiry)
     {
         var blobClient = _containerClient.GetBlobClient(blobName);

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getSessionToken } from "@/lib/auth/session";
 
 export type UserProfile = {
@@ -11,8 +12,9 @@ export type UserProfile = {
 };
 
 // Not a Server Action (no "use server" here) — this reads data for a Server Component render,
-// not a form mutation, so it doesn't need the server-action wire format.
-export async function getCurrentUserProfile(): Promise<UserProfile | null> {
+// not a form mutation, so it doesn't need the server-action wire format. Cached per request: the
+// layout, the header and pages all ask for it.
+export const getCurrentUserProfile = cache(async (): Promise<UserProfile | null> => {
   const token = await getSessionToken();
   if (!token) {
     return null;
@@ -29,4 +31,4 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   }
 
   return (await res.json()) as UserProfile;
-}
+});

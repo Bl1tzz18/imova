@@ -37,4 +37,22 @@ public class JwtTokenGenerator(JwtOptions options) : IJwtTokenGenerator
 
         return new JwtToken(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
+
+    public JwtToken GenerateRealtimeToken(Guid userId)
+    {
+        var expiresAt = DateTimeOffset.UtcNow.AddMinutes(options.RealtimeExpiryMinutes);
+        var token = new JwtSecurityToken(
+            issuer: options.Issuer,
+            audience: options.RealtimeAudience,
+            claims:
+            [
+                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            ],
+            expires: expiresAt.UtcDateTime,
+            signingCredentials: new SigningCredentials(
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Key)), SecurityAlgorithms.HmacSha256));
+
+        return new JwtToken(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+    }
 }

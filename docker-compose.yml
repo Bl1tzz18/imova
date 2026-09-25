@@ -33,6 +33,14 @@ services:
       timeout: 5s
       retries: 5
 
+  # Catches every outgoing email in local dev — nothing leaves the machine. Inbox UI on :8025.
+  mailpit:
+    image: axllent/mailpit
+    container_name: imova-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
   backend:
     build:
       context: .
@@ -59,11 +67,17 @@ services:
       Jwt__ExpiryMinutes: "10080"
       GoogleAuth__ClientId: "${GOOGLE_CLIENT_ID}"
       GoogleAuth__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
+      # New-message notification emails go to Mailpit (web UI: http://localhost:8025) locally.
+      Email__Host: "mailpit"
+      Email__Port: "1025"
+      Messaging__WebBaseUrl: "http://localhost:3000"
     depends_on:
       postgres:
         condition: service_healthy
       azurite:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     ports:
       - "8080:8080"
 

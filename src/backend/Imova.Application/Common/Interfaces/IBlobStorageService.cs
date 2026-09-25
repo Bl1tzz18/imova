@@ -17,6 +17,10 @@ public interface IBlobStorageService
     // scheme GenerateBlobName uses — both share the same container.
     string GenerateProfilePictureBlobName(Guid userId, string fileExtension);
 
+    // Prefixed "messages/{senderUserId}/" so a message can only reference images its own sender
+    // uploaded (see MessageAttachments).
+    string GenerateMessageAttachmentBlobName(Guid senderUserId, string fileExtension);
+
     string GenerateUploadSasUrl(string blobName, TimeSpan expiry);
 
     string GetPublicUrl(string blobName);

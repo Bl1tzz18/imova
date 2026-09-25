@@ -4,6 +4,7 @@ using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
+using Imova.Domain.Messaging;
 using Imova.Domain.Properties;
 using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
@@ -47,6 +48,14 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<ChisinauSector> ChisinauSectors => Set<ChisinauSector>();
 
     public DbSet<Favorite> Favorites => Set<Favorite>();
+
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<Message> Messages => Set<Message>();
+
+    public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
+
+    public DbSet<ConversationReport> ConversationReports => Set<ConversationReport>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
