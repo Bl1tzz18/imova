@@ -12,6 +12,7 @@ namespace Imova.Infrastructure.Storage;
 public sealed class BlobStorageService : IBlobStorageService
 {
     private readonly BlobContainerClient _containerClient;
+    private readonly BlobContainerClient _messageAttachmentsClient;
     private readonly Uri? _publicBlobEndpoint;
 
     public TimeSpan DefaultUploadExpiry { get; }
@@ -35,6 +36,11 @@ public sealed class BlobStorageService : IBlobStorageService
         // never implies public write. In Azure this additionally requires the storage account
         // itself to have "Allow Blob public access" enabled.
         _containerClient.CreateIfNotExists(PublicAccessType.Blob);
+
+        // Message images are private between two people: no public access at all. Reads only go
+        // through the API (which checks the requester is a participant or an admin).
+        _messageAttachmentsClient = serviceClient.GetBlobContainerClient(options.MessageAttachmentsContainerName);
+        _messageAttachmentsClient.CreateIfNotExists(PublicAccessType.None);
 
         // Uploads PUT straight from the browser to storage via the SAS URL — that's a
         // cross-origin request with custom headers (x-ms-blob-type), so the browser sends a
@@ -72,9 +78,38 @@ public sealed class BlobStorageService : IBlobStorageService
     public string GenerateProfilePictureBlobName(Guid userId, string fileExtension) =>
         $"profile-pictures/{userId}/{Guid.NewGuid()}{fileExtension}";
 
-    public string GenerateUploadSasUrl(string blobName, TimeSpan expiry)
+    public string GenerateMessageAttachmentBlobName(Guid senderUserId, string fileExtension) =>
+        $"messages/{senderUserId}/{Guid.NewGuid()}{fileExtension}";
+
+    public string GenerateUploadSasUrl(string blobName, TimeSpan expiry) =>
+        GenerateUploadSasUrl(_containerClient, blobName, expiry);
+
+    public string GenerateMessageAttachmentUploadSasUrl(string blobName, TimeSpan expiry) =>
+        GenerateUploadSasUrl(_messageAttachmentsClient, blobName, expiry);
+
+    public Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken) =>
+        TryGetUploadedBlobInfoAsync(_containerClient, blobName, cancellationToken);
+
+    public Task<UploadedBlobInfo?> TryGetMessageAttachmentInfoAsync(string blobName, CancellationToken cancellationToken) =>
+        TryGetUploadedBlobInfoAsync(_messageAttachmentsClient, blobName, cancellationToken);
+
+    public async Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken)
     {
-        var blobClient = _containerClient.GetBlobClient(blobName);
+        var blobClient = _messageAttachmentsClient.GetBlobClient(blobName);
+        try
+        {
+            var download = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
+            return download.Value.Content;
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
+    private string GenerateUploadSasUrl(BlobContainerClient container, string blobName, TimeSpan expiry)
+    {
+        var blobClient = container.GetBlobClient(blobName);
 
         if (!blobClient.CanGenerateSasUri)
         {
@@ -86,7 +121,7 @@ public sealed class BlobStorageService : IBlobStorageService
 
         var sasBuilder = new BlobSasBuilder
         {
-            BlobContainerName = _containerClient.Name,
+            BlobContainerName = container.Name,
             BlobName = blobName,
             Resource = "b",
             ExpiresOn = DateTimeOffset.UtcNow.Add(expiry),
@@ -135,9 +170,10 @@ public sealed class BlobStorageService : IBlobStorageService
         await _containerClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken)
+    private static async Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(
+        BlobContainerClient container, string blobName, CancellationToken cancellationToken)
     {
-        var blobClient = _containerClient.GetBlobClient(blobName);
+        var blobClient = container.GetBlobClient(blobName);
 
         if (!await blobClient.ExistsAsync(cancellationToken))
         {

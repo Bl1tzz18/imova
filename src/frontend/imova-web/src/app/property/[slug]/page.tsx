@@ -11,6 +11,9 @@ import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format"
 import { squareMetersToAri } from "@/lib/listing/view";
 import { attributeSchemaFor } from "@/lib/property/attributeSchema";
 import { getSessionToken } from "@/lib/auth/session";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { getConversationIdForListing } from "@/lib/messaging/api";
+import { messageButtonEmphasis, messageButtonHref, showsRelayNotice } from "@/lib/messaging/contact";
 import type { Listing } from "@/types/listing";
 
 async function getListing(id: string): Promise<Listing | null> {
@@ -60,6 +63,21 @@ export default async function ProprietatePage({
   const location = formatFullLocation(listing.property.location);
 
   const { property, rentalDetails, publisher, contact } = listing;
+
+  // "Scrie mesaj" always reaches the publisher's own inbox (never the listing's "Other" contact).
+  const profile = await getCurrentUserProfile();
+  const isOwner = profile?.id === publisher.userId;
+  const existingConversationId = profile && !isOwner ? await getConversationIdForListing(listing.id) : null;
+  const messageHref = messageButtonHref(listing.id, profile !== null, existingConversationId);
+  const messageEmphasis = messageButtonEmphasis(contact);
+  const messageButton = (
+    <LinkButton href={messageHref} variant={messageEmphasis} className="mt-4 w-full">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
+        <path d="M4 5h16v11H8l-4 4V5Z" strokeLinejoin="round" />
+      </svg>
+      {existingConversationId ? t("openConversation") : t("sendMessage")}
+    </LinkButton>
+  );
   const yesNo = (value: boolean) => (value ? t("yes") : t("no"));
 
   // Physical facts: area, building data, then whatever the property type's attribute schema
@@ -278,6 +296,8 @@ export default async function ProprietatePage({
                   {contact.personType === "Self" && publisher.bio && (
                     <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>
                   )}
+                  {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
+                  {!isOwner && messageEmphasis === "primary" && messageButton}
                   <dl className="mt-3 space-y-3 text-sm">
                     {contact.email && (
                       <div>
@@ -330,6 +350,12 @@ export default async function ProprietatePage({
                       </div>
                     )}
                   </dl>
+                  {!isOwner && messageEmphasis === "secondary" && messageButton}
+                  {showsRelayNotice(contact, isOwner) && (
+                    <p className="mt-4 rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700">
+                      {t("relayNotice", { name: contact.name ?? "" })}
+                    </p>
+                  )}
                 </div>
               )}
             </aside>

@@ -2,6 +2,9 @@ import { Fraunces, Inter, Sora } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
+import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { getUnreadCount } from "@/lib/messaging/api";
 import "./globals.css";
 
 const inter = Inter({
@@ -38,15 +41,17 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+  const [locale, messages, profile] = await Promise.all([getLocale(), getMessages(), getCurrentUserProfile()]);
+  const unreadCount = profile ? await getUnreadCount() : 0;
 
   return (
     <html lang={locale} className={`${inter.variable} ${fraunces.variable} ${sora.variable}`}>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Header />
-          {children}
+          <RealtimeProvider userId={profile?.id ?? null} initialUnreadCount={unreadCount}>
+            <Header />
+            {children}
+          </RealtimeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

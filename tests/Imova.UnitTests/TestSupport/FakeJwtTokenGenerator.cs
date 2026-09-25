@@ -17,4 +17,7 @@ internal sealed class FakeJwtTokenGenerator : IJwtTokenGenerator
         LastRoles = roles;
         return new JwtToken("fake-token", DateTimeOffset.UtcNow.AddHours(1));
     }
+
+    public JwtToken GenerateRealtimeToken(Guid userId) =>
+        new($"fake-realtime-token-{userId}", DateTimeOffset.UtcNow.AddMinutes(15));
 }

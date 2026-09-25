@@ -14,4 +14,10 @@ public class JwtOptions
     public string Audience { get; set; } = string.Empty;
 
     public int ExpiryMinutes { get; set; } = 60 * 24 * 7;
+
+    // Realtime (SignalR) tokens: their own audience, so the hub accepts nothing else and the REST
+    // API doesn't accept them (see GenerateRealtimeToken).
+    public string RealtimeAudience => $"{Audience}.Realtime";
+
+    public int RealtimeExpiryMinutes { get; set; } = 15;
 }

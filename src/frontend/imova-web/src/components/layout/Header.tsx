@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { LinkButton } from "@/components/ui/Button";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { HeaderMessagesLink } from "@/components/messaging/HeaderMessagesLink";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 
 export async function Header() {
@@ -31,6 +32,7 @@ export async function Header() {
 
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
+          {profile && <HeaderMessagesLink />}
           {profile ? (
             <AccountMenu profile={profile} />
           ) : (
