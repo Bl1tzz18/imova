@@ -1,78 +1,103 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { Footer } from "@/components/layout/Footer";
 import { PropertyCard } from "@/components/property/PropertyCard";
-import { getSessionToken } from "@/lib/auth/session";
-import type { Listing } from "@/types/listing";
+import { FiltersSheet } from "@/components/search/FiltersSheet";
+import { Pagination } from "@/components/search/Pagination";
+import { SearchFilters } from "@/components/search/SearchFilters";
+import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
+import { SortSelect } from "@/components/search/SortSelect";
+import { searchListings, SEARCH_PAGE_SIZE } from "@/lib/search/api";
+import { currentPage, parseSearchParams, singlePropertyType, type SearchState } from "@/lib/search/filters";
 
-const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
-type PropertyTypeFilter = (typeof PROPERTY_TYPES)[number];
+type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
-function isPropertyType(value: string): value is PropertyTypeFilter {
-  return (PROPERTY_TYPES as readonly string[]).includes(value);
+// "Apartamente de vânzare", "Anunțuri de închiriat", "Toate anunțurile", …
+async function titleFor(state: SearchState): Promise<string> {
+  const t = await getTranslations("Search");
+  const type = singlePropertyType(state);
+  const transaction = state.transactionType?.[0];
+  const subject = type ? t(`typePlural.${type}`) : t("listings");
+  if (transaction === "Sale") return t("titleSale", { subject });
+  if (transaction === "Rent") return t("titleRent", { subject });
+  return type ? subject : t("titleAll");
 }
 
-const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
-type TransactionTypeFilter = (typeof TRANSACTION_TYPES)[number];
-
-function isTransactionType(value: string): value is TransactionTypeFilter {
-  return (TRANSACTION_TYPES as readonly string[]).includes(value);
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const state = parseSearchParams(await searchParams);
+  const t = await getTranslations("Search");
+  const title = await titleFor(state);
+  return { title: `${title} — IMOVA`, description: t("metaDescription", { title: title.toLowerCase() }) };
 }
 
-async function getListings(propertyType?: PropertyTypeFilter, transactionType?: TransactionTypeFilter): Promise<Listing[]> {
-  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const token = await getSessionToken();
-  const params = new URLSearchParams();
-  if (propertyType) params.set("propertyType", propertyType);
-  if (transactionType) params.set("transactionType", transactionType);
-  const query = params.size > 0 ? `?${params}` : "";
-  const res = await fetch(`${apiUrl}/api/v1/listings${query}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch listings: ${res.status}`);
-  }
-
-  return res.json();
-}
-
-export default async function CautaPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ propertyType?: string; transactionType?: string }>;
-}) {
-  const { propertyType, transactionType } = await searchParams;
-  const typeFilter = propertyType && isPropertyType(propertyType) ? propertyType : undefined;
-  const transactionFilter = transactionType && isTransactionType(transactionType) ? transactionType : undefined;
-
-  const [listings, t, tType] = await Promise.all([
-    getListings(typeFilter, transactionFilter),
+// The single search results page: every entry point (hero, category tiles, Cumpără/Închiriază,
+// the filter panel) just links here with query parameters, and this renders the matching listings
+// on the server — so any /search URL can be bookmarked, shared or crawled and shows the same results.
+export default async function SearchPage({ searchParams }: PageProps) {
+  const state = parseSearchParams(await searchParams);
+  const [t, tPage, results, title] = await Promise.all([
+    getTranslations("Search"),
     getTranslations("SearchPage"),
-    getTranslations("PropertyType"),
+    searchListings(state),
+    titleFor(state),
   ]);
-
-  const title = typeFilter ? tType(typeFilter) : t("title");
+  const total = results?.totalCount ?? 0;
+  const totalPages = Math.ceil(total / SEARCH_PAGE_SIZE);
+  const page = currentPage(state);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">{title}</h1>
-      <p className="mt-1 text-sm text-ink-500">
-        {listings.length > 0
-          ? t("resultsCount", { count: listings.length })
-          : t("noResults")}
-      </p>
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <SearchNavigationProvider state={state}>
+          <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
+            <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[18px] border border-line bg-white p-6 shadow-[var(--shadow-card)]">
+                  <SearchFilters />
+                </div>
+              </aside>
 
-      {listings.length > 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {listings.map((listing) => (
-            <PropertyCard key={listing.id} listing={listing} />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-8 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
-          <p className="text-sm text-ink-500">{t("noResults")}</p>
-        </div>
-      )}
-    </main>
+              <section className="min-w-0">
+                <h1 className="font-hero text-2xl font-extrabold text-ink-950 sm:text-3xl">{title}</h1>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-ink-500" aria-live="polite">
+                    {results === null ? t("error") : tPage("resultsCount", { count: total })}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <FiltersSheet totalCount={total} />
+                    <SortSelect />
+                  </div>
+                </div>
+
+                <PendingResults>
+                  {results && results.items.length > 0 ? (
+                    <>
+                      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                        {results.items.map((listing) => (
+                          <PropertyCard key={listing.id} listing={listing} />
+                        ))}
+                      </div>
+                      <Pagination state={state} page={page} totalPages={totalPages} />
+                    </>
+                  ) : (
+                    results && (
+                      <div className="mt-6 flex flex-col items-center gap-3 rounded-[18px] border border-dashed border-line bg-white px-6 py-16 text-center">
+                        <p className="font-semibold text-ink-900">{t("emptyTitle")}</p>
+                        <p className="max-w-md text-sm text-ink-500">{t("emptyHint")}</p>
+                        <Link href="/search" className="mt-2 text-sm font-medium text-accent-600 hover:underline">
+                          {t("reset")}
+                        </Link>
+                      </div>
+                    )
+                  )}
+                </PendingResults>
+              </section>
+            </div>
+          </div>
+        </SearchNavigationProvider>
+      </main>
+      <Footer />
+    </div>
   );
 }

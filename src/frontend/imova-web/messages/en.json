@@ -24,13 +24,6 @@
     "publishListing": "Publish a listing",
     "inDevelopment": "Project in development."
   },
-  "SearchForm": {
-    "saleOption": "Sale",
-    "rentOption": "Rent",
-    "anyType": "Any type",
-    "cityPlaceholder": "Chișinău, Bălți, Orhei...",
-    "submit": "Search"
-  },
   "PropertyType": {
     "Apartment": "Apartment",
     "House": "House",
@@ -66,21 +59,10 @@
       "buyTab": "Buy",
       "rentTab": "Rent",
       "locationLabel": "Location",
+      "locationPlaceholder": "Town, village or sector",
       "typeLabel": "Type",
       "anyType": "Any type",
-      "minPriceLabel": "Min price, €",
-      "minPricePlaceholder": "from",
-      "maxPriceLabel": "Max price, €",
-      "maxPricePlaceholder": "to",
-      "searchButton": "Search",
-      "locations": {
-        "Chisinau": "Chișinău",
-        "Balti": "Bălți",
-        "Cahul": "Cahul",
-        "Orhei": "Orhei",
-        "Ungheni": "Ungheni",
-        "Soroca": "Soroca"
-      }
+      "searchButton": "Search"
     }
   },
   "Home": {
@@ -109,12 +91,76 @@
     "emptyStateText": "Be the first to publish a listing on IMOVA.",
     "ctaTitle": "Have a property to sell or rent?",
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
-    "ctaButton": "Publish for free"
+    "ctaButton": "Publish for free",
+    "browseByType": "Browse by type"
   },
   "SearchPage": {
-    "title": "Search",
-    "resultsCount": "{count, plural, one {# listing found} other {# listings found}}",
-    "noResults": "No listings match this search"
+    "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"
+  },
+  "Search": {
+    "filters": "Filters",
+    "updating": "Updating…",
+    "reset": "Reset filters",
+    "transactionType": "Transaction",
+    "all": "All",
+    "sale": "Sale",
+    "rent": "Rent",
+    "propertyType": "Property type",
+    "multipleTypesHint": "Pick a single type for type-specific filters (rooms, floor, …).",
+    "price": "Price (€)",
+    "min": "from",
+    "max": "to",
+    "location": "Location",
+    "anyRaion": "Any district",
+    "searchRaion": "Search district…",
+    "noLocation": "No results",
+    "anySector": "Any sector",
+    "searchSector": "Search sector…",
+    "anySuburb": "Any suburb",
+    "anyLocalitate": "Any locality",
+    "searchLocalitate": "Search locality…",
+    "clearLocation": "Clear location",
+    "area": "Area (m²)",
+    "typeDetails": "Details — {type}",
+    "atLeast": "at least",
+    "any": "Any",
+    "rentalTerms": "Rental terms",
+    "petsAllowed": "Pets allowed",
+    "utilitiesIncluded": "Utilities included",
+    "maxLeasePeriod": "Minimum lease of at most (months)",
+    "months": "months",
+    "amenities": "{count, plural, =0 {Amenities} other {Amenities (#)}}",
+    "proximities": "{count, plural, =0 {Nearby} other {Nearby (#)}}",
+    "sortLabel": "Sort",
+    "sort": {
+      "Newest": "Newest",
+      "PriceAsc": "Price: low to high",
+      "PriceDesc": "Price: high to low",
+      "AreaDesc": "Area: largest first"
+    },
+    "close": "Close",
+    "showResults": "{count, plural, one {Show # result} other {Show # results}}",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "typePlural": {
+      "Apartment": "Apartments",
+      "House": "Houses",
+      "Land": "Land plots",
+      "Commercial": "Commercial spaces",
+      "Garage": "Garages",
+      "Room": "Rooms"
+    },
+    "listings": "Listings",
+    "titleSale": "{subject} for sale",
+    "titleRent": "{subject} for rent",
+    "titleAll": "All listings",
+    "metaDescription": "Discover {title} on IMOVA — listings from owners and agencies across Moldova.",
+    "error": "We couldn't load the listings. Please try again.",
+    "emptyTitle": "No results",
+    "emptyHint": "Try widening the price range or removing a filter.",
+    "kindRaion": "District",
+    "kindSector": "Sector, {raion}"
   },
   "MapPromo": {
     "title": "All properties on the map",

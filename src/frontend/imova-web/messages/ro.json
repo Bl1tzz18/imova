@@ -24,13 +24,6 @@
     "publishListing": "Publică un anunț",
     "inDevelopment": "Proiect în dezvoltare."
   },
-  "SearchForm": {
-    "saleOption": "Vânzare",
-    "rentOption": "Închiriere",
-    "anyType": "Orice tip",
-    "cityPlaceholder": "Chișinău, Bălți, Orhei...",
-    "submit": "Caută"
-  },
   "PropertyType": {
     "Apartment": "Apartament",
     "House": "Casă",
@@ -65,22 +58,11 @@
     "searchCard": {
       "buyTab": "Cumpără",
       "rentTab": "Închiriază",
-      "locationLabel": "Localitate",
+      "locationLabel": "Locație",
+      "locationPlaceholder": "Oraș, sat sau sector",
       "typeLabel": "Tip",
       "anyType": "Orice tip",
-      "minPriceLabel": "Preț minim, €",
-      "minPricePlaceholder": "de la",
-      "maxPriceLabel": "Preț maxim, €",
-      "maxPricePlaceholder": "până la",
-      "searchButton": "Caută",
-      "locations": {
-        "Chisinau": "Chișinău",
-        "Balti": "Bălți",
-        "Cahul": "Cahul",
-        "Orhei": "Orhei",
-        "Ungheni": "Ungheni",
-        "Soroca": "Soroca"
-      }
+      "searchButton": "Caută"
     }
   },
   "Home": {
@@ -109,12 +91,76 @@
     "emptyStateText": "Fii primul care publică un anunț pe IMOVA.",
     "ctaTitle": "Ai o proprietate de vândut sau închiriat?",
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
-    "ctaButton": "Publică anunț gratuit"
+    "ctaButton": "Publică anunț gratuit",
+    "browseByType": "Caută după tip"
   },
   "SearchPage": {
-    "title": "Caută",
-    "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}",
-    "noResults": "Niciun anunț nu corespunde acestei căutări"
+    "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"
+  },
+  "Search": {
+    "filters": "Filtre",
+    "updating": "Se actualizează…",
+    "reset": "Resetează filtrele",
+    "transactionType": "Tip tranzacție",
+    "all": "Toate",
+    "sale": "Vânzare",
+    "rent": "Chirie",
+    "propertyType": "Tip proprietate",
+    "multipleTypesHint": "Alege un singur tip pentru filtre specifice (camere, etaj, …).",
+    "price": "Preț (€)",
+    "min": "de la",
+    "max": "până la",
+    "location": "Locație",
+    "anyRaion": "Orice raion / municipiu",
+    "searchRaion": "Caută raionul…",
+    "noLocation": "Niciun rezultat",
+    "anySector": "Orice sector",
+    "searchSector": "Caută sectorul…",
+    "anySuburb": "Orice suburbie",
+    "anyLocalitate": "Orice localitate",
+    "searchLocalitate": "Caută localitatea…",
+    "clearLocation": "Șterge locația",
+    "area": "Suprafață (m²)",
+    "typeDetails": "Detalii — {type}",
+    "atLeast": "minim",
+    "any": "Oricare",
+    "rentalTerms": "Condiții de închiriere",
+    "petsAllowed": "Animale permise",
+    "utilitiesIncluded": "Utilități incluse",
+    "maxLeasePeriod": "Contract minim de cel mult (luni)",
+    "months": "luni",
+    "amenities": "{count, plural, =0 {Dotări} other {Dotări (#)}}",
+    "proximities": "{count, plural, =0 {Vecinătăți} other {Vecinătăți (#)}}",
+    "sortLabel": "Sortează",
+    "sort": {
+      "Newest": "Cele mai noi",
+      "PriceAsc": "Preț crescător",
+      "PriceDesc": "Preț descrescător",
+      "AreaDesc": "Suprafață (mare → mică)"
+    },
+    "close": "Închide",
+    "showResults": "{count, plural, one {Vezi # rezultat} few {Vezi # rezultate} other {Vezi # de rezultate}}",
+    "pagination": "Pagini",
+    "previous": "Înapoi",
+    "next": "Înainte",
+    "typePlural": {
+      "Apartment": "Apartamente",
+      "House": "Case",
+      "Land": "Terenuri",
+      "Commercial": "Spații comerciale",
+      "Garage": "Garaje",
+      "Room": "Camere"
+    },
+    "listings": "Anunțuri",
+    "titleSale": "{subject} de vânzare",
+    "titleRent": "{subject} de închiriat",
+    "titleAll": "Toate anunțurile",
+    "metaDescription": "Descoperă {title} pe IMOVA — anunțuri de la proprietari și agenții din toată Moldova.",
+    "error": "Nu am putut încărca anunțurile. Încearcă din nou.",
+    "emptyTitle": "Niciun rezultat",
+    "emptyHint": "Încearcă să extinzi intervalul de preț sau să elimini un filtru.",
+    "kindRaion": "Raion / municipiu",
+    "kindSector": "Sector, {raion}"
   },
   "MapPromo": {
     "title": "Toate proprietățile pe hartă",

@@ -17,11 +17,13 @@ using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings.GetListings;
+using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Messaging;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
+using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Locations;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
@@ -141,6 +143,7 @@ builder.Services.AddSingleton<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>() ?? new MessagingOptions());
 builder.Services.AddScoped<MessageDelivery>();
+builder.Services.AddScoped<IListingSearch, ListingSearch>();
 var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
 builder.Services.AddSingleton(emailOptions);
 if (string.IsNullOrWhiteSpace(emailOptions.Host))
@@ -259,6 +262,15 @@ app.UseExceptionHandler(handler =>
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await Results.Problem(authException.Message, statusCode: StatusCodes.Status401Unauthorized).ExecuteAsync(context);
+            return;
+        }
+
+        // A query string that doesn't bind (e.g. an unknown enum value) is the caller's mistake: 400,
+        // not the 500 an unhandled exception would otherwise become.
+        if (exception is BadHttpRequestException badRequestException)
+        {
+            context.Response.StatusCode = badRequestException.StatusCode;
+            await Results.Problem(badRequestException.Message, statusCode: badRequestException.StatusCode).ExecuteAsync(context);
             return;
         }
 
