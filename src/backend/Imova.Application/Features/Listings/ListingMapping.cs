@@ -22,7 +22,8 @@ public static class ListingMapping
         PropertyDto property,
         PublisherDto publisher,
         IReadOnlyList<PhotoDto> photos,
-        bool isSaved) =>
+        bool isSaved,
+        ListingContactDto? contact = null) =>
         new(
             listing.Id,
             listing.Status.ToString(),
@@ -41,7 +42,8 @@ public static class ListingMapping
             property,
             publisher,
             photos,
-            isSaved);
+            isSaved,
+            contact);
 
     public static ListingDto ToDto(
         this Listing listing,
@@ -52,12 +54,43 @@ public static class ListingMapping
         IReadOnlyDictionary<Guid, Proximity> proximitiesById,
         IReadOnlyList<PhotoDto> photos,
         bool isSaved,
-        bool includeContactDetails) =>
+        bool includeContactDetails,
+        // The owner or an admin — they still see a phone number the owner hid from the public.
+        bool canSeeHiddenPhone = false) =>
         listing.ToDto(
             property.ToDto(location, amenitiesById, proximitiesById),
-            publisher.ToDto(includeContactDetails),
+            // Never the publisher's own phone/email here: the listing's Contact is what the owner
+            // chose to publish (possibly another number, or a hidden one).
+            publisher.ToDto(includeContactDetails: false),
             photos,
-            isSaved);
+            isSaved,
+            includeContactDetails ? listing.ContactDto(publisher, canSeeHiddenPhone) : null);
+
+    // Resolves a Self contact's name/email from the publisher, and treats a listing from before
+    // contact details existed as "Self, the publisher's own phone".
+    public static ListingContactDto ContactDto(this Listing listing, Publisher publisher, bool canSeeHiddenPhone)
+    {
+        var contact = listing.Contact;
+        if (contact is null)
+        {
+            return new ListingContactDto(
+                nameof(ContactPersonType.Self), publisher.DisplayName, publisher.Phone, publisher.Email, [],
+                nameof(PreferredContactMethod.Any), false, null, null);
+        }
+
+        var isSelf = contact.PersonType == ContactPersonType.Self;
+        var phoneHidden = contact.HidePhoneNumber && !canSeeHiddenPhone;
+        return new ListingContactDto(
+            contact.PersonType.ToString(),
+            isSelf ? publisher.DisplayName : contact.Name,
+            phoneHidden ? null : contact.Phone,
+            isSelf ? publisher.Email : contact.Email,
+            (contact.MessagingApps ?? []).Select(a => a.ToString()).ToList(),
+            contact.PreferredContactMethod.ToString(),
+            contact.HidePhoneNumber,
+            contact.CallHoursFrom,
+            contact.CallHoursTo);
+    }
 
     public static PriceDto ToDto(this Price price) =>
         new(price.Amount, price.Currency.ToString(), price.PriceEur, price.IsNegotiable);

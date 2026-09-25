@@ -40,7 +40,8 @@ public static class UpdateListingEndpoint
                 request.Price,
                 request.Currency,
                 request.IsNegotiable,
-                request.RentalDetails);
+                request.RentalDetails,
+                request.Contact);
 
             var listing = await sender.Send(command, cancellationToken);
             return listing is null ? Results.NotFound() : Results.Ok(listing);

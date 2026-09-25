@@ -96,6 +96,13 @@ internal static class ListingApi
             ["currency"] = "EUR",
             ["isNegotiable"] = false,
             ["rentalDetails"] = new Dictionary<string, object?> { ["petsAllowed"] = true, ["minLeasePeriodMonths"] = 12 },
+            ["contact"] = new Dictionary<string, object?>
+            {
+                ["personType"] = "Self",
+                ["phone"] = "+373 69 111 222",
+                ["messagingApps"] = new[] { "Viber" },
+                ["preferredContactMethod"] = "Any",
+            },
         };
     }
 

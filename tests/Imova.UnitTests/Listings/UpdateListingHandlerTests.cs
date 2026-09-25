@@ -56,7 +56,8 @@ public class UpdateListingHandlerTests
         RentalDetails? rentalDetails = null,
         Guid? chisinauSectorId = null,
         string? streetAddress = "Strada Ismail",
-        string? buildingNumber = null) =>
+        string? buildingNumber = null,
+        ListingContact? contact = null) =>
         new(
             id ?? _listing.Id,
             requestingUserId ?? _ownerId,
@@ -80,7 +81,8 @@ public class UpdateListingHandlerTests
             600m,
             Currency.USD,
             false,
-            rentalDetails);
+            rentalDetails,
+            contact ?? TestContacts.Self);
 
     [Fact]
     public async Task Handle_ByOwner_UpdatesBothThePropertyAndTheListing()
@@ -162,6 +164,17 @@ public class UpdateListingHandlerTests
 
         var property = await _dbContext.Properties.Include(p => p.Amenities).SingleAsync();
         Assert.Equal(_balcony, Assert.Single(property.Amenities).AmenityId);
+    }
+
+    [Fact]
+    public async Task Handle_ReplacesTheContact()
+    {
+        var result = await Handler().Handle(Command(contact: TestContacts.Other), CancellationToken.None);
+
+        var stored = (await _dbContext.Listings.SingleAsync()).Contact!;
+        Assert.Equal(ContactPersonType.Other, stored.PersonType);
+        Assert.Equal("Maria Popescu", result!.Contact!.Name);
+        Assert.Equal("+373 79 333 444", result.Contact.Phone);
     }
 
     [Fact]

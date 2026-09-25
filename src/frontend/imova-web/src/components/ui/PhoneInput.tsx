@@ -6,6 +6,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { cn } from "@/lib/utils/cn";
 import { inputClass } from "@/components/ui/Field";
 import { getCountryList, type Country } from "@/lib/utils/countries";
+import { isValidPhone } from "@/lib/utils/phone";
 
 const DEFAULT_COUNTRY = "MD";
 
@@ -25,12 +26,16 @@ export function PhoneInput({
   defaultCountry = DEFAULT_COUNTRY,
   defaultValue,
   className,
+  invalidMessage,
 }: {
   name: string;
   required?: boolean;
   defaultCountry?: string;
   defaultValue?: string;
   className?: string;
+  // When set, a number that isn't a valid phone (same rule as the backend) fails native form
+  // validation with this message — so a multi-step form can stop on it before submitting.
+  invalidMessage?: string;
 }) {
   const locale = useLocale();
   const t = useTranslations("Auth");
@@ -90,6 +95,12 @@ export function PhoneInput({
 
   const combinedValue = localNumber ? `+${country.callingCode}${localNumber}` : "";
 
+  const numberRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!invalidMessage) return;
+    numberRef.current?.setCustomValidity(combinedValue && !isValidPhone(combinedValue) ? invalidMessage : "");
+  }, [combinedValue, invalidMessage]);
+
   return (
     <div ref={containerRef} className="relative flex gap-2">
       <div className="relative">
@@ -145,6 +156,7 @@ export function PhoneInput({
       </div>
 
       <input
+        ref={numberRef}
         type="tel"
         inputMode="numeric"
         value={localNumber}

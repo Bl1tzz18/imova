@@ -16,9 +16,11 @@ public static class ListingDtoLoader
         IReadOnlyList<Listing> listings,
         Guid? currentUserId,
         CancellationToken cancellationToken,
-        // Publisher phone/email are only exposed on a listing's own detail view — never on
-        // cards/search results, so they can't be scraped in bulk.
-        bool includeContactDetails = false)
+        // Contact details (ListingDto.Contact) are only exposed on a listing's own detail view —
+        // never on cards/search results, so they can't be scraped in bulk.
+        bool includeContactDetails = false,
+        // An admin (like the owner) still sees a phone number the owner chose to hide.
+        bool viewerIsAdmin = false)
     {
         if (listings.Count == 0)
         {
@@ -74,15 +76,17 @@ public static class ListingDtoLoader
             .Select(listing =>
             {
                 var property = propertiesById[listing.PropertyId];
+                var publisher = publishersById[listing.PublisherId];
                 return listing.ToDto(
                     property,
                     locationsById.GetValueOrDefault(property.LocationId),
-                    publishersById[listing.PublisherId],
+                    publisher,
                     amenitiesById,
                     proximitiesById,
                     photosByListingId.GetValueOrDefault(listing.Id) ?? [],
                     savedListingIds.Contains(listing.Id),
-                    includeContactDetails);
+                    includeContactDetails,
+                    canSeeHiddenPhone: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId));
             })
             .ToList();
     }
@@ -93,6 +97,8 @@ public static class ListingDtoLoader
         Listing listing,
         Guid? currentUserId,
         CancellationToken cancellationToken,
-        bool includeContactDetails = false) =>
-        (await LoadAsync(dbContext, blobStorageService, [listing], currentUserId, cancellationToken, includeContactDetails))[0];
+        bool includeContactDetails = false,
+        bool viewerIsAdmin = false) =>
+        (await LoadAsync(
+            dbContext, blobStorageService, [listing], currentUserId, cancellationToken, includeContactDetails, viewerIsAdmin))[0];
 }

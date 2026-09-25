@@ -31,6 +31,7 @@ public class GetListingByIdHandler(IApplicationDbContext dbContext, IBlobStorage
         }
 
         return await ListingDtoLoader.LoadOneAsync(
-            dbContext, blobStorageService, listing, request.CurrentUserId, cancellationToken, includeContactDetails: true);
+            dbContext, blobStorageService, listing, request.CurrentUserId, cancellationToken, includeContactDetails: true,
+            viewerIsAdmin: request.IsAdmin);
     }
 }

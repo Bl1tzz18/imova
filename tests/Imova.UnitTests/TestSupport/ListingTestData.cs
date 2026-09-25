@@ -60,10 +60,11 @@ internal static class ListingTestData
         TransactionType transactionType = TransactionType.Rent,
         Price? price = null,
         Guid? propertyId = null,
-        PropertyType propertyType = PropertyType.Apartment)
+        PropertyType propertyType = PropertyType.Apartment,
+        ListingContact? contact = null)
     {
         var listing = NewListing(
-            propertyId ?? AddProperty(dbContext, propertyType).Id, publisherId, transactionType, price);
+            propertyId ?? AddProperty(dbContext, propertyType).Id, publisherId, transactionType, price, contact);
         dbContext.Listings.Add(listing);
         return listing;
     }
@@ -72,7 +73,8 @@ internal static class ListingTestData
         Guid? propertyId = null,
         Guid? publisherId = null,
         TransactionType transactionType = TransactionType.Rent,
-        Price? price = null) =>
+        Price? price = null,
+        ListingContact? contact = null) =>
         Listing.Create(
             propertyId ?? Guid.NewGuid(),
             publisherId ?? Guid.NewGuid(),
@@ -80,7 +82,8 @@ internal static class ListingTestData
             "Apartament 2 camere",
             "Apartament luminos, aproape de centru.",
             price ?? Eur(550m),
-            rentalDetails: transactionType == TransactionType.Rent ? new RentalDetails() : null);
+            rentalDetails: transactionType == TransactionType.Rent ? new RentalDetails() : null,
+            contact: contact);
 
     // Walks a Draft listing through the real lifecycle methods to reach `target`, so tests never
     // depend on a status that couldn't actually be reached.

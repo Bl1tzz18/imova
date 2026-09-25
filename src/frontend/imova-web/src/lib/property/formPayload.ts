@@ -1,4 +1,5 @@
 import { readAttributes } from "@/lib/property/attributeSchema";
+import { readContact } from "@/lib/property/contact";
 
 // Shared by the create and edit flows (see PropertyForm.tsx) — both submit the same Property +
 // Listing field set in one payload, just to different endpoints (POST vs PUT), so the
@@ -58,5 +59,7 @@ export function buildListingPayload(formData: FormData) {
     currency: formData.get("currency"),
     isNegotiable: formData.get("isNegotiable") === "true",
     rentalDetails: transactionType === "Rent" ? readRentalDetails(formData) : null,
+    // Contact (the last step)
+    contact: readContact(formData),
   };
 }

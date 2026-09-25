@@ -6,24 +6,15 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { DateInput } from "@/components/ui/DateInput";
 import { FieldLabel, PriceInput, SelectInput, TextInput } from "@/components/ui/Field";
 import { rentalFieldsForStep, rentalInputName } from "@/lib/property/rentalFields";
-import { cn } from "@/lib/utils/cn";
-import type { Listing, Publisher } from "@/types/listing";
+import type { Listing } from "@/types/listing";
 
 // Mirrors the backend's Currency enum (Imova.Domain.Listings.Currency) — the backend still
 // validates independently. Keep the two in sync.
 const SUPPORTED_CURRENCIES = ["EUR", "MDL", "USD"] as const;
 const DEFAULT_CURRENCY = "EUR";
 
-export function StepPriceContact({
-  transactionType,
-  listing,
-  publishers,
-}: {
-  transactionType: string;
-  listing?: Listing;
-  // Only passed in create mode — a listing's publisher can't be changed afterwards.
-  publishers: Publisher[];
-}) {
+// Step 4: price and, for a rental, the lease terms. Who to contact is the next step (StepContact).
+export function StepPriceTerms({ transactionType, listing }: { transactionType: string; listing?: Listing }) {
   const t = useTranslations("PropertyForm");
   const tAttr = useTranslations("Attributes");
   const rental = listing?.rentalDetails;
@@ -127,56 +118,6 @@ export function StepPriceContact({
             </div>
           )}
         </fieldset>
-      )}
-
-      {/* Only offered when there's an actual choice: an Individual publisher always exists, and
-          omitting publisherId publishes under it, so a user without an agency sees nothing here. */}
-      {publishers.length > 1 && (
-        <fieldset className="mt-7">
-          <legend className="font-hero text-base font-bold text-ink-950">{t("publishAsLabel")}</legend>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {publishers.map((publisher) => (
-              <label
-                key={publisher.id}
-                className={cn(
-                  "flex cursor-pointer items-start gap-3 rounded-xl border border-ink-200 px-4 py-3 text-sm",
-                  "has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50",
-                )}
-              >
-                <input
-                  type="radio"
-                  name="publisherId"
-                  value={publisher.id}
-                  defaultChecked={publisher.publisherType === "Individual"}
-                  className="mt-0.5"
-                />
-                <span>
-                  <span className="block font-medium text-ink-900">{publisher.displayName}</span>
-                  <span className="block text-xs text-ink-500">
-                    {publisher.publisherType === "Agency" ? t("publisherAgency") : t("publisherIndividual")}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
-
-      {/* Only relevant before a listing has ever been reviewed — editing an existing listing
-          doesn't re-explain the review flow to an owner who already went through it once. */}
-      {!listing && (
-        <div className="mt-5 flex items-center gap-2.5 rounded-xl border border-accent-100 bg-accent-100/40 px-4 py-3.5">
-          <svg
-            viewBox="0 0 24 24"
-            className="h-[17px] w-[17px] shrink-0 text-accent-600"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-          >
-            <path d="M12 3.5l7 2.6v5.2c0 5-3 8-7 9.2-4-1.2-7-4.2-7-9.2V6.1l7-2.6Z" strokeLinejoin="round" />
-          </svg>
-          <span className="text-[13px] text-ink-900">{t("draftNotice")}</span>
-        </div>
       )}
     </div>
   );

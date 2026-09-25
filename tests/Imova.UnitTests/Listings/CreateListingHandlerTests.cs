@@ -53,7 +53,8 @@ public class CreateListingHandlerTests
         Guid? localitateId = null,
         Guid? chisinauSectorId = null,
         string? streetAddress = null,
-        string? buildingNumber = null) =>
+        string? buildingNumber = null,
+        ListingContact? contact = null) =>
         new(
             id,
             _user.Id,
@@ -77,7 +78,8 @@ public class CreateListingHandlerTests
             price,
             currency,
             true,
-            rentalDetails);
+            rentalDetails,
+            contact ?? TestContacts.Self);
 
     [Fact]
     public async Task Handle_CreatesPropertyLocationAndListingTogether()
@@ -223,6 +225,20 @@ public class CreateListingHandlerTests
     }
 
     [Fact]
+    public async Task Handle_PersistsTheContact_AndShowsTheOwnerTheirHiddenPhone()
+    {
+        var result = await Handler().Handle(
+            Command(contact: TestContacts.HiddenPhone with { MessagingApps = [ContactMessagingApp.WhatsApp] }),
+            CancellationToken.None);
+
+        var stored = (await _dbContext.Listings.SingleAsync()).Contact!;
+        Assert.True(stored.HidePhoneNumber);
+        Assert.Empty(stored.MessagingApps!);
+        Assert.Equal("+373 69 555 666", result.Contact!.Phone);
+        Assert.Equal(_user.Email, result.Contact.Email);
+    }
+
+    [Fact]
     public async Task Handle_PersistsProximitiesOnTheProperty()
     {
         var school = Guid.NewGuid();
@@ -286,11 +302,13 @@ public class CreateListingHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ReturnsThePublishersContactDetailsToTheCreator()
+    public async Task Handle_ReturnsTheContactDetailsToTheCreator()
     {
         var result = await Handler().Handle(Command(), CancellationToken.None);
 
-        Assert.Equal("ion@example.com", result.Publisher.Email);
-        Assert.Equal("+373 69 123 456", result.Publisher.Phone);
+        // A Self contact: the publisher's name/email, and the phone chosen on the Contact step.
+        Assert.Equal("ion@example.com", result.Contact!.Email);
+        Assert.Equal("+373 69 111 222", result.Contact.Phone);
+        Assert.Null(result.Publisher.Phone);
     }
 }

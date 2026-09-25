@@ -28,7 +28,8 @@ public sealed class Listing : AggregateRoot
         string description,
         Price price,
         SaleDetails? saleDetails,
-        RentalDetails? rentalDetails)
+        RentalDetails? rentalDetails,
+        ListingContact? contact)
         : base(id)
     {
         PropertyId = propertyId;
@@ -39,6 +40,7 @@ public sealed class Listing : AggregateRoot
         Price = price;
         SaleDetails = saleDetails;
         RentalDetails = rentalDetails;
+        Contact = contact;
         Status = ListingStatus.Draft;
         CreatedAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -61,6 +63,10 @@ public sealed class Listing : AggregateRoot
 
     // Only ever set when TransactionType is Rent — see EnsureValidDetails.
     public RentalDetails? RentalDetails { get; private set; }
+
+    // Null only for listings created before contact details existed — those are contacted through
+    // their publisher's own phone/email (see ListingMapping).
+    public ListingContact? Contact { get; private set; }
 
     public ListingStatus Status { get; private set; }
 
@@ -89,6 +95,7 @@ public sealed class Listing : AggregateRoot
         Price price,
         SaleDetails? saleDetails = null,
         RentalDetails? rentalDetails = null,
+        ListingContact? contact = null,
         // Lets the caller supply the id up front, so a client can start uploading photos under a
         // known listing id before this row exists — see Photo.
         Guid? id = null)
@@ -105,6 +112,7 @@ public sealed class Listing : AggregateRoot
 
         saleDetails = DefaultSaleDetails(transactionType, saleDetails);
         EnsureValidDetails(transactionType, title, description, price, saleDetails, rentalDetails);
+        contact = NormalizedContact(contact);
 
         return new Listing(
             id ?? Guid.NewGuid(),
@@ -115,7 +123,8 @@ public sealed class Listing : AggregateRoot
             description,
             price,
             saleDetails,
-            rentalDetails);
+            rentalDetails,
+            contact);
     }
 
     // Never touches Status/PublisherId/PropertyId — editing an offer's content is not a lifecycle
@@ -126,10 +135,12 @@ public sealed class Listing : AggregateRoot
         string description,
         Price price,
         SaleDetails? saleDetails,
-        RentalDetails? rentalDetails)
+        RentalDetails? rentalDetails,
+        ListingContact? contact = null)
     {
         saleDetails = DefaultSaleDetails(transactionType, saleDetails);
         EnsureValidDetails(transactionType, title, description, price, saleDetails, rentalDetails);
+        contact = NormalizedContact(contact);
 
         TransactionType = transactionType;
         Title = title;
@@ -137,7 +148,19 @@ public sealed class Listing : AggregateRoot
         Price = price;
         SaleDetails = saleDetails;
         RentalDetails = rentalDetails;
+        Contact = contact;
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private static ListingContact? NormalizedContact(ListingContact? contact)
+    {
+        if (contact is null)
+        {
+            return null;
+        }
+
+        ListingContact.EnsureValid(contact);
+        return contact.Normalized();
     }
 
     // SaleDetails is only a placeholder today, so a sale listing gets an empty one rather than

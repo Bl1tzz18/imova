@@ -7,7 +7,8 @@ import { StepIndicator, type StepDef } from "@/components/property/listing-form/
 import { StepTypeLocation } from "@/components/property/listing-form/StepTypeLocation";
 import { StepDetails } from "@/components/property/listing-form/StepDetails";
 import { StepPhotos } from "@/components/property/listing-form/StepPhotos";
-import { StepPriceContact } from "@/components/property/listing-form/StepPriceContact";
+import { StepPriceTerms } from "@/components/property/listing-form/StepPriceTerms";
+import { StepContact } from "@/components/property/listing-form/StepContact";
 import { ListingTips } from "@/components/property/listing-form/ListingTips";
 import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
 import { updateListingDetails } from "@/lib/property/actions";
@@ -16,7 +17,7 @@ import type { Listing, Publisher } from "@/types/listing";
 
 const initialState: CreateListingState = {};
 
-const STEP_COUNT = 4;
+const STEP_COUNT = 5;
 
 // Reused as-is for both listing creation (no `listing` prop) and editing an existing listing
 // (`listing` supplied — see /my-listings/[id]/edit/page.tsx): same steps, same fields, all
@@ -122,6 +123,7 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
     { number: 2, label: t("step2Label") },
     { number: 3, label: t("step3Label") },
     { number: 4, label: t("step4Label") },
+    { number: 5, label: t("step5Label") },
   ].map((s) => ({
     ...s,
     state: s.number < step ? "done" : s.number === step ? "active" : "upcoming",
@@ -209,7 +211,16 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
             }}
             className={step === 4 ? "" : "hidden"}
           >
-            <StepPriceContact transactionType={transactionType} listing={listing} publishers={isEdit ? [] : publishers} />
+            <StepPriceTerms transactionType={transactionType} listing={listing} />
+          </div>
+
+          <div
+            ref={(el) => {
+              stepRefs.current[4] = el;
+            }}
+            className={step === 5 ? "" : "hidden"}
+          >
+            <StepContact listing={listing} publishers={isEdit ? [] : publishers} />
           </div>
 
           {state.error && (

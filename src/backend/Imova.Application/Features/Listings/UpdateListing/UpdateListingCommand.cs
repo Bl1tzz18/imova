@@ -34,4 +34,5 @@ public record UpdateListingCommand(
     decimal Price,
     Currency Currency,
     bool IsNegotiable,
-    RentalDetails? RentalDetails) : IRequest<ListingDto?>, IListingWriteCommand;
+    RentalDetails? RentalDetails,
+    ListingContact? Contact) : IRequest<ListingDto?>, IListingWriteCommand;
