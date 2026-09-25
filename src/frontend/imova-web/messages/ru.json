@@ -24,13 +24,6 @@
     "publishListing": "Разместить объявление",
     "inDevelopment": "Проект в разработке."
   },
-  "SearchForm": {
-    "saleOption": "Продажа",
-    "rentOption": "Аренда",
-    "anyType": "Любой тип",
-    "cityPlaceholder": "Кишинёв, Бельцы, Оргеев...",
-    "submit": "Найти"
-  },
   "PropertyType": {
     "Apartment": "Квартира",
     "House": "Дом",
@@ -66,21 +59,10 @@
       "buyTab": "Купить",
       "rentTab": "Снять",
       "locationLabel": "Местоположение",
+      "locationPlaceholder": "Город, село или сектор",
       "typeLabel": "Тип",
       "anyType": "Любой тип",
-      "minPriceLabel": "Мин. цена, €",
-      "minPricePlaceholder": "от",
-      "maxPriceLabel": "Макс. цена, €",
-      "maxPricePlaceholder": "до",
-      "searchButton": "Искать",
-      "locations": {
-        "Chisinau": "Кишинёв",
-        "Balti": "Бельцы",
-        "Cahul": "Кахул",
-        "Orhei": "Оргеев",
-        "Ungheni": "Унгень",
-        "Soroca": "Сороки"
-      }
+      "searchButton": "Искать"
     }
   },
   "Home": {
@@ -109,12 +91,76 @@
     "emptyStateText": "Станьте первым, кто разместит объявление на IMOVA.",
     "ctaTitle": "Есть недвижимость на продажу или в аренду?",
     "ctaSubtitle": "Разместите объявление бесплатно и найдите покупателей или арендаторов по всей Молдове.",
-    "ctaButton": "Разместить бесплатно"
+    "ctaButton": "Разместить бесплатно",
+    "browseByType": "Поиск по типу"
   },
   "SearchPage": {
-    "title": "Поиск",
-    "resultsCount": "{count, plural, one {# объявление найдено} few {# объявления найдено} many {# объявлений найдено} other {# объявления найдено}}",
-    "noResults": "Нет объявлений по этому запросу"
+    "resultsCount": "{count, plural, one {# объявление найдено} few {# объявления найдено} many {# объявлений найдено} other {# объявления найдено}}"
+  },
+  "Search": {
+    "filters": "Фильтры",
+    "updating": "Обновление…",
+    "reset": "Сбросить фильтры",
+    "transactionType": "Тип сделки",
+    "all": "Все",
+    "sale": "Продажа",
+    "rent": "Аренда",
+    "propertyType": "Тип недвижимости",
+    "multipleTypesHint": "Выберите один тип для особых фильтров (комнаты, этаж, …).",
+    "price": "Цена (€)",
+    "min": "от",
+    "max": "до",
+    "location": "Местоположение",
+    "anyRaion": "Любой район",
+    "searchRaion": "Поиск района…",
+    "noLocation": "Ничего не найдено",
+    "anySector": "Любой сектор",
+    "searchSector": "Поиск сектора…",
+    "anySuburb": "Любой пригород",
+    "anyLocalitate": "Любой населённый пункт",
+    "searchLocalitate": "Поиск населённого пункта…",
+    "clearLocation": "Очистить местоположение",
+    "area": "Площадь (м²)",
+    "typeDetails": "Детали — {type}",
+    "atLeast": "минимум",
+    "any": "Любой",
+    "rentalTerms": "Условия аренды",
+    "petsAllowed": "Можно с животными",
+    "utilitiesIncluded": "Коммунальные включены",
+    "maxLeasePeriod": "Минимальный срок аренды не более (мес.)",
+    "months": "мес.",
+    "amenities": "{count, plural, =0 {Удобства} other {Удобства (#)}}",
+    "proximities": "{count, plural, =0 {Поблизости} other {Поблизости (#)}}",
+    "sortLabel": "Сортировка",
+    "sort": {
+      "Newest": "Сначала новые",
+      "PriceAsc": "Сначала дешёвые",
+      "PriceDesc": "Сначала дорогие",
+      "AreaDesc": "Сначала большие"
+    },
+    "close": "Закрыть",
+    "showResults": "{count, plural, one {Показать # результат} few {Показать # результата} other {Показать # результатов}}",
+    "pagination": "Страницы",
+    "previous": "Назад",
+    "next": "Вперёд",
+    "typePlural": {
+      "Apartment": "Квартиры",
+      "House": "Дома",
+      "Land": "Участки",
+      "Commercial": "Коммерческие помещения",
+      "Garage": "Гаражи",
+      "Room": "Комнаты"
+    },
+    "listings": "Объявления",
+    "titleSale": "{subject} на продажу",
+    "titleRent": "{subject} в аренду",
+    "titleAll": "Все объявления",
+    "metaDescription": "{title} на IMOVA — объявления от владельцев и агентств по всей Молдове.",
+    "error": "Не удалось загрузить объявления. Попробуйте ещё раз.",
+    "emptyTitle": "Ничего не найдено",
+    "emptyHint": "Попробуйте расширить диапазон цен или убрать фильтр.",
+    "kindRaion": "Район",
+    "kindSector": "Сектор, {raion}"
   },
   "MapPromo": {
     "title": "Все объекты на карте",
