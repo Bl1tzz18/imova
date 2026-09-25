@@ -150,8 +150,21 @@ public class MessagingEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         var id = started.ConversationId;
 
         Assert.Equal(HttpStatusCode.NoContent, (await seller.PostAsync($"/api/v1/messaging/conversations/{id}/block", null)).StatusCode);
+        // Straight at the API (no UI in the way): neither side can send while the block stands.
         var blockedSend = await visitor.PostAsJsonAsync($"/api/v1/messaging/conversations/{id}/messages", new { body = "Alo?" });
         Assert.Equal(HttpStatusCode.Forbidden, blockedSend.StatusCode);
+        var blockerSend = await seller.PostAsJsonAsync($"/api/v1/messaging/conversations/{id}/messages", new { body = "Totuși…" });
+        Assert.Equal(HttpStatusCode.Forbidden, blockerSend.StatusCode);
+        Assert.Contains("unblock", await blockerSend.Content.ReadAsStringAsync());
+        var restart = await visitor.PostAsJsonAsync("/api/v1/messaging/conversations", new { listingId = listing.Id, body = "Din nou" });
+        Assert.Equal(HttpStatusCode.Forbidden, restart.StatusCode);
+        var thread = await visitor.GetFromJsonAsync<ConversationThreadDto>($"/api/v1/messaging/conversations/{id}");
+        Assert.Single(thread!.Messages);
+
+        // Unblocking restores both directions.
+        Assert.Equal(HttpStatusCode.NoContent, (await seller.PostAsync($"/api/v1/messaging/conversations/{id}/unblock", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await seller.PostAsJsonAsync($"/api/v1/messaging/conversations/{id}/messages", new { body = "Revin" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await seller.PostAsync($"/api/v1/messaging/conversations/{id}/block", null)).StatusCode);
 
         var report = await seller.PostAsJsonAsync($"/api/v1/messaging/conversations/{id}/report", new { reason = "Spam", details = "Mesaje repetate" });
         Assert.Equal(HttpStatusCode.NoContent, report.StatusCode);
@@ -165,6 +178,49 @@ public class MessagingEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/v1/admin/messaging/reports/{mine.Id}/resolve", null)).StatusCode);
         Assert.DoesNotContain(
             (await admin.GetFromJsonAsync<List<MessagingReportDto>>("/api/v1/admin/messaging/reports"))!, r => r.Id == mine.Id);
+    }
+
+    [Fact]
+    public async Task MessageImage_IsOnlyServedToTheParticipants()
+    {
+        var (seller, visitor, _, _, listing) = await SetUpAsync();
+        var (stranger, _) = await ListingApi.RegisterAsync(_factory);
+
+        // Upload to the private container through the SAS URL, as the browser does.
+        var target = (await (await visitor.PostAsJsonAsync("/api/v1/messaging/attachments/upload-url", new { fileExtension = ".png" }))
+            .Content.ReadFromJsonAsync<AttachmentUploadUrlDto>())!;
+        byte[] png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52];
+        using var storage = new HttpClient();
+        using var put = new HttpRequestMessage(HttpMethod.Put, target.UploadUrl) { Content = new ByteArrayContent(png) };
+        put.Headers.Add("x-ms-blob-type", "BlockBlob");
+        (await storage.SendAsync(put)).EnsureSuccessStatusCode();
+
+        var started = (await (await visitor.PostAsJsonAsync("/api/v1/messaging/conversations", new
+            {
+                listingId = listing.Id, body = "Uitați o poză", attachmentBlobNames = new[] { target.BlobName },
+            })).Content.ReadFromJsonAsync<StartConversationResultDto>())!;
+        var attachment = Assert.Single(started.Message.Attachments);
+        Assert.Equal($"/api/v1/messaging/attachments/{attachment.Id}", attachment.Url);
+
+        var forSender = await visitor.GetAsync(attachment.Url);
+        var forRecipient = await seller.GetAsync(attachment.Url);
+        Assert.Equal(HttpStatusCode.OK, forSender.StatusCode);
+        Assert.Equal("image/png", forSender.Content.Headers.ContentType!.MediaType);
+        Assert.Equal(png, await forSender.Content.ReadAsByteArrayAsync());
+        Assert.Contains("private", forSender.Headers.CacheControl!.ToString());
+        Assert.Equal(HttpStatusCode.OK, forRecipient.StatusCode);
+
+        // A third user gets the same 404 as for an attachment that doesn't exist; anonymous gets 401.
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync(attachment.Url)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync($"/api/v1/messaging/attachments/{Guid.NewGuid()}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _factory.CreateClient().GetAsync(attachment.Url)).StatusCode);
+
+        // And the storage itself doesn't serve it publicly (the container is private).
+        var directUrl = target.UploadUrl.Split('?')[0];
+        Assert.False((await storage.GetAsync(directUrl)).IsSuccessStatusCode);
+
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync(attachment.Url)).StatusCode);
     }
 
     [Fact]

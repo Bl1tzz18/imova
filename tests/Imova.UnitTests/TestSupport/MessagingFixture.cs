@@ -90,7 +90,7 @@ internal sealed class MessagingFixture
     public string UploadedImage(Guid ownerUserId)
     {
         var name = Blobs.GenerateMessageAttachmentBlobName(ownerUserId, ".png");
-        Blobs.BlobInfoByName[name] = new UploadedBlobInfo(1024, "image/png", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+        Blobs.MessageAttachmentInfoByName[name] = new UploadedBlobInfo(1024, "image/png", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
         return name;
     }
 }

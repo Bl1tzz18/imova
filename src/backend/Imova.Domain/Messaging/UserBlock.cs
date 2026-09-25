@@ -1,7 +1,7 @@
 namespace Imova.Domain.Messaging;
 
-// Blocker has blocked Blocked: Blocked can no longer send messages in any conversation with the
-// Blocker (see MessagingRules). One row per pair and direction.
+// Blocker has blocked Blocked: while the row exists, neither can send the other messages in any
+// conversation (see MessagingAccess.EnsureCanSendAsync). One row per pair and direction.
 public sealed class UserBlock
 {
     // For EF Core materialization only.

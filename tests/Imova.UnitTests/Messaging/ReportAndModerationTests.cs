@@ -26,7 +26,7 @@ public class ReportAndModerationTests
         Assert.Equal(fixture.Visitor.Id, report.ReportedUser.Id);
         Assert.Equal(fixture.Listing.Title, report.Listing.Title);
 
-        var conversation = await new GetConversationForAdminHandler(fixture.Db, fixture.Blobs)
+        var conversation = await new GetConversationForAdminHandler(fixture.Db)
             .Handle(new GetConversationForAdminQuery(true, started.ConversationId), CancellationToken.None);
         Assert.Single(conversation!.Messages);
 

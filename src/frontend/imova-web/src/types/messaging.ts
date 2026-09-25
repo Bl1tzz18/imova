@@ -2,6 +2,7 @@
 
 export type MessageStatus = "Sent" | "Delivered" | "Read";
 
+// url is the API path; the browser loads it through the site proxy (see attachmentSrc).
 export type MessageAttachment = { id: string; url: string; contentType: string };
 
 export type Message = {

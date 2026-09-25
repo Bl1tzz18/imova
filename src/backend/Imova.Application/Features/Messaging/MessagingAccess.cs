@@ -20,7 +20,8 @@ public static class MessagingAccess
         IApplicationDbContext dbContext, Guid blockerUserId, Guid blockedUserId, CancellationToken cancellationToken) =>
         dbContext.UserBlocks.AnyAsync(b => b.BlockerUserId == blockerUserId && b.BlockedUserId == blockedUserId, cancellationToken);
 
-    // A banned sender, or one the recipient has blocked, can't send anything.
+    // A banned sender can't send anything; and while either participant has blocked the other,
+    // neither can send (the blocker unblocks first to write again).
     public static async Task EnsureCanSendAsync(
         IApplicationDbContext dbContext, Guid senderUserId, Guid recipientUserId, CancellationToken cancellationToken)
     {
@@ -33,6 +34,11 @@ public static class MessagingAccess
         if (await IsBlockedAsync(dbContext, recipientUserId, senderUserId, cancellationToken))
         {
             throw new ForbiddenAccessException("This user has blocked you — you can't send them messages.");
+        }
+
+        if (await IsBlockedAsync(dbContext, senderUserId, recipientUserId, cancellationToken))
+        {
+            throw new ForbiddenAccessException("You have blocked this user — unblock them to send messages.");
         }
     }
 

@@ -17,9 +17,18 @@ public interface IBlobStorageService
     // scheme GenerateBlobName uses — both share the same container.
     string GenerateProfilePictureBlobName(Guid userId, string fileExtension);
 
+    // --- Message attachments: a separate, *private* container (no public read) ---
     // Prefixed "messages/{senderUserId}/" so a message can only reference images its own sender
-    // uploaded (see MessageAttachments).
+    // uploaded (see MessageAttachments). Never handed to anyone but the uploader: participants
+    // read the images through the API (GetMessageAttachment), which checks who's asking.
     string GenerateMessageAttachmentBlobName(Guid senderUserId, string fileExtension);
+
+    string GenerateMessageAttachmentUploadSasUrl(string blobName, TimeSpan expiry);
+
+    Task<UploadedBlobInfo?> TryGetMessageAttachmentInfoAsync(string blobName, CancellationToken cancellationToken);
+
+    // Null when the blob doesn't exist.
+    Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken);
 
     string GenerateUploadSasUrl(string blobName, TimeSpan expiry);
 

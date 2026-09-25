@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { attachmentExtension, MAX_ATTACHMENT_BYTES, pickAttachments } from "@/lib/messaging/attachments";
+import { attachmentExtension, attachmentSrc, MAX_ATTACHMENT_BYTES, pickAttachments } from "@/lib/messaging/attachments";
 
 const file = (type: string, size = 1000) => ({ type, size });
+
+describe("attachmentSrc", () => {
+  it("points at the site's access-checked proxy, not at storage", () => {
+    expect(attachmentSrc("3f2a")).toBe("/message-attachments/3f2a");
+  });
+});
 
 describe("attachmentExtension", () => {
   it("maps the supported image types and rejects the rest", () => {

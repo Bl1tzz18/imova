@@ -14,6 +14,9 @@ public class BlobStorageOptions
 
     public string ContainerName { get; set; } = "listing-images";
 
+    // Private (no public read) — message images are only served through the API's access check.
+    public string MessageAttachmentsContainerName { get; set; } = "message-attachments";
+
     public int UploadSasExpiryMinutes { get; set; } = 15;
 
     // Optional override for the scheme+host used when building URLs handed to the browser

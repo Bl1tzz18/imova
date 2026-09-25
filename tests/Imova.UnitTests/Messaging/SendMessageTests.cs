@@ -48,11 +48,15 @@ public class SendMessageTests
         await fixture.Db.SaveChangesAsync();
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => fixture.StartAsync(listingId: other.Id));
 
-        // The blocker can still write, and unblocking lets the other side write again.
-        Assert.NotNull(await fixture.SendAsync(fixture.Seller.Id, conversationId));
+        // The blocker can't write either while the block stands…
+        var blockerError = await Assert.ThrowsAsync<ForbiddenAccessException>(() => fixture.SendAsync(fixture.Seller.Id, conversationId));
+        Assert.Contains("unblock", blockerError.Message);
+
+        // …and unblocking lets both sides write again.
         await new SetUserBlockedHandler(fixture.Db, fixture.Clock)
             .Handle(new SetUserBlockedCommand(fixture.Seller.Id, conversationId, false), CancellationToken.None);
         Assert.NotNull(await fixture.SendAsync(fixture.Visitor.Id, conversationId));
+        Assert.NotNull(await fixture.SendAsync(fixture.Seller.Id, conversationId));
     }
 
     [Fact]
@@ -97,7 +101,7 @@ public class SendMessageTests
         var stored = await fixture.Db.Messages.SingleAsync(m => m.Id == message!.Id);
         Assert.True(stored.IsFlagged);
         Assert.Equal("Money transfer service", stored.FlagReason);
-        var flagged = await new GetFlaggedMessagesHandler(fixture.Db, fixture.Blobs)
+        var flagged = await new GetFlaggedMessagesHandler(fixture.Db)
             .Handle(new GetFlaggedMessagesQuery(IsAdmin: true), CancellationToken.None);
         Assert.Equal(message!.Id, Assert.Single(flagged).Message.Id);
         Assert.Equal("Ion Popescu", flagged[0].Sender.DisplayName);
@@ -113,7 +117,9 @@ public class SendMessageTests
 
         Assert.Equal(2, message!.Attachments.Count);
         Assert.All(message.Attachments, a => Assert.Equal("image/png", a.ContentType));
-        Assert.Equal($"https://blob.test/{images[0]}", message.Attachments[0].Url);
+        // An access-checked API path — never the storage URL or blob name.
+        Assert.Equal($"/api/v1/messaging/attachments/{message.Attachments[0].Id}", message.Attachments[0].Url);
+        Assert.All(message.Attachments, a => Assert.DoesNotContain("messages/", a.Url));
     }
 
     [Fact]
@@ -125,6 +131,17 @@ public class SendMessageTests
             fixture.SendAsync(fixture.Seller.Id, conversationId, "x", [fixture.UploadedImage(fixture.Visitor.Id)]));
         await Assert.ThrowsAsync<ValidationException>(() =>
             fixture.SendAsync(fixture.Seller.Id, conversationId, "x", [$"messages/{fixture.Seller.Id}/never-uploaded.png"]));
+    }
+
+    [Fact]
+    public async Task Attachments_MustBeInThePrivateContainer_NotThePublicOne()
+    {
+        var (fixture, conversationId) = await StartedAsync();
+        var publicBlob = $"messages/{fixture.Seller.Id}/public.png";
+        fixture.Blobs.BlobInfoByName[publicBlob] = new Imova.Application.Common.Interfaces.UploadedBlobInfo(
+            1024, "image/png", [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+
+        await Assert.ThrowsAsync<ValidationException>(() => fixture.SendAsync(fixture.Seller.Id, conversationId, "x", [publicBlob]));
     }
 
     [Fact]

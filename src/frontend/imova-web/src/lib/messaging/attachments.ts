@@ -5,6 +5,12 @@ export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 const EXTENSIONS: Record<string, string> = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
 
+// Where the browser loads a message image: the site's own access-checked proxy
+// (app/message-attachments/[id]/route.ts), never a storage URL — the images are private.
+export function attachmentSrc(attachmentId: string): string {
+  return `/message-attachments/${encodeURIComponent(attachmentId)}`;
+}
+
 export function attachmentExtension(file: { type: string }): string | null {
   return EXTENSIONS[file.type] ?? null;
 }

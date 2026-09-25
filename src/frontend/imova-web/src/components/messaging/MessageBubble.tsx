@@ -1,3 +1,4 @@
+import { attachmentSrc } from "@/lib/messaging/attachments";
 import { cn } from "@/lib/utils/cn";
 import type { Message } from "@/types/messaging";
 
@@ -24,9 +25,9 @@ export function MessageBubble({
         {message.attachments.length > 0 && (
           <div className={cn("mb-1.5 grid gap-1", message.attachments.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
             {message.attachments.map((a) => (
-              <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg">
-                {/* eslint-disable-next-line @next/next/no-img-element -- blob storage URL */}
-                <img src={a.url} alt="" className="max-h-60 w-full object-cover" />
+              <a key={a.id} href={attachmentSrc(a.id)} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element -- private image via the access-checked proxy */}
+                <img src={attachmentSrc(a.id)} alt="" className="max-h-60 w-full object-cover" />
               </a>
             ))}
           </div>

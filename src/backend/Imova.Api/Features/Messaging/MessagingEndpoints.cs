@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Imova.Api.Common;
 using Imova.Application.Common.Identity;
+using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Messaging.Admin;
 using Imova.Application.Features.Messaging.GetConversationIdForListing;
 using Imova.Application.Features.Messaging.GetConversations;
 using Imova.Application.Features.Messaging.GetConversationThread;
+using Imova.Application.Features.Messaging.GetMessageAttachment;
 using Imova.Application.Features.Messaging.GetRealtimeToken;
 using Imova.Application.Features.Messaging.GetUnreadCount;
 using Imova.Application.Features.Messaging.MarkConversationRead;
@@ -94,6 +96,23 @@ public static class MessagingEndpoints
 
         group.MapGet("/unread-count", async (ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
             Results.Ok(await sender.Send(new GetUnreadCountQuery(user.GetUserId()), ct)));
+
+        // A message image, streamed from the private container — only to the conversation's two
+        // participants or an admin; everyone else gets the same 404 as for an unknown id.
+        group.MapGet("/attachments/{id:guid}", async (
+            Guid id, ClaimsPrincipal user, ISender sender, IBlobStorageService blobStorageService, HttpContext http, CancellationToken ct) =>
+        {
+            var file = await sender.Send(new GetMessageAttachmentQuery(user.GetUserId(), user.IsInRole(Roles.Admin), id), ct);
+            var content = file is null ? null : await blobStorageService.OpenMessageAttachmentAsync(file.BlobName, ct);
+            if (content is null)
+            {
+                return Results.NotFound();
+            }
+
+            // Private: browsers may cache it, shared caches (proxies/CDNs) must not.
+            http.Response.Headers.CacheControl = "private, max-age=3600";
+            return Results.Stream(content, file!.ContentType);
+        });
 
         group.MapPost("/attachments/upload-url", async (AttachmentUploadUrlRequest request, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
             Results.Ok(await sender.Send(new RequestAttachmentUploadUrlCommand(user.GetUserId(), request.FileExtension), ct)));

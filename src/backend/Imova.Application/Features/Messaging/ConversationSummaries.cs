@@ -83,7 +83,7 @@ public static class ConversationSummaries
                 c.Id,
                 new ConversationListingDto(c.ListingId, listing?.Title, photo is null ? null : blobStorageService.GetPublicUrl(photo)),
                 other,
-                lastMessages.GetValueOrDefault(c.Id)?.ToDto(blobStorageService),
+                lastMessages.GetValueOrDefault(c.Id)?.ToDto(),
                 unread.GetValueOrDefault(c.Id),
                 c.LastMessageAt,
                 c.IsArchivedFor(viewerUserId),

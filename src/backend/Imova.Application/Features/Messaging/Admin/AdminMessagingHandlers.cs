@@ -75,7 +75,7 @@ public class GetMessagingReportsHandler(IApplicationDbContext dbContext)
     }
 }
 
-public class GetFlaggedMessagesHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
+public class GetFlaggedMessagesHandler(IApplicationDbContext dbContext)
     : IRequestHandler<GetFlaggedMessagesQuery, List<FlaggedMessageDto>>
 {
     public async Task<List<FlaggedMessageDto>> Handle(GetFlaggedMessagesQuery request, CancellationToken cancellationToken)
@@ -92,12 +92,12 @@ public class GetFlaggedMessagesHandler(IApplicationDbContext dbContext, IBlobSto
 
         return messages
             .Select(m => new FlaggedMessageDto(
-                m.ToDto(blobStorageService), m.FlagReason ?? string.Empty, AdminMessaging.UserOrPlaceholder(users, m.SenderUserId)))
+                m.ToDto(), m.FlagReason ?? string.Empty, AdminMessaging.UserOrPlaceholder(users, m.SenderUserId)))
             .ToList();
     }
 }
 
-public class GetConversationForAdminHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
+public class GetConversationForAdminHandler(IApplicationDbContext dbContext)
     : IRequestHandler<GetConversationForAdminQuery, AdminConversationDto?>
 {
     public async Task<AdminConversationDto?> Handle(GetConversationForAdminQuery request, CancellationToken cancellationToken)
@@ -125,7 +125,7 @@ public class GetConversationForAdminHandler(IApplicationDbContext dbContext, IBl
             listings.GetValueOrDefault(conversation.ListingId) ?? new ConversationListingDto(conversation.ListingId, null, null),
             AdminMessaging.UserOrPlaceholder(users, conversation.InitiatorUserId),
             AdminMessaging.UserOrPlaceholder(users, conversation.PublisherUserId),
-            messages.Select(m => m.ToDto(blobStorageService)).ToList());
+            messages.Select(m => m.ToDto()).ToList());
     }
 }
 

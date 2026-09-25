@@ -12,6 +12,6 @@ public class RequestAttachmentUploadUrlHandler(IBlobStorageService blobStorageSe
         var blobName = blobStorageService.GenerateMessageAttachmentBlobName(request.UserId, request.FileExtension);
         var expiry = blobStorageService.DefaultUploadExpiry;
         return Task.FromResult(new AttachmentUploadUrlDto(
-            blobStorageService.GenerateUploadSasUrl(blobName, expiry), blobName, timeProvider.GetUtcNow().Add(expiry)));
+            blobStorageService.GenerateMessageAttachmentUploadSasUrl(blobName, expiry), blobName, timeProvider.GetUtcNow().Add(expiry)));
     }
 }

@@ -33,7 +33,7 @@ public static class MessageAttachments
                 throw Invalid("An attachment doesn't belong to you.");
             }
 
-            var info = await blobStorageService.TryGetUploadedBlobInfoAsync(name, cancellationToken)
+            var info = await blobStorageService.TryGetMessageAttachmentInfoAsync(name, cancellationToken)
                 ?? throw Invalid("An image was not found in storage — the upload may not have completed.");
 
             if (info.SizeBytes > Photo.MaxFileSizeBytes)

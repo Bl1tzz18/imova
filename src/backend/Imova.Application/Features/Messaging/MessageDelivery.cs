@@ -50,7 +50,7 @@ public class MessageDelivery(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        var dto = message.ToDto(blobStorageService);
+        var dto = message.ToDto();
         await BestEffortAsync(async () =>
         {
             await realtimeNotifier.MessageCreatedAsync(recipientUserId, senderUserId, dto, cancellationToken);

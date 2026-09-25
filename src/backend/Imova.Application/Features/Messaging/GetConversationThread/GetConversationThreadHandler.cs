@@ -39,7 +39,7 @@ public class GetConversationThreadHandler(IApplicationDbContext dbContext, IBlob
         var summary = (await ConversationSummaries.LoadAsync(dbContext, blobStorageService, request.UserId, [conversation], cancellationToken))[0];
         return new ConversationThreadDto(
             summary,
-            page.Take(pageSize).OrderBy(m => m.CreatedAt).Select(m => m.ToDto(blobStorageService)).ToList(),
+            page.Take(pageSize).OrderBy(m => m.CreatedAt).Select(m => m.ToDto()).ToList(),
             hasMore,
             BlockedByMe: await MessagingAccess.IsBlockedAsync(dbContext, request.UserId, otherUserId, cancellationToken),
             BlockedByOther: await MessagingAccess.IsBlockedAsync(dbContext, otherUserId, request.UserId, cancellationToken));
