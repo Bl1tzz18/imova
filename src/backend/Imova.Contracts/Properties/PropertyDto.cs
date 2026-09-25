@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Imova.Contracts.Amenities;
+using Imova.Contracts.Proximities;
 
 namespace Imova.Contracts.Properties;
 
@@ -14,4 +15,5 @@ public record PropertyDto(
     string? Condition,
     JsonElement TypeSpecificAttributes,
     IReadOnlyList<AmenityDto> Amenities,
+    IReadOnlyList<ProximityDto> Proximities,
     PropertyLocationDto? Location);

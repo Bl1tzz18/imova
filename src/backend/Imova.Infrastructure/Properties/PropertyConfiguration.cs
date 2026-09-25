@@ -1,6 +1,7 @@
 using Imova.Domain.Amenities;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
+using Imova.Domain.Proximities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -29,6 +30,9 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasMany(p => p.Amenities).WithOne().HasForeignKey(a => a.PropertyId).OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(p => p.Amenities).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.HasMany(p => p.Proximities).WithOne().HasForeignKey(p => p.PropertyId).OnDelete(DeleteBehavior.Cascade);
+        builder.Navigation(p => p.Proximities).UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasIndex(p => p.PropertyType);
     }
 }
@@ -41,5 +45,16 @@ public class PropertyAmenityConfiguration : IEntityTypeConfiguration<PropertyAme
         builder.HasKey(a => new { a.PropertyId, a.AmenityId });
         builder.HasOne<Amenity>().WithMany().HasForeignKey(a => a.AmenityId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(a => a.AmenityId);
+    }
+}
+
+public class PropertyProximityConfiguration : IEntityTypeConfiguration<PropertyProximity>
+{
+    public void Configure(EntityTypeBuilder<PropertyProximity> builder)
+    {
+        builder.ToTable("PropertyProximities");
+        builder.HasKey(p => new { p.PropertyId, p.ProximityId });
+        builder.HasOne<Proximity>().WithMany().HasForeignKey(p => p.ProximityId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(p => p.ProximityId);
     }
 }

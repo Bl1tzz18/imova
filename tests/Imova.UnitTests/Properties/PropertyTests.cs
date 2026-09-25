@@ -76,7 +76,7 @@ public class PropertyTests
         var property = Property.Create(PropertyType.Apartment, 50m, null, null, LocationId, Apartment, [parking, balcony]);
         var keptJoinRow = property.Amenities.Single(a => a.AmenityId == balcony);
 
-        property.UpdateDetails(PropertyType.Apartment, 50m, null, null, Apartment, [balcony, elevator]);
+        property.UpdateDetails(PropertyType.Apartment, 50m, null, null, Apartment, [balcony, elevator], []);
 
         Assert.Equal(
             new[] { balcony, elevator }.Order(),
@@ -85,12 +85,43 @@ public class PropertyTests
     }
 
     [Fact]
+    public void Create_WithProximities_DeduplicatesAndIgnoresEmptyIds()
+    {
+        var school = Guid.NewGuid();
+        var park = Guid.NewGuid();
+
+        var property = Property.Create(
+            PropertyType.Land, 500m, null, null, LocationId, new LandAttributes(), proximityIds: [school, park, school, Guid.Empty]);
+
+        Assert.Equal(new[] { school, park }.Order(), property.Proximities.Select(p => p.ProximityId).Order());
+        Assert.All(property.Proximities, p => Assert.Equal(property.Id, p.PropertyId));
+        Assert.Empty(property.Amenities);
+    }
+
+    [Fact]
+    public void UpdateDetails_ReplacesProximitiesKeepingUnchangedOnesAndLeavingAmenitiesAlone()
+    {
+        var parking = Guid.NewGuid();
+        var school = Guid.NewGuid();
+        var park = Guid.NewGuid();
+        var bank = Guid.NewGuid();
+        var property = Property.Create(PropertyType.Apartment, 50m, null, null, LocationId, Apartment, [parking], [school, park]);
+        var keptJoinRow = property.Proximities.Single(p => p.ProximityId == park);
+
+        property.UpdateDetails(PropertyType.Apartment, 50m, null, null, Apartment, [parking], [park, bank]);
+
+        Assert.Equal(new[] { park, bank }.Order(), property.Proximities.Select(p => p.ProximityId).Order());
+        Assert.Same(keptJoinRow, property.Proximities.Single(p => p.ProximityId == park));
+        Assert.Equal(parking, Assert.Single(property.Amenities).AmenityId);
+    }
+
+    [Fact]
     public void UpdateDetails_CanChangePropertyTypeTogetherWithMatchingAttributes()
     {
         var property = Property.Create(PropertyType.Apartment, 50m, 1990, null, LocationId, Apartment);
         var house = new HouseAttributes(Rooms: 4, HouseFloors: 2);
 
-        property.UpdateDetails(PropertyType.House, 120m, 2010, PropertyCondition.New, house, []);
+        property.UpdateDetails(PropertyType.House, 120m, 2010, PropertyCondition.New, house, [], []);
 
         Assert.Equal(PropertyType.House, property.PropertyType);
         Assert.Equal(house, property.TypeSpecificAttributes);
@@ -103,7 +134,7 @@ public class PropertyTests
         var property = Property.Create(PropertyType.Apartment, 50m, null, null, LocationId, Apartment);
 
         Assert.Throws<ArgumentException>(() =>
-            property.UpdateDetails(PropertyType.House, 50m, null, null, Apartment, []));
+            property.UpdateDetails(PropertyType.House, 50m, null, null, Apartment, [], []));
 
         Assert.Equal(PropertyType.Apartment, property.PropertyType);
     }

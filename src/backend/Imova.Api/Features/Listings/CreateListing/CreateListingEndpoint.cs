@@ -25,6 +25,7 @@ public static class CreateListingEndpoint
                 request.Condition,
                 request.TypeSpecificAttributes,
                 request.AmenityIds,
+                request.ProximityIds,
                 request.Country,
                 request.RaionId,
                 request.LocalitateId,

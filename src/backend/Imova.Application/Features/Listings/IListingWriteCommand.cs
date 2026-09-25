@@ -24,6 +24,9 @@ public interface IListingWriteCommand
 
     IReadOnlyList<Guid>? AmenityIds { get; }
 
+    // What the property is close to (school, park, ...) — optional for every type.
+    IReadOnlyList<Guid>? ProximityIds { get; }
+
     // No Latitude/Longitude on purpose — coordinates are derived server-side via
     // IGeocodingService rather than trusting client-supplied ones for a listing's real location.
     string Country { get; }

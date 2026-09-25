@@ -15,10 +15,8 @@ public class ListingPersistenceTests
     {
         var databaseName = Guid.NewGuid().ToString();
         var amenityId = Guid.NewGuid();
-        var attributes = new HouseAttributes(
-            Rooms: 5, LandAreaM2: 600m, HouseFloors: 2, ConstructionType: ConstructionType.Brick,
-            Utilities: new HouseUtilities(Water: true, Sewage: false, Gas: true, Electricity: true));
-        var rental = new RentalDetails(12, 1000m, true, FurnishedStatus.PartiallyFurnished, new DateTime(2026, 10, 1), true);
+        var attributes = TestAttributes.CompleteHouse;
+        var rental = new RentalDetails(12, 1000m, true, new DateTime(2026, 10, 1), true);
         Guid listingId;
 
         await using (var dbContext = TestDbContextFactory.Create(databaseName))

@@ -15,7 +15,7 @@ export function ListingTips() {
 
   return (
     <div className="rounded-2xl border border-accent-100 bg-accent-100/30 p-6">
-      <h3 className="font-display text-base font-medium text-ink-950">{t("tipsHeading")}</h3>
+      <h3 className="font-hero text-base font-bold text-ink-950">{t("tipsHeading")}</h3>
       <div className="mt-4 space-y-3.5">
         {tips.map((tip) => (
           <div key={tip.icon} className="flex items-start gap-2.5">

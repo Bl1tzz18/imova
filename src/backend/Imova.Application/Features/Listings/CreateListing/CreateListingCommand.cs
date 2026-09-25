@@ -7,7 +7,7 @@ using MediatR;
 namespace Imova.Application.Features.Listings.CreateListing;
 
 // Everything the listing form collects, in one payload: the physical Property (type, area,
-// attributes, amenities, address) and the Listing offer on top of it. Both are created together,
+// attributes, amenities, proximities, address) and the Listing offer on top of it. Both are created together,
 // atomically — see CreateListingHandler.
 //
 // RequestingUserId always comes from the caller's JWT (see CreateListingEndpoint), never the body.
@@ -26,6 +26,7 @@ public record CreateListingCommand(
     PropertyCondition? Condition,
     JsonElement? TypeSpecificAttributes,
     IReadOnlyList<Guid>? AmenityIds,
+    IReadOnlyList<Guid>? ProximityIds,
     string Country,
     Guid RaionId,
     Guid? LocalitateId,

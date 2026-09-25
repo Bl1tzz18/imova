@@ -101,6 +101,15 @@ namespace Imova.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.PrimitiveCollection<int[]>("ApplicablePropertyTypes")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<string>("Key")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -122,80 +131,322 @@ namespace Imova.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000001"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4 },
+                            Category = "Leisure",
                             Key = "parking",
                             LabelRo = "Parcare"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000002"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 6 },
+                            Category = "General",
                             Key = "balcony",
                             LabelRo = "Balcon/Logie"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000003"),
+                            ApplicablePropertyTypes = new[] { 1, 4 },
+                            Category = "General",
                             Key = "elevator",
                             LabelRo = "Ascensor"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000004"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4, 6 },
+                            Category = "Comfort",
                             Key = "air_conditioning",
                             LabelRo = "Aer condiționat"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000005"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4, 6 },
+                            Category = "Comfort",
                             Key = "furnished",
                             LabelRo = "Mobilat"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000006"),
+                            ApplicablePropertyTypes = new[] { 1, 2 },
+                            Category = "Leisure",
                             Key = "garage",
                             LabelRo = "Garaj"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000007"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
                             Key = "yard",
                             LabelRo = "Curte"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000008"),
+                            ApplicablePropertyTypes = new[] { 4, 6 },
+                            Category = "General",
                             Key = "autonomous_heating",
                             LabelRo = "Încălzire autonomă"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-000000000009"),
+                            ApplicablePropertyTypes = new[] { 4, 6 },
+                            Category = "General",
                             Key = "centralized_heating",
                             LabelRo = "Încălzire centralizată"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-00000000000a"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4 },
+                            Category = "Security",
                             Key = "wheelchair_access",
                             LabelRo = "Acces pentru scaun cu rotile"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-00000000000b"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4 },
+                            Category = "Leisure",
                             Key = "storage_room",
                             LabelRo = "Debara"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-00000000000c"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4, 5 },
+                            Category = "Security",
                             Key = "video_surveillance",
                             LabelRo = "Supraveghere video"
                         },
                         new
                         {
                             Id = new Guid("a1000000-0000-0000-0000-00000000000d"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4, 6 },
+                            Category = "Comfort",
                             Key = "internet",
                             LabelRo = "Internet"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000e"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Comfort",
+                            Key = "fireplace",
+                            LabelRo = "Șemineu"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000000f"),
+                            ApplicablePropertyTypes = new[] { 1, 2 },
+                            Category = "Comfort",
+                            Key = "underfloor_heating",
+                            LabelRo = "Încălzire în pardoseală"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000010"),
+                            ApplicablePropertyTypes = new[] { 1, 2 },
+                            Category = "Comfort",
+                            Key = "smart_home",
+                            LabelRo = "Sistem casă inteligentă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000011"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 6 },
+                            Category = "Comfort",
+                            Key = "appliances",
+                            LabelRo = "Cu tehnică de uz casnic"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000012"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 6 },
+                            Category = "Comfort",
+                            Key = "cable_tv",
+                            LabelRo = "Televiziune prin cablu"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000013"),
+                            ApplicablePropertyTypes = new[] { 1, 2 },
+                            Category = "Comfort",
+                            Key = "landline",
+                            LabelRo = "Telefon fix"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000014"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4 },
+                            Category = "Security",
+                            Key = "intercom",
+                            LabelRo = "Interfon"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000015"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4, 5 },
+                            Category = "Security",
+                            Key = "alarm_system",
+                            LabelRo = "Sistem de alarmă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000016"),
+                            ApplicablePropertyTypes = new[] { 2, 5 },
+                            Category = "Security",
+                            Key = "remote_gate",
+                            LabelRo = "Poartă cu telecomandă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000017"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "sauna",
+                            LabelRo = "Saună"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000018"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "basement",
+                            LabelRo = "Beci/subsol"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000019"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "gazebo",
+                            LabelRo = "Foișor"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001a"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "pool",
+                            LabelRo = "Piscină"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001b"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "terrace",
+                            LabelRo = "Terasă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001c"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "garden",
+                            LabelRo = "Grădină/seră"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001d"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "staff_room",
+                            LabelRo = "Cameră pentru personal/pază"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001e"),
+                            ApplicablePropertyTypes = new[] { 2, 4 },
+                            Category = "Leisure",
+                            Key = "backup_generator",
+                            LabelRo = "Generator de rezervă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000001f"),
+                            ApplicablePropertyTypes = new[] { 2 },
+                            Category = "Leisure",
+                            Key = "water_purification",
+                            LabelRo = "Sistem de purificare a apei"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000020"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 6 },
+                            Category = "Comfort",
+                            Key = "dishwasher",
+                            LabelRo = "Mașină de spălat vase"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000021"),
+                            ApplicablePropertyTypes = new[] { 1, 2 },
+                            Category = "Security",
+                            Key = "armored_door",
+                            LabelRo = "Ușă blindată"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000022"),
+                            ApplicablePropertyTypes = new[] { 1 },
+                            Category = "General",
+                            Key = "storage_annex",
+                            LabelRo = "Anexă/boxă"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000023"),
+                            ApplicablePropertyTypes = new[] { 1, 4 },
+                            Category = "General",
+                            Key = "separate_entrance",
+                            LabelRo = "Intrare separată"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000024"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 4 },
+                            Category = "Comfort",
+                            Key = "panoramic_windows",
+                            LabelRo = "Geamuri panoramice"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000025"),
+                            ApplicablePropertyTypes = new[] { 1 },
+                            Category = "Comfort",
+                            Key = "separate_living_room",
+                            LabelRo = "Living separat"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-000000000026"),
+                            ApplicablePropertyTypes = new[] { 1, 4, 6 },
+                            Category = "Comfort",
+                            Key = "thermopane_windows",
+                            LabelRo = "Geamuri termopan"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000002a"),
+                            ApplicablePropertyTypes = new[] { 5 },
+                            Category = "General",
+                            Key = "electricity",
+                            LabelRo = "Electricitate"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1000000-0000-0000-0000-00000000002b"),
+                            ApplicablePropertyTypes = new[] { 6 },
+                            Category = "Comfort",
+                            Key = "kitchen_access",
+                            LabelRo = "Acces la bucătărie"
                         });
                 });
 
@@ -561,6 +812,121 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("PropertyAmenities", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyProximity", b =>
+                {
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProximityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PropertyId", "ProximityId");
+
+                    b.HasIndex("ProximityId");
+
+                    b.ToTable("PropertyProximities", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Proximities.Proximity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("ApplicablePropertyTypes")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("LabelRo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("Proximities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000001"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "kindergarten",
+                            LabelRo = "Grădiniță"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000002"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "school",
+                            LabelRo = "Școală"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000003"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "supermarket",
+                            LabelRo = "Supermarket / magazin alimentar"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000004"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "pharmacy",
+                            LabelRo = "Farmacie"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000005"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "public_transport",
+                            LabelRo = "Stație transport public"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000006"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "park",
+                            LabelRo = "Parc / zonă verde"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000007"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "city_center",
+                            LabelRo = "Centrul orașului"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000008"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "hospital",
+                            LabelRo = "Spital / policlinică"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-000000000009"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "farmers_market",
+                            LabelRo = "Piață agroalimentară"
+                        },
+                        new
+                        {
+                            Id = new Guid("b1000000-0000-0000-0000-00000000000a"),
+                            ApplicablePropertyTypes = new[] { 1, 2, 3, 4, 5, 6 },
+                            Key = "bank",
+                            LabelRo = "Bancă / bancomat"
+                        });
+                });
+
             modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
                 {
                     b.Property<Guid>("Id")
@@ -857,6 +1223,21 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Properties.PropertyProximity", b =>
+                {
+                    b.HasOne("Imova.Domain.Properties.Property", null)
+                        .WithMany("Proximities")
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Domain.Proximities.Proximity", null)
+                        .WithMany()
+                        .HasForeignKey("ProximityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Publishers.Publisher", b =>
                 {
                     b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
@@ -920,6 +1301,8 @@ namespace Imova.Infrastructure.Migrations
             modelBuilder.Entity("Imova.Domain.Properties.Property", b =>
                 {
                     b.Navigation("Amenities");
+
+                    b.Navigation("Proximities");
                 });
 #pragma warning restore 612, 618
         }

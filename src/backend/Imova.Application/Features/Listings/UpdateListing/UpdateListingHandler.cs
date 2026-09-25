@@ -24,6 +24,7 @@ public class UpdateListingHandler(
 
         var property = await dbContext.Properties
             .Include(p => p.Amenities)
+            .Include(p => p.Proximities)
             .FirstAsync(p => p.Id == listing.PropertyId, cancellationToken);
         var location = await dbContext.PropertyLocations.FirstAsync(l => l.Id == property.LocationId, cancellationToken);
 
@@ -38,7 +39,8 @@ public class UpdateListingHandler(
             request.YearBuilt,
             request.Condition,
             ListingWriteSupport.ParseAttributes(request),
-            ListingWriteSupport.AmenityIds(request));
+            ListingWriteSupport.AmenityIds(request),
+            ListingWriteSupport.ProximityIds(request));
 
         listing.UpdateDetails(
             request.TransactionType,

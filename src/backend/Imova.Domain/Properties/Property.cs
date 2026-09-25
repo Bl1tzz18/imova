@@ -10,6 +10,7 @@ namespace Imova.Domain.Properties;
 public sealed class Property : AggregateRoot
 {
     private readonly List<PropertyAmenity> _amenities = [];
+    private readonly List<PropertyProximity> _proximities = [];
 
     // For EF Core materialization only.
     private Property()
@@ -59,6 +60,9 @@ public sealed class Property : AggregateRoot
 
     public IReadOnlyCollection<PropertyAmenity> Amenities => _amenities.AsReadOnly();
 
+    // What the property is close to (school, park, ...) — see Proximity.
+    public IReadOnlyCollection<PropertyProximity> Proximities => _proximities.AsReadOnly();
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -71,6 +75,7 @@ public sealed class Property : AggregateRoot
         Guid locationId,
         PropertyAttributes typeSpecificAttributes,
         IEnumerable<Guid>? amenityIds = null,
+        IEnumerable<Guid>? proximityIds = null,
         Guid? id = null)
     {
         if (locationId == Guid.Empty)
@@ -83,6 +88,7 @@ public sealed class Property : AggregateRoot
         var property = new Property(
             id ?? Guid.NewGuid(), propertyType, totalAreaM2, yearBuilt, condition, locationId, typeSpecificAttributes);
         property.ReplaceAmenities(amenityIds ?? []);
+        property.ReplaceProximities(proximityIds ?? []);
         return property;
     }
 
@@ -94,7 +100,8 @@ public sealed class Property : AggregateRoot
         int? yearBuilt,
         PropertyCondition? condition,
         PropertyAttributes typeSpecificAttributes,
-        IEnumerable<Guid> amenityIds)
+        IEnumerable<Guid> amenityIds,
+        IEnumerable<Guid> proximityIds)
     {
         EnsureValidDetails(propertyType, totalAreaM2, yearBuilt, condition, typeSpecificAttributes);
 
@@ -104,6 +111,7 @@ public sealed class Property : AggregateRoot
         Condition = condition;
         TypeSpecificAttributes = typeSpecificAttributes;
         ReplaceAmenities(amenityIds);
+        ReplaceProximities(proximityIds);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -115,6 +123,17 @@ public sealed class Property : AggregateRoot
         foreach (var amenityId in wanted.Where(a => _amenities.All(existing => existing.AmenityId != a)))
         {
             _amenities.Add(PropertyAmenity.Create(Id, amenityId));
+        }
+    }
+
+    private void ReplaceProximities(IEnumerable<Guid> proximityIds)
+    {
+        var wanted = proximityIds.Where(p => p != Guid.Empty).ToHashSet();
+
+        _proximities.RemoveAll(p => !wanted.Contains(p.ProximityId));
+        foreach (var proximityId in wanted.Where(p => _proximities.All(existing => existing.ProximityId != p)))
+        {
+            _proximities.Add(PropertyProximity.Create(Id, proximityId));
         }
     }
 

@@ -21,6 +21,20 @@ export type Amenity = {
   id: string;
   key: string;
   labelRo: string;
+  // "General" | "Comfort" | "Security" | "Leisure" — groups amenities for display.
+  category: string;
+  // PropertyType names the amenity can be selected for.
+  applicablePropertyTypes: string[];
+};
+
+// Something a property is close to (school, park, ...) — separate from amenities, which describe
+// the property itself.
+export type Proximity = {
+  id: string;
+  key: string;
+  labelRo: string;
+  // PropertyType names the proximity can be selected for.
+  applicablePropertyTypes: string[];
 };
 
 export type PublisherType = "Individual" | "Agency";
@@ -61,6 +75,7 @@ export type PropertyDetails = {
   condition: string | null;
   typeSpecificAttributes: TypeSpecificAttributes;
   amenities: Amenity[];
+  proximities: Proximity[];
   location: PropertyLocation | null;
 };
 
@@ -76,9 +91,9 @@ export type RentalDetails = {
   minLeasePeriodMonths: number | null;
   securityDepositAmount: number | null;
   utilitiesIncluded: boolean;
-  furnishedStatus: string;
   availableFrom: string | null;
-  petsAllowed: boolean;
+  // Null when not asked (rentals other than an apartment, house or room).
+  petsAllowed: boolean | null;
 };
 
 export type SaleDetails = {

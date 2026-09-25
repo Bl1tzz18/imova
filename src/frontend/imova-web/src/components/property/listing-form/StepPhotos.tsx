@@ -17,7 +17,7 @@ export function StepPhotos({
 
   return (
     <div>
-      <h2 className="font-display text-xl font-medium text-ink-950">{t("step3Heading")}</h2>
+      <h2 className="font-hero text-xl font-bold text-ink-950">{t("step3Heading")}</h2>
       <div className="mt-5">
         {listingId && (
           <ImageUploader listingId={listingId} initialPhotos={initialPhotos} deferDeletes={deferDeletes} />

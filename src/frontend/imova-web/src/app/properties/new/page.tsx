@@ -17,7 +17,7 @@ export default async function NewPropertyPage() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <div className="mx-auto max-w-[1040px] px-4 py-10 sm:px-6 sm:py-14">
-          <h1 className="font-display text-3xl font-medium text-ink-950 sm:text-4xl">{t("title")}</h1>
+          <h1 className="font-hero text-3xl font-extrabold text-ink-950 sm:text-4xl">{t("title")}</h1>
           <p className="mt-2 text-[15px] text-ink-500">{t("subtitle")}</p>
 
           <div className="mt-9">

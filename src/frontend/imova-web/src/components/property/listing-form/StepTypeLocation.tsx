@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
+import { FieldLabel, TextInput } from "@/components/ui/Field";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -14,6 +14,7 @@ import {
   type Raion,
 } from "@/lib/api/locations";
 import { DealTypeTabs } from "./DealTypeTabs";
+import { PropertyTypeCards } from "./PropertyTypeCards";
 import { StreetAddressAutocomplete } from "./StreetAddressAutocomplete";
 
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
@@ -102,7 +103,7 @@ export function StepTypeLocation({
 
   return (
     <div>
-      <h2 className="font-display text-xl font-medium text-ink-950">{t("step1Heading")}</h2>
+      <h2 className="font-hero text-xl font-bold text-ink-950">{t("step1Heading")}</h2>
 
       <div className="mt-5">
         <DealTypeTabs
@@ -113,22 +114,18 @@ export function StepTypeLocation({
         />
       </div>
 
+      <div className="mt-5">
+        <FieldLabel required>{t("propertyTypeLabel")}</FieldLabel>
+        <PropertyTypeCards
+          name="propertyType"
+          value={propertyType}
+          onChange={onPropertyTypeChange}
+          options={PROPERTY_TYPES.map((pt) => ({ value: pt, label: tType(pt) }))}
+          label={t("propertyTypeLabel")}
+        />
+      </div>
+
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block">
-          <FieldLabel required>{t("propertyTypeLabel")}</FieldLabel>
-          <SelectInput
-            name="propertyType"
-            required
-            value={propertyType}
-            onChange={(e) => onPropertyTypeChange(e.target.value)}
-          >
-            {PROPERTY_TYPES.map((pt) => (
-              <option key={pt} value={pt}>
-                {tType(pt)}
-              </option>
-            ))}
-          </SelectInput>
-        </label>
         <label className="block">
           <FieldLabel required>{t("raionLabel")}</FieldLabel>
           <SearchableSelect

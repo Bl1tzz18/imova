@@ -135,11 +135,11 @@
     "step1Label": "Тип и локация",
     "step2Label": "Детали",
     "step3Label": "Фотографии",
-    "step4Label": "Цена и контакты",
+    "step4Label": "Цена и условия",
     "step1Heading": "Тип объявления и локация",
     "step2Heading": "Детали объекта",
     "step3Heading": "Фотографии",
-    "step4Heading": "Цена и контакты",
+    "step4Heading": "Цена и условия",
     "backLabel": "Назад",
     "continueLabel": "Продолжить",
     "titleLabel": "Заголовок объявления",
@@ -195,16 +195,37 @@
     "areaInAri": "≈ {ari} соток",
     "conditionLabel": "Состояние",
     "amenitiesLabel": "Удобства",
+    "proximitiesLabel": "Поблизости",
     "isNegotiableLabel": "Цена договорная",
     "rentalTermsHeading": "Условия аренды",
-    "furnishedStatusLabel": "Меблировка",
     "minLeasePeriodLabel": "Минимальный срок (мес.)",
     "securityDepositLabel": "Залог",
     "availableFromLabel": "Доступно с",
     "utilitiesIncludedLabel": "Коммунальные услуги включены",
     "publishAsLabel": "Опубликовать от имени",
     "publisherIndividual": "Частное лицо",
-    "publisherAgency": "Агентство"
+    "publisherAgency": "Агентство",
+    "datePlaceholder": "дд.мм.гггг",
+    "invalidDate": "Введите корректную дату (дд.мм.гггг).",
+    "openCalendar": "Открыть календарь",
+    "houseTotalAreaLabel": "Общая площадь (м²)",
+    "sectionsCompleted": "Заполнено разделов: {completed}/{total}",
+    "landAreaLabel": "Площадь участка (м²)",
+    "detailSections": {
+      "structure": "Тип и конструкция",
+      "areas": "Площади",
+      "systems": "Системы и коммуникации",
+      "finishing": "Отделочные материалы",
+      "comfort": "Комфорт и интерьер",
+      "security": "Безопасность и доступ",
+      "leisure": "Отдых и подсобные помещения",
+      "other": "Прочие удобства",
+      "typeArea": "Тип и площадь",
+      "utilitiesAccess": "Коммуникации и подъезд",
+      "amenities": "Удобства",
+      "proximities": "Поблизости",
+      "rentalRules": "Правила аренды"
+    }
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
@@ -216,7 +237,6 @@
     "floor": "Этаж",
     "floorOf": "{floor} из {totalFloors}",
     "yearBuilt": "Год постройки",
-    "furnished": "Меблировано",
     "petsAllowed": "Можно с животными",
     "yes": "Да",
     "no": "Нет",
@@ -241,6 +261,7 @@
     "nextPhoto": "Следующее фото",
     "condition": "Состояние",
     "amenities": "Удобства",
+    "proximities": "Поблизости",
     "rentalTerms": "Условия аренды",
     "minLeasePeriod": "Минимальный срок",
     "months": "{count, plural, one {# месяц} few {# месяца} many {# месяцев} other {# месяца}}",
@@ -393,11 +414,6 @@
     "GrayStructure": "Серый вариант",
     "RedStructure": "Коробка без отделки"
   },
-  "FurnishedStatus": {
-    "Unfurnished": "Без мебели",
-    "PartiallyFurnished": "Частично меблировано",
-    "Furnished": "Меблировано"
-  },
   "Amenity": {
     "parking": "Парковка",
     "balcony": "Балкон/Лоджия",
@@ -411,7 +427,46 @@
     "wheelchair_access": "Доступ для колясок",
     "storage_room": "Кладовая",
     "video_surveillance": "Видеонаблюдение",
-    "internet": "Интернет"
+    "internet": "Интернет",
+    "fireplace": "Камин",
+    "underfloor_heating": "Тёплый пол",
+    "smart_home": "Система «умный дом»",
+    "appliances": "С бытовой техникой",
+    "cable_tv": "Кабельное ТВ",
+    "landline": "Стационарный телефон",
+    "intercom": "Домофон",
+    "alarm_system": "Сигнализация",
+    "remote_gate": "Ворота с пультом",
+    "sauna": "Сауна",
+    "basement": "Погреб/подвал",
+    "gazebo": "Беседка",
+    "pool": "Бассейн",
+    "terrace": "Терраса",
+    "garden": "Сад/теплица",
+    "staff_room": "Комната для персонала/охраны",
+    "backup_generator": "Резервный генератор",
+    "water_purification": "Система очистки воды",
+    "dishwasher": "Посудомоечная машина",
+    "armored_door": "Бронированная дверь",
+    "storage_annex": "Пристройка/кладовка",
+    "separate_entrance": "Отдельный вход",
+    "panoramic_windows": "Панорамные окна",
+    "separate_living_room": "Отдельная гостиная",
+    "thermopane_windows": "Стеклопакеты",
+    "electricity": "Электричество",
+    "kitchen_access": "Доступ к кухне"
+  },
+  "Proximity": {
+    "kindergarten": "Детский сад",
+    "school": "Школа",
+    "supermarket": "Супермаркет / продуктовый магазин",
+    "pharmacy": "Аптека",
+    "public_transport": "Остановка общественного транспорта",
+    "park": "Парк / зелёная зона",
+    "city_center": "Центр города",
+    "hospital": "Больница / поликлиника",
+    "farmers_market": "Продуктовый рынок",
+    "bank": "Банк / банкомат"
   },
   "Attributes": {
     "choose": "Выберите",
@@ -420,7 +475,8 @@
       "label": "Комнаты"
     },
     "floor": {
-      "label": "Этаж"
+      "label": "Этаж",
+      "hint": "-1 = подвал, 0 = цоколь"
     },
     "totalFloors": {
       "label": "Всего этажей"
@@ -428,40 +484,11 @@
     "bathrooms": {
       "label": "Санузлы"
     },
-    "heatingType": {
-      "label": "Отопление",
-      "options": {
-        "Centralized": "Центральное",
-        "Autonomous": "Автономное",
-        "Other": "Другое"
-      }
-    },
     "landAreaM2": {
       "label": "Площадь участка (м²)"
     },
     "houseFloors": {
       "label": "Этажность"
-    },
-    "constructionType": {
-      "label": "Материал стен",
-      "options": {
-        "Brick": "Кирпич",
-        "Stone": "Камень",
-        "Wood": "Дерево",
-        "Other": "Другое"
-      }
-    },
-    "utilities": {
-      "label": "Коммуникации"
-    },
-    "landDesignation": {
-      "label": "Назначение земли",
-      "options": {
-        "Intravilan": "В черте населённого пункта",
-        "Extravilan": "За чертой населённого пункта",
-        "Agricultural": "Сельхозназначения",
-        "Construction": "Под строительство"
-      }
     },
     "roadAccess": {
       "label": "Подъезд",
@@ -471,18 +498,6 @@
         "None": "Нет"
       }
     },
-    "utilitiesAtBoundary": {
-      "label": "Коммуникации по границе"
-    },
-    "spaceType": {
-      "label": "Тип помещения",
-      "options": {
-        "Office": "Офис",
-        "Retail": "Торговое",
-        "Warehouse": "Склад",
-        "HoReCa": "HoReCa"
-      }
-    },
     "mainStreetAccess": {
       "label": "Выход на главную улицу"
     },
@@ -490,29 +505,256 @@
       "label": "Электромощность",
       "placeholder": "напр.: 380 В, три фазы"
     },
-    "garageType": {
-      "label": "Тип гаража",
+    "roommateCount": {
+      "label": "Соседи"
+    },
+    "houseType": {
+      "label": "Тип дома",
       "options": {
-        "Underground": "Подземный",
-        "Box": "Бокс",
-        "Individual": "Отдельный"
+        "Individual": "Индивидуальный дом",
+        "Duplex": "Дуплекс",
+        "Triplex": "Триплекс",
+        "Townhouse": "Таунхаус",
+        "Villa": "Вилла",
+        "Other": "Другое"
       }
     },
-    "privateOrSharedBathroom": {
+    "buildingMaterial": {
+      "label": "Материал стен",
+      "options": {
+        "Brick": "Кирпич",
+        "Panel": "Панель",
+        "ConcreteBlock": "Бетонные блоки",
+        "LimestoneBlock": "Котелец",
+        "Monolith": "Монолит",
+        "Concrete": "Бетон",
+        "Combined": "Комбинированный",
+        "AeratedConcrete": "Газобетон",
+        "Wood": "Дерево",
+        "Adobe": "Саман",
+        "Other": "Другое"
+      }
+    },
+    "ceilingHeightM": {
+      "label": "Высота потолков (м)"
+    },
+    "livingAreaM2": {
+      "label": "Жилая площадь (м²)"
+    },
+    "kitchenAreaM2": {
+      "label": "Площадь кухни (м²)"
+    },
+    "atticAreaM2": {
+      "label": "Площадь мансарды (м²)"
+    },
+    "basementAreaM2": {
+      "label": "Площадь подвала (м²)"
+    },
+    "heatingSystem": {
+      "label": "Система отопления",
+      "options": {
+        "OwnBoiler": "Собственный котёл",
+        "Convector": "Конвекторы",
+        "InfraredPanels": "Инфракрасные панели",
+        "DistrictHeating": "Центральное отопление",
+        "HeatPump": "Тепловой насос",
+        "SolarPanels": "Солнечные панели",
+        "Stove": "Печь",
+        "None": "Без отопления"
+      }
+    },
+    "heatingEnergySource": {
+      "label": "Источник энергии",
+      "options": {
+        "Gas": "Газ",
+        "Electricity": "Электричество",
+        "Wood": "Дрова",
+        "Combined": "Комбинированный"
+      }
+    },
+    "heatingDistribution": {
+      "label": "Распределение тепла",
+      "options": {
+        "Radiators": "Радиаторы",
+        "UnderfloorHeating": "Тёплый пол",
+        "Air": "Воздушное"
+      }
+    },
+    "waterSupply": {
+      "label": "Водоснабжение",
+      "options": {
+        "CentralNetwork": "Центральный водопровод",
+        "Well": "Колодец",
+        "DrilledWell": "Скважина",
+        "Cistern": "Резервуар",
+        "None": "Нет"
+      }
+    },
+    "sewerage": {
+      "label": "Канализация",
+      "options": {
+        "Central": "Центральная",
+        "SepticTank": "Септик",
+        "None": "Нет"
+      }
+    },
+    "gasSupply": {
+      "label": "Подключён газ"
+    },
+    "floorMaterial": {
+      "label": "Покрытие пола",
+      "options": {
+        "Parquet": "Паркет",
+        "Laminate": "Ламинат",
+        "Tile": "Плитка",
+        "Other": "Другое"
+      }
+    },
+    "atticMaterial": {
+      "label": "Материал мансарды",
+      "options": {
+        "Wood": "Дерево",
+        "Drywall": "Гипсокартон",
+        "Osb": "Плиты OSB",
+        "Brick": "Кирпич",
+        "AeratedConcrete": "Газобетон",
+        "Other": "Другое"
+      }
+    },
+    "roofMaterial": {
+      "label": "Кровля",
+      "options": {
+        "Tile": "Черепица",
+        "Metal": "Металл",
+        "Other": "Другое"
+      }
+    },
+    "windowType": {
+      "label": "Окна",
+      "options": {
+        "Thermopane": "Стеклопакеты",
+        "Wood": "Деревянные",
+        "Other": "Другие"
+      }
+    },
+    "yes": "Да",
+    "no": "Нет",
+    "finishCondition": {
+      "label": "Состояние",
+      "options": {
+        "ToBeDemolished": "Под снос",
+        "IndividualDesign": "Индивидуальный дизайн",
+        "GrayStructure": "Серый вариант",
+        "EuroRenovated": "Евроремонт",
+        "WhiteStructure": "Белый вариант",
+        "NeedsRepair": "Требует ремонта",
+        "Unfinished": "Незавершённое строительство",
+        "CosmeticRepair": "Косметический ремонт",
+        "NoRepair": "Без ремонта"
+      }
+    },
+    "housingStockType": {
+      "label": "Тип жилья",
+      "options": {
+        "Existing": "Вторичное жильё",
+        "NewConstruction": "Новостройка"
+      }
+    },
+    "layout": {
+      "label": "Планировка",
+      "options": {
+        "Studio": "Студия",
+        "IndividualLayout": "Индивидуальная планировка",
+        "SovietEra": "Советская серия (хрущёвка)",
+        "Dormitory": "Общежитие",
+        "Other": "Другая"
+      }
+    },
+    "totalFloorsInBuilding": {
+      "label": "Этажность здания"
+    },
+    "plotType": {
+      "label": "Тип участка",
+      "options": {
+        "Agricultural": "Сельскохозяйственный",
+        "WithPlantations": "С насаждениями",
+        "Forest": "Лесной",
+        "Garden": "Садовый",
+        "Industrial": "Промышленный",
+        "NearLake": "У озера",
+        "ForConstruction": "Под строительство"
+      }
+    },
+    "locationContext": {
+      "label": "Расположение",
+      "options": {
+        "WithinTownLimits": "В черте населённого пункта",
+        "OutsideTownLimits": "За чертой населённого пункта"
+      }
+    },
+    "soilQualityScore": {
+      "label": "Бонитет (1–100)",
+      "hint": "Балл бонитета почвы, для сельхозземель"
+    },
+    "gasPipelineAtBoundary": {
+      "label": "Газ по границе"
+    },
+    "electricitySupplyAtBoundary": {
+      "label": "Электричество по границе"
+    },
+    "sewerageAtBoundary": {
+      "label": "Канализация по границе"
+    },
+    "irrigationSystem": {
+      "label": "Система орошения"
+    },
+    "phoneLineAvailable": {
+      "label": "Телефонная линия"
+    },
+    "spaceType": {
+      "label": "Тип помещения",
+      "options": {
+        "OfficeSpace": "Офис",
+        "RetailSpace": "Торговое помещение",
+        "Warehouse": "Склад",
+        "FoodServiceSpace": "Общепит",
+        "IndustrialSpace": "Производственное помещение",
+        "UniversalSpace": "Универсальное помещение",
+        "BeautySalon": "Салон красоты",
+        "AutoService": "Автосервис",
+        "DentalSpace": "Стоматология",
+        "SportsSpace": "Спортивное помещение",
+        "ConferenceRoom": "Конференц-зал",
+        "ResortOrHotel": "Отель/база отдыха"
+      }
+    },
+    "workingAreaM2": {
+      "label": "Рабочая площадь (м²)"
+    },
+    "numberOfOffices": {
+      "label": "Количество кабинетов"
+    },
+    "phoneLinesCount": {
+      "label": "Телефонные линии"
+    },
+    "parkingType": {
+      "label": "Тип",
+      "options": {
+        "Garage": "Гараж",
+        "ParkingSpot": "Парковочное место",
+        "UndergroundParking": "Подземный паркинг"
+      }
+    },
+    "bathroomType": {
       "label": "Санузел",
       "options": {
         "Private": "Отдельный",
         "Shared": "Общий"
       }
     },
-    "roommateCount": {
-      "label": "Соседи"
-    },
-    "utilityFlags": {
-      "water": "Вода",
-      "sewage": "Канализация",
-      "gas": "Газ",
-      "electricity": "Электричество"
+    "floorLevels": {
+      "basement": "Подвал",
+      "semiBasement": "Цоколь"
     }
   }
 }

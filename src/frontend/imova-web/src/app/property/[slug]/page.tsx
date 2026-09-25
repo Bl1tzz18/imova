@@ -44,7 +44,7 @@ export default async function ProprietatePage({
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tFurnished, tAmenity] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity, tProximity] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
@@ -52,8 +52,8 @@ export default async function ProprietatePage({
     getTranslations("PropertyCard"),
     getTranslations("Attributes"),
     getTranslations("Condition"),
-    getTranslations("FurnishedStatus"),
     getTranslations("Amenity"),
+    getTranslations("Proximity"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
@@ -75,25 +75,32 @@ export default async function ProprietatePage({
   if (property.condition) facts.push({ label: t("condition"), value: tCondition(property.condition) });
 
   const attributes = property.typeSpecificAttributes;
+  // Below-ground levels read better by name: -1 = basement (subsol), 0 = semi-basement (demisol).
+  const formatFloor = (floor: unknown) => {
+    const n = Number(floor);
+    if (n < 0) return `${tAttr("floorLevels.basement")} (${n})`;
+    if (n === 0) return `${tAttr("floorLevels.semiBasement")} (0)`;
+    return String(floor);
+  };
   for (const field of attributeSchemaFor(property.propertyType)) {
     const value = attributes[field.name];
     // totalFloors is folded into the floor fact ("3 of 9") when both are present.
     if (value == null || (field.name === "totalFloors" && typeof attributes.floor === "number")) continue;
-    const label = t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`);
+    // Form labels carry their unit ("Living area (m²)"); here the value already shows it.
+    const label = (t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`)).replace(/\s*\((m²|m|м²|м)\)$/, "");
 
     if (field.name === "floor" && typeof attributes.totalFloors === "number") {
-      facts.push({ label, value: t("floorOf", { floor: String(value), totalFloors: attributes.totalFloors }) });
+      facts.push({ label, value: t("floorOf", { floor: formatFloor(value), totalFloors: attributes.totalFloors }) });
+    } else if (field.name === "floor") {
+      facts.push({ label, value: formatFloor(value) });
     } else if (field.kind === "enum") {
       facts.push({ label, value: tAttr(`${field.name}.options.${String(value)}`) });
-    } else if (field.kind === "bool") {
+    } else if (field.kind === "yesno") {
       facts.push({ label, value: yesNo(value === true) });
-    } else if (field.kind === "flags") {
-      const present = field.flags.filter((flag) => (value as Record<string, unknown>)[flag] === true);
-      if (present.length > 0) {
-        facts.push({ label, value: present.map((flag) => tAttr(`utilityFlags.${flag}`)).join(", ") });
-      }
-    } else if (field.name === "landAreaM2") {
+    } else if (field.name.endsWith("AreaM2")) {
       facts.push({ label, value: `${String(value)} m²` });
+    } else if (field.name === "ceilingHeightM") {
+      facts.push({ label, value: `${String(value)} m` });
     } else {
       facts.push({ label, value: String(value) });
     }
@@ -102,7 +109,6 @@ export default async function ProprietatePage({
   // Terms of this particular rental offer, not of the property itself.
   const rentalFacts: { label: string; value: string }[] = [];
   if (rentalDetails) {
-    rentalFacts.push({ label: t("furnished"), value: tFurnished(rentalDetails.furnishedStatus) });
     if (rentalDetails.minLeasePeriodMonths != null) {
       rentalFacts.push({ label: t("minLeasePeriod"), value: t("months", { count: rentalDetails.minLeasePeriodMonths }) });
     }
@@ -116,7 +122,9 @@ export default async function ProprietatePage({
       rentalFacts.push({ label: t("availableFrom"), value: formatDate(rentalDetails.availableFrom, locale) });
     }
     rentalFacts.push({ label: t("utilitiesIncluded"), value: yesNo(rentalDetails.utilitiesIncluded) });
-    rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
+    if (rentalDetails.petsAllowed != null) {
+      rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
+    }
   }
 
   return (
@@ -200,6 +208,22 @@ export default async function ProprietatePage({
                         className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
                       >
                         {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {property.proximities.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-display text-xl font-medium text-ink-950">{t("proximities")}</h2>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {property.proximities.map((proximity) => (
+                      <li
+                        key={proximity.id}
+                        className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
+                      >
+                        {tProximity.has(proximity.key) ? tProximity(proximity.key) : proximity.labelRo}
                       </li>
                     ))}
                   </ul>

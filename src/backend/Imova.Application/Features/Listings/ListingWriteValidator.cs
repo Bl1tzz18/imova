@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings.Attributes;
+using Imova.Domain.Amenities;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -14,6 +15,7 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
     where T : IListingWriteCommand
 {
     public const int MaxAmenities = 50;
+    public const int MaxProximities = 20;
 
     protected ListingWriteValidator(IApplicationDbContext dbContext)
     {
@@ -27,6 +29,11 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
         RuleFor(c => c.Condition)
             .Null().WithMessage("Condition does not apply to Land.")
             .When(c => c.PropertyType == PropertyType.Land);
+        // House, Apartment and Commercial describe their state with the more granular
+        // typeSpecificAttributes.finishCondition; only Garage and Room use the general Condition.
+        RuleFor(c => c.Condition)
+            .Null().WithMessage("Condition does not apply to this property type — use TypeSpecificAttributes.finishCondition.")
+            .When(c => c.PropertyType is PropertyType.House or PropertyType.Apartment or PropertyType.Commercial);
         RuleFor(c => c.Condition).IsInEnum();
 
         // Parse against the schema PropertyType selects (which rejects any field belonging to
@@ -60,7 +67,47 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
                 return known == distinct.Count;
             })
             .WithMessage("AmenityIds contains an unknown amenity.")
+            .CustomAsync(async (ids, context, cancellationToken) =>
+            {
+                var command = context.InstanceToValidate;
+                var amenities = await dbContext.Amenities
+                    .Where(a => ids!.Contains(a.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var amenity in amenities.Where(a => !a.AppliesTo(command.PropertyType)))
+                {
+                    context.AddFailure(
+                        nameof(IListingWriteCommand.AmenityIds),
+                        $"The '{amenity.Key}' amenity doesn't apply to a {command.PropertyType}.");
+                }
+            })
             .When(c => c.AmenityIds is { Count: > 0 });
+
+        RuleFor(c => c.ProximityIds)
+            .Must(ids => ids!.Count <= MaxProximities)
+            .WithMessage($"At most {MaxProximities} proximities can be selected.")
+            .MustAsync(async (ids, cancellationToken) =>
+            {
+                var distinct = ids!.Distinct().ToList();
+                var known = await dbContext.Proximities.CountAsync(p => distinct.Contains(p.Id), cancellationToken);
+                return known == distinct.Count;
+            })
+            .WithMessage("ProximityIds contains an unknown proximity.")
+            .CustomAsync(async (ids, context, cancellationToken) =>
+            {
+                var command = context.InstanceToValidate;
+                var proximities = await dbContext.Proximities
+                    .Where(p => ids!.Contains(p.Id))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var proximity in proximities.Where(p => !p.AppliesTo(command.PropertyType)))
+                {
+                    context.AddFailure(
+                        nameof(IListingWriteCommand.ProximityIds),
+                        $"The '{proximity.Key}' proximity doesn't apply to a {command.PropertyType}.");
+                }
+            })
+            .When(c => c.ProximityIds is { Count: > 0 });
 
         RuleFor(c => c.Country).NotEmpty().MaximumLength(100);
 
@@ -121,9 +168,17 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
             .GreaterThanOrEqualTo(0).LessThan(10_000_000_000m)
             .OverridePropertyName("RentalDetails.SecurityDepositAmount")
             .When(c => c.RentalDetails is not null);
-        RuleFor(c => c.RentalDetails!.FurnishedStatus)
-            .IsInEnum()
-            .OverridePropertyName("RentalDetails.FurnishedStatus")
-            .When(c => c.RentalDetails is not null);
+
+        // Pets are a required Yes/No for a rented home and not asked for anything else.
+        RuleFor(c => c.RentalDetails)
+            .Must(details => details?.PetsAllowed is not null)
+            .WithMessage("RentalDetails.PetsAllowed is required for this property type.")
+            .OverridePropertyName("RentalDetails.PetsAllowed")
+            .When(c => c.TransactionType == TransactionType.Rent && Imova.Domain.Listings.RentalDetails.PetsApplyTo(c.PropertyType));
+        RuleFor(c => c.RentalDetails)
+            .Must(details => details?.PetsAllowed is null)
+            .WithMessage("RentalDetails.PetsAllowed does not apply to this property type.")
+            .OverridePropertyName("RentalDetails.PetsAllowed")
+            .When(c => c.TransactionType == TransactionType.Rent && !Imova.Domain.Listings.RentalDetails.PetsApplyTo(c.PropertyType));
     }
 }

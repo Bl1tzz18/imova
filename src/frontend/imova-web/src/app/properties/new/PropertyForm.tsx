@@ -34,7 +34,7 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
   const [step, setStep] = useState(1);
   const location = listing?.property.location;
   const [propertyType, setPropertyType] = useState(listing?.property.propertyType ?? "Apartment");
-  const [transactionType, setTransactionType] = useState<string>(listing?.transactionType ?? "Rent");
+  const [transactionType, setTransactionType] = useState<string>(listing?.transactionType ?? "Sale");
   const [raionId, setRaionId] = useState(location?.raionId ?? "");
   const [localitateId, setLocalitateId] = useState(location?.localitateId ?? "");
   const [chisinauSectorId, setChisinauSectorId] = useState(location?.chisinauSectorId ?? "");
@@ -69,9 +69,23 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
   function validateCurrentStep(): boolean {
     const container = stepRefs.current[step - 1];
     if (!container) return true;
-    const invalid = container.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(":invalid");
+    const invalid = container.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+      "input:invalid, select:invalid, textarea:invalid",
+    );
     if (invalid) {
+      // Fires the element's "invalid" event — a collapsed accordion section (see
+      // DetailsAccordion) opens itself in response. A hidden field can't show the browser's
+      // validation bubble, so report again once the section has rendered open.
+      const wasHidden = invalid.getClientRects().length === 0;
       invalid.reportValidity();
+      if (wasHidden) {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            invalid.focus();
+            invalid.reportValidity();
+          }),
+        );
+      }
       return false;
     }
     return true;
@@ -177,7 +191,7 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
             }}
             className={step === 2 ? "" : "hidden"}
           >
-            <StepDetails propertyType={propertyType} listing={listing} />
+            <StepDetails propertyType={propertyType} transactionType={transactionType} listing={listing} />
           </div>
 
           <div

@@ -34,6 +34,7 @@ public class DeleteListingHandler(IApplicationDbContext dbContext) : IRequestHan
         {
             var property = await dbContext.Properties
                 .Include(p => p.Amenities)
+                .Include(p => p.Proximities)
                 .FirstOrDefaultAsync(p => p.Id == listing.PropertyId, cancellationToken);
             if (property is not null)
             {

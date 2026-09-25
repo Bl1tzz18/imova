@@ -71,7 +71,7 @@ internal static class ListingApi
         return client;
     }
 
-    // An Apartment/Rent listing with its required type-specific attributes — tests override
+    // An Apartment/Rent listing with every type-specific attribute filled in — tests override
     // individual keys as needed.
     public static async Task<Dictionary<string, object?>> ValidBodyAsync(HttpClient client)
     {
@@ -81,9 +81,11 @@ internal static class ListingApi
             ["propertyType"] = "Apartment",
             ["totalAreaM2"] = 54,
             ["yearBuilt"] = 1985,
-            ["condition"] = "Renovated",
-            ["typeSpecificAttributes"] = new Dictionary<string, object?> { ["rooms"] = 2, ["floor"] = 3, ["totalFloors"] = 9 },
+            // Apartment uses typeSpecificAttributes.finishCondition, not the general condition.
+            ["condition"] = null,
+            ["typeSpecificAttributes"] = CompleteAttributes("Apartment"),
             ["amenityIds"] = Array.Empty<Guid>(),
+            ["proximityIds"] = Array.Empty<Guid>(),
             ["country"] = "Moldova",
             ["raionId"] = raioane!.First().Id,
             ["streetAddress"] = "Str. Ismail",
@@ -93,7 +95,47 @@ internal static class ListingApi
             ["price"] = 550,
             ["currency"] = "EUR",
             ["isNegotiable"] = false,
-            ["rentalDetails"] = new Dictionary<string, object?> { ["furnishedStatus"] = "Furnished", ["petsAllowed"] = true },
+            ["rentalDetails"] = new Dictionary<string, object?> { ["petsAllowed"] = true, ["minLeasePeriodMonths"] = 12 },
         };
     }
+
+    // Every detail the listing form collects for each PropertyType — including the conditional
+    // fields their controlling values unlock (boiler heating details, the agricultural soil score,
+    // the office count).
+    public static Dictionary<string, object?> CompleteAttributes(string propertyType) => propertyType switch
+    {
+        "Apartment" => new()
+        {
+            ["housingStockType"] = "NewConstruction", ["buildingMaterial"] = "Monolith", ["finishCondition"] = "EuroRenovated",
+            ["layout"] = "IndividualLayout", ["rooms"] = 2, ["floor"] = 3, ["totalFloors"] = 9, ["bathrooms"] = 1,
+            ["livingAreaM2"] = 38.5, ["kitchenAreaM2"] = 12,
+            ["heatingSystem"] = "OwnBoiler", ["heatingEnergySource"] = "Gas", ["heatingDistribution"] = "Radiators",
+            ["gasSupply"] = true, ["floorMaterial"] = "Laminate",
+        },
+        "House" => new()
+        {
+            ["rooms"] = 5, ["houseType"] = "Duplex", ["buildingMaterial"] = "LimestoneBlock", ["finishCondition"] = "EuroRenovated",
+            ["houseFloors"] = 2, ["ceilingHeightM"] = 2.8,
+            ["livingAreaM2"] = 150, ["landAreaM2"] = 600, ["kitchenAreaM2"] = 20, ["atticAreaM2"] = 35, ["basementAreaM2"] = 25,
+            ["heatingSystem"] = "OwnBoiler", ["heatingEnergySource"] = "Gas", ["heatingDistribution"] = "UnderfloorHeating",
+            ["waterSupply"] = "DrilledWell", ["sewerage"] = "SepticTank", ["gasSupply"] = true,
+            ["floorMaterial"] = "Parquet", ["atticMaterial"] = "Osb", ["roofMaterial"] = "Tile", ["windowType"] = "Thermopane",
+        },
+        "Land" => new()
+        {
+            ["plotType"] = "Agricultural", ["locationContext"] = "OutsideTownLimits", ["soilQualityScore"] = 64,
+            ["roadAccess"] = "Gravel", ["gasPipelineAtBoundary"] = false, ["electricitySupplyAtBoundary"] = true,
+            ["sewerageAtBoundary"] = false, ["irrigationSystem"] = true, ["phoneLineAvailable"] = false,
+        },
+        "Commercial" => new()
+        {
+            ["spaceType"] = "OfficeSpace", ["finishCondition"] = "CosmeticRepair", ["floor"] = -1, ["totalFloorsInBuilding"] = 5,
+            ["workingAreaM2"] = 110, ["numberOfOffices"] = 6,
+            ["bathrooms"] = 2, ["phoneLinesCount"] = 4, ["mainStreetAccess"] = true, ["electricalPower"] = "three-phase 380V",
+            ["gasSupply"] = false,
+        },
+        "Garage" => new() { ["parkingType"] = "UndergroundParking" },
+        "Room" => new() { ["bathroomType"] = "Shared", ["roommateCount"] = 2 },
+        _ => throw new ArgumentOutOfRangeException(nameof(propertyType)),
+    };
 }

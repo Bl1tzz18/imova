@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Imova.Contracts.Amenities;
+using Imova.Contracts.Proximities;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Publishers;
 using Imova.IntegrationTests.TestSupport;
@@ -33,8 +34,8 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("PendingReview", listing.Status);
         Assert.Equal(9, listing.Property.TypeSpecificAttributes.GetProperty("totalFloors").GetInt32());
         Assert.Equal(["balcony", "elevator"], listing.Property.Amenities.Select(a => a.Key).Order());
-        Assert.Equal("Furnished", listing.RentalDetails!.FurnishedStatus);
-        Assert.True(listing.RentalDetails.PetsAllowed);
+        Assert.True(listing.RentalDetails!.PetsAllowed);
+        Assert.Equal(12, listing.RentalDetails.MinLeasePeriodMonths);
 
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }
@@ -47,7 +48,7 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         body["propertyType"] = "Land";
         body["yearBuilt"] = null;
         body["condition"] = null;
-        body["typeSpecificAttributes"] = new Dictionary<string, object?> { ["landDesignation"] = "Intravilan", ["rooms"] = 2 };
+        body["typeSpecificAttributes"] = new Dictionary<string, object?> { ["plotType"] = "Forest", ["rooms"] = 2 };
 
         var response = await client.PostAsJsonAsync("/api/v1/listings", body);
 
@@ -69,22 +70,158 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         body["condition"] = null;
         body["transactionType"] = "Sale";
         body["rentalDetails"] = null;
-        body["typeSpecificAttributes"] = new Dictionary<string, object?>
-        {
-            ["landDesignation"] = "Construction",
-            ["roadAccess"] = "Paved",
-            ["utilitiesAtBoundary"] = new Dictionary<string, object?> { ["electricity"] = true, ["water"] = true },
-        };
+        body["typeSpecificAttributes"] = ListingApi.CompleteAttributes("Land");
 
         var response = await client.PostAsJsonAsync("/api/v1/listings", body);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
         Assert.Equal("Land", listing.Property.PropertyType);
-        Assert.Equal("Construction", listing.Property.TypeSpecificAttributes.GetProperty("landDesignation").GetString());
+        Assert.Equal("Agricultural", listing.Property.TypeSpecificAttributes.GetProperty("plotType").GetString());
         Assert.NotNull(listing.SaleDetails);
 
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Theory]
+    [InlineData("Apartment", "Rent")]
+    [InlineData("House", "Sale")]
+    [InlineData("Land", "Sale")]
+    [InlineData("Commercial", "Rent")]
+    [InlineData("Garage", "Sale")]
+    [InlineData("Room", "Rent")]
+    public async Task CreateListing_CompleteListingOfEachType_RoundTripsEveryDetail(string propertyType, string transactionType)
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        // Every amenity the form would offer for this type (Furnished included, for rentals too) —
+        // none for Land.
+        var amenities = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!
+            .Where(a => a.ApplicablePropertyTypes.Contains(propertyType))
+            .ToList();
+        Assert.Equal(propertyType == "Land", amenities.Count == 0);
+        // Every proximity applies to every type.
+        var proximities = (await client.GetFromJsonAsync<List<ProximityDto>>("/api/v1/proximities"))!;
+        var attributes = ListingApi.CompleteAttributes(propertyType);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["propertyType"] = propertyType;
+        body["transactionType"] = transactionType;
+        body["totalAreaM2"] = propertyType == "Land" ? 12_000 : 85;
+        body["yearBuilt"] = propertyType == "Land" ? null : 2012;
+        // Garage and Room keep the general condition; the others use finishCondition.
+        body["condition"] = propertyType is "Garage" or "Room" ? "Renovated" : null;
+        // Pets are asked only for a rented home (apartment, house, room).
+        var petsApply = propertyType is "Apartment" or "House" or "Room";
+        body["rentalDetails"] = transactionType == "Rent"
+            ? new Dictionary<string, object?> { ["petsAllowed"] = petsApply ? false : null, ["utilitiesIncluded"] = true }
+            : null;
+        body["amenityIds"] = amenities.Select(a => a.Id).ToArray();
+        body["proximityIds"] = proximities.Select(p => p.Id).ToArray();
+        body["typeSpecificAttributes"] = attributes;
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        var stored = (await client.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{created.Id}"))!;
+        Assert.Equal(propertyType, stored.Property.PropertyType);
+        foreach (var (key, expected) in attributes)
+        {
+            var actual = stored.Property.TypeSpecificAttributes.GetProperty(key);
+            Assert.Equal(
+                Convert.ToString(expected, System.Globalization.CultureInfo.InvariantCulture)!.ToLowerInvariant(),
+                actual.ValueKind == JsonValueKind.String ? actual.GetString()!.ToLowerInvariant() : actual.GetRawText().ToLowerInvariant());
+        }
+
+        Assert.Equal(amenities.Select(a => a.Key).Order(), stored.Property.Amenities.Select(a => a.Key).Order());
+        Assert.Equal(proximities.Select(p => p.Key), stored.Property.Proximities.Select(p => p.Key));
+        Assert.Equal(propertyType is "Garage" or "Room" ? "Renovated" : null, stored.Property.Condition);
+
+        await client.DeleteAsync($"/api/v1/listings/{created.Id}");
+    }
+
+    [Fact]
+    public async Task CreateListing_WithAnAmenityThatDoesNotApplyToTheType_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var sauna = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "sauna");
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["propertyType"] = "Garage";
+        body["typeSpecificAttributes"] = ListingApi.CompleteAttributes("Garage");
+        body["amenityIds"] = new[] { sauna.Id };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateListing_LandWithASoilScoreForANonAgriculturalPlot_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        var attributes = ListingApi.CompleteAttributes("Land");
+        attributes["plotType"] = "ForConstruction";
+        body["propertyType"] = "Land";
+        body["yearBuilt"] = null;
+        body["typeSpecificAttributes"] = attributes;
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("TypeSpecificAttributes.SoilQualityScore", out _));
+    }
+
+    [Fact]
+    public async Task CreateListing_HouseWithDistrictHeatingButABoilerEnergySource_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["propertyType"] = "House";
+        body["condition"] = null;
+        body["typeSpecificAttributes"] = new Dictionary<string, object?>
+        {
+            ["rooms"] = 3, ["houseType"] = "Individual", ["buildingMaterial"] = "Brick", ["finishCondition"] = "NoRepair",
+            ["houseFloors"] = 1, ["livingAreaM2"] = 90, ["landAreaM2"] = 400, ["heatingSystem"] = "DistrictHeating",
+            ["heatingEnergySource"] = "Gas", ["waterSupply"] = "CentralNetwork", ["sewerage"] = "Central",
+            ["gasSupply"] = false, ["floorMaterial"] = "Laminate", ["roofMaterial"] = "Metal", ["windowType"] = "Thermopane",
+        };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("TypeSpecificAttributes.HeatingEnergySource", out _));
+    }
+
+    [Fact]
+    public async Task CreateListing_RentalWithTheFurnishedAmenity_IsAllowed()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var furnished = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "furnished");
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["amenityIds"] = new[] { furnished.Id };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Contains(listing.Property.Amenities, a => a.Key == "furnished");
+        await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
+    public async Task CreateListing_RentedApartmentWithoutThePetsAnswer_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["rentalDetails"] = new Dictionary<string, object?> { ["minLeasePeriodMonths"] = 12 };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("RentalDetails.PetsAllowed", out _));
     }
 
     [Fact]
@@ -218,6 +355,33 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.True(amenities.Count >= 10);
         Assert.Contains(amenities, a => a.Key == "parking" && a.LabelRo == "Parcare");
+        Assert.DoesNotContain(amenities, a => a.Key is "near_water" or "near_forest" or "guarded");
+    }
+
+    [Fact]
+    public async Task GetProximities_ReturnsTheSeededListForEveryType()
+    {
+        var proximities = (await _factory.CreateClient().GetFromJsonAsync<List<ProximityDto>>("/api/v1/proximities"))!;
+
+        Assert.Equal(10, proximities.Count);
+        Assert.Equal("kindergarten", proximities[0].Key);
+        Assert.Contains(proximities, p => p.Key == "public_transport" && p.LabelRo == "Stație transport public");
+        Assert.All(proximities, p => Assert.Equal(6, p.ApplicablePropertyTypes.Count));
+    }
+
+    [Fact]
+    public async Task CreateListing_WithAnAmenityIdAsAProximity_Returns400()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var balcony = (await client.GetFromJsonAsync<List<AmenityDto>>("/api/v1/amenities"))!.Single(a => a.Key == "balcony");
+        var body = await ListingApi.ValidBodyAsync(client);
+        body["proximityIds"] = new[] { balcony.Id };
+
+        var response = await client.PostAsJsonAsync("/api/v1/listings", body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(problem.GetProperty("errors").TryGetProperty("ProximityIds", out _));
     }
 
     [Fact]

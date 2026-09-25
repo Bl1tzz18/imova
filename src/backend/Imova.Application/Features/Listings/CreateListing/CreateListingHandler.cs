@@ -32,7 +32,8 @@ public class CreateListingHandler(
             request.Condition,
             location.Id,
             ListingWriteSupport.ParseAttributes(request),
-            ListingWriteSupport.AmenityIds(request));
+            ListingWriteSupport.AmenityIds(request),
+            ListingWriteSupport.ProximityIds(request));
 
         var listing = Listing.Create(
             property.Id,
@@ -49,7 +50,7 @@ public class CreateListingHandler(
         // SubmitListingForReview stays available for resubmitting a fixed Rejected listing.
         listing.SubmitForReview();
 
-        // One SaveChanges = one transaction: the location, property (+ amenities), and listing are
+        // One SaveChanges = one transaction: the location, property (+ amenities and proximities), and listing are
         // either all created or none are.
         dbContext.PropertyLocations.Add(location);
         dbContext.Properties.Add(property);

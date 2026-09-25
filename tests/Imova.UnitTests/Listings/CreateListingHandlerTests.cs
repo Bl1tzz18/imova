@@ -49,6 +49,7 @@ public class CreateListingHandlerTests
         Currency currency = Currency.EUR,
         RentalDetails? rentalDetails = null,
         IReadOnlyList<Guid>? amenityIds = null,
+        IReadOnlyList<Guid>? proximityIds = null,
         Guid? localitateId = null,
         Guid? chisinauSectorId = null,
         string? streetAddress = null,
@@ -61,8 +62,9 @@ public class CreateListingHandlerTests
             54m,
             1985,
             PropertyCondition.Renovated,
-            JsonDocument.Parse("""{"rooms":2,"floor":3,"totalFloors":9,"heatingType":"Autonomous"}""").RootElement.Clone(),
+            JsonDocument.Parse("""{"rooms":2,"floor":3,"totalFloors":9,"heatingSystem":"DistrictHeating"}""").RootElement.Clone(),
             amenityIds,
+            proximityIds,
             "Moldova",
             _raion.Id,
             localitateId,
@@ -87,7 +89,7 @@ public class CreateListingHandlerTests
         var location = Assert.Single(_dbContext.PropertyLocations);
         Assert.Equal(property.Id, listing.PropertyId);
         Assert.Equal(location.Id, property.LocationId);
-        Assert.Equal(new ApartmentAttributes(2, 3, 9, null, HeatingType.Autonomous), property.TypeSpecificAttributes);
+        Assert.Equal(new ApartmentAttributes(Rooms: 2, Floor: 3, TotalFloors: 9, HeatingSystem: HeatingSystem.DistrictHeating), property.TypeSpecificAttributes);
         Assert.Equal(1985, property.YearBuilt);
         Assert.Equal(PropertyCondition.Renovated, property.Condition);
 
@@ -179,14 +181,14 @@ public class CreateListingHandlerTests
         var result = await Handler().Handle(Command(rentalDetails: null), CancellationToken.None);
 
         Assert.NotNull(result.RentalDetails);
-        Assert.Equal("Unfurnished", result.RentalDetails!.FurnishedStatus);
+        Assert.Null(result.RentalDetails!.PetsAllowed);
         Assert.Null(result.SaleDetails);
     }
 
     [Fact]
     public async Task Handle_RentalWithRentalDetails_PersistsThem()
     {
-        var terms = new RentalDetails(6, 500m, true, FurnishedStatus.Furnished, new DateTime(2026, 11, 1), true);
+        var terms = new RentalDetails(6, 500m, true, new DateTime(2026, 11, 1), PetsAllowed: true);
 
         await Handler().Handle(Command(rentalDetails: terms), CancellationToken.None);
 
@@ -218,6 +220,24 @@ public class CreateListingHandlerTests
         var property = await _dbContext.Properties.Include(p => p.Amenities).SingleAsync();
         Assert.Equal(new[] { balcony, parking }.Order(), property.Amenities.Select(a => a.AmenityId).Order());
         Assert.Equal(["balcony", "parking"], result.Property.Amenities.Select(a => a.Key).Order());
+    }
+
+    [Fact]
+    public async Task Handle_PersistsProximitiesOnTheProperty()
+    {
+        var school = Guid.NewGuid();
+        var park = Guid.NewGuid();
+        _dbContext.Proximities.AddRange(
+            new Imova.Domain.Proximities.Proximity(school, "school", "Școală"),
+            new Imova.Domain.Proximities.Proximity(park, "park", "Parc / zonă verde"));
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var result = await Handler().Handle(Command(proximityIds: [school, park]), CancellationToken.None);
+
+        var property = await _dbContext.Properties.Include(p => p.Proximities).SingleAsync();
+        Assert.Equal(new[] { school, park }.Order(), property.Proximities.Select(p => p.ProximityId).Order());
+        Assert.Equal(["park", "school"], result.Property.Proximities.Select(p => p.Key).Order());
+        Assert.Empty(result.Property.Amenities);
     }
 
     [Fact]
