@@ -30,12 +30,28 @@ public record ConversationSummaryDto(
     bool IsInitiator);
 
 // A page of a thread, oldest first. HasMore: older messages exist (load them with ?before=<first id>).
+// Listing: the strip under the thread header — null when the listing has been deleted.
 public record ConversationThreadDto(
     ConversationSummaryDto Conversation,
     IReadOnlyList<MessageDto> Messages,
     bool HasMore,
     bool BlockedByMe,
-    bool BlockedByOther);
+    bool BlockedByOther,
+    ConversationListingDetailsDto? Listing = null);
+
+// Key facts of the listing a conversation is about. Rooms is null for types without rooms (Land,
+// Garage, ...). IsActive: publicly visible — otherwise only its publisher can still open it.
+public record ConversationListingDetailsDto(
+    Guid Id,
+    string Title,
+    string? PhotoUrl,
+    string PropertyType,
+    string TransactionType,
+    decimal TotalAreaM2,
+    int? Rooms,
+    decimal PriceAmount,
+    string PriceCurrency,
+    bool IsActive);
 
 public record StartConversationResultDto(Guid ConversationId, MessageDto Message, bool Reused);
 

@@ -14,8 +14,8 @@ const REASONS: ReportReason[] = ["Spam", "Fraud", "Abuse", "Other"];
 const iconButton =
   "flex h-9 w-9 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 disabled:opacity-50";
 
-// The thread header's actions: archive as an icon button; block and report tucked into a "⋯" menu
-// (report opens its form as a popover).
+// The thread header's actions, all behind one "⋯" button: archive, block, and — after a divider,
+// in red since it flags the other person — report (which opens its form as a popover).
 export function ConversationActions({
   conversationId,
   isArchived,
@@ -67,23 +67,12 @@ export function ConversationActions({
     });
   }
 
-  const archiveLabel = isArchived ? t("unarchive") : t("archiveConversation");
-  const menuItem = "block w-full px-4 py-2.5 text-left text-sm text-ink-800 transition-colors hover:bg-bubble";
+  const menuItem =
+    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-800 transition-colors hover:bg-bubble disabled:opacity-50";
+  const itemIcon = "h-[18px] w-[18px] shrink-0";
 
   return (
-    <div ref={container} className="relative flex items-center gap-1">
-      <button
-        type="button"
-        className={iconButton}
-        disabled={pending}
-        aria-label={archiveLabel}
-        title={archiveLabel}
-        onClick={() => run(() => setConversationArchived(conversationId, !isArchived), () => setNotice(isArchived ? t("unarchived") : t("archived")))}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-[18px] w-[18px]" aria-hidden>
-          <path d="M3.5 5h17v4h-17zM5 9v10h14V9M10 13h4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+    <div ref={container} className="relative flex items-center">
       <button
         type="button"
         className={cn(iconButton, panel && "bg-bubble text-ink-900")}
@@ -101,7 +90,22 @@ export function ConversationActions({
       </button>
 
       {panel === "menu" && (
-        <div role="menu" className="absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-[var(--shadow-card)]">
+        <div role="menu" className="absolute right-0 top-full z-20 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-[var(--shadow-card)]">
+          <button
+            type="button"
+            role="menuitem"
+            className={menuItem}
+            disabled={pending}
+            onClick={() => {
+              setPanel(null);
+              run(() => setConversationArchived(conversationId, !isArchived), () => setNotice(isArchived ? t("unarchived") : t("archived")));
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={cn(itemIcon, "text-ink-500")} aria-hidden>
+              <path d="M3.5 5h17v4h-17zM5 9v10h14V9M10 13h4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {isArchived ? t("unarchive") : t("archiveAction")}
+          </button>
           <button
             type="button"
             role="menuitem"
@@ -113,9 +117,17 @@ export function ConversationActions({
               run(() => setUserBlocked(conversationId, !blockedByMe), () => onBlockedChange(!blockedByMe));
             }}
           >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={cn(itemIcon, "text-ink-500")} aria-hidden>
+              <circle cx="12" cy="12" r="8.5" />
+              <path d="m6 6 12 12" strokeLinecap="round" />
+            </svg>
             {blockedByMe ? t("unblock") : t("block")}
           </button>
-          <button type="button" role="menuitem" className={cn(menuItem, "text-accent-700")} onClick={() => setPanel("report")}>
+          <div role="separator" className="my-1 h-px bg-line" />
+          <button type="button" role="menuitem" className={cn(menuItem, "text-red-600 hover:bg-red-50")} onClick={() => setPanel("report")}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={itemIcon} aria-hidden>
+              <path d="M12 4 2.8 19.5h18.4L12 4ZM12 10v4.5M12 17.2v.1" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
             {t("report")}
           </button>
         </div>

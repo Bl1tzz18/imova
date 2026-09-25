@@ -854,10 +854,11 @@
     "loginRequired": "Log in to send messages.",
     "genericError": "Something went wrong. Please try again.",
     "moreActions": "More actions",
-    "archiveConversation": "Archive conversation",
     "today": "Today",
     "yesterday": "Yesterday",
-    "unreadCount": "{count, plural, one {# unread message} other {# unread messages}}"
+    "unreadCount": "{count, plural, one {# unread message} other {# unread messages}}",
+    "archiveAction": "Archive",
+    "viewListing": "View listing"
   },
   "AdminMessaging": {
     "title": "Reported messages",

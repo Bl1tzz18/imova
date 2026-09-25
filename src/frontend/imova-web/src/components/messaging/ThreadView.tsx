@@ -13,6 +13,7 @@ import type { ConversationThread, Message, MessageStatusChange, PresenceEvent, T
 import { ConversationActions } from "./ConversationActions";
 import { MessageBubble } from "./MessageBubble";
 import { MessageComposer } from "./MessageComposer";
+import { ThreadListingStrip } from "./ThreadListingStrip";
 import { useRealtime, useRealtimeEvent } from "./RealtimeProvider";
 
 // Fills its container (the conversation page gives it the space next to the sidebar).
@@ -172,14 +173,6 @@ export function ThreadView({
             <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
               <span className={cn("h-2 w-2 shrink-0 rounded-full", otherOnline ? "bg-emerald-500" : "bg-ink-300")} aria-hidden />
               <span className="shrink-0">{otherOnline ? t("online") : t("offline")}</span>
-              <span aria-hidden>·</span>
-              {conversation.listing.title ? (
-                <Link href={`/property/${conversation.listing.id}`} className="truncate font-medium text-accent-600 hover:underline">
-                  {conversation.listing.title}
-                </Link>
-              ) : (
-                <span className="truncate">{t("listingDeleted")}</span>
-              )}
             </p>
           </div>
         </div>
@@ -190,6 +183,8 @@ export function ThreadView({
           onBlockedChange={setBlockedByMe}
         />
       </div>
+
+      <ThreadListingStrip listing={thread.listing} viewerIsInitiator={conversation.isInitiator} />
 
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-5 py-5" aria-live="polite">
         {hasMore && (

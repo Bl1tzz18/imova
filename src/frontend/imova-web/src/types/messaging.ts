@@ -32,6 +32,21 @@ export type ConversationSummary = {
   isInitiator: boolean;
 };
 
+// Key facts for the strip under the thread header. rooms is null for types without rooms;
+// isActive = publicly visible (otherwise only its publisher can still open it).
+export type ConversationListingDetails = {
+  id: string;
+  title: string;
+  photoUrl: string | null;
+  propertyType: string;
+  transactionType: "Sale" | "Rent";
+  totalAreaM2: number;
+  rooms: number | null;
+  priceAmount: number;
+  priceCurrency: string;
+  isActive: boolean;
+};
+
 export type ConversationThread = {
   conversation: ConversationSummary;
   // Oldest first; hasMore = older messages exist.
@@ -39,6 +54,8 @@ export type ConversationThread = {
   hasMore: boolean;
   blockedByMe: boolean;
   blockedByOther: boolean;
+  // Null when the listing has been deleted.
+  listing: ConversationListingDetails | null;
 };
 
 export type MessageStatusChange = { conversationId: string; messageIds: string[]; status: MessageStatus };

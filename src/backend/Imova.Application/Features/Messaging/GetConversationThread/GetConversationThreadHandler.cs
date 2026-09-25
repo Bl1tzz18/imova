@@ -1,5 +1,7 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Messaging;
+using Imova.Domain.Listings;
+using Imova.Domain.Properties.Attributes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,6 +44,40 @@ public class GetConversationThreadHandler(IApplicationDbContext dbContext, IBlob
             page.Take(pageSize).OrderBy(m => m.CreatedAt).Select(m => m.ToDto()).ToList(),
             hasMore,
             BlockedByMe: await MessagingAccess.IsBlockedAsync(dbContext, request.UserId, otherUserId, cancellationToken),
-            BlockedByOther: await MessagingAccess.IsBlockedAsync(dbContext, otherUserId, request.UserId, cancellationToken));
+            BlockedByOther: await MessagingAccess.IsBlockedAsync(dbContext, otherUserId, request.UserId, cancellationToken),
+            Listing: await ListingDetailsAsync(conversation.ListingId, summary.Listing.PhotoUrl, cancellationToken));
+    }
+
+    private async Task<ConversationListingDetailsDto?> ListingDetailsAsync(
+        Guid listingId, string? photoUrl, CancellationToken cancellationToken)
+    {
+        var found = await (
+                from l in dbContext.Listings.AsNoTracking()
+                join p in dbContext.Properties.AsNoTracking() on l.PropertyId equals p.Id
+                where l.Id == listingId
+                select new { Listing = l, Property = p })
+            .FirstOrDefaultAsync(cancellationToken);
+        if (found is null)
+        {
+            return null;
+        }
+
+        var (listing, property) = (found.Listing, found.Property);
+        return new ConversationListingDetailsDto(
+            listing.Id,
+            listing.Title,
+            photoUrl,
+            property.PropertyType.ToString(),
+            listing.TransactionType.ToString(),
+            property.TotalAreaM2,
+            property.TypeSpecificAttributes switch
+            {
+                ApartmentAttributes a => a.Rooms,
+                HouseAttributes h => h.Rooms,
+                _ => null,
+            },
+            listing.Price.Amount,
+            listing.Price.Currency.ToString(),
+            listing.Status == ListingStatus.Active);
     }
 }

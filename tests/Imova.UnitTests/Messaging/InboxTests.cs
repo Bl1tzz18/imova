@@ -92,6 +92,39 @@ public class InboxTests
     }
 
     [Fact]
+    public async Task Thread_CarriesTheListingsKeyFacts_ForTheHeaderStrip()
+    {
+        var fixture = new MessagingFixture();
+        var started = await fixture.StartAsync();
+
+        var listing = (await fixture.ThreadAsync(fixture.Visitor.Id, started!.ConversationId))!.Listing!;
+
+        Assert.Equal(fixture.Listing.Id, listing.Id);
+        Assert.Equal(fixture.Listing.Title, listing.Title);
+        Assert.Equal("Apartment", listing.PropertyType);
+        Assert.Equal("Rent", listing.TransactionType);
+        Assert.Equal(2, listing.Rooms);
+        Assert.Equal(54m, listing.TotalAreaM2);
+        Assert.Equal((550m, "EUR"), (listing.PriceAmount, listing.PriceCurrency));
+        Assert.True(listing.IsActive);
+    }
+
+    [Fact]
+    public async Task Thread_ListingStrip_ReflectsAnInactiveOrDeletedListing()
+    {
+        var fixture = new MessagingFixture();
+        var started = await fixture.StartAsync();
+
+        fixture.Listing.Archive();
+        await fixture.Db.SaveChangesAsync();
+        Assert.False((await fixture.ThreadAsync(fixture.Visitor.Id, started!.ConversationId))!.Listing!.IsActive);
+
+        fixture.Db.Listings.Remove(fixture.Listing);
+        await fixture.Db.SaveChangesAsync();
+        Assert.Null((await fixture.ThreadAsync(fixture.Visitor.Id, started.ConversationId))!.Listing);
+    }
+
+    [Fact]
     public async Task Thread_ForAnOutsider_IsNotFound()
     {
         var fixture = new MessagingFixture();
