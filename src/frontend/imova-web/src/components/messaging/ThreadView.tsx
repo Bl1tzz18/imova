@@ -4,16 +4,28 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Avatar } from "@/components/ui/Avatar";
+import { useIsClient } from "@/lib/hooks/useIsClient";
 import { loadOlderMessages, markConversationRead, sendMessage } from "@/lib/messaging/actions";
 import { RealtimeEvents } from "@/lib/messaging/realtime";
-import { applyStatusChange, isTypingVisible, mergeMessages, startsNewDay, TYPING_DISPLAY_MS } from "@/lib/messaging/thread";
+import { applyStatusChange, isTypingVisible, mergeMessages, relativeDay, startsNewDay, TYPING_DISPLAY_MS } from "@/lib/messaging/thread";
+import { cn } from "@/lib/utils/cn";
 import type { ConversationThread, Message, MessageStatusChange, PresenceEvent, TypingEvent } from "@/types/messaging";
 import { ConversationActions } from "./ConversationActions";
 import { MessageBubble } from "./MessageBubble";
 import { MessageComposer } from "./MessageComposer";
 import { useRealtime, useRealtimeEvent } from "./RealtimeProvider";
 
-export function ThreadView({ thread, currentUserId }: { thread: ConversationThread; currentUserId: string }) {
+// Fills its container (the conversation page gives it the space next to the sidebar).
+// backHref: a back arrow in the header, shown only where the sidebar is hidden (small screens).
+export function ThreadView({
+  thread,
+  currentUserId,
+  backHref,
+}: {
+  thread: ConversationThread;
+  currentUserId: string;
+  backHref?: string;
+}) {
   const t = useTranslations("Messages");
   const locale = useLocale();
   const { connection, connected } = useRealtime();
@@ -27,6 +39,8 @@ export function ThreadView({ thread, currentUserId }: { thread: ConversationThre
   const [otherOnline, setOtherOnline] = useState(false);
   const [typingAt, setTypingAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  // Times and day pills are in the viewer's time zone, which only the browser knows.
+  const isClient = useIsClient();
 
   const scroller = useRef<HTMLDivElement>(null);
   const topSentinel = useRef<HTMLDivElement>(null);
@@ -129,30 +143,42 @@ export function ThreadView({ thread, currentUserId }: { thread: ConversationThre
 
   const timeFormat = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
   const dayFormat = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" });
+  const dayPill = (iso: string) => {
+    const date = new Date(iso);
+    const relative = relativeDay(date, new Date(now));
+    return relative ? t(relative) : dayFormat.format(date);
+  };
   const typing = isTypingVisible(typingAt, now);
   const blockedByOther = thread.blockedByOther;
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-ink-100 bg-ink-50/60">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink-100 bg-white px-4 py-3">
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="relative">
-            <Avatar userId={other.userId} displayName={other.displayName} pictureUrl={other.avatarUrl} size={40} />
-            {otherOnline && (
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" aria-hidden />
-            )}
-          </div>
+          {backHref && (
+            <Link
+              href={backHref}
+              aria-label={t("backToInbox")}
+              className="-ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 lg:hidden"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden>
+                <path d="M15 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Link>
+          )}
+          <Avatar userId={other.userId} displayName={other.displayName} pictureUrl={other.avatarUrl} size={42} />
           <div className="min-w-0">
             <p className="truncate font-semibold text-ink-950">{other.displayName}</p>
-            <p className="truncate text-xs text-ink-500">
-              {typing ? t("typing") : otherOnline ? t("online") : t("offline")}
-              {" · "}
+            <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
+              <span className={cn("h-2 w-2 shrink-0 rounded-full", otherOnline ? "bg-emerald-500" : "bg-ink-300")} aria-hidden />
+              <span className="shrink-0">{otherOnline ? t("online") : t("offline")}</span>
+              <span aria-hidden>·</span>
               {conversation.listing.title ? (
-                <Link href={`/property/${conversation.listing.id}`} className="text-brand-700 hover:underline">
+                <Link href={`/property/${conversation.listing.id}`} className="truncate font-medium text-accent-600 hover:underline">
                   {conversation.listing.title}
                 </Link>
               ) : (
-                t("listingDeleted")
+                <span className="truncate">{t("listingDeleted")}</span>
               )}
             </p>
           </div>
@@ -165,37 +191,45 @@ export function ThreadView({ thread, currentUserId }: { thread: ConversationThre
         />
       </div>
 
-      <div ref={scroller} className="flex-1 space-y-2 overflow-y-auto px-4 py-4" aria-live="polite">
+      <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-5 py-5" aria-live="polite">
         {hasMore && (
-          <div ref={topSentinel} className="flex justify-center py-2">
-            <button type="button" onClick={() => void loadOlder()} className="text-xs font-medium text-brand-700 hover:underline">
+          <div ref={topSentinel} className="flex justify-center">
+            <button type="button" onClick={() => void loadOlder()} className="text-xs font-medium text-ink-500 hover:text-ink-900">
               {loadingOlder ? t("loading") : t("loadOlder")}
             </button>
           </div>
         )}
         {messages.map((message, i) => (
           <div key={message.id}>
-            {startsNewDay(messages[i - 1], message) && (
-              <p className="my-3 text-center text-[11px] font-medium uppercase tracking-wide text-ink-400">
-                {dayFormat.format(new Date(message.createdAt))}
-              </p>
+            {isClient && startsNewDay(messages[i - 1], message) && (
+              <div className="my-4 flex justify-center">
+                <span className="rounded-full bg-bubble px-3 py-1 text-[11px] font-medium text-ink-500">{dayPill(message.createdAt)}</span>
+              </div>
             )}
             <MessageBubble
               message={message}
               mine={message.senderUserId === currentUserId}
-              time={timeFormat.format(new Date(message.createdAt))}
+              time={isClient ? timeFormat.format(new Date(message.createdAt)) : ""}
               statusLabel={t(`status.${message.status}`)}
             />
           </div>
         ))}
-        {typing && <p className="text-xs italic text-ink-500">{t("typingNamed", { name: other.displayName })}</p>}
+        {typing && (
+          <div className="flex justify-start" role="status" aria-label={t("typingNamed", { name: other.displayName })}>
+            <span className="flex items-center gap-1 rounded-[16px_16px_16px_4px] bg-bubble px-4 py-3">
+              {[0, 150, 300].map((delay) => (
+                <span key={delay} className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-ink-400" style={{ animationDelay: `${delay}ms` }} />
+              ))}
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="border-t border-ink-100 bg-white p-3">
+      <div className="border-t border-line px-4 py-3">
         {blockedByOther ? (
-          <p className="rounded-xl bg-ink-100 px-4 py-3 text-sm text-ink-600">{t("blockedByOther")}</p>
+          <p className="rounded-[14px] bg-bubble px-4 py-3 text-sm text-ink-600">{t("blockedByOther")}</p>
         ) : blockedByMe ? (
-          <p className="rounded-xl bg-ink-100 px-4 py-3 text-sm text-ink-600">{t("blockedByMe")}</p>
+          <p className="rounded-[14px] bg-bubble px-4 py-3 text-sm text-ink-600">{t("blockedByMe")}</p>
         ) : (
           <MessageComposer
             onSend={handleSend}

@@ -852,7 +852,12 @@
     "sendReport": "Send report",
     "reported": "Thanks — the IMOVA team will review the report.",
     "loginRequired": "Log in to send messages.",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "moreActions": "More actions",
+    "archiveConversation": "Archive conversation",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "unreadCount": "{count, plural, one {# unread message} other {# unread messages}}"
   },
   "AdminMessaging": {
     "title": "Reported messages",

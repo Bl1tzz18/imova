@@ -61,6 +61,13 @@ export function messagePreview(message: Message | null, imageLabel: string, maxL
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
 }
 
+// The date pill above a day's messages: "today"/"yesterday" get words, other days a date.
+export function relativeDay(date: Date, now: Date): "today" | "yesterday" | null {
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((day(now) - day(date)) / 86_400_000);
+  return diff === 0 ? "today" : diff === 1 ? "yesterday" : null;
+}
+
 // Whether a message should render as a new day group ("Azi", "25 sept.") after the previous one.
 export function startsNewDay(previous: Message | undefined, message: Message): boolean {
   return !previous || new Date(previous.createdAt).toDateString() !== new Date(message.createdAt).toDateString();

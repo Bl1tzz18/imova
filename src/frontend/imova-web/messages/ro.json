@@ -852,7 +852,12 @@
     "sendReport": "Trimite raportul",
     "reported": "Mulțumim — echipa IMOVA va verifica raportul.",
     "loginRequired": "Autentifică-te ca să trimiți mesaje.",
-    "genericError": "Ceva n-a mers. Încearcă din nou."
+    "genericError": "Ceva n-a mers. Încearcă din nou.",
+    "moreActions": "Mai multe acțiuni",
+    "archiveConversation": "Arhivează conversația",
+    "today": "Astăzi",
+    "yesterday": "Ieri",
+    "unreadCount": "{count, plural, one {# mesaj necitit} other {# mesaje necitite}}"
   },
   "AdminMessaging": {
     "title": "Mesaje raportate",

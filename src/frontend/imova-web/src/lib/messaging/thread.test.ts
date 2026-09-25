@@ -4,6 +4,7 @@ import {
   isTypingVisible,
   mergeMessages,
   messagePreview,
+  relativeDay,
   shouldSendTyping,
   startsNewDay,
   unreadBadgeLabel,
@@ -90,6 +91,20 @@ describe("messagePreview", () => {
       "📷 Imagine",
     );
     expect(messagePreview(null, "[img]")).toBe("");
+  });
+});
+
+describe("relativeDay", () => {
+  const now = new Date(2026, 8, 25, 9, 0);
+
+  it("names today and yesterday by calendar day, not by 24-hour windows", () => {
+    expect(relativeDay(new Date(2026, 8, 25, 0, 5), now)).toBe("today");
+    expect(relativeDay(new Date(2026, 8, 24, 23, 59), now)).toBe("yesterday");
+    expect(relativeDay(new Date(2026, 8, 23, 12, 0), now)).toBeNull();
+  });
+
+  it("works across a month boundary", () => {
+    expect(relativeDay(new Date(2026, 8, 30, 20, 0), new Date(2026, 9, 1, 8, 0))).toBe("yesterday");
   });
 });
 

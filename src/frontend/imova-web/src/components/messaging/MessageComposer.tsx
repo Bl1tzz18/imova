@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
 import { uploadFileToBlob } from "@/lib/api/media";
 import { requestAttachmentUploadUrl } from "@/lib/messaging/actions";
 import { ATTACHMENT_ACCEPT, attachmentExtension, pickAttachments } from "@/lib/messaging/attachments";
@@ -32,7 +31,16 @@ export function MessageComposer({
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const lastTypingSent = useRef<number | null>(null);
+
+  // The pill grows with the text (up to max-h-36, then scrolls).
+  useLayoutEffect(() => {
+    const el = textArea.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [body]);
 
   const uploading = images.some((i) => i.blobName === null && !i.failed);
   const ready = images.filter((i) => i.blobName !== null);
@@ -105,11 +113,11 @@ export function MessageComposer({
   }
 
   return (
-    <div className="rounded-2xl border border-ink-200 bg-white p-3">
+    <div>
       {images.length > 0 && (
-        <ul className="mb-3 flex flex-wrap gap-2">
+        <ul className="mb-2 flex flex-wrap gap-2">
           {images.map((image) => (
-            <li key={image.key} className="relative h-16 w-16 overflow-hidden rounded-lg border border-ink-100">
+            <li key={image.key} className="relative h-16 w-16 overflow-hidden rounded-[14px] border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
               <img src={image.previewUrl} alt="" className={cn("h-full w-full object-cover", !image.blobName && "opacity-50")} />
               {image.blobName === null && !image.failed && (
@@ -135,55 +143,70 @@ export function MessageComposer({
         </ul>
       )}
 
-      <textarea
-        value={body}
-        onChange={(e) => handleChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        maxLength={MAX_MESSAGE_LENGTH}
-        rows={3}
-        disabled={disabled}
-        autoFocus={autoFocus}
-        placeholder={placeholder ?? t("composerPlaceholder")}
-        aria-label={t("composerPlaceholder")}
-        className="w-full resize-none bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-400"
-      />
+      <div className="flex items-end gap-2">
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          disabled={disabled || images.length >= MAX_ATTACHMENTS}
+          aria-label={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
+          title={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
+          className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 disabled:opacity-40"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5" aria-hidden>
+            <path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {images.length}/{MAX_ATTACHMENTS}
+        </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept={ATTACHMENT_ACCEPT}
+          multiple
+          hidden
+          onChange={(e) => {
+            void addFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
 
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => fileInput.current?.click()}
-            disabled={disabled || images.length >= MAX_ATTACHMENTS}
-            className="flex items-center gap-1.5 rounded-full px-2 py-1 text-sm text-ink-600 transition-colors hover:bg-ink-50 disabled:opacity-40"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4">
-              <path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept={ATTACHMENT_ACCEPT}
-            multiple
-            hidden
-            onChange={(e) => {
-              void addFiles(e.target.files);
-              e.target.value = "";
-            }}
+        <div className="flex min-h-11 flex-1 items-center rounded-[22px] bg-bubble px-4 py-2.5">
+          <textarea
+            ref={textArea}
+            value={body}
+            onChange={(e) => handleChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            maxLength={MAX_MESSAGE_LENGTH}
+            rows={1}
+            disabled={disabled}
+            autoFocus={autoFocus}
+            placeholder={placeholder ?? t("composerPlaceholder")}
+            aria-label={placeholder ?? t("composerPlaceholder")}
+            className="max-h-36 w-full resize-none bg-transparent text-sm leading-5 text-ink-900 outline-none placeholder:text-ink-400"
           />
-          {body.length > MAX_MESSAGE_LENGTH - 200 && (
-            <span className="text-xs text-ink-500">
-              {body.length}/{MAX_MESSAGE_LENGTH}
-            </span>
-          )}
         </div>
-        <Button type="button" size="sm" onClick={() => void send()} disabled={!canSend}>
-          {sending ? t("sending") : t("send")}
-        </Button>
+
+        <button
+          type="button"
+          onClick={() => void send()}
+          disabled={!canSend}
+          aria-label={sending ? t("sending") : t("send")}
+          title={t("send")}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm shadow-accent-500/30 transition-colors hover:bg-accent-600 disabled:opacity-40"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden>
+            <path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
-      {error && <p className="mt-2 text-sm text-accent-700">{error}</p>}
+      <div className="mt-1 flex justify-between gap-3 px-1 text-xs">
+        {error ? <p className="text-accent-700">{error}</p> : <span />}
+        {body.length > MAX_MESSAGE_LENGTH - 200 && (
+          <span className="text-ink-500">
+            {body.length}/{MAX_MESSAGE_LENGTH}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

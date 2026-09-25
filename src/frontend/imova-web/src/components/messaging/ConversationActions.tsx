@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { SelectInput, TextAreaInput } from "@/components/ui/Field";
 import { reportConversation, setConversationArchived, setUserBlocked } from "@/lib/messaging/actions";
+import { cn } from "@/lib/utils/cn";
 import type { ReportReason } from "@/types/messaging";
 
 const REASONS: ReportReason[] = ["Spam", "Fraud", "Abuse", "Other"];
 
-// Archive / block / report for one conversation.
+const iconButton =
+  "flex h-9 w-9 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 disabled:opacity-50";
+
+// The thread header's actions: archive as an icon button; block and report tucked into a "⋯" menu
+// (report opens its form as a popover).
 export function ConversationActions({
   conversationId,
   isArchived,
@@ -25,10 +30,30 @@ export function ConversationActions({
   const t = useTranslations("Messages");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [reporting, setReporting] = useState(false);
+  const [panel, setPanel] = useState<"menu" | "report" | null>(null);
   const [reason, setReason] = useState<ReportReason>("Spam");
   const [details, setDetails] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!panel) return;
+    function close(e: MouseEvent | KeyboardEvent) {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !container.current?.contains(e.target as Node)) setPanel(null);
+    }
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [panel]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   function run(action: () => Promise<{ error?: string }>, onDone?: () => void) {
     startTransition(async () => {
@@ -42,37 +67,62 @@ export function ConversationActions({
     });
   }
 
-  return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={pending}
-          onClick={() => run(() => setConversationArchived(conversationId, !isArchived), () => setNotice(isArchived ? t("unarchived") : t("archived")))}
-        >
-          {isArchived ? t("unarchive") : t("archive")}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={pending}
-          onClick={() => {
-            if (!blockedByMe && !window.confirm(t("blockConfirm"))) return;
-            run(() => setUserBlocked(conversationId, !blockedByMe), () => onBlockedChange(!blockedByMe));
-          }}
-        >
-          {blockedByMe ? t("unblock") : t("block")}
-        </Button>
-        <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => setReporting((v) => !v)}>
-          {t("report")}
-        </Button>
-      </div>
+  const archiveLabel = isArchived ? t("unarchive") : t("archiveConversation");
+  const menuItem = "block w-full px-4 py-2.5 text-left text-sm text-ink-800 transition-colors hover:bg-bubble";
 
-      {reporting && (
-        <div className="w-full max-w-sm rounded-xl border border-ink-100 bg-white p-4 text-left shadow-[var(--shadow-card)]">
+  return (
+    <div ref={container} className="relative flex items-center gap-1">
+      <button
+        type="button"
+        className={iconButton}
+        disabled={pending}
+        aria-label={archiveLabel}
+        title={archiveLabel}
+        onClick={() => run(() => setConversationArchived(conversationId, !isArchived), () => setNotice(isArchived ? t("unarchived") : t("archived")))}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-[18px] w-[18px]" aria-hidden>
+          <path d="M3.5 5h17v4h-17zM5 9v10h14V9M10 13h4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className={cn(iconButton, panel && "bg-bubble text-ink-900")}
+        aria-label={t("moreActions")}
+        title={t("moreActions")}
+        aria-haspopup="menu"
+        aria-expanded={panel === "menu"}
+        onClick={() => setPanel((p) => (p ? null : "menu"))}
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-[18px] w-[18px]" aria-hidden>
+          <circle cx="5" cy="12" r="1.8" />
+          <circle cx="12" cy="12" r="1.8" />
+          <circle cx="19" cy="12" r="1.8" />
+        </svg>
+      </button>
+
+      {panel === "menu" && (
+        <div role="menu" className="absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-[var(--shadow-card)]">
+          <button
+            type="button"
+            role="menuitem"
+            className={menuItem}
+            disabled={pending}
+            onClick={() => {
+              setPanel(null);
+              if (!blockedByMe && !window.confirm(t("blockConfirm"))) return;
+              run(() => setUserBlocked(conversationId, !blockedByMe), () => onBlockedChange(!blockedByMe));
+            }}
+          >
+            {blockedByMe ? t("unblock") : t("block")}
+          </button>
+          <button type="button" role="menuitem" className={cn(menuItem, "text-accent-700")} onClick={() => setPanel("report")}>
+            {t("report")}
+          </button>
+        </div>
+      )}
+
+      {panel === "report" && (
+        <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-2xl border border-line bg-white p-4 text-left shadow-[var(--shadow-card)]">
           <label className="block text-sm font-medium text-ink-700">
             {t("reportReason")}
             <SelectInput value={reason} onChange={(e) => setReason(e.target.value as ReportReason)} className="mt-1">
@@ -88,7 +138,7 @@ export function ConversationActions({
             <TextAreaInput value={details} onChange={(e) => setDetails(e.target.value)} maxLength={1000} rows={3} className="mt-1" />
           </label>
           <div className="mt-3 flex justify-end gap-2">
-            <Button type="button" size="sm" variant="ghost" onClick={() => setReporting(false)}>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setPanel(null)}>
               {t("cancel")}
             </Button>
             <Button
@@ -97,7 +147,7 @@ export function ConversationActions({
               disabled={pending || (reason === "Other" && !details.trim())}
               onClick={() =>
                 run(() => reportConversation(conversationId, reason, details), () => {
-                  setReporting(false);
+                  setPanel(null);
                   setDetails("");
                   setNotice(t("reported"));
                 })
@@ -109,7 +159,11 @@ export function ConversationActions({
         </div>
       )}
 
-      {notice && <p className="text-sm text-ink-600">{notice}</p>}
+      {notice && (
+        <p role="status" className="absolute right-0 top-full z-10 mt-2 w-64 rounded-xl bg-ink-900 px-3 py-2 text-xs text-white shadow-[var(--shadow-card)]">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }
