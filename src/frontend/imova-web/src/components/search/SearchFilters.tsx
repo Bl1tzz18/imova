@@ -38,7 +38,7 @@ function Section({ title, children, collapsible = false, defaultOpen = true }: {
   );
 }
 
-// The /cauta filter panel — a sidebar on desktop, inside a full-screen sheet on mobile. Every change
+// The /search filter panel — a sidebar on desktop, inside a full-screen sheet on mobile. Every change
 // goes straight to the URL (see SearchNavigation); number fields wait for typing to pause.
 // inSheet: the mobile sheet has its own "Filtre" title, so the panel doesn't repeat it.
 export function SearchFilters({ inSheet = false }: { inSheet?: boolean }) {

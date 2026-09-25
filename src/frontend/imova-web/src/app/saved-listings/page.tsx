@@ -49,7 +49,7 @@ export default async function SavedListingsPage() {
             <path d="M12 21s-7.5-4.6-10-9.3C.5 8.1 2.4 4.5 6 4c2.1-.3 4 .8 6 3 2-2.2 3.9-3.3 6-3 3.6.5 5.5 4.1 4 7.7C19.5 16.4 12 21 12 21Z" strokeLinejoin="round" />
           </svg>
           <p className="text-sm text-ink-500">{t("emptyBody")}</p>
-          <LinkButton href="/cauta">{t("browseListings")}</LinkButton>
+          <LinkButton href="/search">{t("browseListings")}</LinkButton>
         </div>
       )}
     </main>

@@ -1,12 +1,12 @@
 import { ATTRIBUTE_SCHEMA, PROPERTY_TYPES, type PropertyTypeName } from "@/lib/property/attributeSchema";
 
-// The /cauta page's whole state lives in its URL: one query parameter per filter, named exactly
+// The /search page's whole state lives in its URL: one query parameter per filter, named exactly
 // like the backend's GET /api/v1/listings/search parameters (multi-value filters repeat the name).
 // Everything that leads to search — the hero, category tiles, the Cumpără/Închiriază links and the
 // filter panel itself — builds its URL through this module, so there's one set of rules for which
 // filters apply when.
 
-export const SEARCH_PATH = "/cauta";
+export const SEARCH_PATH = "/search";
 
 export const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
 export type TransactionTypeName = (typeof TRANSACTION_TYPES)[number];

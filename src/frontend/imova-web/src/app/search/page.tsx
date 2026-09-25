@@ -33,7 +33,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 // The single search results page: every entry point (hero, category tiles, Cumpără/Închiriază,
 // the filter panel) just links here with query parameters, and this renders the matching listings
-// on the server — so any /cauta URL can be bookmarked, shared or crawled and shows the same results.
+// on the server — so any /search URL can be bookmarked, shared or crawled and shows the same results.
 export default async function SearchPage({ searchParams }: PageProps) {
   const state = parseSearchParams(await searchParams);
   const [t, tPage, results, title] = await Promise.all([
@@ -50,10 +50,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <SearchNavigationProvider state={state}>
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="grid gap-8 lg:grid-cols-[290px_minmax(0,1fr)]">
+          <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
+            <div className="grid gap-8 lg:grid-cols-[360px_minmax(0,1fr)]">
               <aside className="hidden lg:block">
-                <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[18px] border border-line bg-white p-5 shadow-[var(--shadow-card)]">
+                <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-[18px] border border-line bg-white p-6 shadow-[var(--shadow-card)]">
                   <SearchFilters />
                 </div>
               </aside>
@@ -85,7 +85,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                       <div className="mt-6 flex flex-col items-center gap-3 rounded-[18px] border border-dashed border-line bg-white px-6 py-16 text-center">
                         <p className="font-semibold text-ink-900">{t("emptyTitle")}</p>
                         <p className="max-w-md text-sm text-ink-500">{t("emptyHint")}</p>
-                        <Link href="/cauta" className="mt-2 text-sm font-medium text-accent-600 hover:underline">
+                        <Link href="/search" className="mt-2 text-sm font-medium text-accent-600 hover:underline">
                           {t("reset")}
                         </Link>
                       </div>

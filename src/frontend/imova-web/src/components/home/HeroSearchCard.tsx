@@ -14,7 +14,7 @@ const fieldClass =
   "h-11 w-full rounded-xl border border-white/20 bg-white/90 px-3.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-white focus:bg-white focus:ring-2 focus:ring-white/30 sm:h-12";
 
 // The homepage's quick entry into search: buy/rent, a property type and a location — then the full
-// /cauta page (with every filter) takes over. Sits on the hero image, glass-styled to match.
+// /search page (with every filter) takes over. Sits on the hero image, glass-styled to match.
 export function HeroSearchCard() {
   const t = useTranslations("Hero.searchCard");
   const tType = useTranslations("PropertyType");

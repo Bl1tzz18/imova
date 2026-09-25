@@ -6,7 +6,7 @@ export const SEARCH_PAGE_SIZE = 24;
 
 export type SearchResults = { items: Listing[]; page: number; pageSize: number; totalCount: number };
 
-// Server-side (the /cauta page renders its results on the server, so every filtered URL is a
+// Server-side (the /search page renders its results on the server, so every filtered URL is a
 // complete, crawlable page). Signed-in callers get IsSaved on each card. Null when the API fails.
 export async function searchListings(state: SearchState): Promise<SearchResults | null> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";

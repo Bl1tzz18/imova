@@ -132,9 +132,9 @@ describe("URLs", () => {
     expect(parseSearchParams(new URLSearchParams(query))).toEqual(state);
   });
 
-  it("point at /cauta", () => {
-    expect(searchHref({})).toBe("/cauta");
-    expect(searchHref({ propertyType: ["Apartment"] })).toBe("/cauta?propertyType=Apartment");
+  it("point at /search", () => {
+    expect(searchHref({})).toBe("/search");
+    expect(searchHref({ propertyType: ["Apartment"] })).toBe("/search?propertyType=Apartment");
   });
 });
 

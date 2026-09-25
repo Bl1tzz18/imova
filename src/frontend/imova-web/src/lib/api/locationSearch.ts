@@ -15,7 +15,7 @@ export async function searchLocations(text: string, signal?: AbortSignal): Promi
   return res.ok ? ((await res.json()) as LocationSuggestion[]) : [];
 }
 
-// The /cauta location parameters a picked suggestion stands for.
+// The /search location parameters a picked suggestion stands for.
 export function locationParams(suggestion: LocationSuggestion): Record<string, string[]> {
   switch (suggestion.kind) {
     case "Raion":
