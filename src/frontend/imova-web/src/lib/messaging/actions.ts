@@ -109,8 +109,15 @@ export async function getRealtimeToken(): Promise<string | null> {
 
 // --- Admin ---
 
-export async function resolveMessagingReport(reportId: string) {
-  const result = await post(`/api/v1/admin/messaging/reports/${reportId}/resolve`);
+// resolved = false reopens it (back to the Active tab).
+export async function setMessagingReportResolved(reportId: string, resolved: boolean) {
+  const result = await post(`/api/v1/admin/messaging/reports/${reportId}/${resolved ? "resolve" : "reopen"}`);
+  revalidatePath("/admin/messaging");
+  return result;
+}
+
+export async function setFlaggedMessageResolved(messageId: string, resolved: boolean) {
+  const result = await post(`/api/v1/admin/messaging/flagged-messages/${messageId}/${resolved ? "resolve" : "reopen"}`);
   revalidatePath("/admin/messaging");
   return result;
 }

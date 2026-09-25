@@ -40,12 +40,13 @@ export async function getUnreadCount(): Promise<number> {
   return (await apiGet<{ count: number }>("/api/v1/messaging/unread-count"))?.count ?? 0;
 }
 
-export function getMessagingReports(includeResolved = false) {
-  return apiGet<MessagingReport[]>(`/api/v1/admin/messaging/reports${includeResolved ? "?includeResolved=true" : ""}`);
+// The admin view's Active (resolved = false) and Resolved tabs.
+export function getMessagingReports(resolved: boolean) {
+  return apiGet<MessagingReport[]>(`/api/v1/admin/messaging/reports?resolved=${resolved}`);
 }
 
-export function getFlaggedMessages() {
-  return apiGet<FlaggedMessage[]>("/api/v1/admin/messaging/flagged-messages");
+export function getFlaggedMessages(resolved: boolean) {
+  return apiGet<FlaggedMessage[]>(`/api/v1/admin/messaging/flagged-messages?resolved=${resolved}`);
 }
 
 export function getAdminConversation(conversationId: string) {

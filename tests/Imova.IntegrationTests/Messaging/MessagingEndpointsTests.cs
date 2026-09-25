@@ -178,6 +178,36 @@ public class MessagingEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/v1/admin/messaging/reports/{mine.Id}/resolve", null)).StatusCode);
         Assert.DoesNotContain(
             (await admin.GetFromJsonAsync<List<MessagingReportDto>>("/api/v1/admin/messaging/reports"))!, r => r.Id == mine.Id);
+        var resolved = (await admin.GetFromJsonAsync<List<MessagingReportDto>>("/api/v1/admin/messaging/reports?resolved=true"))!
+            .Single(r => r.Id == mine.Id);
+        Assert.NotNull(resolved.ResolvedAt);
+        Assert.NotNull(resolved.ResolvedBy);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/v1/admin/messaging/reports/{mine.Id}/reopen", null)).StatusCode);
+        Assert.Contains((await admin.GetFromJsonAsync<List<MessagingReportDto>>("/api/v1/admin/messaging/reports"))!, r => r.Id == mine.Id);
+        Assert.Equal(HttpStatusCode.Forbidden, (await seller.PostAsync($"/api/v1/admin/messaging/reports/{mine.Id}/resolve", null)).StatusCode);
+    }
+
+    [Fact]
+    public async Task FlaggedMessage_CanBeResolvedAndReopenedByAnAdmin()
+    {
+        var (_, visitor, _, _, listing) = await SetUpAsync();
+        var started = await StartAsync(visitor, listing.Id, "Trimite avansul prin Western Union");
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+        async Task<List<FlaggedMessageDto>> ListAsync(bool resolved) =>
+            (await admin.GetFromJsonAsync<List<FlaggedMessageDto>>($"/api/v1/admin/messaging/flagged-messages?resolved={resolved}"))!;
+        var messageId = started.Message.Id;
+        Assert.Contains(await ListAsync(false), f => f.Message.Id == messageId);
+
+        var resolve = await admin.PostAsync($"/api/v1/admin/messaging/flagged-messages/{messageId}/resolve", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, resolve.StatusCode);
+        Assert.DoesNotContain(await ListAsync(false), f => f.Message.Id == messageId);
+        Assert.NotNull((await ListAsync(true)).Single(f => f.Message.Id == messageId).ResolvedBy);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/v1/admin/messaging/flagged-messages/{messageId}/reopen", null)).StatusCode);
+        Assert.Contains(await ListAsync(false), f => f.Message.Id == messageId);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.PostAsync($"/api/v1/admin/messaging/flagged-messages/{Guid.NewGuid()}/resolve", null)).StatusCode);
     }
 
     [Fact]

@@ -30,10 +30,62 @@ public class ReportAndModerationTests
             .Handle(new GetConversationForAdminQuery(true, started.ConversationId), CancellationToken.None);
         Assert.Single(conversation!.Messages);
 
-        await new ResolveMessagingReportHandler(fixture.Db, fixture.Clock)
-            .Handle(new ResolveMessagingReportCommand(true, Guid.NewGuid(), report.Id), CancellationToken.None);
-        Assert.Empty(await new GetMessagingReportsHandler(fixture.Db).Handle(new GetMessagingReportsQuery(true), CancellationToken.None));
-        Assert.Single(await new GetMessagingReportsHandler(fixture.Db).Handle(new GetMessagingReportsQuery(true, IncludeResolved: true), CancellationToken.None));
+        Assert.Null(report.ResolvedBy);
+    }
+
+    [Fact]
+    public async Task Resolving_MovesAReportFromActiveToResolved_AndReopeningMovesItBack()
+    {
+        var fixture = new MessagingFixture();
+        var admin = fixture.AddUser("Admin IMOVA", "admin@example.com");
+        var started = await fixture.StartAsync();
+        await new ReportConversationHandler(fixture.Db, fixture.Clock).Handle(
+            new ReportConversationCommand(fixture.Seller.Id, started!.ConversationId, ReportReason.Spam, null), CancellationToken.None);
+        var reports = new GetMessagingReportsHandler(fixture.Db);
+        var setResolved = new SetMessagingReportResolvedHandler(fixture.Db, fixture.Clock);
+        var reportId = Assert.Single(await reports.Handle(new GetMessagingReportsQuery(true), CancellationToken.None)).Id;
+
+        fixture.Clock.Advance(TimeSpan.FromHours(2));
+        Assert.True(await setResolved.Handle(new SetMessagingReportResolvedCommand(true, admin.Id, reportId, true), CancellationToken.None));
+
+        Assert.Empty(await reports.Handle(new GetMessagingReportsQuery(true, Resolved: false), CancellationToken.None));
+        var resolved = Assert.Single(await reports.Handle(new GetMessagingReportsQuery(true, Resolved: true), CancellationToken.None));
+        Assert.Equal(fixture.Clock.Now, resolved.ResolvedAt);
+        Assert.Equal("Admin IMOVA", resolved.ResolvedBy!.DisplayName);
+
+        Assert.True(await setResolved.Handle(new SetMessagingReportResolvedCommand(true, admin.Id, reportId, false), CancellationToken.None));
+        var active = Assert.Single(await reports.Handle(new GetMessagingReportsQuery(true), CancellationToken.None));
+        Assert.Null(active.ResolvedAt);
+        Assert.Null(active.ResolvedBy);
+        Assert.Empty(await reports.Handle(new GetMessagingReportsQuery(true, Resolved: true), CancellationToken.None));
+
+        Assert.False(await setResolved.Handle(new SetMessagingReportResolvedCommand(true, admin.Id, Guid.NewGuid(), true), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Resolving_AFlaggedMessage_MovesItToResolved_AndReopeningMovesItBack()
+    {
+        var fixture = new MessagingFixture();
+        var admin = fixture.AddUser("Admin IMOVA", "admin@example.com");
+        var started = await fixture.StartAsync(body: "Plata în avans prin Western Union, vă rog");
+        var clean = await fixture.SendAsync(fixture.Seller.Id, started!.ConversationId, "Bună ziua!");
+        var flagged = new GetFlaggedMessagesHandler(fixture.Db);
+        var setResolved = new SetFlaggedMessageResolvedHandler(fixture.Db, fixture.Clock);
+        var messageId = started.Message.Id;
+
+        Assert.True(await setResolved.Handle(new SetFlaggedMessageResolvedCommand(true, admin.Id, messageId, true), CancellationToken.None));
+
+        Assert.Empty(await flagged.Handle(new GetFlaggedMessagesQuery(true, Resolved: false), CancellationToken.None));
+        var resolved = Assert.Single(await flagged.Handle(new GetFlaggedMessagesQuery(true, Resolved: true), CancellationToken.None));
+        Assert.Equal(messageId, resolved.Message.Id);
+        Assert.Equal(fixture.Clock.Now, resolved.ResolvedAt);
+        Assert.Equal(admin.Id, resolved.ResolvedBy!.Id);
+
+        Assert.True(await setResolved.Handle(new SetFlaggedMessageResolvedCommand(true, admin.Id, messageId, false), CancellationToken.None));
+        Assert.Null(Assert.Single(await flagged.Handle(new GetFlaggedMessagesQuery(true), CancellationToken.None)).ResolvedAt);
+
+        // A message that was never flagged can't be "resolved".
+        Assert.False(await setResolved.Handle(new SetFlaggedMessageResolvedCommand(true, admin.Id, clean!.Id, true), CancellationToken.None));
     }
 
     [Fact]
@@ -66,6 +118,12 @@ public class ReportAndModerationTests
             new GetMessagingReportsHandler(fixture.Db).Handle(new GetMessagingReportsQuery(false), CancellationToken.None));
         await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
             new SetMessagingBanHandler(fixture.Db).Handle(new SetMessagingBanCommand(false, fixture.Visitor.Id, true), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            new SetMessagingReportResolvedHandler(fixture.Db, fixture.Clock)
+                .Handle(new SetMessagingReportResolvedCommand(false, fixture.Visitor.Id, Guid.NewGuid(), true), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            new SetFlaggedMessageResolvedHandler(fixture.Db, fixture.Clock)
+                .Handle(new SetFlaggedMessageResolvedCommand(false, fixture.Visitor.Id, Guid.NewGuid(), true), CancellationToken.None));
     }
 
     [Fact]

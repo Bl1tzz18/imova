@@ -47,6 +47,11 @@ public sealed class Message : Entity
 
     public string? FlagReason { get; private set; }
 
+    // An admin reviewed the flag (moves it from "active" to "resolved" in the admin view).
+    public DateTimeOffset? FlagResolvedAt { get; private set; }
+
+    public Guid? FlagResolvedByUserId { get; private set; }
+
     public IReadOnlyCollection<MessageAttachment> Attachments => _attachments.AsReadOnly();
 
     public MessageStatus Status =>
@@ -86,6 +91,29 @@ public sealed class Message : Entity
         }
 
         return message;
+    }
+
+    // Resolving twice keeps the first admin and time; only a flagged message can be resolved.
+    public void ResolveFlag(Guid adminUserId, DateTimeOffset now)
+    {
+        if (!IsFlagged)
+        {
+            throw new InvalidOperationException("Only a flagged message can be resolved.");
+        }
+
+        if (FlagResolvedAt is not null)
+        {
+            return;
+        }
+
+        FlagResolvedAt = now;
+        FlagResolvedByUserId = adminUserId;
+    }
+
+    public void ReopenFlag()
+    {
+        FlagResolvedAt = null;
+        FlagResolvedByUserId = null;
     }
 
     // Both are one-way: a later status never goes back, and marking again keeps the first time.

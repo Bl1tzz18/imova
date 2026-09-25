@@ -2,7 +2,8 @@ using Imova.Domain.Common;
 
 namespace Imova.Domain.Messaging;
 
-// A participant flagging a conversation for admins. Stays open until an admin resolves it.
+// A participant flagging a conversation for admins. Active until an admin resolves it; a resolved
+// report can be reopened (e.g. resolved by mistake, or the problem came back).
 public sealed class ConversationReport : Entity
 {
     public const int MaxDetailsLength = 1000;
@@ -59,10 +60,24 @@ public sealed class ConversationReport : Entity
         return new ConversationReport(Guid.NewGuid(), conversation.Id, reporterUserId, reason, details, now);
     }
 
+    public bool IsResolved => ResolvedAt is not null;
+
+    // Resolving twice keeps the first admin and time.
     public void Resolve(Guid adminUserId, DateTimeOffset now)
     {
-        ResolvedAt ??= now;
-        ResolvedByUserId ??= adminUserId;
+        if (IsResolved)
+        {
+            return;
+        }
+
+        ResolvedAt = now;
+        ResolvedByUserId = adminUserId;
+    }
+
+    public void Reopen()
+    {
+        ResolvedAt = null;
+        ResolvedByUserId = null;
     }
 }
 

@@ -30,6 +30,9 @@ internal static class AdminMessaging
     public static MessagingUserDto UserOrPlaceholder(Dictionary<Guid, MessagingUserDto> users, Guid id) =>
         users.GetValueOrDefault(id) ?? new MessagingUserDto(id, null, null, false);
 
+    public static MessagingUserDto? OptionalUser(Dictionary<Guid, MessagingUserDto> users, Guid? id) =>
+        id is { } value ? UserOrPlaceholder(users, value) : null;
+
     public static async Task<Dictionary<Guid, ConversationListingDto>> ListingsAsync(
         IApplicationDbContext dbContext, IEnumerable<Guid> listingIds, CancellationToken cancellationToken)
     {
@@ -48,17 +51,22 @@ public class GetMessagingReportsHandler(IApplicationDbContext dbContext)
     {
         AdminMessaging.EnsureAdmin(request.IsAdmin);
 
-        var rows = await (
-                from r in dbContext.ConversationReports.AsNoTracking()
-                join c in dbContext.Conversations.AsNoTracking() on r.ConversationId equals c.Id
-                where request.IncludeResolved || r.ResolvedAt == null
-                orderby r.CreatedAt descending
-                select new { Report = r, Conversation = c })
+        var query =
+            from r in dbContext.ConversationReports.AsNoTracking()
+            join c in dbContext.Conversations.AsNoTracking() on r.ConversationId equals c.Id
+            where (r.ResolvedAt != null) == request.Resolved
+            select new { Report = r, Conversation = c };
+        var rows = await (request.Resolved
+                ? query.OrderByDescending(x => x.Report.ResolvedAt)
+                : query.OrderByDescending(x => x.Report.CreatedAt))
             .Take(200)
             .ToListAsync(cancellationToken);
 
         var users = await AdminMessaging.UsersAsync(
-            dbContext, rows.SelectMany(x => new[] { x.Conversation.InitiatorUserId, x.Conversation.PublisherUserId }), cancellationToken);
+            dbContext,
+            rows.SelectMany(x => new[] { x.Conversation.InitiatorUserId, x.Conversation.PublisherUserId })
+                .Concat(rows.Where(x => x.Report.ResolvedByUserId != null).Select(x => x.Report.ResolvedByUserId!.Value)),
+            cancellationToken);
         var listings = await AdminMessaging.ListingsAsync(dbContext, rows.Select(x => x.Conversation.ListingId), cancellationToken);
 
         return rows.Select(x => new MessagingReportDto(
@@ -70,7 +78,8 @@ public class GetMessagingReportsHandler(IApplicationDbContext dbContext)
                 x.Report.ResolvedAt,
                 AdminMessaging.UserOrPlaceholder(users, x.Report.ReporterUserId),
                 AdminMessaging.UserOrPlaceholder(users, x.Conversation.OtherParticipant(x.Report.ReporterUserId)),
-                listings.GetValueOrDefault(x.Conversation.ListingId) ?? new ConversationListingDto(x.Conversation.ListingId, null, null)))
+                listings.GetValueOrDefault(x.Conversation.ListingId) ?? new ConversationListingDto(x.Conversation.ListingId, null, null),
+                AdminMessaging.OptionalUser(users, x.Report.ResolvedByUserId)))
             .ToList();
     }
 }
@@ -82,17 +91,27 @@ public class GetFlaggedMessagesHandler(IApplicationDbContext dbContext)
     {
         AdminMessaging.EnsureAdmin(request.IsAdmin);
 
-        var messages = await dbContext.Messages.AsNoTracking()
+        var flagged = dbContext.Messages.AsNoTracking()
             .Include(m => m.Attachments)
-            .Where(m => m.IsFlagged)
-            .OrderByDescending(m => m.CreatedAt)
+            .Where(m => m.IsFlagged && (m.FlagResolvedAt != null) == request.Resolved);
+        var messages = await (request.Resolved
+                ? flagged.OrderByDescending(m => m.FlagResolvedAt)
+                : flagged.OrderByDescending(m => m.CreatedAt))
             .Take(200)
             .ToListAsync(cancellationToken);
-        var users = await AdminMessaging.UsersAsync(dbContext, messages.Select(m => m.SenderUserId), cancellationToken);
+        var users = await AdminMessaging.UsersAsync(
+            dbContext,
+            messages.Select(m => m.SenderUserId)
+                .Concat(messages.Where(m => m.FlagResolvedByUserId != null).Select(m => m.FlagResolvedByUserId!.Value)),
+            cancellationToken);
 
         return messages
             .Select(m => new FlaggedMessageDto(
-                m.ToDto(), m.FlagReason ?? string.Empty, AdminMessaging.UserOrPlaceholder(users, m.SenderUserId)))
+                m.ToDto(),
+                m.FlagReason ?? string.Empty,
+                AdminMessaging.UserOrPlaceholder(users, m.SenderUserId),
+                m.FlagResolvedAt,
+                AdminMessaging.OptionalUser(users, m.FlagResolvedByUserId)))
             .ToList();
     }
 }
@@ -129,10 +148,10 @@ public class GetConversationForAdminHandler(IApplicationDbContext dbContext)
     }
 }
 
-public class ResolveMessagingReportHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
-    : IRequestHandler<ResolveMessagingReportCommand, bool>
+public class SetMessagingReportResolvedHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
+    : IRequestHandler<SetMessagingReportResolvedCommand, bool>
 {
-    public async Task<bool> Handle(ResolveMessagingReportCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(SetMessagingReportResolvedCommand request, CancellationToken cancellationToken)
     {
         AdminMessaging.EnsureAdmin(request.IsAdmin);
 
@@ -142,7 +161,42 @@ public class ResolveMessagingReportHandler(IApplicationDbContext dbContext, Time
             return false;
         }
 
-        report.Resolve(request.AdminUserId, timeProvider.GetUtcNow());
+        if (request.Resolved)
+        {
+            report.Resolve(request.AdminUserId, timeProvider.GetUtcNow());
+        }
+        else
+        {
+            report.Reopen();
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+}
+
+public class SetFlaggedMessageResolvedHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
+    : IRequestHandler<SetFlaggedMessageResolvedCommand, bool>
+{
+    public async Task<bool> Handle(SetFlaggedMessageResolvedCommand request, CancellationToken cancellationToken)
+    {
+        AdminMessaging.EnsureAdmin(request.IsAdmin);
+
+        var message = await dbContext.Messages.FirstOrDefaultAsync(m => m.Id == request.MessageId && m.IsFlagged, cancellationToken);
+        if (message is null)
+        {
+            return false;
+        }
+
+        if (request.Resolved)
+        {
+            message.ResolveFlag(request.AdminUserId, timeProvider.GetUtcNow());
+        }
+        else
+        {
+            message.ReopenFlag();
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }

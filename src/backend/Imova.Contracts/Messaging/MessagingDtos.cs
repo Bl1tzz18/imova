@@ -51,7 +51,8 @@ public record RealtimeTokenDto(string Token, DateTimeOffset ExpiresAt);
 
 public record MessagingUserDto(Guid Id, string? DisplayName, string? Email, bool IsBannedFromMessaging);
 
-// Reason: Spam | Fraud | Abuse | Other. ReportedUser is the other participant.
+// Reason: Spam | Fraud | Abuse | Other. ReportedUser is the other participant. ResolvedBy is the
+// admin who resolved it (null while active).
 public record MessagingReportDto(
     Guid Id,
     Guid ConversationId,
@@ -61,9 +62,16 @@ public record MessagingReportDto(
     DateTimeOffset? ResolvedAt,
     MessagingUserDto Reporter,
     MessagingUserDto ReportedUser,
-    ConversationListingDto Listing);
+    ConversationListingDto Listing,
+    MessagingUserDto? ResolvedBy);
 
-public record FlaggedMessageDto(MessageDto Message, string FlagReason, MessagingUserDto Sender);
+// ResolvedAt/ResolvedBy: an admin reviewed the flag (null while active).
+public record FlaggedMessageDto(
+    MessageDto Message,
+    string FlagReason,
+    MessagingUserDto Sender,
+    DateTimeOffset? ResolvedAt,
+    MessagingUserDto? ResolvedBy);
 
 public record AdminConversationDto(
     Guid Id,

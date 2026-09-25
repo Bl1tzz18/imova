@@ -116,6 +116,38 @@ public class ConversationTests
     }
 
     [Fact]
+    public void Report_ResolveKeepsTheFirstAdmin_AndReopenClearsIt()
+    {
+        var report = ConversationReport.Create(New(), _visitor, ReportReason.Spam, null, T0);
+        var firstAdmin = Guid.NewGuid();
+
+        report.Resolve(firstAdmin, T0.AddHours(1));
+        report.Resolve(Guid.NewGuid(), T0.AddHours(2));
+        Assert.Equal((firstAdmin, T0.AddHours(1)), (report.ResolvedByUserId!.Value, report.ResolvedAt!.Value));
+
+        report.Reopen();
+        Assert.False(report.IsResolved);
+        Assert.Null(report.ResolvedByUserId);
+    }
+
+    [Fact]
+    public void FlagResolution_OnlyForFlaggedMessages()
+    {
+        var conversation = New();
+        var flagged = conversation.AddMessage(_visitor, "Western Union", [], true, "Money transfer service", T0);
+        var clean = conversation.AddMessage(_visitor, "Bună", [], false, null, T0);
+        var admin = Guid.NewGuid();
+
+        flagged.ResolveFlag(admin, T0.AddHours(1));
+        Assert.Equal(admin, flagged.FlagResolvedByUserId);
+        Assert.Throws<InvalidOperationException>(() => clean.ResolveFlag(admin, T0));
+
+        flagged.ReopenFlag();
+        Assert.Null(flagged.FlagResolvedAt);
+        Assert.True(flagged.IsFlagged);
+    }
+
+    [Fact]
     public void UserBlock_CantBlockYourself()
     {
         Assert.Throws<ArgumentException>(() => new UserBlock(_seller, _seller, T0));

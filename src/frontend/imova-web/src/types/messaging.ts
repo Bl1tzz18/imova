@@ -61,9 +61,17 @@ export type MessagingReport = {
   reporter: MessagingUser;
   reportedUser: MessagingUser;
   listing: ConversationListing;
+  // The admin who resolved it; null while active.
+  resolvedBy: MessagingUser | null;
 };
 
-export type FlaggedMessage = { message: Message; flagReason: string; sender: MessagingUser };
+export type FlaggedMessage = {
+  message: Message;
+  flagReason: string;
+  sender: MessagingUser;
+  resolvedAt: string | null;
+  resolvedBy: MessagingUser | null;
+};
 
 export type AdminConversation = {
   id: string;
