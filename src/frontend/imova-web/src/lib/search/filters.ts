@@ -280,6 +280,11 @@ export function clearDetailFilters(state: SearchState): Record<string, null> {
   return Object.fromEntries(Object.keys(state).filter((key) => !kept.has(key)).map((key) => [key, null]));
 }
 
+// The change that clears every filter — the bar's "Resetează". Sorting isn't a filter, so it stays.
+export function clearAllFilters(state: SearchState): Record<string, null> {
+  return Object.fromEntries(Object.keys(state).filter((key) => key !== "sort").map((key) => [key, null]));
+}
+
 export function currentPage(state: SearchState): number {
   return Number(state.page?.[0] ?? 1);
 }

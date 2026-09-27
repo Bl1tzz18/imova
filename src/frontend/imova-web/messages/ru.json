@@ -166,7 +166,8 @@
     "done": "Готово",
     "clearDetails": "Сбросить фильтры",
     "appliedFilters": "Применённые фильтры",
-    "removeFilter": "Убрать фильтр «{label}»"
+    "removeFilter": "Убрать фильтр «{label}»",
+    "resetShort": "Сбросить"
   },
   "MapPromo": {
     "title": "Все объекты на карте",

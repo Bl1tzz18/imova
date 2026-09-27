@@ -166,7 +166,8 @@
     "done": "Done",
     "clearDetails": "Clear filters",
     "appliedFilters": "Applied filters",
-    "removeFilter": "Remove the filter “{label}”"
+    "removeFilter": "Remove the filter “{label}”",
+    "resetShort": "Reset"
   },
   "MapPromo": {
     "title": "All properties on the map",

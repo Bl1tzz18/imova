@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appliedDetailFilters, formatRange } from "@/lib/search/applied";
-import { clearDetailFilters, detailFilterCount, parseSearchParams, updateSearch } from "@/lib/search/filters";
+import { activeFilterCount, clearAllFilters, clearDetailFilters, detailFilterCount, parseSearchParams, updateSearch } from "@/lib/search/filters";
 
 const AMENITY_A = "a1000000-0000-0000-0000-000000000002";
 const AMENITY_B = "a1000000-0000-0000-0000-000000000003";
@@ -53,6 +53,13 @@ describe("appliedDetailFilters", () => {
     expect(updateSearch(sorted, clearDetailFilters(sorted))).toEqual({
       transactionType: ["Rent"], propertyType: ["Apartment"], raionId: [RAION], minPriceEur: ["300"], sort: ["PriceAsc"],
     });
+  });
+
+  it("clearAllFilters drops every filter, bar ones included, and keeps the sort", () => {
+    const sorted = updateSearch(state, { sort: "PriceAsc", page: "3" });
+    const reset = updateSearch(sorted, clearAllFilters(sorted));
+    expect(reset).toEqual({ sort: ["PriceAsc"] });
+    expect(activeFilterCount(reset)).toBe(0);
   });
 
   it("matches the drawer's badge count", () => {

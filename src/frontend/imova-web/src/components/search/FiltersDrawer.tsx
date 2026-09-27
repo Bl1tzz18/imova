@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { SEARCH_PATH, clearDetailFilters } from "@/lib/search/filters";
+import { clearAllFilters, clearDetailFilters } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";
 import { SearchFilters } from "./SearchFilters";
 import { useSearchNavigation } from "./SearchNavigation";
@@ -81,9 +80,9 @@ export function FiltersDrawer({
               {t("clearDetails")}
             </button>
           ) : (
-            <Link href={SEARCH_PATH} className="text-sm font-medium text-ink-600 hover:text-ink-950">
+            <button type="button" onClick={() => change(clearAllFilters(state))} className="text-sm font-medium text-ink-600 hover:text-ink-950">
               {t("reset")}
-            </Link>
+            </button>
           )}
           <button type="button" onClick={onClose} className="h-12 flex-1 rounded-full bg-accent-500 text-sm font-semibold text-white hover:bg-accent-600">
             {t("showResults", { count: totalCount })}

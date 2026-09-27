@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatRange } from "@/lib/search/applied";
-import { activeFilterCount, detailFilterCount, singlePropertyType } from "@/lib/search/filters";
+import { activeFilterCount, clearAllFilters, detailFilterCount, singlePropertyType } from "@/lib/search/filters";
 import { FilterPopover } from "./FilterPopover";
 import { LocationFilter, PropertyTypePicker, RangeInputs, TransactionToggle, useLocationSummary } from "./FilterControls";
 import { FiltersDrawer } from "./FiltersDrawer";
@@ -13,6 +13,12 @@ import { SortSelect } from "./SortSelect";
 const SLIDERS_ICON = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-4 w-4" aria-hidden>
     <path d="M4 7h11M4 17h7M18 7h2M14 17h6M15 4.5v5M11 14.5v5" />
+  </svg>
+);
+
+const RESET_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />
   </svg>
 );
 
@@ -40,6 +46,21 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
       ? null
       : `${formatRange(minPrice, maxPrice, { from: t("min"), upTo: t("max") }, (n) => Number(n).toLocaleString(locale))} €`;
   const detailCount = detailFilterCount(state);
+  const filterCount = activeFilterCount(state);
+  // Every filter at once; shown only while there's something to reset.
+  const reset =
+    filterCount > 0 ? (
+      <button
+        type="button"
+        onClick={() => change(clearAllFilters(state))}
+        aria-label={t("reset")}
+        title={t("reset")}
+        className="flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-accent-600 hover:bg-accent-50"
+      >
+        {RESET_ICON}
+        <span className="hidden lg:inline">{t("resetShort")}</span>
+      </button>
+    ) : null;
 
   return (
     <>
@@ -73,6 +94,7 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
             {t("moreFilters")}
             <CountBadge count={detailCount} />
           </button>
+          {reset}
         </div>
 
         <button
@@ -82,8 +104,9 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
         >
           {SLIDERS_ICON}
           {t("filters")}
-          <CountBadge count={activeFilterCount(state)} />
+          <CountBadge count={filterCount} />
         </button>
+        <div className="lg:hidden">{reset}</div>
 
         <div className="ml-auto shrink-0">
           <SortSelect />

@@ -166,7 +166,8 @@
     "done": "Gata",
     "clearDetails": "Șterge filtrele",
     "appliedFilters": "Filtre aplicate",
-    "removeFilter": "Elimină filtrul „{label}”"
+    "removeFilter": "Elimină filtrul „{label}”",
+    "resetShort": "Resetează"
   },
   "MapPromo": {
     "title": "Toate proprietățile pe hartă",

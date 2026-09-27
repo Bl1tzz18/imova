@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { DETAIL_LAYOUTS } from "@/lib/property/detailLayouts";
 import { appliedDetailFilters, formatRange, type AppliedFilter } from "@/lib/search/applied";
-import { clearDetailFilters, singlePropertyType } from "@/lib/search/filters";
+import { singlePropertyType } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";
 import { useLocationSummary } from "./FilterControls";
 import { useFilterOptions } from "./FilterOptions";
@@ -70,7 +70,6 @@ export function AppliedFilters() {
   ];
   if (chips.length + phoneChips.length === 0) return null;
 
-  const clearAll = () => change(clearDetailFilters(state));
 
   return (
     <div className={cn("mt-3 flex flex-wrap items-center gap-2", chips.length === 0 && "lg:hidden")}>
@@ -91,11 +90,6 @@ export function AppliedFilters() {
           </li>
         ))}
       </ul>
-      {chips.length > 1 && (
-        <button type="button" onClick={clearAll} className="px-1 text-sm font-medium text-accent-600 hover:underline">
-          {t("clearDetails")}
-        </button>
-      )}
     </div>
   );
 }
