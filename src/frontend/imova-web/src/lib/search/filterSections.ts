@@ -65,9 +65,9 @@ function section(id: FilterSectionId, activeCount: number, extra: Partial<Filter
   return { id, items: [], amenities: [], activeCount, openByDefault: false, ...extra };
 }
 
-function itemsSection(state: SearchState, id: FilterSectionId, items: FilterItem[], openByDefault = false): FilterSection {
+function itemsSection(state: SearchState, id: FilterSectionId, items: FilterItem[]): FilterSection {
   const activeCount = items.filter((item) => itemParams(item).some((p) => has(state, p))).length;
-  return section(id, activeCount, { items, openByDefault });
+  return section(id, activeCount, { items });
 }
 
 function amenitySection(state: SearchState, id: FilterSectionId, amenities: readonly Amenity[]): FilterSection {
@@ -86,7 +86,6 @@ export function filterSections(state: SearchState, amenities: readonly Amenity[]
   if (type) {
     const layout = DETAIL_LAYOUTS[type];
     const filters = new Map(attributeFiltersFor(type).map((f) => [f.field, f]));
-    let first = true;
     for (const detail of layout.sections) {
       // The form's rental-only "Reguli de închiriere" is covered by the rental terms section below.
       if (detail.rentalFields) continue;
@@ -114,9 +113,8 @@ export function filterSections(state: SearchState, amenities: readonly Amenity[]
           return filter && attributeFilterVisible(filter, state) ? [{ kind: "attribute", filter }] : [];
         }),
       ];
-      if (items.length === 0) continue;
-      sections.push(itemsSection(state, detail.id, items, first));
-      first = false;
+      // Collapsed, so the whole list of sections is visible at a glance.
+      if (items.length > 0) sections.push(itemsSection(state, detail.id, items));
     }
   } else {
     sections.push(itemsSection(state, "area", [{ kind: "area" }]));

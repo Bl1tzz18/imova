@@ -40,8 +40,8 @@ describe("filterSections", () => {
     ]);
     expect(itemNames(find(apartment, "areas").items)).toEqual(["area", "livingAreaM2", "kitchenAreaM2"]);
     expect(itemNames(find(apartment, "finishing").items)).toEqual(["floorMaterial"]);
-    expect(find(apartment, "structure").openByDefault).toBe(true);
-    expect(find(apartment, "areas").openByDefault).toBe(false);
+    // Every type section starts collapsed, so the whole list is visible at once.
+    expect(sections(apartment).filter((s) => s.openByDefault).map((s) => s.id)).toEqual(["basics", "location", "price"]);
     expect(find(apartment, "other").amenities.map((a) => a.id)).toEqual(["elevator"]);
   });
 
