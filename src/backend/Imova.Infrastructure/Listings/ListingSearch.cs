@@ -51,6 +51,7 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
             ListingSort.PriceAsc => query.OrderBy(x => x.Listing.Price.PriceEur).ThenByDescending(x => x.Listing.PublishedAt),
             ListingSort.PriceDesc => query.OrderByDescending(x => x.Listing.Price.PriceEur).ThenByDescending(x => x.Listing.PublishedAt),
             ListingSort.AreaDesc => query.OrderByDescending(x => x.Property.TotalAreaM2).ThenByDescending(x => x.Listing.PublishedAt),
+            ListingSort.AreaAsc => query.OrderBy(x => x.Property.TotalAreaM2).ThenByDescending(x => x.Listing.PublishedAt),
             _ => query.OrderByDescending(x => x.Listing.PublishedAt).ThenByDescending(x => x.Listing.CreatedAt),
         };
 

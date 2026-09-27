@@ -12,6 +12,7 @@ public enum ListingSort
     PriceAsc = 1,
     PriceDesc = 2,
     AreaDesc = 3,
+    AreaAsc = 4,
 }
 
 // The /search results page: Active listings only, every filter optional, combined with AND.

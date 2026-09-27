@@ -189,6 +189,7 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
     [InlineData("sort=PriceAsc", new[] { "G1", "R1", "A1", "A2", "H1", "L1" })]
     [InlineData("sort=PriceDesc", new[] { "L1", "H1", "A2", "A1", "R1", "G1" })]
     [InlineData("sort=AreaDesc", new[] { "L1", "H1", "A2", "A1", "G1", "R1" })]
+    [InlineData("sort=AreaAsc", new[] { "R1", "G1", "A1", "A2", "H1", "L1" })]
     public async Task Sorting(string query, string[] expected)
     {
         Assert.Equal(expected, await NamesAsync(query));

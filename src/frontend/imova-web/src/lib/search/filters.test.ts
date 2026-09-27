@@ -59,6 +59,11 @@ describe("parseSearchParams", () => {
     });
   });
 
+  it("accepts every sort, area smallest-first included", () => {
+    expect(parseSearchParams({ sort: "AreaAsc" })).toEqual({ sort: ["AreaAsc"] });
+    expect(parseSearchParams({ sort: "AreaDesc" })).toEqual({ sort: ["AreaDesc"] });
+  });
+
   it("drops the defaults (page 1, newest first)", () => {
     expect(parseSearchParams({ page: "1", sort: "Newest" })).toEqual({});
   });

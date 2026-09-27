@@ -134,6 +134,7 @@
       "Newest": "Cele mai noi",
       "PriceAsc": "Preț crescător",
       "PriceDesc": "Preț descrescător",
+      "AreaAsc": "Suprafață (mică → mare)",
       "AreaDesc": "Suprafață (mare → mică)"
     },
     "close": "Închide",

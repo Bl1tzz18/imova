@@ -134,6 +134,7 @@
       "Newest": "Newest",
       "PriceAsc": "Price: low to high",
       "PriceDesc": "Price: high to low",
+      "AreaAsc": "Area: smallest first",
       "AreaDesc": "Area: largest first"
     },
     "close": "Close",

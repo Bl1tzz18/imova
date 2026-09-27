@@ -25,7 +25,7 @@ export type SearchView = "list" | "map";
 export const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
 export type TransactionTypeName = (typeof TRANSACTION_TYPES)[number];
 
-export const SORTS = ["Newest", "PriceAsc", "PriceDesc", "AreaDesc"] as const;
+export const SORTS = ["Newest", "PriceAsc", "PriceDesc", "AreaAsc", "AreaDesc"] as const;
 export type SortName = (typeof SORTS)[number];
 
 // A filter on one TypeSpecificAttributes field — every field the listing form asks for the type
