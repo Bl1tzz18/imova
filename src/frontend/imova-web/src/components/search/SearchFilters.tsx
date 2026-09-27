@@ -1,22 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { SECTION_ICONS } from "@/components/property/sectionIcons";
 import { AccordionSection } from "@/components/ui/AccordionSection";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { SelectInput } from "@/components/ui/Field";
-import { SearchableSelect } from "@/components/ui/SearchableSelect";
-import { getAmenities } from "@/lib/api/amenities";
-import { getChisinauSectors, getLocalitati, getRaioane, type ChisinauSector, type Localitate, type Raion } from "@/lib/api/locations";
-import { getProximities } from "@/lib/api/proximities";
-import { ATTRIBUTE_SCHEMA, PROPERTY_TYPES } from "@/lib/property/attributeSchema";
-import { filterSections, type FilterSection, type FilterSectionId } from "@/lib/search/filterSections";
-import { SEARCH_PATH, singlePropertyType, type TypeSpecificFilter } from "@/lib/search/filters";
-import { cn } from "@/lib/utils/cn";
-import type { Amenity, Proximity } from "@/types/listing";
+import { GENERAL_CONDITIONS } from "@/lib/property/attributeSchema";
+import { DETAIL_LAYOUTS } from "@/lib/property/detailLayouts";
+import { filterSections, type FilterItem, type FilterSection, type FilterSectionId } from "@/lib/search/filterSections";
+import { CONDITION_PARAM, petsFilterApplies, singlePropertyType, type AttributeFilter } from "@/lib/search/filters";
 import { DebouncedNumberInput } from "./DebouncedNumberInput";
+import { LocationFilter, PropertyTypePicker, RangeInputs, TransactionToggle } from "./FilterControls";
+import { useFilterOptions } from "./FilterOptions";
 import { useSearchNavigation } from "./SearchNavigation";
 
 const ICONS: Record<FilterSectionId, ReactNode> = {
@@ -37,50 +33,33 @@ const SEARCH_TITLES: Partial<Record<FilterSectionId, string>> = {
   rentalTerms: "rentalTerms",
 };
 
-// The /search filter panel — a sidebar on desktop, inside a full-screen sheet on mobile, split into
-// collapsible sections (see filterSections). Every change goes straight to the URL (see
-// SearchNavigation); number fields wait for typing to pause.
-// inSheet: the mobile sheet has its own "Filtre" title, so the panel doesn't repeat it.
-export function SearchFilters({ inSheet = false }: { inSheet?: boolean }) {
+// Sections the top bar already covers (transaction & type, location, price).
+const BAR_SECTIONS: readonly FilterSectionId[] = ["basics", "location", "price"];
+
+// The search filters as collapsible sections (see filterSections): once a property type is picked,
+// the same sections and fields as that type's listing form. Every change goes straight to the URL
+// (see SearchNavigation); number fields wait for typing to pause.
+// scope "details": the desktop "Mai multe filtre" drawer, next to the top bar — so without the
+// bar's own sections. scope "all": the mobile sheet, which is the only filter UI on a phone.
+export function SearchFilters({ scope, idPrefix }: { scope: "all" | "details"; idPrefix: string }) {
   const t = useTranslations("Search");
-  const tType = useTranslations("PropertyType");
   const tAttr = useTranslations("Attributes");
   const tAmenity = useTranslations("Amenity");
   const tProximity = useTranslations("Proximity");
-  const tSections = useTranslations("PropertyForm.detailSections");
-  const { state, change, pending } = useSearchNavigation();
-
-  const [raioane, setRaioane] = useState<Raion[]>([]);
-  const [localitati, setLocalitati] = useState<Localitate[]>([]);
-  const [sectors, setSectors] = useState<ChisinauSector[]>([]);
-  const [amenities, setAmenities] = useState<Amenity[]>([]);
-  const [proximities, setProximities] = useState<Proximity[]>([]);
+  const tForm = useTranslations("PropertyForm");
+  const tCondition = useTranslations("Condition");
+  const { state, change } = useSearchNavigation();
+  const { amenities, proximities } = useFilterOptions();
   // Sections the user opened or collapsed; the rest follow FilterSection.openByDefault.
   const [toggled, setToggled] = useState<Partial<Record<FilterSectionId, boolean>>>({});
 
   const one = (param: string) => state[param]?.[0] ?? "";
   const many = (param: string) => state[param] ?? [];
-  const raionId = one("raionId");
-  const selectedRaion = raioane.find((r) => r.id === raionId);
-  const isChisinau = selectedRaion?.localityLabel === "Sector";
-  const selectedTypes = many("propertyType");
-  const singleType = singlePropertyType(state);
-  const sections = useMemo(() => filterSections(state, amenities, proximities), [state, amenities, proximities]);
-
-  useEffect(() => {
-    getRaioane().then(setRaioane).catch(() => setRaioane([]));
-    getChisinauSectors().then(setSectors).catch(() => setSectors([]));
-    getAmenities().then(setAmenities).catch(() => setAmenities([]));
-    getProximities().then(setProximities).catch(() => setProximities([]));
-  }, []);
-
-  useEffect(() => {
-    if (!raionId) {
-      setLocalitati([]);
-      return;
-    }
-    getLocalitati(raionId).then(setLocalitati).catch(() => setLocalitati([]));
-  }, [raionId]);
+  const propertyType = singlePropertyType(state);
+  const sections = useMemo(
+    () => filterSections(state, amenities, proximities).filter((s) => scope === "all" || !BAR_SECTIONS.includes(s.id)),
+    [state, amenities, proximities, scope],
+  );
 
   // A section with an active filter opens (on load, or once its list arrives) and then stays open
   // until collapsed by hand — clearing its last filter doesn't snap it shut under the cursor.
@@ -98,62 +77,67 @@ export function SearchFilters({ inSheet = false }: { inSheet?: boolean }) {
     change({ [param]: on ? [...current, value] : current.filter((v) => v !== value) });
   }
 
-  function range(minParam: string, maxParam: string, label: string, allowNegative = false) {
-    return (
-      <div className="grid grid-cols-2 gap-2">
-        <DebouncedNumberInput value={one(minParam)} onCommit={(v) => change({ [minParam]: v })} placeholder={t("min")} ariaLabel={`${label} — ${t("min")}`} allowNegative={allowNegative} />
-        <DebouncedNumberInput value={one(maxParam)} onCommit={(v) => change({ [maxParam]: v })} placeholder={t("max")} ariaLabel={`${label} — ${t("max")}`} allowNegative={allowNegative} />
-      </div>
-    );
+  function range(minParam: string, maxParam: string, label: string, options: { allowNegative?: boolean; decimal?: boolean } = {}) {
+    return <RangeInputs minParam={minParam} maxParam={maxParam} label={label} {...options} />;
   }
 
-  function yesNoAny(param: string, label: string) {
+  // "Any" or one value — a choice or a yes/no filter.
+  function select(param: string, label: string, options: { value: string; label: string }[]) {
     return (
-      <label className="block">
+      <label key={param} className="block">
         <span className="mb-1 block text-xs font-medium text-ink-600">{label}</span>
         <SelectInput value={one(param)} onChange={(e) => change({ [param]: e.target.value || null })} className="h-10 text-sm">
           <option value="">{t("any")}</option>
-          <option value="true">{tAttr("yes")}</option>
-          <option value="false">{tAttr("no")}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </SelectInput>
       </label>
     );
   }
 
+  const yesNo = [
+    { value: "true", label: tAttr("yes") },
+    { value: "false", label: tAttr("no") },
+  ];
 
-  function typeFilter(filter: TypeSpecificFilter) {
-    const label = tAttr(`${filter.field}.label`);
-    if (filter.kind === "enum") {
-      const schemaField = singleType ? ATTRIBUTE_SCHEMA[singleType].find((f) => f.name === filter.field) : undefined;
-      const options = schemaField && "options" in schemaField ? schemaField.options : [];
-      return (
-        <label key={filter.field} className="block">
-          <span className="mb-1 block text-xs font-medium text-ink-600">{label}</span>
-          <SelectInput value={one(filter.params[0])} onChange={(e) => change({ [filter.params[0]]: e.target.value || null })} className="h-10 text-sm">
-            <option value="">{t("any")}</option>
-            {options.map((option) => (
-              <option key={option} value={option}>
-                {tAttr(`${filter.field}.options.${option}`)}
-              </option>
-            ))}
-          </SelectInput>
-        </label>
-      );
-    }
+  function labelled(key: string, label: string, control: ReactNode) {
     return (
-      <div key={filter.field}>
+      <div key={key}>
         <span className="mb-1 block text-xs font-medium text-ink-600">{label}</span>
-        {filter.kind === "range" ? (
-          range(filter.params[0], filter.params[1], label, filter.field === "floor")
-        ) : (
-          <DebouncedNumberInput value={one(filter.params[0])} onCommit={(v) => change({ [filter.params[0]]: v })} placeholder={t("atLeast")} ariaLabel={`${label} — ${t("atLeast")}`} />
-        )}
+        {control}
       </div>
     );
   }
 
-  const segment = (active: boolean) =>
-    cn("flex-1 rounded-full px-3 py-1.5 text-center text-sm font-medium transition-colors", active ? "bg-ink-950 text-white" : "text-ink-600 hover:text-ink-950");
+  function attributeFilter(filter: AttributeFilter) {
+    const label = tAttr(`${filter.field}.label`);
+    const schema = filter.schema;
+    if (filter.kind === "choice" && "options" in schema) {
+      return select(filter.params[0], label, schema.options.map((o) => ({ value: o, label: tAttr(`${filter.field}.options.${o}`) })));
+    }
+    if (filter.kind === "yesno") return select(filter.params[0], label, yesNo);
+    const allowNegative = "min" in schema && schema.min < 0;
+    return labelled(filter.field, label, range(filter.params[0], filter.params[1], label, { allowNegative, decimal: schema.kind === "decimal" }));
+  }
+
+  function item(entry: FilterItem, withLabel: boolean) {
+    switch (entry.kind) {
+      case "area": {
+        const label = propertyType ? tForm(DETAIL_LAYOUTS[propertyType].totalAreaLabel) : t("area");
+        const control = range("minAreaM2", "maxAreaM2", label, { decimal: true });
+        return withLabel ? labelled("area", label, control) : <div key="area">{control}</div>;
+      }
+      case "yearBuilt":
+        return labelled("yearBuilt", tForm("yearBuiltLabel"), range("minYearBuilt", "maxYearBuilt", tForm("yearBuiltLabel")));
+      case "condition":
+        return select(CONDITION_PARAM, tForm("conditionLabel"), GENERAL_CONDITIONS.map((c) => ({ value: c, label: tCondition(c) })));
+      case "attribute":
+        return attributeFilter(entry.filter);
+    }
+  }
 
   function sectionBody(section: FilterSection) {
     switch (section.id) {
@@ -162,90 +146,25 @@ export function SearchFilters({ inSheet = false }: { inSheet?: boolean }) {
           <div className="space-y-4">
             <div>
               <span className="mb-2 block text-xs font-medium text-ink-600">{t("transactionType")}</span>
-              <div className="flex gap-1 rounded-full border border-line bg-white p-1" role="radiogroup" aria-label={t("transactionType")}>
-                {[
-                  { value: "", label: t("all") },
-                  { value: "Sale", label: t("sale") },
-                  { value: "Rent", label: t("rent") },
-                ].map((option) => (
-                  <button
-                    key={option.value || "all"}
-                    type="button"
-                    role="radio"
-                    aria-checked={one("transactionType") === option.value}
-                    onClick={() => change({ transactionType: option.value || null })}
-                    className={segment(one("transactionType") === option.value)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <TransactionToggle />
             </div>
-            <div>
-              <span className="mb-2 block text-xs font-medium text-ink-600">{t("propertyType")}</span>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-                {PROPERTY_TYPES.map((type) => (
-                  <Checkbox key={type} checked={selectedTypes.includes(type)} onChange={(e) => toggle("propertyType", type, e.target.checked)} className="text-ink-700">
-                    {tType(type)}
-                  </Checkbox>
-                ))}
-              </div>
-              {selectedTypes.length !== 1 && <p className="mt-2 text-xs text-ink-500">{t("multipleTypesHint")}</p>}
-            </div>
+            <PropertyTypePicker idPrefix={idPrefix} />
           </div>
         );
       case "location":
-        return (
-          <div className="space-y-2">
-            <SearchableSelect
-              name="raionId"
-              value={raionId}
-              onChange={(id) => change({ raionId: id || null, localitateId: null, chisinauSectorId: null })}
-              options={raioane.map((r) => ({ id: r.id, label: r.nameRo }))}
-              placeholder={t("anyRaion")}
-              searchPlaceholder={t("searchRaion")}
-              noResultsText={t("noLocation")}
-            />
-            {raionId && isChisinau && (
-              <SearchableSelect
-                name="chisinauSectorId"
-                value={one("chisinauSectorId")}
-                onChange={(id) => change({ chisinauSectorId: id || null, localitateId: null })}
-                options={sectors.map((s) => ({ id: s.id, label: s.name }))}
-                placeholder={t("anySector")}
-                searchPlaceholder={t("searchSector")}
-                noResultsText={t("noLocation")}
-              />
-            )}
-            {raionId && (
-              <SearchableSelect
-                name="localitateId"
-                value={one("localitateId")}
-                onChange={(id) => change({ localitateId: id || null, chisinauSectorId: null })}
-                options={localitati.map((l) => ({ id: l.id, label: l.nameRo }))}
-                placeholder={isChisinau ? t("anySuburb") : t("anyLocalitate")}
-                searchPlaceholder={t("searchLocalitate")}
-                noResultsText={t("noLocation")}
-              />
-            )}
-            {raionId && (
-              <button type="button" onClick={() => change({ raionId: null, localitateId: null, chisinauSectorId: null })} className="text-xs font-medium text-ink-500 hover:text-ink-900">
-                {t("clearLocation")}
-              </button>
-            )}
-          </div>
-        );
+        return <LocationFilter />;
       case "price":
-        return range("minPriceEur", "maxPriceEur", t("price"));
+        return range("minPriceEur", "maxPriceEur", t("price"), { decimal: true });
       case "rentalTerms":
         return (
           <div className="space-y-3">
-            {yesNoAny("petsAllowed", t("petsAllowed"))}
-            {yesNoAny("utilitiesIncluded", t("utilitiesIncluded"))}
-            <div>
-              <span className="mb-1 block text-xs font-medium text-ink-600">{t("maxLeasePeriod")}</span>
-              <DebouncedNumberInput value={one("maxLeasePeriodMonths")} onCommit={(v) => change({ maxLeasePeriodMonths: v })} placeholder={t("months")} ariaLabel={t("maxLeasePeriod")} />
-            </div>
+            {petsFilterApplies(state) && select("petsAllowed", t("petsAllowed"), yesNo)}
+            {select("utilitiesIncluded", t("utilitiesIncluded"), yesNo)}
+            {labelled(
+              "maxLeasePeriodMonths",
+              t("maxLeasePeriod"),
+              <DebouncedNumberInput value={one("maxLeasePeriodMonths")} onCommit={(v) => change({ maxLeasePeriodMonths: v })} placeholder={t("months")} ariaLabel={t("maxLeasePeriod")} />,
+            )}
           </div>
         );
       case "proximities":
@@ -270,55 +189,40 @@ export function SearchFilters({ inSheet = false }: { inSheet?: boolean }) {
         </div>
       );
     }
-    return (
-      <div className="space-y-3">
-        {section.area && (
-          <div>
-            {section.typeFilters.length > 0 && <span className="mb-1 block text-xs font-medium text-ink-600">{t("area")}</span>}
-            {range("minAreaM2", "maxAreaM2", t("area"))}
-          </div>
-        )}
-        {section.typeFilters.map(typeFilter)}
-      </div>
-    );
+    // The generic "Suprafață" section's title already names its one field.
+    const withLabels = section.id !== "area";
+    return <div className="space-y-3">{section.items.map((entry) => item(entry, withLabels))}</div>;
   }
 
   return (
-    <div className="text-ink-800">
-      <div className={cn("mb-4 flex items-center gap-3", inSheet ? "justify-end" : "justify-between")}>
-        {!inSheet && <h2 className="font-hero text-lg font-bold text-ink-950">{t("filters")}</h2>}
-        <div className="flex items-center gap-3">
-          {pending && <span className="text-xs text-ink-400">{t("updating")}</span>}
-          <Link href={SEARCH_PATH} className="text-sm font-medium text-accent-600 hover:underline">
-            {t("reset")}
-          </Link>
+    <div className="space-y-2.5 text-ink-800">
+      {scope === "details" && !propertyType && (
+        <div className="rounded-xl border border-dashed border-ink-200 bg-white p-4">
+          <PropertyTypePicker idPrefix={idPrefix} />
         </div>
-      </div>
-
-      <div className="space-y-2.5">
-        {sections.map((section) => {
-          const titleKey = SEARCH_TITLES[section.id];
-          return (
-            <AccordionSection
-              key={section.id}
-              id={`${inSheet ? "sheet" : "filters"}-${section.id}`}
-              icon={ICONS[section.id]}
-              title={titleKey ? t(titleKey) : tSections(section.id)}
-              status={
-                section.activeCount > 0 && (
-                  <span className="rounded-full bg-accent-500 px-1.5 text-xs font-semibold text-white" aria-label={t("activeFilters", { count: section.activeCount })}>
-                    {section.activeCount}
-                  </span>
-                )
-              }
-              open={isOpen(section)}
-              onToggle={() => setToggled((prev) => ({ ...prev, [section.id]: !isOpen(section) }))}
-            >
-              {sectionBody(section)}
-            </AccordionSection>
-          );
-        })}
-      </div>
+      )}
+      {sections.map((section) => {
+        const titleKey = SEARCH_TITLES[section.id];
+        return (
+          <AccordionSection
+            key={section.id}
+            id={`${idPrefix}-${section.id}`}
+            icon={ICONS[section.id]}
+            title={titleKey ? t(titleKey) : tForm(`detailSections.${section.id}`)}
+            status={
+              section.activeCount > 0 && (
+                <span className="rounded-full bg-accent-500 px-1.5 text-xs font-semibold text-white" aria-label={t("activeFilters", { count: section.activeCount })}>
+                  {section.activeCount}
+                </span>
+              )
+            }
+            open={isOpen(section)}
+            onToggle={() => setToggled((prev) => ({ ...prev, [section.id]: !isOpen(section) }))}
+          >
+            {sectionBody(section)}
+          </AccordionSection>
+        );
+      })}
     </div>
   );
 }

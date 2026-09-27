@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterSections } from "@/lib/search/filterSections";
+import { filterSections, type FilterItem } from "@/lib/search/filterSections";
 import type { Amenity, Proximity } from "@/types/listing";
 
 const amenity = (id: string, category: string, types: string[]): Amenity => ({
@@ -18,40 +18,50 @@ const AMENITIES = [
 ];
 const PROXIMITIES: Proximity[] = [{ id: "school", key: "school", labelRo: "Școală", applicablePropertyTypes: ["Apartment"] }];
 
-const ids = (state: Record<string, string[]>) => filterSections(state, AMENITIES, PROXIMITIES).map((s) => s.id);
-const find = (state: Record<string, string[]>, id: string) => filterSections(state, AMENITIES, PROXIMITIES).find((s) => s.id === id)!;
+type State = Record<string, string[]>;
+const sections = (state: State) => filterSections(state, AMENITIES, PROXIMITIES);
+const ids = (state: State) => sections(state).map((s) => s.id);
+const find = (state: State, id: string) => sections(state).find((s) => s.id === id)!;
+const itemNames = (items: readonly FilterItem[]) => items.map((i) => (i.kind === "attribute" ? i.filter.field : i.kind));
 
 describe("filterSections", () => {
-  it("without a single property type, shows generic area and amenity sections", () => {
+  it("without a property type, shows only what every listing has", () => {
     expect(ids({})).toEqual(["basics", "location", "price", "area", "amenities", "proximities"]);
     expect(find({}, "amenities").amenities).toHaveLength(4);
   });
 
-  it("limits the generic amenity list to the selected types", () => {
-    const section = find({ propertyType: ["Commercial", "Room"] }, "amenities");
-    expect(section.amenities.map((a) => a.id)).toEqual(["furnished", "alarm"]);
-  });
-
-  it("groups an apartment's filters like the listing form", () => {
-    expect(ids({ propertyType: ["Apartment"] })).toEqual([
-      "basics", "location", "price", "structure", "areas", "systems", "comfort", "security", "other", "proximities",
+  it("with a type, follows its listing form's sections and fields", () => {
+    const apartment = { propertyType: ["Apartment"] };
+    expect(ids(apartment)).toEqual([
+      "basics", "location", "price", "structure", "areas", "systems", "finishing", "comfort", "security", "other", "proximities",
     ]);
-    const structure = find({ propertyType: ["Apartment"] }, "structure");
-    expect(structure.typeFilters.map((f) => f.field)).toEqual(["housingStockType", "layout", "rooms", "floor", "bathrooms"]);
-    expect(structure.openByDefault).toBe(true);
-    expect(find({ propertyType: ["Apartment"] }, "areas")).toMatchObject({ area: true, typeFilters: [], openByDefault: false });
-    expect(find({ propertyType: ["Apartment"] }, "other").amenities.map((a) => a.id)).toEqual(["elevator"]);
+    expect(itemNames(find(apartment, "structure").items)).toEqual([
+      "yearBuilt", "housingStockType", "buildingMaterial", "finishCondition", "layout", "rooms", "floor", "totalFloors", "bathrooms",
+    ]);
+    expect(itemNames(find(apartment, "areas").items)).toEqual(["area", "livingAreaM2", "kitchenAreaM2"]);
+    expect(itemNames(find(apartment, "finishing").items)).toEqual(["floorMaterial"]);
+    expect(find(apartment, "structure").openByDefault).toBe(true);
+    expect(find(apartment, "areas").openByDefault).toBe(false);
+    expect(find(apartment, "other").amenities.map((a) => a.id)).toEqual(["elevator"]);
   });
 
-  it("puts the area range with the type's own area filters", () => {
-    const areas = find({ propertyType: ["House"] }, "areas");
-    expect(areas.area).toBe(true);
-    expect(areas.typeFilters.map((f) => f.field)).toEqual(["landAreaM2"]);
+  it("shows a conditional field only once its controlling filter unlocks it", () => {
+    const heating = (state: State) => itemNames(find(state, "systems").items);
+    expect(heating({ propertyType: ["House"] })).toEqual(["heatingSystem", "waterSupply", "sewerage", "gasSupply"]);
+    expect(heating({ propertyType: ["House"], heatingSystem: ["OwnBoiler"] })).toEqual([
+      "heatingSystem", "heatingEnergySource", "heatingDistribution", "waterSupply", "sewerage", "gasSupply",
+    ]);
+  });
+
+  it("covers the small layouts too, with year built and the general condition where the form asks them", () => {
+    expect(ids({ propertyType: ["Garage"] })).toEqual(["basics", "location", "price", "typeArea", "proximities"]);
+    expect(itemNames(find({ propertyType: ["Garage"] }, "typeArea").items)).toEqual(["area", "yearBuilt", "condition", "parkingType"]);
     expect(ids({ propertyType: ["Land"] })).toEqual(["basics", "location", "price", "typeArea", "utilitiesAccess", "proximities"]);
+    expect(itemNames(find({ propertyType: ["Land"] }, "typeArea").items)).toEqual(["area", "plotType", "locationContext"]);
   });
 
-  it("adds rental terms only for a rental search", () => {
-    expect(ids({ transactionType: ["Rent"] })).toContain("rentalTerms");
+  it("adds rental terms last, only for a rental search", () => {
+    expect(ids({ transactionType: ["Rent"], propertyType: ["Room"] }).at(-1)).toBe("rentalTerms");
     expect(ids({ transactionType: ["Sale"] })).not.toContain("rentalTerms");
   });
 
@@ -63,12 +73,15 @@ describe("filterSections", () => {
       maxPriceEur: ["500"],
       minRooms: ["2"],
       maxRooms: ["3"],
-      layout: ["Separate"],
+      layout: ["Studio"],
+      minAreaM2: ["40"],
       petsAllowed: ["true"],
       amenityIds: ["furnished", "elevator"],
     };
-    const counts = Object.fromEntries(filterSections(state, AMENITIES, PROXIMITIES).map((s) => [s.id, s.activeCount]));
-    expect(counts).toMatchObject({ basics: 2, location: 0, price: 1, structure: 2, areas: 0, rentalTerms: 1, comfort: 1, security: 0, other: 1, proximities: 0 });
+    const counts = Object.fromEntries(sections(state).map((s) => [s.id, s.activeCount]));
+    expect(counts).toMatchObject({
+      basics: 2, location: 0, price: 1, structure: 2, areas: 1, systems: 0, rentalTerms: 1, comfort: 1, security: 0, other: 1, proximities: 0,
+    });
   });
 
   it("drops amenity and proximity sections until their lists have loaded", () => {

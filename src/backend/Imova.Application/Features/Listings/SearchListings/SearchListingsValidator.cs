@@ -15,13 +15,10 @@ public class SearchListingsValidator : AbstractValidator<SearchListingsQuery>
 
         Range(q => q.MinPriceEur, q => q.MaxPriceEur, nameof(SearchListingsQuery.MinPriceEur), nameof(SearchListingsQuery.MaxPriceEur));
         Range(q => q.MinAreaM2, q => q.MaxAreaM2, nameof(SearchListingsQuery.MinAreaM2), nameof(SearchListingsQuery.MaxAreaM2));
-        Range(q => q.MinRooms, q => q.MaxRooms, nameof(SearchListingsQuery.MinRooms), nameof(SearchListingsQuery.MaxRooms));
-        Range(q => q.MinFloor, q => q.MaxFloor, nameof(SearchListingsQuery.MinFloor), nameof(SearchListingsQuery.MaxFloor));
-        Range(q => q.MinLandAreaM2, q => q.MaxLandAreaM2, nameof(SearchListingsQuery.MinLandAreaM2), nameof(SearchListingsQuery.MaxLandAreaM2));
+        Range(q => q.MinYearBuilt, q => q.MaxYearBuilt, nameof(SearchListingsQuery.MinYearBuilt), nameof(SearchListingsQuery.MaxYearBuilt));
+        RuleForEach(q => q.Conditions).IsInEnum();
         RuleFor(q => q.MinPriceEur).GreaterThanOrEqualTo(0);
         RuleFor(q => q.MinAreaM2).GreaterThanOrEqualTo(0);
-        RuleFor(q => q.MinRooms).GreaterThanOrEqualTo(0);
-        RuleFor(q => q.MinBathrooms).GreaterThanOrEqualTo(0);
         RuleFor(q => q.MaxLeasePeriodMonths).InclusiveBetween(1, 120);
 
         RuleFor(q => q)
@@ -29,17 +26,21 @@ public class SearchListingsValidator : AbstractValidator<SearchListingsQuery>
             .WithMessage("Pick a localitate or a Chișinău sector, not both.")
             .OverridePropertyName(nameof(SearchListingsQuery.ChisinauSectorId));
 
-        // A type-specific filter needs exactly one property type, and one it belongs to.
+        // An attribute filter needs exactly one property type, and one whose attributes have the field.
         RuleFor(q => q).Custom((q, context) =>
         {
-            foreach (var filter in SearchFilterRules.UsedTypeSpecificFilters(q))
+            var types = q.PropertyTypes.Distinct().ToList();
+            foreach (var filter in q.AttributeFilters)
             {
-                var types = SearchFilterRules.TypeSpecificFilters[filter];
-                if (q.PropertyTypes.Distinct().Count() != 1 || !types.Contains(q.PropertyTypes[0]))
+                if (types.Count != 1 || !AttributeSearchSchema.FieldsFor(types[0]).ContainsKey(filter.Field))
                 {
                     context.AddFailure(
-                        filter,
-                        $"The '{filter}' filter needs exactly one property type: {string.Join(" or ", types)}.");
+                        filter.Field,
+                        $"The '{filter.Field}' filter needs exactly one property type: {string.Join(" or ", AttributeSearchSchema.TypesWith(filter.Field))}.");
+                }
+                else if (filter is { Min: { } min, Max: { } max } && min > max)
+                {
+                    context.AddFailure(filter.Field, $"The minimum {filter.Field} can't be greater than the maximum.");
                 }
             }
         });

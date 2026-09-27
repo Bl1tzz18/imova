@@ -93,6 +93,16 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
     [InlineData("propertyType=Garage&parkingType=UndergroundParking", new[] { "G1" })]
     [InlineData("propertyType=Room&bathroomType=Shared", new[] { "R1" })]
     [InlineData("propertyType=Room&bathroomType=Private", new string[0])]
+    // Every attribute the listing form asks is filterable, not just the headline ones.
+    [InlineData("propertyType=Apartment&buildingMaterial=Monolith&gasSupply=true&floorMaterial=Laminate", new[] { "A1", "A2" })]
+    [InlineData("propertyType=Apartment&buildingMaterial=Brick", new string[0])]
+    [InlineData("propertyType=Apartment&minKitchenAreaM2=12.5", new string[0])]
+    [InlineData("propertyType=Apartment&heatingEnergySource=Gas", new[] { "A1" })]
+    [InlineData("propertyType=House&minCeilingHeightM=2.5&maxCeilingHeightM=3&waterSupply=DrilledWell&windowType=Thermopane", new[] { "H1" })]
+    [InlineData("propertyType=House&roofMaterial=Metal", new string[0])]
+    [InlineData("propertyType=Land&irrigationSystem=true&gasPipelineAtBoundary=false&minSoilQualityScore=60", new[] { "L1" })]
+    [InlineData("propertyType=Land&electricitySupplyAtBoundary=false", new string[0])]
+    [InlineData("propertyType=Room&minRoommateCount=2", new[] { "R1" })]
     public async Task TypeSpecificFilters(string query, string[] expected)
     {
         await AssertMatchesAsync(query, expected);
@@ -103,6 +113,7 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
     [InlineData("propertyType=Apartment&propertyType=House&minRooms=2")]
     [InlineData("propertyType=Land&minRooms=2")]
     [InlineData("propertyType=House&parkingType=Garage")]
+    [InlineData("propertyType=Garage&gasSupply=true")]
     public async Task TypeSpecificFilters_NeedExactlyOneMatchingPropertyType(string query)
     {
         var response = await RawAsync(query);
@@ -130,6 +141,16 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("only apply to rentals", await response.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData("minYearBuilt=2006", new string[0])]
+    [InlineData("propertyType=Garage&maxYearBuilt=2005", new[] { "G1" })]
+    [InlineData("condition=Renovated", new[] { "G1" })]
+    [InlineData("condition=Renovated&condition=New", new[] { "G1", "R1" })]
+    public async Task YearBuiltAndCondition(string query, string[] expected)
+    {
+        await AssertMatchesAsync(query, expected);
     }
 
     [Fact]
@@ -188,6 +209,9 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
     [InlineData("sort=Cheapest")]
     [InlineData("pageSize=500")]
     [InlineData("minAreaM2=100&maxAreaM2=50")]
+    [InlineData("propertyType=Apartment&layout=Castle")]
+    [InlineData("propertyType=Apartment&gasSupply=maybe")]
+    [InlineData("propertyType=Apartment&minRooms=5&maxRooms=2")]
     public async Task InvalidInput_Is400(string query)
     {
         Assert.Equal(HttpStatusCode.BadRequest, (await RawAsync(query)).StatusCode);

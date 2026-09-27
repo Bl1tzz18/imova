@@ -15,6 +15,7 @@ export function DebouncedNumberInput({
   ariaLabel,
   min,
   allowNegative = false,
+  decimal = false,
 }: {
   value: string;
   onCommit: (value: string) => void;
@@ -22,6 +23,8 @@ export function DebouncedNumberInput({
   ariaLabel: string;
   min?: number;
   allowNegative?: boolean;
+  // Fractions allowed (areas, ceiling height) — otherwise whole numbers.
+  decimal?: boolean;
 }) {
   const [draft, setDraft] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -37,7 +40,8 @@ export function DebouncedNumberInput({
   return (
     <input
       type="number"
-      inputMode={allowNegative ? "text" : "numeric"}
+      inputMode={allowNegative ? "text" : decimal ? "decimal" : "numeric"}
+      step={decimal ? "any" : undefined}
       min={min}
       value={draft}
       placeholder={placeholder}

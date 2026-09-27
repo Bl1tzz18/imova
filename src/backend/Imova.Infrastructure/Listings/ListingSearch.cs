@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Infrastructure.Listings;
 
-// The /cauta search. Plain columns (type, price, area, location, amenities, proximities) are
+// The /search search. Plain columns (type, price, area, location, amenities, proximities) are
 // filtered with LINQ; TypeSpecificAttributes and RentalDetails are JSONB behind value converters,
 // which LINQ can't look inside, so their filters become SQL conditions on those columns
 // (Properties/Listings.FromSqlRaw, composed into the same query). Every value is passed as a
@@ -63,20 +63,23 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
     private IQueryable<Property> FilterProperties(SearchListingsQuery q)
     {
         var sql = new SqlConditions("TypeSpecificAttributes");
-        sql.IntRange("rooms", q.MinRooms, q.MaxRooms);
-        sql.IntRange("floor", q.MinFloor, q.MaxFloor);
-        sql.IntRange("bathrooms", q.MinBathrooms, null);
-        sql.DecimalRange("landAreaM2", q.MinLandAreaM2, q.MaxLandAreaM2);
-        sql.AnyOf("housingStockType", q.HousingStockTypes);
-        sql.AnyOf("layout", q.Layouts);
-        sql.AnyOf("heatingSystem", q.HeatingSystems);
-        sql.AnyOf("houseType", q.HouseTypes);
-        sql.AnyOf("plotType", q.PlotTypes);
-        sql.AnyOf("locationContext", q.LocationContexts);
-        sql.AnyOf("roadAccess", q.RoadAccesses);
-        sql.AnyOf("spaceType", q.SpaceTypes);
-        sql.AnyOf("parkingType", q.ParkingTypes);
-        sql.AnyOf("bathroomType", q.BathroomTypes);
+        foreach (var filter in q.AttributeFilters)
+        {
+            // The key comes from the attributes schema, never from the request (unknown → throws).
+            var key = AttributeSearchSchema.AllFields[filter.Field].Name;
+            switch (filter.Kind)
+            {
+                case AttributeFilterKind.Number:
+                    sql.NumberRange(key, filter.Min, filter.Max);
+                    break;
+                case AttributeFilterKind.Choice:
+                    sql.AnyOf(key, filter.Values);
+                    break;
+                case AttributeFilterKind.YesNo:
+                    sql.Bool(key, filter.Value);
+                    break;
+            }
+        }
 
         // EF1002: only fixed column/key names are interpolated; every value is a {n} parameter.
 #pragma warning disable EF1002
@@ -103,6 +106,22 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
 
         // All selected amenities/proximities, counted in a subquery — no join, so a listing matching
         // several of them still appears once.
+        if (q.MinYearBuilt is { } minYear)
+        {
+            properties = properties.Where(p => p.YearBuilt >= minYear);
+        }
+
+        if (q.MaxYearBuilt is { } maxYear)
+        {
+            properties = properties.Where(p => p.YearBuilt <= maxYear);
+        }
+
+        if (q.Conditions.Count > 0)
+        {
+            var conditions = q.Conditions.Distinct().ToList();
+            properties = properties.Where(p => p.Condition != null && conditions.Contains(p.Condition.Value));
+        }
+
         if (q.AmenityIds.Count > 0)
         {
             var amenityIds = q.AmenityIds.Distinct().ToList();
@@ -157,7 +176,7 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
     }
 
     // Builds "cond AND cond …" over one JSONB column with {n}-numbered parameters. Keys are fixed
-    // strings from this class, never user input.
+    // strings or AttributeSearchSchema names, never user input.
     private sealed class SqlConditions(string column)
     {
         private readonly List<string> _conditions = [];
@@ -171,23 +190,17 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
 
         private string Field(string key) => $"(\"{column}\"->>'{key}')";
 
-        public void IntRange(string key, int? min, int? max)
-        {
-            if (min is not null) Add($"{Field(key)}::int >= {{0}}", min.Value);
-            if (max is not null) Add($"{Field(key)}::int <= {{0}}", max.Value);
-        }
-
-        public void DecimalRange(string key, decimal? min, decimal? max)
+        // ints and decimals alike — numeric compares both exactly.
+        public void NumberRange(string key, decimal? min, decimal? max)
         {
             if (min is not null) Add($"{Field(key)}::numeric >= {{0}}", min.Value);
             if (max is not null) Add($"{Field(key)}::numeric <= {{0}}", max.Value);
         }
 
         // Enums are stored as their names (PropertyAttributesJson writes string enums).
-        public void AnyOf<TEnum>(string key, IReadOnlyList<TEnum> values)
-            where TEnum : struct, Enum
+        public void AnyOf(string key, IReadOnlyList<string> values)
         {
-            if (values.Count > 0) Add($"{Field(key)} = ANY({{0}})", values.Select(v => v.ToString()).Distinct().ToArray());
+            if (values.Count > 0) Add($"{Field(key)} = ANY({{0}})", values.Distinct().ToArray());
         }
 
         public void Bool(string key, bool? value)

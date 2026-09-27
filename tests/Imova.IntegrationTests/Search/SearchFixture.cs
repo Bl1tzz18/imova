@@ -66,6 +66,8 @@ public sealed class SearchFixture : IAsyncLifetime
             body["typeSpecificAttributes"] = attrs;
             body["totalAreaM2"] = area;
             body["yearBuilt"] = type == "Land" ? null : 2005;
+            // Only Garage and Room use the general condition.
+            body["condition"] = type switch { "Garage" => "Renovated", "Room" => "New", _ => null };
             body["price"] = BandStart + priceOffset;
             body["currency"] = "EUR";
             body["raionId"] = raionId;

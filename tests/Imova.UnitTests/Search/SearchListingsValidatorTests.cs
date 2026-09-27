@@ -1,7 +1,6 @@
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Domain.Listings;
 using Imova.Domain.Properties;
-using Imova.Domain.Properties.Attributes;
 
 namespace Imova.UnitTests.Search;
 
@@ -18,34 +17,53 @@ public class SearchListingsValidatorTests
         Assert.Empty(ErrorsFor(new SearchListingsQuery()));
     }
 
+    // Attribute filters as the endpoint reads them from a query string.
+    private static IReadOnlyList<AttributeFilter> Filters(params (string Key, string Value)[] query) =>
+        AttributeFilterParser.Parse(query.GroupBy(p => p.Key).Select(g => new KeyValuePair<string, string?[]>(g.Key, g.Select(p => p.Value).ToArray())));
+
     [Fact]
-    public void TypeSpecificFilters_WithTheirOnePropertyType_AreValid()
+    public void AttributeFilters_WithTheirOnePropertyType_AreValid()
     {
         Assert.Empty(ErrorsFor(new SearchListingsQuery
         {
             PropertyTypes = [PropertyType.Apartment],
-            MinRooms = 2, MaxRooms = 3, MinFloor = 1, MinBathrooms = 1,
-            HousingStockTypes = [HousingStockType.NewConstruction], Layouts = [ApartmentLayout.Studio],
-            HeatingSystems = [HeatingSystem.OwnBoiler, HeatingSystem.HeatPump],
+            AttributeFilters = Filters(
+                ("minRooms", "2"), ("maxRooms", "3"), ("minFloor", "1"), ("minBathrooms", "1"),
+                ("housingStockType", "NewConstruction"), ("layout", "Studio"), ("buildingMaterial", "Brick"),
+                ("heatingSystem", "OwnBoiler"), ("heatingSystem", "HeatPump"), ("gasSupply", "true"), ("maxKitchenAreaM2", "12.5")),
         }));
-        Assert.Empty(ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Land], PlotTypes = [PlotType.Forest] }));
-        Assert.Empty(ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Garage], ParkingTypes = [ParkingType.Garage] }));
+        Assert.Empty(ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Land], AttributeFilters = Filters(("plotType", "Forest"), ("irrigationSystem", "false")) }));
+        Assert.Empty(ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Garage], AttributeFilters = Filters(("parkingType", "Garage")) }));
     }
 
     [Fact]
-    public void TypeSpecificFilters_WithNoneOrSeveralTypes_AreRejected()
+    public void AttributeFilters_WithNoneOrSeveralTypes_AreRejected()
     {
-        Assert.Equal(["rooms"], ErrorsFor(new SearchListingsQuery { MinRooms = 2 }));
-        Assert.Equal(["rooms"], ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Apartment, PropertyType.House], MinRooms = 2 }));
+        Assert.Equal(["rooms"], ErrorsFor(new SearchListingsQuery { AttributeFilters = Filters(("minRooms", "2")) }));
+        Assert.Equal(["rooms"], ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.Apartment, PropertyType.House], AttributeFilters = Filters(("minRooms", "2")) }));
     }
 
     [Fact]
-    public void TypeSpecificFilters_ForAnotherType_AreRejected_WithAMessageNamingTheRightTypes()
+    public void AttributeFilters_ForAnotherType_AreRejected_WithAMessageNamingTheRightTypes()
     {
-        var errors = _validator.Validate(new SearchListingsQuery { PropertyTypes = [PropertyType.Land], MinRooms = 2 }).Errors;
+        var errors = _validator.Validate(new SearchListingsQuery { PropertyTypes = [PropertyType.Land], AttributeFilters = Filters(("minRooms", "2")) }).Errors;
 
         var error = Assert.Single(errors);
         Assert.Equal("The 'rooms' filter needs exactly one property type: Apartment or House.", error.ErrorMessage);
+    }
+
+    [Fact]
+    public void AttributeRanges_MinCantExceedMax()
+    {
+        Assert.Equal(["rooms"], ErrorsFor(new SearchListingsQuery { PropertyTypes = [PropertyType.House], AttributeFilters = Filters(("minRooms", "5"), ("maxRooms", "3")) }));
+    }
+
+    [Fact]
+    public void YearBuiltRange_And_Conditions()
+    {
+        Assert.Equal(["MinYearBuilt"], ErrorsFor(new SearchListingsQuery { MinYearBuilt = 2010, MaxYearBuilt = 2000 }));
+        Assert.Empty(ErrorsFor(new SearchListingsQuery { MinYearBuilt = 2000, Conditions = [PropertyCondition.New, PropertyCondition.Renovated] }));
+        Assert.NotEmpty(ErrorsFor(new SearchListingsQuery { Conditions = [(PropertyCondition)42] }));
     }
 
     [Fact]
@@ -77,20 +95,5 @@ public class SearchListingsValidatorTests
     public void Paging_IsBounded(int page, int pageSize)
     {
         Assert.NotEmpty(ErrorsFor(new SearchListingsQuery { Page = page, PageSize = pageSize }));
-    }
-
-    [Fact]
-    public void EveryTypeSpecificFilter_IsDetectedWhenUsed()
-    {
-        var all = new SearchListingsQuery
-        {
-            MinRooms = 1, MinFloor = 1, MinBathrooms = 1, MinLandAreaM2 = 1,
-            HousingStockTypes = [HousingStockType.Existing], Layouts = [ApartmentLayout.Other], HeatingSystems = [HeatingSystem.None],
-            HouseTypes = [HouseType.Villa], PlotTypes = [PlotType.Garden], LocationContexts = [LocationContext.WithinTownLimits],
-            RoadAccesses = [RoadAccess.Paved], SpaceTypes = [CommercialSpaceType.Warehouse], ParkingTypes = [ParkingType.ParkingSpot],
-            BathroomTypes = [BathroomType.Private],
-        };
-
-        Assert.Equal(SearchFilterRules.TypeSpecificFilters.Keys.Order(), SearchFilterRules.UsedTypeSpecificFilters(all).Order());
     }
 }

@@ -7,28 +7,37 @@ import {
   type DetailSectionId,
 } from "@/lib/property/detailLayouts";
 import {
+  CONDITION_PARAM,
   RENTAL_PARAMS,
-  applicableTypeFilters,
+  YEAR_BUILT_PARAMS,
+  attributeFilterVisible,
+  attributeFiltersFor,
+  conditionApplies,
   rentalFiltersApply,
   singlePropertyType,
+  yearBuiltApplies,
+  type AttributeFilter,
   type SearchState,
-  type TypeSpecificFilter,
 } from "./filters";
 
-// How the /search filter panel is split into collapsible sections. With exactly one property type
-// picked, its filters are grouped like the listing form's "Details" step (DETAIL_LAYOUTS) — rooms
-// under "Tip și structură", heating under "Sisteme și utilități", amenities by category — so
-// searching reads like the form the listing was created with. Otherwise there's one generic
-// section each for area and amenities.
+// How the /search filter panel is split into collapsible sections. Once a property type is picked,
+// the rest of the panel is that type's listing form "Details" step (DETAIL_LAYOUTS) turned into
+// filters: the same sections in the same order, each field the form asks there offered as a
+// filter (numbers as ranges, choices and yes/no as "any or this"), amenities by category. With no
+// type picked, only what every listing has: area, amenities, proximities.
 
 export type FilterSectionId = "basics" | "location" | "price" | "area" | "rentalTerms" | DetailSectionId;
 
+// One filter row inside a section: the general area / year built / condition, or an attribute.
+export type FilterItem =
+  | { kind: "area" }
+  | { kind: "yearBuilt" }
+  | { kind: "condition" }
+  | { kind: "attribute"; filter: AttributeFilter };
+
 export type FilterSection = {
   id: FilterSectionId;
-  // Whether the section holds the general area range (a type's "areas"/"typeArea" section does).
-  area: boolean;
-  // Type-specific filters shown here, in the listing form's order.
-  typeFilters: readonly TypeSpecificFilter[];
+  items: readonly FilterItem[];
   // Amenity checkboxes shown here (amenity sections only).
   amenities: readonly Amenity[];
   // How many filters in this section are set — shown on its header.
@@ -39,69 +48,90 @@ export type FilterSection = {
 
 const has = (state: SearchState, param: string) => (state[param]?.length ?? 0) > 0;
 
+function itemParams(item: FilterItem): readonly string[] {
+  switch (item.kind) {
+    case "area":
+      return ["minAreaM2", "maxAreaM2"];
+    case "yearBuilt":
+      return YEAR_BUILT_PARAMS;
+    case "condition":
+      return [CONDITION_PARAM];
+    case "attribute":
+      return item.filter.params;
+  }
+}
+
 function section(id: FilterSectionId, activeCount: number, extra: Partial<FilterSection> = {}): FilterSection {
-  return { id, area: false, typeFilters: [], amenities: [], activeCount, openByDefault: false, ...extra };
+  return { id, items: [], amenities: [], activeCount, openByDefault: false, ...extra };
 }
 
-function areaActive(state: SearchState): boolean {
-  return has(state, "minAreaM2") || has(state, "maxAreaM2");
+function itemsSection(state: SearchState, id: FilterSectionId, items: FilterItem[], openByDefault = false): FilterSection {
+  const activeCount = items.filter((item) => itemParams(item).some((p) => has(state, p))).length;
+  return section(id, activeCount, { items, openByDefault });
 }
 
-function amenityCount(state: SearchState, amenities: readonly Amenity[]): number {
+function amenitySection(state: SearchState, id: FilterSectionId, amenities: readonly Amenity[]): FilterSection {
   const selected = new Set(state.amenityIds ?? []);
-  return amenities.filter((a) => selected.has(a.id)).length;
+  return section(id, amenities.filter((a) => selected.has(a.id)).length, { amenities });
 }
 
 export function filterSections(state: SearchState, amenities: readonly Amenity[], proximities: readonly Proximity[]): FilterSection[] {
   const type = singlePropertyType(state);
-  const selectedTypes = state.propertyType ?? [];
-
   const sections: FilterSection[] = [
-    section("basics", (has(state, "transactionType") ? 1 : 0) + selectedTypes.length, { openByDefault: true }),
+    section("basics", (has(state, "transactionType") ? 1 : 0) + (type ? 1 : 0), { openByDefault: true }),
     section("location", has(state, "raionId") ? 1 : 0, { openByDefault: true }),
     section("price", has(state, "minPriceEur") || has(state, "maxPriceEur") ? 1 : 0, { openByDefault: true }),
   ];
 
   if (type) {
     const layout = DETAIL_LAYOUTS[type];
-    const applicable = applicableTypeFilters(state);
+    const filters = new Map(attributeFiltersFor(type).map((f) => [f.field, f]));
     let first = true;
     for (const detail of layout.sections) {
-      if (isAmenitySection(detail) || isProximitySection(detail) || detail.rentalFields) continue;
-      const withArea = detail.coreFields.includes("totalAreaM2");
-      const typeFilters = detail.attributeFields.flatMap((field) => applicable.filter((f) => f.field === field));
-      if (!withArea && typeFilters.length === 0) continue;
-      const activeCount =
-        (withArea && areaActive(state) ? 1 : 0) + typeFilters.filter((f) => f.params.some((p) => has(state, p))).length;
-      sections.push(section(detail.id, activeCount, { area: withArea, typeFilters, openByDefault: first }));
+      // The form's rental-only "Reguli de închiriere" is covered by the rental terms section below.
+      if (detail.rentalFields) continue;
+
+      if (isProximitySection(detail)) {
+        if (proximities.length > 0) sections.push(section("proximities", countSelected(state.proximityIds, proximities)));
+        continue;
+      }
+
+      if (isAmenitySection(detail)) {
+        const items = amenitiesForSection(layout, detail, amenities, type);
+        if (items.length > 0) sections.push(amenitySection(state, detail.id, items));
+        continue;
+      }
+
+      const items: FilterItem[] = [
+        ...detail.coreFields.flatMap((core): FilterItem[] => {
+          if (core === "totalAreaM2") return [{ kind: "area" }];
+          if (core === "yearBuilt" && yearBuiltApplies(type)) return [{ kind: "yearBuilt" }];
+          if (core === "condition" && conditionApplies(type)) return [{ kind: "condition" }];
+          return [];
+        }),
+        ...detail.attributeFields.flatMap((name): FilterItem[] => {
+          const filter = filters.get(name);
+          return filter && attributeFilterVisible(filter, state) ? [{ kind: "attribute", filter }] : [];
+        }),
+      ];
+      if (items.length === 0) continue;
+      sections.push(itemsSection(state, detail.id, items, first));
       first = false;
     }
   } else {
-    sections.push(section("area", areaActive(state) ? 1 : 0, { area: true }));
+    sections.push(itemsSection(state, "area", [{ kind: "area" }]));
+    if (amenities.length > 0) sections.push(amenitySection(state, "amenities", amenities));
+    if (proximities.length > 0) sections.push(section("proximities", countSelected(state.proximityIds, proximities)));
   }
 
   if (rentalFiltersApply(state)) {
     sections.push(section("rentalTerms", RENTAL_PARAMS.filter((p) => has(state, p)).length));
   }
 
-  if (type) {
-    const layout = DETAIL_LAYOUTS[type];
-    for (const detail of layout.sections.filter(isAmenitySection)) {
-      const items = amenitiesForSection(layout, detail, amenities, type);
-      if (items.length > 0) sections.push(section(detail.id, amenityCount(state, items), { amenities: items }));
-    }
-  } else {
-    // Amenities that apply to at least one selected type (all of them while no type is picked).
-    const offered = amenities.filter(
-      (a) => selectedTypes.length === 0 || selectedTypes.some((t) => a.applicablePropertyTypes.includes(t)),
-    );
-    if (offered.length > 0) sections.push(section("amenities", amenityCount(state, offered), { amenities: offered }));
-  }
-
-  if (proximities.length > 0) {
-    const selected = new Set(state.proximityIds ?? []);
-    sections.push(section("proximities", proximities.filter((p) => selected.has(p.id)).length));
-  }
-
   return sections;
+}
+
+function countSelected(selected: readonly string[] | undefined, items: readonly { id: string }[]): number {
+  const ids = new Set(selected ?? []);
+  return items.filter((i) => ids.has(i.id)).length;
 }

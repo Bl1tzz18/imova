@@ -3,14 +3,15 @@ using Imova.Api.Common;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Domain.Listings;
 using Imova.Domain.Properties;
-using Imova.Domain.Properties.Attributes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Imova.Api.Features.Listings.SearchListings;
 
-// Query string of GET /api/v1/listings/search — the same names the /cauta page puts in its URL.
-// Multi-value filters repeat the parameter (propertyType=Apartment&propertyType=House).
+// Query string of GET /api/v1/listings/search — the same names the /search page puts in its URL.
+// Multi-value filters repeat the parameter (propertyType=Apartment&propertyType=House). The
+// TypeSpecificAttributes filters (minRooms, heatingSystem, gasSupply, …) aren't listed here: any
+// field of the attributes schema can be filtered, so AttributeFilterParser reads them off the query.
 public record SearchListingsRequest(
     TransactionType? TransactionType,
     [FromQuery(Name = "propertyType")] PropertyType[]? PropertyTypes,
@@ -23,23 +24,9 @@ public record SearchListingsRequest(
     decimal? MaxAreaM2,
     [FromQuery(Name = "amenityIds")] Guid[]? AmenityIds,
     [FromQuery(Name = "proximityIds")] Guid[]? ProximityIds,
-    int? MinRooms,
-    int? MaxRooms,
-    int? MinFloor,
-    int? MaxFloor,
-    int? MinBathrooms,
-    decimal? MinLandAreaM2,
-    decimal? MaxLandAreaM2,
-    [FromQuery(Name = "housingStockType")] HousingStockType[]? HousingStockTypes,
-    [FromQuery(Name = "layout")] ApartmentLayout[]? Layouts,
-    [FromQuery(Name = "heatingSystem")] HeatingSystem[]? HeatingSystems,
-    [FromQuery(Name = "houseType")] HouseType[]? HouseTypes,
-    [FromQuery(Name = "plotType")] PlotType[]? PlotTypes,
-    [FromQuery(Name = "locationContext")] LocationContext[]? LocationContexts,
-    [FromQuery(Name = "roadAccess")] RoadAccess[]? RoadAccesses,
-    [FromQuery(Name = "spaceType")] CommercialSpaceType[]? SpaceTypes,
-    [FromQuery(Name = "parkingType")] ParkingType[]? ParkingTypes,
-    [FromQuery(Name = "bathroomType")] BathroomType[]? BathroomTypes,
+    int? MinYearBuilt,
+    int? MaxYearBuilt,
+    [FromQuery(Name = "condition")] PropertyCondition[]? Conditions,
     bool? PetsAllowed,
     bool? UtilitiesIncluded,
     int? MaxLeasePeriodMonths,
@@ -52,7 +39,7 @@ public static class SearchListingsEndpoint
     public static void MapSearchListings(this IEndpointRouteBuilder app)
     {
         // Public; a signed-in caller additionally gets IsSaved on each result.
-        app.MapGet("/api/v1/listings/search", async ([AsParameters] SearchListingsRequest r, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
+        app.MapGet("/api/v1/listings/search", async ([AsParameters] SearchListingsRequest r, HttpRequest request, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
         {
             var query = new SearchListingsQuery
             {
@@ -67,23 +54,11 @@ public static class SearchListingsEndpoint
                 MaxAreaM2 = r.MaxAreaM2,
                 AmenityIds = r.AmenityIds ?? [],
                 ProximityIds = r.ProximityIds ?? [],
-                MinRooms = r.MinRooms,
-                MaxRooms = r.MaxRooms,
-                MinFloor = r.MinFloor,
-                MaxFloor = r.MaxFloor,
-                MinBathrooms = r.MinBathrooms,
-                MinLandAreaM2 = r.MinLandAreaM2,
-                MaxLandAreaM2 = r.MaxLandAreaM2,
-                HousingStockTypes = r.HousingStockTypes ?? [],
-                Layouts = r.Layouts ?? [],
-                HeatingSystems = r.HeatingSystems ?? [],
-                HouseTypes = r.HouseTypes ?? [],
-                PlotTypes = r.PlotTypes ?? [],
-                LocationContexts = r.LocationContexts ?? [],
-                RoadAccesses = r.RoadAccesses ?? [],
-                SpaceTypes = r.SpaceTypes ?? [],
-                ParkingTypes = r.ParkingTypes ?? [],
-                BathroomTypes = r.BathroomTypes ?? [],
+                MinYearBuilt = r.MinYearBuilt,
+                MaxYearBuilt = r.MaxYearBuilt,
+                Conditions = r.Conditions ?? [],
+                AttributeFilters = AttributeFilterParser.Parse(
+                    request.Query.Select(kv => new KeyValuePair<string, string?[]>(kv.Key, kv.Value.ToArray()))),
                 PetsAllowed = r.PetsAllowed,
                 UtilitiesIncluded = r.UtilitiesIncluded,
                 MaxLeasePeriodMonths = r.MaxLeasePeriodMonths,

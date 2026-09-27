@@ -11,7 +11,7 @@ export function SortSelect() {
 
   return (
     <label className="flex items-center gap-2 text-sm text-ink-600">
-      <span className="hidden sm:inline">{t("sortLabel")}</span>
+      <span className="hidden xl:inline">{t("sortLabel")}</span>
       <SelectInput value={state.sort?.[0] ?? "Newest"} onChange={(e) => change({ sort: e.target.value })} className="h-10 w-auto text-sm" aria-label={t("sortLabel")}>
         {SORTS.map((sort) => (
           <option key={sort} value={sort}>
