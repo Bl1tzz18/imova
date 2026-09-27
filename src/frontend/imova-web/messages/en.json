@@ -101,6 +101,7 @@
     "filters": "Filters",
     "updating": "Updating…",
     "reset": "Reset filters",
+    "basics": "Transaction & type",
     "transactionType": "Transaction",
     "all": "All",
     "sale": "Sale",
@@ -129,8 +130,6 @@
     "utilitiesIncluded": "Utilities included",
     "maxLeasePeriod": "Minimum lease of at most (months)",
     "months": "months",
-    "amenities": "{count, plural, =0 {Amenities} other {Amenities (#)}}",
-    "proximities": "{count, plural, =0 {Nearby} other {Nearby (#)}}",
     "sortLabel": "Sort",
     "sort": {
       "Newest": "Newest",
@@ -160,7 +159,8 @@
     "emptyTitle": "No results",
     "emptyHint": "Try widening the price range or removing a filter.",
     "kindRaion": "District",
-    "kindSector": "Sector, {raion}"
+    "kindSector": "Sector, {raion}",
+    "activeFilters": "{count, plural, one {# active filter} other {# active filters}}"
   },
   "MapPromo": {
     "title": "All properties on the map",

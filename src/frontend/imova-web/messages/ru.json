@@ -101,6 +101,7 @@
     "filters": "Фильтры",
     "updating": "Обновление…",
     "reset": "Сбросить фильтры",
+    "basics": "Сделка и тип",
     "transactionType": "Тип сделки",
     "all": "Все",
     "sale": "Продажа",
@@ -129,8 +130,6 @@
     "utilitiesIncluded": "Коммунальные включены",
     "maxLeasePeriod": "Минимальный срок аренды не более (мес.)",
     "months": "мес.",
-    "amenities": "{count, plural, =0 {Удобства} other {Удобства (#)}}",
-    "proximities": "{count, plural, =0 {Поблизости} other {Поблизости (#)}}",
     "sortLabel": "Сортировка",
     "sort": {
       "Newest": "Сначала новые",
@@ -160,7 +159,8 @@
     "emptyTitle": "Ничего не найдено",
     "emptyHint": "Попробуйте расширить диапазон цен или убрать фильтр.",
     "kindRaion": "Район",
-    "kindSector": "Сектор, {raion}"
+    "kindSector": "Сектор, {raion}",
+    "activeFilters": "{count, plural, one {# активный фильтр} few {# активных фильтра} other {# активных фильтров}}"
   },
   "MapPromo": {
     "title": "Все объекты на карте",

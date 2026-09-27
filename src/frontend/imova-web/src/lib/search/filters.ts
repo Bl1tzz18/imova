@@ -17,7 +17,7 @@ export type SortName = (typeof SORTS)[number];
 // Type-specific filters, and the property types each belongs to — the same table as the backend's
 // SearchFilterRules. A filter is only offered (and kept in the URL) while exactly one of its types
 // is selected: "rooms" means nothing for a plot of land.
-type TypeSpecificFilter = {
+export type TypeSpecificFilter = {
   field: string;
   types: readonly PropertyTypeName[];
   params: readonly string[];

@@ -101,6 +101,7 @@
     "filters": "Filtre",
     "updating": "Se actualizează…",
     "reset": "Resetează filtrele",
+    "basics": "Tranzacție și tip",
     "transactionType": "Tip tranzacție",
     "all": "Toate",
     "sale": "Vânzare",
@@ -129,8 +130,6 @@
     "utilitiesIncluded": "Utilități incluse",
     "maxLeasePeriod": "Contract minim de cel mult (luni)",
     "months": "luni",
-    "amenities": "{count, plural, =0 {Dotări} other {Dotări (#)}}",
-    "proximities": "{count, plural, =0 {Vecinătăți} other {Vecinătăți (#)}}",
     "sortLabel": "Sortează",
     "sort": {
       "Newest": "Cele mai noi",
@@ -160,7 +159,8 @@
     "emptyTitle": "Niciun rezultat",
     "emptyHint": "Încearcă să extinzi intervalul de preț sau să elimini un filtru.",
     "kindRaion": "Raion / municipiu",
-    "kindSector": "Sector, {raion}"
+    "kindSector": "Sector, {raion}",
+    "activeFilters": "{count, plural, one {# filtru activ} few {# filtre active} other {# de filtre active}}"
   },
   "MapPromo": {
     "title": "Toate proprietățile pe hartă",
