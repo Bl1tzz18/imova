@@ -218,6 +218,10 @@ export function SearchFilters({ scope, idPrefix }: { scope: "all" | "details"; i
             }
             open={isOpen(section)}
             onToggle={() => setToggled((prev) => ({ ...prev, [section.id]: !isOpen(section) }))}
+            // Flush with the top of the drawer/sheet's scrolling body: -top-4 cancels its py-4
+            // padding, which a sticky offset counts from — top-0 would leave a 16px strip where
+            // scrolled content shows above the stuck header.
+            sticky={{ top: "-top-4", scrollMargin: "scroll-mt-3" }}
           >
             {sectionBody(section)}
           </AccordionSection>

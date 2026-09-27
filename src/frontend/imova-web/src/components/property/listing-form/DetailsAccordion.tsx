@@ -275,6 +275,8 @@ export function DetailsAccordion({
             onToggle={() => setSectionOpen(section.id, !isOpen)}
             // A field failing validation in a collapsed section opens it so the error can be shown.
             onInvalidCapture={() => setSectionOpen(section.id, true)}
+            // The page scrolls here: stick just below the site header (h-20).
+            sticky={{ top: "top-20", scrollMargin: "scroll-mt-24" }}
           >
             {renderSectionBody(section)}
           </AccordionSection>
