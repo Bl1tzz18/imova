@@ -4,10 +4,10 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { PropertyCard } from "@/components/property/PropertyCard";
 import { AppliedFilters } from "@/components/search/AppliedFilters";
+import { ResultsToolbar } from "@/components/search/ResultsToolbar";
 import { FilterOptionsProvider } from "@/components/search/FilterOptions";
 import { Pagination } from "@/components/search/Pagination";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
-import { SortSelect } from "@/components/search/SortSelect";
 import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
 import { searchListings, SEARCH_PAGE_SIZE } from "@/lib/search/api";
 import { currentPage, parseSearchParams } from "@/lib/search/filters";
@@ -52,15 +52,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
               <div className="pb-8">
                 <AppliedFilters />
-                <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="text-sm text-ink-500" aria-live="polite">
-                    {results === null ? t("error") : tPage("resultsCount", { count: total })}
-                  </p>
-                  {/* Phones: sorting lives here — the sticky bar keeps it on wider screens. */}
-                  <div className="lg:hidden">
-                    <SortSelect />
-                  </div>
-                </div>
+                <ResultsToolbar summary={results === null ? t("error") : tPage("resultsCount", { count: total })} />
 
                 <PendingResults>
                   {results && results.items.length > 0 ? (

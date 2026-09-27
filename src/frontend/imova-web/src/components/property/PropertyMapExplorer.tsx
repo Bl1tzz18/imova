@@ -41,10 +41,8 @@ export function PropertyMapExplorer({ listings, totalCount, listHref }: { listin
   const listingList = (
     <>
       <div className="border-b border-ink-100 px-5 py-4">
+        {/* The count is in the results toolbar above (visible on phones too, unlike this list). */}
         <h2 className="font-display text-lg font-medium text-ink-950">{t("title")}</h2>
-        <p className="mt-0.5 text-sm text-ink-500">
-          {points.length > 0 ? t("resultsCount", { count: points.length }) : tSearch("mapEmptyTitle")}
-        </p>
         {totalCount > listings.length && (
           <p className="mt-2 rounded-lg bg-accent-50 px-3 py-2 text-xs text-accent-800">
             {tSearch("mapTruncated", { shown: listings.length, total: totalCount })}

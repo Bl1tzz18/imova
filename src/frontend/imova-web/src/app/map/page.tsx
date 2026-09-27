@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { PropertyMapExplorer } from "@/components/property/PropertyMapExplorer";
 import { AppliedFilters } from "@/components/search/AppliedFilters";
+import { ResultsToolbar } from "@/components/search/ResultsToolbar";
 import { FilterOptionsProvider } from "@/components/search/FilterOptions";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
 import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
@@ -24,7 +25,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 // as a pin instead of pages of cards.
 export default async function MapPage({ searchParams }: PageProps) {
   const state = parseSearchParams(await searchParams);
-  const [t, results, title] = await Promise.all([getTranslations("Search"), searchMapListings(state), searchTitle(state)]);
+  const [t, tMap, results, title] = await Promise.all([
+    getTranslations("Search"),
+    getTranslations("MapPage"),
+    searchMapListings(state),
+    searchTitle(state),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -40,11 +46,13 @@ export default async function MapPage({ searchParams }: PageProps) {
 
               <div className="pb-8">
                 <AppliedFilters />
+                <ResultsToolbar
+                  summary={results === null ? t("error") : tMap("resultsCount", { count: results.totalCount })}
+                  sortOnPhones={false}
+                />
                 <PendingResults>
                   <div className="mt-4">
-                    {results === null ? (
-                      <p className="text-sm text-ink-500">{t("error")}</p>
-                    ) : (
+                    {results !== null && (
                       <PropertyMapExplorer listings={results.items} totalCount={results.totalCount} listHref={switchViewHref(state, "list")} />
                     )}
                   </div>
