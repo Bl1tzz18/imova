@@ -5,6 +5,7 @@ import {
   currentPage,
   parseSearchParams,
   searchHref,
+  switchViewHref,
   toQueryString,
   updateSearch,
 } from "@/lib/search/filters";
@@ -169,6 +170,14 @@ describe("URLs", () => {
 
     expect(query).toBe(`transactionType=Sale&propertyType=House&raionId=${RAION}&minPriceEur=100&sort=PriceAsc`);
     expect(parseSearchParams(new URLSearchParams(query))).toEqual(state);
+  });
+
+  it("switch between the list and the map keeping every filter and the sort, but not the page", () => {
+    const state = parseSearchParams({ transactionType: "Rent", propertyType: "Apartment", minRooms: "2", sort: "PriceAsc", page: "3" });
+    expect(switchViewHref(state, "map")).toBe("/map?transactionType=Rent&propertyType=Apartment&minRooms=2&sort=PriceAsc");
+    expect(switchViewHref(parseSearchParams({ minPriceEur: "100" }), "list")).toBe("/search?minPriceEur=100");
+    expect(switchViewHref({}, "map")).toBe("/map");
+    expect(searchHref(state, "map")).toContain("page=3");
   });
 
   it("point at /search", () => {

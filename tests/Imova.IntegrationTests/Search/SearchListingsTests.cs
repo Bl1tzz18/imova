@@ -226,6 +226,60 @@ public class SearchListingsTests(SearchFixture fixture) : IClassFixture<SearchFi
         Assert.Equal(0, result.TotalCount);
     }
 
+    // --- The map view (GET /listings/search/map) ---
+
+    private async Task<PagedResult<ListingDto>> MapAsync(string query = "")
+    {
+        var response = await fixture.Anonymous.GetAsync($"/api/v1/listings/search/map?minPriceEur={fixture.BandStart}&maxPriceEur={fixture.BandEnd}&{query}");
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        return (await response.Content.ReadFromJsonAsync<PagedResult<ListingDto>>())!;
+    }
+
+    private async Task<List<string>> MapNamesAsync(string query = "")
+    {
+        var byId = fixture.Listings.ToDictionary(kv => kv.Value, kv => kv.Key);
+        return (await MapAsync(query)).Items.Select(l => byId[l.Id]).Order().ToList();
+    }
+
+    [Fact]
+    public async Task Map_LeavesOutListingsWithoutCoordinates()
+    {
+        var result = await MapAsync();
+
+        Assert.Equal(["A1", "A2", "G1", "H1", "R1"], (await MapNamesAsync()).ToArray());
+        Assert.Equal(5, result.TotalCount);
+        Assert.All(result.Items, l => Assert.NotNull(l.Property.Location?.Latitude));
+        // List search still finds the one without coordinates.
+        Assert.Contains("L1", await NamesAsync());
+    }
+
+    [Theory]
+    [InlineData("propertyType=Apartment", new[] { "A1", "A2" })]
+    [InlineData("transactionType=Rent&propertyType=Apartment&minRooms=3", new[] { "A2" })]
+    [InlineData("propertyType=Land", new string[0])]
+    public async Task Map_AppliesTheSameFiltersAsSearch(string query, string[] expected)
+    {
+        Assert.Equal(expected, (await MapNamesAsync(query)).ToArray());
+    }
+
+    [Fact]
+    public async Task Map_ReturnsEveryPinInOnePage_IgnoringPaging()
+    {
+        var result = await MapAsync("pageSize=1&page=3");
+
+        Assert.Equal(5, result.Items.Count);
+        Assert.Equal(1, result.Page);
+    }
+
+    [Theory]
+    [InlineData("propertyType=Apartment&layout=Castle")]
+    [InlineData("minRooms=2")]
+    public async Task Map_InvalidInput_Is400(string query)
+    {
+        var response = await fixture.Anonymous.GetAsync($"/api/v1/listings/search/map?{query}");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Theory]
     [InlineData("chisin", "Raion", "Chișinău")]
     [InlineData("botan", "Sector", "Botanica")]

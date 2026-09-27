@@ -40,34 +40,44 @@ public static class SearchListingsEndpoint
     {
         // Public; a signed-in caller additionally gets IsSaved on each result.
         app.MapGet("/api/v1/listings/search", async ([AsParameters] SearchListingsRequest r, HttpRequest request, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
+            Results.Ok(await sender.Send(ToQuery(r, request, user), cancellationToken)));
+
+        // The /map view of the same search: the same filters, but only listings with coordinates,
+        // and every pin in one response (up to SearchFilterRules.MaxMapResults — TotalCount says
+        // how many matched). Page/pageSize from the query string are ignored.
+        app.MapGet("/api/v1/listings/search/map", async ([AsParameters] SearchListingsRequest r, HttpRequest request, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
+            Results.Ok(await sender.Send(
+                ToQuery(r, request, user) with { OnlyWithCoordinates = true, Page = 1, PageSize = SearchFilterRules.MaxMapResults },
+                cancellationToken)));
+    }
+
+    private static SearchListingsQuery ToQuery(SearchListingsRequest r, HttpRequest request, ClaimsPrincipal user)
+    {
+        return new SearchListingsQuery
         {
-            var query = new SearchListingsQuery
-            {
-                TransactionType = r.TransactionType,
-                PropertyTypes = r.PropertyTypes ?? [],
-                MinPriceEur = r.MinPriceEur,
-                MaxPriceEur = r.MaxPriceEur,
-                RaionId = r.RaionId,
-                LocalitateId = r.LocalitateId,
-                ChisinauSectorId = r.ChisinauSectorId,
-                MinAreaM2 = r.MinAreaM2,
-                MaxAreaM2 = r.MaxAreaM2,
-                AmenityIds = r.AmenityIds ?? [],
-                ProximityIds = r.ProximityIds ?? [],
-                MinYearBuilt = r.MinYearBuilt,
-                MaxYearBuilt = r.MaxYearBuilt,
-                Conditions = r.Conditions ?? [],
-                AttributeFilters = AttributeFilterParser.Parse(
-                    request.Query.Select(kv => new KeyValuePair<string, string?[]>(kv.Key, kv.Value.ToArray()))),
-                PetsAllowed = r.PetsAllowed,
-                UtilitiesIncluded = r.UtilitiesIncluded,
-                MaxLeasePeriodMonths = r.MaxLeasePeriodMonths,
-                Sort = r.Sort ?? ListingSort.Newest,
-                Page = r.Page ?? 1,
-                PageSize = r.PageSize ?? SearchFilterRules.DefaultPageSize,
-                CurrentUserId = user.Identity?.IsAuthenticated == true ? user.GetUserId() : null,
-            };
-            return Results.Ok(await sender.Send(query, cancellationToken));
-        });
+            TransactionType = r.TransactionType,
+            PropertyTypes = r.PropertyTypes ?? [],
+            MinPriceEur = r.MinPriceEur,
+            MaxPriceEur = r.MaxPriceEur,
+            RaionId = r.RaionId,
+            LocalitateId = r.LocalitateId,
+            ChisinauSectorId = r.ChisinauSectorId,
+            MinAreaM2 = r.MinAreaM2,
+            MaxAreaM2 = r.MaxAreaM2,
+            AmenityIds = r.AmenityIds ?? [],
+            ProximityIds = r.ProximityIds ?? [],
+            MinYearBuilt = r.MinYearBuilt,
+            MaxYearBuilt = r.MaxYearBuilt,
+            Conditions = r.Conditions ?? [],
+            AttributeFilters = AttributeFilterParser.Parse(
+                request.Query.Select(kv => new KeyValuePair<string, string?[]>(kv.Key, kv.Value.ToArray()))),
+            PetsAllowed = r.PetsAllowed,
+            UtilitiesIncluded = r.UtilitiesIncluded,
+            MaxLeasePeriodMonths = r.MaxLeasePeriodMonths,
+            Sort = r.Sort ?? ListingSort.Newest,
+            Page = r.Page ?? 1,
+            PageSize = r.PageSize ?? SearchFilterRules.DefaultPageSize,
+            CurrentUserId = user.Identity?.IsAuthenticated == true ? user.GetUserId() : null,
+        };
     }
 }

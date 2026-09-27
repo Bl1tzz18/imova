@@ -68,5 +68,9 @@ public record SearchListingsQuery : IRequest<PagedResult<ListingDto>>
 
     public int PageSize { get; init; } = SearchFilterRules.DefaultPageSize;
 
+    // The map view (GET /listings/search/map): only listings that have coordinates, and a page up
+    // to SearchFilterRules.MaxMapResults so one response holds every pin.
+    public bool OnlyWithCoordinates { get; init; }
+
     public Guid? CurrentUserId { get; init; }
 }

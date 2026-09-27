@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { formatRange } from "@/lib/search/applied";
-import { activeFilterCount, clearAllFilters, detailFilterCount, singlePropertyType } from "@/lib/search/filters";
+import { activeFilterCount, clearAllFilters, detailFilterCount, singlePropertyType, switchViewHref, type SearchView } from "@/lib/search/filters";
+import { cn } from "@/lib/utils/cn";
 import { FilterPopover } from "./FilterPopover";
 import { LocationFilter, PropertyTypePicker, RangeInputs, TransactionToggle, useLocationSummary } from "./FilterControls";
 import { FiltersDrawer } from "./FiltersDrawer";
@@ -22,14 +24,45 @@ const RESET_ICON = (
   </svg>
 );
 
+const VIEW_ICONS: Record<SearchView, ReactNode> = {
+  list: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />,
+  map: <path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5L9 4ZM9 4v13.5M15 6.5V20" />,
+};
+
+// Listă | Hartă — the same search as cards or as pins; switching keeps every filter.
+function ViewToggle() {
+  const t = useTranslations("Search");
+  const { state, view } = useSearchNavigation();
+  return (
+    <nav aria-label={t("viewLabel")} className="flex shrink-0 gap-1 rounded-full border border-line bg-white p-1">
+      {(["list", "map"] as const).map((option) => (
+        <Link
+          key={option}
+          href={switchViewHref(state, option)}
+          aria-current={view === option ? "page" : undefined}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+            view === option ? "bg-ink-950 text-white" : "text-ink-600 hover:text-ink-950",
+          )}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+            {VIEW_ICONS[option]}
+          </svg>
+          <span className="hidden sm:inline">{t(option === "list" ? "listView" : "mapView")}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 function CountBadge({ count }: { count: number }) {
   return count > 0 ? <span className="rounded-full bg-accent-500 px-1.5 text-xs font-semibold text-white">{count}</span> : null;
 }
 
-// The search page's filter bar, above the results. Desktop: the filters people change most —
-// transaction, type, location, price — each one click away, "Mai multe filtre" for the type's
-// detailed filters (a side drawer), and sorting. Phone: "Filtre" (a full-screen sheet with every
-// filter) and sorting.
+// The search filter bar, above the results (the /search list and the /map view share it).
+// Desktop: the filters people change most — transaction, type, location, price — each one click
+// away, "Mai multe filtre" for the type's detailed filters (a side drawer), the list/map switch and
+// sorting. Phone: "Filtre" (a full-screen sheet with every filter), reset and the switch.
 export function SearchFilterBar({ totalCount }: { totalCount: number }) {
   const t = useTranslations("Search");
   const tType = useTranslations("PropertyType");
@@ -108,8 +141,13 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
         </button>
         <div className="lg:hidden">{reset}</div>
 
-        <div className="ml-auto shrink-0">
-          <SortSelect />
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <ViewToggle />
+          {/* On a phone the row has no room for it: the list page shows sorting above the
+              results instead (sorting is set once, it needn't stay pinned). */}
+          <div className="hidden lg:block">
+            <SortSelect />
+          </div>
         </div>
       </div>
 

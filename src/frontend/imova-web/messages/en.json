@@ -167,7 +167,14 @@
     "clearDetails": "Clear filters",
     "appliedFilters": "Applied filters",
     "removeFilter": "Remove the filter “{label}”",
-    "resetShort": "Reset"
+    "resetShort": "Reset",
+    "viewLabel": "View",
+    "listView": "List",
+    "mapView": "Map",
+    "mapTruncated": "Showing the newest {shown} of {total} listings — narrow the filters to see them all.",
+    "mapEmptyTitle": "No listings on the map",
+    "mapEmptyHint": "No listing with an exact location matches these filters. Some listings don't have a map location yet, but they still show in the list.",
+    "mapEmptyShowList": "See the results as a list"
   },
   "MapPromo": {
     "title": "All properties on the map",
@@ -177,7 +184,6 @@
   "MapPage": {
     "title": "Properties on the map",
     "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
-    "noResults": "No listings with a location yet",
     "viewListing": "View listing",
     "pointListingsCount": "{count, plural, one {# listing at this point} other {# listings at this point}}",
     "closePanel": "Close panel"

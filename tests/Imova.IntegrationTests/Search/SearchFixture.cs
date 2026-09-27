@@ -15,6 +15,10 @@ public sealed class SearchFixture : IAsyncLifetime
 {
     private readonly WebApplicationFactory<Program> _root = new();
 
+    // Every listing is geocoded to a fixed point except L1, which gets none — the map view must
+    // leave it out while list search still finds it.
+    private readonly StubGeocodingService _geocoding = new();
+
     public WebApplicationFactory<Program> Factory { get; private set; } = null!;
 
     public HttpClient Anonymous { get; private set; } = null!;
@@ -40,7 +44,7 @@ public sealed class SearchFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        Factory = ListingApi.Configure(_root);
+        Factory = ListingApi.Configure(_root, _geocoding);
         Anonymous = Factory.CreateClient();
         var (owner, _) = await ListingApi.RegisterAsync(Factory);
         _owner = owner;
@@ -97,7 +101,10 @@ public sealed class SearchFixture : IAsyncLifetime
             rental: new { petsAllowed = true, utilitiesIncluded = true, minLeasePeriodMonths = 6 },
             localitateId: LocalitateA, amenities: ["balcony"]);
         await AddAsync("H1", "House", "Sale", 300, 150, RaionB, proximities: ["school"]);
+        var geocoded = _geocoding.ResultToReturn;
+        _geocoding.ResultToReturn = null;
         await AddAsync("L1", "Land", "Sale", 400, 1200, RaionB);
+        _geocoding.ResultToReturn = geocoded;
         await AddAsync("G1", "Garage", "Rent", 50, 18, RaionA,
             rental: new { utilitiesIncluded = false, minLeasePeriodMonths = 12 });
         await AddAsync("R1", "Room", "Rent", 60, 16, RaionA, rental: new { petsAllowed = false });

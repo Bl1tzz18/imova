@@ -88,6 +88,14 @@ public class SearchListingsValidatorTests
         Assert.Equal(["ChisinauSectorId"], ErrorsFor(new SearchListingsQuery { LocalitateId = Guid.NewGuid(), ChisinauSectorId = Guid.NewGuid() }));
     }
 
+    [Fact]
+    public void MapMode_AllowsAPageOfEveryPin_ButNoMore()
+    {
+        Assert.Empty(ErrorsFor(new SearchListingsQuery { OnlyWithCoordinates = true, PageSize = SearchFilterRules.MaxMapResults }));
+        Assert.NotEmpty(ErrorsFor(new SearchListingsQuery { OnlyWithCoordinates = true, PageSize = SearchFilterRules.MaxMapResults + 1 }));
+        Assert.NotEmpty(ErrorsFor(new SearchListingsQuery { PageSize = SearchFilterRules.MaxMapResults }));
+    }
+
     [Theory]
     [InlineData(0, 24)]
     [InlineData(1, 0)]

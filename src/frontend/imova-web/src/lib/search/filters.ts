@@ -17,6 +17,10 @@ import { petsApplyTo } from "@/lib/property/rentalFields";
 // filters apply when.
 
 export const SEARCH_PATH = "/search";
+// The same search on a map (every matching listing with coordinates, as pins).
+export const MAP_PATH = "/map";
+
+export type SearchView = "list" | "map";
 
 export const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
 export type TransactionTypeName = (typeof TRANSACTION_TYPES)[number];
@@ -237,9 +241,17 @@ export function toQueryString(state: SearchState): string {
   return params.toString();
 }
 
-export function searchHref(state: SearchState): string {
+export function searchHref(state: SearchState, view: SearchView = "list"): string {
+  const path = view === "map" ? MAP_PATH : SEARCH_PATH;
   const query = toQueryString(state);
-  return query ? `${SEARCH_PATH}?${query}` : SEARCH_PATH;
+  return query ? `${path}?${query}` : path;
+}
+
+// The same search in the other view: every filter and the sort carry over; the page number only
+// means something in the list (the map shows every pin at once), so it's dropped.
+export function switchViewHref(state: SearchState, view: SearchView): string {
+  const rest = Object.fromEntries(Object.entries(state).filter(([key]) => key !== "page"));
+  return searchHref(rest, view);
 }
 
 // How many filters are active (sort and page aren't filters) — the mobile "Filtre (n)" badge.

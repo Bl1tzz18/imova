@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { searchHref, updateSearch, type SearchState } from "@/lib/search/filters";
+import { searchHref, updateSearch, type SearchState, type SearchView } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";
 
 type SearchNavigationValue = {
   state: SearchState;
+  // Which page the search is shown on — filter changes stay on it.
+  view: SearchView;
   pending: boolean;
   // Apply a filter change: a new URL (a history entry, so Back undoes it) without a full reload —
   // the server re-renders the results for it.
@@ -15,16 +17,16 @@ type SearchNavigationValue = {
 
 const SearchNavigationContext = createContext<SearchNavigationValue | null>(null);
 
-export function SearchNavigationProvider({ state, children }: { state: SearchState; children: ReactNode }) {
+export function SearchNavigationProvider({ state, view = "list", children }: { state: SearchState; view?: SearchView; children: ReactNode }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function change(changes: Record<string, string | string[] | null>) {
-    const href = searchHref(updateSearch(state, changes));
+    const href = searchHref(updateSearch(state, changes), view);
     startTransition(() => router.push(href, { scroll: false }));
   }
 
-  return <SearchNavigationContext.Provider value={{ state, pending, change }}>{children}</SearchNavigationContext.Provider>;
+  return <SearchNavigationContext.Provider value={{ state, view, pending, change }}>{children}</SearchNavigationContext.Provider>;
 }
 
 export function useSearchNavigation(): SearchNavigationValue {

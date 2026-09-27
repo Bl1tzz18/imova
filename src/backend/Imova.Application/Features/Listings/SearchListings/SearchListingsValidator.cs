@@ -8,7 +8,9 @@ public class SearchListingsValidator : AbstractValidator<SearchListingsQuery>
     public SearchListingsValidator()
     {
         RuleFor(q => q.Page).GreaterThanOrEqualTo(1);
-        RuleFor(q => q.PageSize).InclusiveBetween(1, SearchFilterRules.MaxPageSize);
+        RuleFor(q => q.PageSize)
+            .Must((q, size) => size >= 1 && size <= (q.OnlyWithCoordinates ? SearchFilterRules.MaxMapResults : SearchFilterRules.MaxPageSize))
+            .WithMessage(q => $"Page size must be between 1 and {(q.OnlyWithCoordinates ? SearchFilterRules.MaxMapResults : SearchFilterRules.MaxPageSize)}.");
         RuleFor(q => q.Sort).IsInEnum();
         RuleFor(q => q.TransactionType).IsInEnum();
         RuleForEach(q => q.PropertyTypes).IsInEnum();

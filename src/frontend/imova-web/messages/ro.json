@@ -167,7 +167,14 @@
     "clearDetails": "Șterge filtrele",
     "appliedFilters": "Filtre aplicate",
     "removeFilter": "Elimină filtrul „{label}”",
-    "resetShort": "Resetează"
+    "resetShort": "Resetează",
+    "viewLabel": "Afișare",
+    "listView": "Listă",
+    "mapView": "Hartă",
+    "mapTruncated": "Se afișează cele mai noi {shown} din {total} de anunțuri — restrânge filtrele pentru a le vedea pe toate.",
+    "mapEmptyTitle": "Niciun anunț pe hartă",
+    "mapEmptyHint": "Niciun anunț cu locație exactă nu se potrivește filtrelor. Unele anunțuri nu au încă o locație pe hartă, dar apar în listă.",
+    "mapEmptyShowList": "Vezi rezultatele în listă"
   },
   "MapPromo": {
     "title": "Toate proprietățile pe hartă",
@@ -177,7 +184,6 @@
   "MapPage": {
     "title": "Proprietăți pe hartă",
     "resultsCount": "{count, plural, one {# anunț pe hartă} few {# anunțuri pe hartă} other {# de anunțuri pe hartă}}",
-    "noResults": "Momentan niciun anunț nu are locație",
     "viewListing": "Vezi anunțul",
     "pointListingsCount": "{count, plural, one {# anunț în acest punct} few {# anunțuri în acest punct} other {# de anunțuri în acest punct}}",
     "closePanel": "Închide panoul"

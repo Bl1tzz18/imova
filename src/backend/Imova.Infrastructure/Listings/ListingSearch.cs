@@ -24,6 +24,11 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
             join loc in dbContext.PropertyLocations on p.LocationId equals loc.Id
             select new { Listing = l, Property = p, Location = loc };
 
+        if (q.OnlyWithCoordinates)
+        {
+            query = query.Where(x => x.Location.Latitude != null && x.Location.Longitude != null);
+        }
+
         if (q.RaionId is { } raionId)
         {
             query = query.Where(x => x.Location.RaionId == raionId);

@@ -7,27 +7,18 @@ import { AppliedFilters } from "@/components/search/AppliedFilters";
 import { FilterOptionsProvider } from "@/components/search/FilterOptions";
 import { Pagination } from "@/components/search/Pagination";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
+import { SortSelect } from "@/components/search/SortSelect";
 import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
 import { searchListings, SEARCH_PAGE_SIZE } from "@/lib/search/api";
-import { currentPage, parseSearchParams, singlePropertyType, type SearchState } from "@/lib/search/filters";
+import { currentPage, parseSearchParams } from "@/lib/search/filters";
+import { searchTitle } from "@/lib/search/pageTitle";
 
 type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
-
-// "Apartamente de vânzare", "Anunțuri de închiriat", "Toate anunțurile", …
-async function titleFor(state: SearchState): Promise<string> {
-  const t = await getTranslations("Search");
-  const type = singlePropertyType(state);
-  const transaction = state.transactionType?.[0];
-  const subject = type ? t(`typePlural.${type}`) : t("listings");
-  if (transaction === "Sale") return t("titleSale", { subject });
-  if (transaction === "Rent") return t("titleRent", { subject });
-  return type ? subject : t("titleAll");
-}
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const state = parseSearchParams(await searchParams);
   const t = await getTranslations("Search");
-  const title = await titleFor(state);
+  const title = await searchTitle(state);
   return { title: `${title} — IMOVA`, description: t("metaDescription", { title: title.toLowerCase() }) };
 }
 
@@ -40,7 +31,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     getTranslations("Search"),
     getTranslations("SearchPage"),
     searchListings(state),
-    titleFor(state),
+    searchTitle(state),
   ]);
   const total = results?.totalCount ?? 0;
   const totalPages = Math.ceil(total / SEARCH_PAGE_SIZE);
@@ -61,9 +52,15 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
               <div className="pb-8">
                 <AppliedFilters />
-                <p className="mt-4 text-sm text-ink-500" aria-live="polite">
-                  {results === null ? t("error") : tPage("resultsCount", { count: total })}
-                </p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <p className="text-sm text-ink-500" aria-live="polite">
+                    {results === null ? t("error") : tPage("resultsCount", { count: total })}
+                  </p>
+                  {/* Phones: sorting lives here — the sticky bar keeps it on wider screens. */}
+                  <div className="lg:hidden">
+                    <SortSelect />
+                  </div>
+                </div>
 
                 <PendingResults>
                   {results && results.items.length > 0 ? (

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ClusterOverflowPanel } from "@/components/property/ClusterOverflowPanel";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
@@ -16,8 +17,13 @@ const PropertyMapFull = dynamic(
   { ssr: false, loading: () => <div className="h-full w-full animate-pulse bg-ink-100" /> },
 );
 
-export function PropertyMapExplorer({ listings }: { listings: Listing[] }) {
+// The /map view: the matching listings as a list (desktop) next to their pins. totalCount is how
+// many matched in all — the API sends at most a capped number of pins, and the list says so.
+// listHref: the same search as a list — where an empty map sends people, because a listing
+// without coordinates yet is in the list but never on the map.
+export function PropertyMapExplorer({ listings, totalCount, listHref }: { listings: Listing[]; totalCount: number; listHref: string }) {
   const t = useTranslations("MapPage");
+  const tSearch = useTranslations("Search");
   const tType = useTranslations("PropertyType");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [overflowPoints, setOverflowPoints] = useState<MapPoint[] | null>(null);
@@ -35,10 +41,15 @@ export function PropertyMapExplorer({ listings }: { listings: Listing[] }) {
   const listingList = (
     <>
       <div className="border-b border-ink-100 px-5 py-4">
-        <h1 className="font-display text-lg font-medium text-ink-950">{t("title")}</h1>
+        <h2 className="font-display text-lg font-medium text-ink-950">{t("title")}</h2>
         <p className="mt-0.5 text-sm text-ink-500">
-          {points.length > 0 ? t("resultsCount", { count: points.length }) : t("noResults")}
+          {points.length > 0 ? t("resultsCount", { count: points.length }) : tSearch("mapEmptyTitle")}
         </p>
+        {totalCount > listings.length && (
+          <p className="mt-2 rounded-lg bg-accent-50 px-3 py-2 text-xs text-accent-800">
+            {tSearch("mapTruncated", { shown: listings.length, total: totalCount })}
+          </p>
+        )}
       </div>
 
       <ul className="divide-y divide-ink-100">
@@ -74,8 +85,11 @@ export function PropertyMapExplorer({ listings }: { listings: Listing[] }) {
   );
 
   return (
-    <div className="mx-auto max-w-[100rem] px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex h-[88vh] min-h-[680px] flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[var(--shadow-card)] lg:flex-row">
+    <div>
+      {/* Tall enough to fill the screen under the site header and the sticky filter bar.
+          isolate: Leaflet's panes and controls use z-indexes up to 1000 — contained here, they
+          can't paint over the sticky site header, the filter bar or its dropdowns. */}
+      <div className="isolate flex h-[calc(100vh-13rem)] min-h-[520px] flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white shadow-[var(--shadow-card)] lg:flex-row">
         {/* The permanent listings list is desktop-only — below lg there isn't room to show both
             it and the map usefully, so the map just takes the full view and listings surface
             through the cluster markers/overflow panel instead. */}
@@ -92,7 +106,19 @@ export function PropertyMapExplorer({ listings }: { listings: Listing[] }) {
             onSelect={setSelectedId}
             cluster
             onClusterOverflow={setOverflowPoints}
+            fitToPoints
           />
+          {points.length === 0 && (
+            <div className="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center p-6">
+              <div className="pointer-events-auto max-w-sm rounded-2xl border border-line bg-white/95 px-6 py-5 text-center shadow-lg">
+                <p className="font-semibold text-ink-900">{tSearch("mapEmptyTitle")}</p>
+                <p className="mt-1 text-sm text-ink-500">{tSearch("mapEmptyHint")}</p>
+                <Link href={listHref} className="mt-3 inline-block text-sm font-medium text-accent-600 hover:underline">
+                  {tSearch("mapEmptyShowList")}
+                </Link>
+              </div>
+            </div>
+          )}
           {hasOverflow && (
             <>
               {/* Dimmed backdrop behind the bottom-sheet panel below lg, so it visibly reads as
