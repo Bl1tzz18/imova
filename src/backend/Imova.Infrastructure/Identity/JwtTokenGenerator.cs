@@ -22,6 +22,9 @@ public class JwtTokenGenerator(JwtOptions options) : IJwtTokenGenerator
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new("name", user.DisplayName ?? user.Email ?? string.Empty),
+
+            // Revoked when the account's security stamp changes (e.g. a password change) — see SessionStamp.
+            new(SessionStamp.ClaimType, SessionStamp.For(user.SecurityStamp)),
         };
         claims.AddRange(roles.Select(role => new Claim("role", role)));
 

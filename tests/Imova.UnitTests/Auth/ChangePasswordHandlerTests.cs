@@ -10,7 +10,7 @@ namespace Imova.UnitTests.Auth;
 public class ChangePasswordHandlerTests
 {
     private static ChangePasswordHandler CreateHandler(FakeUserStore store) =>
-        new(TestUserManagerFactory.Create(store));
+        new(TestUserManagerFactory.Create(store), new FakeJwtTokenGenerator());
 
     [Fact]
     public async Task Handle_WithCorrectCurrentPassword_ChangesPassword()
@@ -22,9 +22,23 @@ public class ChangePasswordHandlerTests
         var result = await handler.Handle(
             new ChangePasswordCommand(user.Id, "OldPassword1", "NewPassword1!"), CancellationToken.None);
 
-        Assert.True(result.HasPassword);
+        Assert.True(result.Profile.HasPassword);
         var verification = new PasswordHasher<ApplicationUser>().VerifyHashedPassword(user, user.PasswordHash!, "NewPassword1!");
         Assert.Equal(PasswordVerificationResult.Success, verification);
+    }
+
+    [Fact]
+    public async Task Handle_SignsOutEveryOtherSession_AndHandsThisOneANewToken()
+    {
+        var store = new FakeUserStore();
+        var user = store.SeedUserWithPassword("user@example.com", "OldPassword1");
+        var stampBefore = user.SecurityStamp;
+
+        var result = await CreateHandler(store).Handle(
+            new ChangePasswordCommand(user.Id, "OldPassword1", "NewPassword1!"), CancellationToken.None);
+
+        Assert.NotEqual(stampBefore, user.SecurityStamp);
+        Assert.Equal("fake-token", result.Token);
     }
 
     [Fact]
@@ -62,7 +76,7 @@ public class ChangePasswordHandlerTests
 
         var result = await handler.Handle(new ChangePasswordCommand(user.Id, null, "NewPassword1!"), CancellationToken.None);
 
-        Assert.True(result.HasPassword);
+        Assert.True(result.Profile.HasPassword);
         Assert.NotNull(user.PasswordHash);
     }
 

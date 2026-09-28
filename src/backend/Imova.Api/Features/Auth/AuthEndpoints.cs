@@ -8,6 +8,7 @@ using Imova.Api.Features.Auth.Login;
 using Imova.Api.Features.Auth.Register;
 using Imova.Api.Features.Auth.ResendConfirmation;
 using Imova.Api.Features.Auth.ResetPassword;
+using Imova.Api.Features.Auth.SignOutOtherSessions;
 using Imova.Api.Features.Auth.UpdatePhoneNumber;
 using Imova.Api.Features.Auth.UpdateProfile;
 
@@ -29,5 +30,6 @@ public static class AuthEndpoints
         app.MapResetPassword();
         app.MapConfirmEmail();
         app.MapResendConfirmation();
+        app.MapSignOutOtherSessions();
     }
 }

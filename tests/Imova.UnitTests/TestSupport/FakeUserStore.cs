@@ -12,7 +12,8 @@ internal sealed class FakeUserStore :
     IUserEmailStore<ApplicationUser>,
     IUserRoleStore<ApplicationUser>,
     IUserPasswordStore<ApplicationUser>,
-    IUserLockoutStore<ApplicationUser>
+    IUserLockoutStore<ApplicationUser>,
+    IUserSecurityStampStore<ApplicationUser>
 {
     private readonly Dictionary<Guid, ApplicationUser> _usersById = [];
     private readonly Dictionary<Guid, HashSet<string>> _rolesByUserId = [];
@@ -34,6 +35,7 @@ internal sealed class FakeUserStore :
             EmailConfirmed = emailConfirmed,
             // What UserManager.CreateAsync sets for every real account (Lockout.AllowedForNewUsers).
             LockoutEnabled = true,
+            SecurityStamp = Guid.NewGuid().ToString("N"),
         };
         _usersById[user.Id] = user;
         return user;
@@ -206,4 +208,14 @@ internal sealed class FakeUserStore :
         user.LockoutEnabled = enabled;
         return Task.CompletedTask;
     }
+
+    // IUserSecurityStampStore<ApplicationUser> — UserManager changes it on password changes.
+    public Task SetSecurityStampAsync(ApplicationUser user, string stamp, CancellationToken cancellationToken)
+    {
+        user.SecurityStamp = stamp;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> GetSecurityStampAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.SecurityStamp);
 }
