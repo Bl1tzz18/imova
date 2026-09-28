@@ -17,7 +17,7 @@ public class RequestUploadUrlValidatorTests
     [InlineData(".heif")]
     public void Validate_WithAllowedExtension_HasNoErrors(string extension)
     {
-        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), extension));
+        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), extension, Guid.NewGuid(), false));
 
         Assert.True(result.IsValid);
     }
@@ -25,7 +25,7 @@ public class RequestUploadUrlValidatorTests
     [Fact]
     public void Validate_WithEmptyListingId_HasError()
     {
-        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.Empty, ".jpg"));
+        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.Empty, ".jpg", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(RequestUploadUrlCommand.ListingId));
@@ -34,7 +34,7 @@ public class RequestUploadUrlValidatorTests
     [Fact]
     public void Validate_WithEmptyFileExtension_HasError()
     {
-        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), ""));
+        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), "", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(RequestUploadUrlCommand.FileExtension));
@@ -46,7 +46,7 @@ public class RequestUploadUrlValidatorTests
     [InlineData("jpg")]
     public void Validate_WithDisallowedFileExtension_HasError(string extension)
     {
-        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), extension));
+        var result = _validator.Validate(new RequestUploadUrlCommand(Guid.NewGuid(), extension, Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(RequestUploadUrlCommand.FileExtension));

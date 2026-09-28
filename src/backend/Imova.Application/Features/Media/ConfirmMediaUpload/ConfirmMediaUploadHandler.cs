@@ -18,6 +18,8 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
 {
     public async Task<PhotoDto> Handle(ConfirmMediaUploadCommand request, CancellationToken cancellationToken)
     {
+        await MediaAccess.EnsureCanUploadAsync(dbContext, request.ListingId, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
         var existing = await dbContext.Photos
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.BlobName == request.BlobName, cancellationToken);
@@ -55,7 +57,13 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
         // The first photo of a listing becomes its cover image; see DeleteMediaHandler for how
         // that's handed on when the cover is removed.
         var photo = Photo.Create(
-            request.ListingId, request.BlobName, detectedContentType, blobInfo.SizeBytes, sortOrder, isPrimary: sortOrder == 0);
+            request.ListingId,
+            request.BlobName,
+            detectedContentType,
+            blobInfo.SizeBytes,
+            sortOrder,
+            isPrimary: sortOrder == 0,
+            uploadedByUserId: request.RequestingUserId);
 
         dbContext.Photos.Add(photo);
         await dbContext.SaveChangesAsync(cancellationToken);

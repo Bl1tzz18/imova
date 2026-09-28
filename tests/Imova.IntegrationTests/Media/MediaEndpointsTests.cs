@@ -1,0 +1,123 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using Imova.Contracts.Listings;
+using Imova.Contracts.Media;
+using Imova.IntegrationTests.TestSupport;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace Imova.IntegrationTests.Media;
+
+// Photo upload endpoints (sign-in + ownership, see MediaAccess) and the API's CORS policy.
+public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+{
+    // Enough of a PNG for the magic-byte check in ConfirmMediaUpload.
+    private static readonly byte[] Png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 0x49, 0x48, 0x44, 0x52];
+
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public MediaEndpointsTests(WebApplicationFactory<Program> factory)
+    {
+        _factory = ListingApi.Configure(factory);
+    }
+
+    private static Task<HttpResponseMessage> RequestUploadUrlAsync(HttpClient client, Guid listingId) =>
+        client.PostAsJsonAsync($"/api/v1/listings/{listingId}/media/upload-url", new { fileExtension = ".png" });
+
+    // upload-url → PUT to storage (Azurite) → confirm, as the web app does.
+    private static async Task<HttpResponseMessage> UploadPhotoAsync(HttpClient client, Guid listingId)
+    {
+        var urlResponse = await RequestUploadUrlAsync(client, listingId);
+        urlResponse.EnsureSuccessStatusCode();
+        var upload = (await urlResponse.Content.ReadFromJsonAsync<UploadUrlDto>())!;
+
+        using var storage = new HttpClient();
+        var put = new HttpRequestMessage(HttpMethod.Put, upload.UploadUrl) { Content = new ByteArrayContent(Png) };
+        put.Headers.Add("x-ms-blob-type", "BlockBlob");
+        put.Content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        (await storage.SendAsync(put)).EnsureSuccessStatusCode();
+
+        return await client.PostAsJsonAsync($"/api/v1/listings/{listingId}/media/confirm", new { blobName = upload.BlobName });
+    }
+
+    private static async Task<ListingDto> CreateListingAsync(HttpClient owner, Guid? id = null)
+    {
+        var body = await ListingApi.ValidBodyAsync(owner);
+        body["id"] = id;
+        var response = await owner.PostAsJsonAsync("/api/v1/listings", body);
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        return (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+    }
+
+    [Fact]
+    public async Task UploadEndpoints_RequireSignIn()
+    {
+        var anonymous = _factory.CreateClient();
+        var listingId = Guid.NewGuid();
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await RequestUploadUrlAsync(anonymous, listingId)).StatusCode);
+        var confirm = await anonymous.PostAsJsonAsync(
+            $"/api/v1/listings/{listingId}/media/confirm", new { blobName = $"{listingId}/x.png" });
+        Assert.Equal(HttpStatusCode.Unauthorized, confirm.StatusCode);
+    }
+
+    [Fact]
+    public async Task Owner_CanAddPhotosToTheirListing_SomeoneElseCannot()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var (stranger, _) = await ListingApi.RegisterAsync(_factory);
+        var listing = await CreateListingAsync(owner);
+
+        Assert.Equal(HttpStatusCode.OK, (await UploadPhotoAsync(owner, listing.Id)).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await RequestUploadUrlAsync(stranger, listing.Id)).StatusCode);
+
+        var stored = (await owner.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
+        Assert.Single(stored.Photos);
+    }
+
+    [Fact]
+    public async Task NewListing_PhotosUploadedBeforeCreation_BelongToTheirUploader()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var (stranger, _) = await ListingApi.RegisterAsync(_factory);
+        var pendingId = Guid.NewGuid();
+
+        Assert.Equal(HttpStatusCode.OK, (await UploadPhotoAsync(owner, pendingId)).StatusCode);
+
+        // Someone else can neither add to that id nor create a listing with it.
+        Assert.Equal(HttpStatusCode.Forbidden, (await RequestUploadUrlAsync(stranger, pendingId)).StatusCode);
+        var body = await ListingApi.ValidBodyAsync(stranger);
+        body["id"] = pendingId;
+        Assert.Equal(HttpStatusCode.Forbidden, (await stranger.PostAsJsonAsync("/api/v1/listings", body)).StatusCode);
+
+        var listing = await CreateListingAsync(owner, pendingId);
+        Assert.Single(listing.Photos);
+    }
+
+    [Fact]
+    public async Task Cors_AllowsOnlyTheConfiguredOrigins()
+    {
+        var factory = _factory.WithWebHostBuilder(builder =>
+            builder.UseSetting("Cors:AllowedOrigins:0", "https://imova.example"));
+        var client = factory.CreateClient();
+
+        Assert.Equal("https://imova.example", await AllowedOriginAsync(client, "https://imova.example"));
+        Assert.Null(await AllowedOriginAsync(client, "http://localhost:3000"));
+        Assert.Null(await AllowedOriginAsync(client, "https://evil.example"));
+
+        // Without the setting, local development's web app origin.
+        var defaults = _factory.CreateClient();
+        Assert.Equal("http://localhost:3000", await AllowedOriginAsync(defaults, "http://localhost:3000"));
+    }
+
+    // The Access-Control-Allow-Origin a browser preflight from `origin` gets back, if any.
+    private static async Task<string?> AllowedOriginAsync(HttpClient client, string origin)
+    {
+        var preflight = new HttpRequestMessage(HttpMethod.Options, "/api/v1/locations/raioane");
+        preflight.Headers.Add("Origin", origin);
+        preflight.Headers.Add("Access-Control-Request-Method", "GET");
+
+        var response = await client.SendAsync(preflight);
+        return response.Headers.TryGetValues("Access-Control-Allow-Origin", out var values) ? values.Single() : null;
+    }
+}

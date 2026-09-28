@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Media;
 using Imova.Application.Features.Publishers;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
@@ -21,6 +22,13 @@ public class CreateListingHandler(
     public async Task<ListingDto> Handle(CreateListingCommand request, CancellationToken cancellationToken)
     {
         var publisher = await ResolvePublisherAsync(request, cancellationToken);
+
+        // The form uploads photos under this id before creating the listing — they must be the
+        // caller's own (see MediaAccess), or anyone could plant photos on someone else's listing.
+        if (request.Id is { } id)
+        {
+            await MediaAccess.EnsureNoOneElsesPhotosAsync(dbContext, id, request.RequestingUserId, cancellationToken);
+        }
 
         var address = await ListingWriteSupport.ResolveAddressAsync(dbContext, geocodingService, request, cancellationToken);
         var location = ListingWriteSupport.CreateLocation(request, address);

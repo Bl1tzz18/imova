@@ -111,6 +111,30 @@ public class CreateListingHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenSomeoneElseAlreadyUploadedPhotosUnderTheId_IsForbidden()
+    {
+        // Photos are uploaded under the new listing's id before it's created (see MediaAccess).
+        var id = Guid.NewGuid();
+        _dbContext.Photos.Add(Photo.Create(id, $"{id}/a.jpg", "image/jpeg", 100, uploadedByUserId: Guid.NewGuid()));
+        await _dbContext.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => Handler().Handle(Command(id: id), CancellationToken.None));
+        Assert.Empty(_dbContext.Listings);
+    }
+
+    [Fact]
+    public async Task Handle_WithTheCallersOwnPhotosUnderTheId_Succeeds()
+    {
+        var id = Guid.NewGuid();
+        _dbContext.Photos.Add(Photo.Create(id, $"{id}/a.jpg", "image/jpeg", 100, uploadedByUserId: _user.Id));
+        await _dbContext.SaveChangesAsync();
+
+        var result = await Handler().Handle(Command(id: id), CancellationToken.None);
+
+        Assert.Equal(id, result.Id);
+    }
+
+    [Fact]
     public async Task Handle_ForAnOwnerWithAnUnconfirmedEmail_KeepsTheListingAsADraft()
     {
         _user.EmailConfirmed = false;

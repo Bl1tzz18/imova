@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
 import { buildListingPayload } from "@/lib/property/formPayload";
+import type { Photo } from "@/types/listing";
 
 export async function setFavorite(listingId: string, saved: boolean, next: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
@@ -139,4 +140,45 @@ export async function deleteListingPhoto(listingId: string, mediaId: string): Pr
 
   revalidatePath(`/my-listings/${listingId}/edit`);
   return {};
+}
+
+// The two authenticated halves of a photo upload (the file itself goes straight from the browser
+// to storage via the SAS URL — see uploadFileToBlob). Server actions because the API needs the
+// session token, which lives in an httpOnly cookie the browser can't read. They return errors
+// instead of throwing: a thrown server-action error reaches the client with its message masked.
+export type PhotoActionResult<T> = { data: T; error?: undefined } | { data?: undefined; error: string };
+
+async function postPhotoCall<T>(path: string, body: unknown): Promise<PhotoActionResult<T>> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    return { error: "Not authenticated." };
+  }
+
+  const res = await fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const problem = await res.json().catch(() => null);
+    const message = problem?.errors
+      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
+      : ((problem?.detail as string | undefined) ?? `Request failed (${res.status})`);
+    return { error: message };
+  }
+
+  return { data: (await res.json()) as T };
+}
+
+export async function requestPhotoUploadUrl(
+  listingId: string,
+  fileExtension: string,
+): Promise<PhotoActionResult<{ uploadUrl: string; blobName: string; expiresAt: string }>> {
+  return postPhotoCall(`/api/v1/listings/${listingId}/media/upload-url`, { fileExtension });
+}
+
+export async function confirmPhotoUpload(listingId: string, blobName: string): Promise<PhotoActionResult<Photo>> {
+  return postPhotoCall(`/api/v1/listings/${listingId}/media/confirm`, { blobName });
 }

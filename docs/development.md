@@ -124,3 +124,10 @@ then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Win
   proxy, and put a reverse proxy in front of Next.js (Next keeps a client-sent `X-Forwarded-For`).
 - **Login lockout**: 5 wrong passwords lock the account's sign-in for 15 minutes (429). A password
   reset lifts it; so does clearing `LockoutEnd` in `AspNetUsers`.
+- **CORS** (`Cors:AllowedOrigins`, array): the origins whose browser JS may call the API directly
+  (photo uploads to the SAS URL are separate — that's storage's CORS). Defaults to
+  `http://localhost:3000` when unset; production must list the site's own origin(s), e.g.
+  `Cors__AllowedOrigins__0=https://imova.md`.
+- **Photo uploads** need a signed-in owner: `upload-url`/`confirm` go through the web app's server
+  actions (`requestPhotoUploadUrl`/`confirmPhotoUpload`), only the file PUT to storage is done by the
+  browser. Before a listing exists, the first user to upload under its id owns that id.

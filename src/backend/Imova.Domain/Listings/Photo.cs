@@ -7,8 +7,9 @@ namespace Imova.Domain.Listings;
 //
 // ListingId is *not* a foreign key (see PhotoConfiguration) — the add-listing form lets a client
 // start attaching photos under a client-generated listing id before the Listing row itself exists
-// (CreateListing accepts that same id later). Abandoned drafts currently leak orphaned photo
-// rows/blobs — no cleanup job yet.
+// (CreateListing accepts that same id later). UploadedByUserId is what ties such photos to the
+// person who will create that listing (see MediaAccess). Abandoned drafts currently leak orphaned
+// photo rows/blobs — no cleanup job yet.
 //
 // Stores the blob *name*, not a full URL: the public URL depends on the storage account/host
 // (Azurite locally vs. real Azure), so it's derived at read time via IBlobStorageService.
@@ -36,10 +37,12 @@ public sealed class Photo : Entity
         string contentType,
         long fileSizeBytes,
         int sortOrder,
-        bool isPrimary)
+        bool isPrimary,
+        Guid? uploadedByUserId)
         : base(id)
     {
         ListingId = listingId;
+        UploadedByUserId = uploadedByUserId;
         BlobName = blobName;
         ContentType = contentType;
         FileSizeBytes = fileSizeBytes;
@@ -50,6 +53,9 @@ public sealed class Photo : Entity
     }
 
     public Guid ListingId { get; private set; }
+
+    // Who uploaded it. Null only for photos from before this was recorded.
+    public Guid? UploadedByUserId { get; private set; }
 
     public string BlobName { get; private set; }
 
@@ -75,7 +81,8 @@ public sealed class Photo : Entity
         string contentType,
         long fileSizeBytes,
         int sortOrder = 0,
-        bool isPrimary = false)
+        bool isPrimary = false,
+        Guid? uploadedByUserId = null)
     {
         if (listingId == Guid.Empty)
         {
@@ -102,7 +109,7 @@ public sealed class Photo : Entity
             throw new ArgumentOutOfRangeException(nameof(fileSizeBytes), $"FileSizeBytes exceeds the {MaxFileSizeBytes} byte limit.");
         }
 
-        return new Photo(Guid.NewGuid(), listingId, blobName, contentType, fileSizeBytes, sortOrder, isPrimary);
+        return new Photo(Guid.NewGuid(), listingId, blobName, contentType, fileSizeBytes, sortOrder, isPrimary, uploadedByUserId);
     }
 
     public void MarkAsPrimary() => IsPrimary = true;

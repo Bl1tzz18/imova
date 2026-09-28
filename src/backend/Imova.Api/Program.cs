@@ -39,12 +39,19 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Origins whose browser JS may call the API directly (photo uploads, location typeahead, the
+// messaging hub) — the web app's own origin(s). Most calls go through its server instead and
+// don't need CORS. No credentials: the browser never sends cookies to the API (the hub takes
+// its token as a query parameter).
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() is { Length: > 0 } configured
+    ? configured
+    : ["http://localhost:3000"];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

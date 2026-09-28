@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Imova.Api.Common;
+using Imova.Application.Common.Identity;
 using Imova.Application.Features.Media.ConfirmMediaUpload;
 using MediatR;
 
@@ -11,10 +14,10 @@ public static class ConfirmMediaUploadEndpoint
     {
         app.MapPost(
             "/api/v1/listings/{listingId:guid}/media/confirm",
-            async (Guid listingId, ConfirmMediaUploadRequestBody body, ISender sender, CancellationToken cancellationToken) =>
+            async (Guid listingId, ConfirmMediaUploadRequestBody body, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
             {
-                var result = await sender.Send(new ConfirmMediaUploadCommand(listingId, body.BlobName), cancellationToken);
-                return Results.Ok(result);
-            });
+                var command = new ConfirmMediaUploadCommand(listingId, body.BlobName, user.GetUserId(), user.IsInRole(Roles.Admin));
+                return Results.Ok(await sender.Send(command, cancellationToken));
+            }).RequireAuthorization();
     }
 }
