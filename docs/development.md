@@ -135,11 +135,20 @@ then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Win
 ## Worker (background jobs)
 
 `Imova.Worker` runs next to the API (compose service `worker`, same database and email settings)
-and hosts scheduled jobs — for now the saved-search alert emails (`SavedSearchAlerts`). It never
-runs migrations; it starts after the backend and simply retries a failed run on its next tick.
+and hosts scheduled jobs, each on its own timer (`ScheduledJobWorker<TJob>`, jobs implement
+`IScheduledJob` and live in Application). It never runs migrations; it starts after the backend and
+simply retries a failed run on its next tick.
 
-- Interval: `SavedSearchAlerts:IntervalSeconds` (default 300; compose sets 60 so "instant" alerts
-  are quick to try). Alert emails land in Mailpit locally.
+| Job | Interval setting (default) | What it does |
+| --- | --- | --- |
+| `SavedSearchAlerts` | `SavedSearchAlerts:IntervalSeconds` (300) | emails new matches for saved searches |
+| `ListingExpiry` | `ListingExpiry:IntervalSeconds` (3600) | Active listings live 6 months (`Listing.ActiveMonths`); reminder email 7 days before, then Expired + email |
+| `AbandonedPhotoCleanup` | `PhotoCleanup:IntervalSeconds` (21600) | deletes photos (blob + row) whose listing was never created, after 7 days |
+
+Compose sets all three to 60 seconds so they're quick to try; emails land in Mailpit. To see
+expiry locally, move a listing's `ExpiresAt` in the database (e.g. `now() + interval '3 days'` for
+the reminder, `now() - interval '1 minute'` to expire it) and wait a minute.
+
 - It shares the API's data-protection key ring (`ApplicationName` "Imova.Api" + the
   `DataProtectionKeys` table), so the unsubscribe links it puts in emails verify in the API.
 - After changing Application/Infrastructure code, rebuild it too:

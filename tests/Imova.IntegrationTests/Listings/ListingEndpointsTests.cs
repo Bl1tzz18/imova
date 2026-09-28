@@ -374,6 +374,34 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task ApprovedListing_ExpiresInSixMonths_AndTheOwnerCanRenewIt()
+    {
+        var (client, _) = await ListingApi.RegisterAsync(_factory);
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+        var listing = (await (await client.PostAsJsonAsync("/api/v1/listings", await ListingApi.ValidBodyAsync(client)))
+            .Content.ReadFromJsonAsync<ListingDto>())!;
+
+        // Not live yet: nothing to renew.
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsync($"/api/v1/listings/{listing.Id}/renew", null)).StatusCode);
+
+        var approved = (await (await admin.PostAsync($"/api/v1/listings/{listing.Id}/approve", null))
+            .Content.ReadFromJsonAsync<ListingDto>())!;
+        var sixMonths = DateTimeOffset.UtcNow.AddMonths(6);
+        Assert.InRange(approved.ExpiresAt!.Value, sixMonths.AddMinutes(-5), sixMonths.AddMinutes(5));
+
+        var stranger = (await ListingApi.RegisterAsync(_factory)).Client;
+        Assert.Equal(HttpStatusCode.Forbidden, (await stranger.PostAsync($"/api/v1/listings/{listing.Id}/renew", null)).StatusCode);
+
+        var renew = await client.PostAsync($"/api/v1/listings/{listing.Id}/renew", null);
+        Assert.Equal(HttpStatusCode.OK, renew.StatusCode);
+        var renewed = (await renew.Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Equal("Active", renewed.Status);
+        Assert.True(renewed.ExpiresAt >= approved.ExpiresAt);
+
+        await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
     public async Task GetListings_WithUnknownTransactionType_Returns400()
     {
         var response = await _factory.CreateClient().GetAsync("/api/v1/listings?transactionType=Lease");

@@ -21,7 +21,7 @@ public class SavedSearchAlerts(
     AppOptions appOptions,
     SavedSearchUnsubscribeTokens unsubscribeTokens,
     TimeProvider timeProvider,
-    ILogger<SavedSearchAlerts> logger)
+    ILogger<SavedSearchAlerts> logger) : IScheduledJob
 {
     public const int MaxListingsPerEmail = 10;
 

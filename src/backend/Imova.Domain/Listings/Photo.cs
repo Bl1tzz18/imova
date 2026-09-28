@@ -8,8 +8,8 @@ namespace Imova.Domain.Listings;
 // ListingId is *not* a foreign key (see PhotoConfiguration) — the add-listing form lets a client
 // start attaching photos under a client-generated listing id before the Listing row itself exists
 // (CreateListing accepts that same id later). UploadedByUserId is what ties such photos to the
-// person who will create that listing (see MediaAccess). Abandoned drafts currently leak orphaned
-// photo rows/blobs — no cleanup job yet.
+// person who will create that listing (see MediaAccess). Photos whose listing never got created
+// are deleted after a week by the Worker (AbandonedPhotoCleanup).
 //
 // Stores the blob *name*, not a full URL: the public URL depends on the storage account/host
 // (Azurite locally vs. real Azure), so it's derived at read time via IBlobStorageService.

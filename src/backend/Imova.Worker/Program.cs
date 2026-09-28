@@ -1,6 +1,8 @@
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings.Expiry;
 using Imova.Application.Features.Listings.SearchListings;
+using Imova.Application.Features.Media.Cleanup;
 using Imova.Application.Features.SavedSearches;
 using Imova.Application.Features.SavedSearches.Alerts;
 using Imova.Infrastructure;
@@ -11,7 +13,8 @@ using Imova.Worker;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
-// Background jobs, separate from the API: the saved-search alert emails for now. Uses the same
+// Background jobs, separate from the API: saved-search alert emails, listing expiry (with the
+// reminder emails) and the cleanup of photos from abandoned add-listing forms. Uses the same
 // database, email and data-protection setup as the API (the key ring is shared so unsubscribe
 // links made here verify in the API). Never runs migrations — the API does that on startup.
 var builder = Host.CreateApplicationBuilder(args);
@@ -47,10 +50,10 @@ builder.Services.AddDataProtection()
 builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
-builder.Services.AddScoped<SavedSearchAlerts>();
-builder.Services.AddSingleton(
-    builder.Configuration.GetSection(SavedSearchAlertsWorkerOptions.SectionName).Get<SavedSearchAlertsWorkerOptions>()
-    ?? new SavedSearchAlertsWorkerOptions());
-builder.Services.AddHostedService<SavedSearchAlertsWorker>();
+
+// Each job on its own timer; "<Section>:IntervalSeconds" overrides the default.
+builder.Services.AddScheduledJob<SavedSearchAlerts>(builder.Configuration, "SavedSearchAlerts", defaultIntervalSeconds: 300);
+builder.Services.AddScheduledJob<ListingExpiry>(builder.Configuration, "ListingExpiry", defaultIntervalSeconds: 3600);
+builder.Services.AddScheduledJob<AbandonedPhotoCleanup>(builder.Configuration, "PhotoCleanup", defaultIntervalSeconds: 6 * 3600);
 
 builder.Build().Run();

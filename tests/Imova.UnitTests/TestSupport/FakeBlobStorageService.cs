@@ -57,8 +57,16 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
         return Task.CompletedTask;
     }
 
+    // Deleting one of these throws, like an unreachable storage account.
+    public HashSet<string> FailingDeletes { get; } = [];
+
     public Task DeleteAsync(string blobName, CancellationToken cancellationToken)
     {
+        if (FailingDeletes.Contains(blobName))
+        {
+            throw new InvalidOperationException("Storage unreachable.");
+        }
+
         DeletedBlobNames.Add(blobName);
         return Task.CompletedTask;
     }

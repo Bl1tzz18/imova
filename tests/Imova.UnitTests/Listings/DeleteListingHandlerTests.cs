@@ -4,6 +4,7 @@ using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Imova.UnitTests.Listings;
 
@@ -12,12 +13,15 @@ public class DeleteListingHandlerTests
     private readonly ImovaDbContext _dbContext = TestDbContextFactory.Create();
     private readonly Guid _ownerId = Guid.NewGuid();
     private readonly Guid _publisherId;
+    private readonly FakeBlobStorageService _blobs = new();
 
     public DeleteListingHandlerTests()
     {
         _publisherId = ListingTestData.AddIndividualPublisher(_dbContext, _ownerId).Id;
         _dbContext.SaveChanges();
     }
+
+    private DeleteListingHandler Handler() => new(_dbContext, _blobs, NullLogger<DeleteListingHandler>.Instance);
 
     [Fact]
     public async Task Handle_ByOwner_RemovesListingPhotosFavoritesAndTheNowUnlistedProperty()
@@ -27,12 +31,13 @@ public class DeleteListingHandlerTests
         _dbContext.Favorites.Add(Favorite.Create(Guid.NewGuid(), listing.Id));
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var result = await new DeleteListingHandler(_dbContext).Handle(
+        var result = await Handler().Handle(
             new DeleteListingCommand(listing.Id, _ownerId, false), CancellationToken.None);
 
         Assert.True(result);
         Assert.Empty(_dbContext.Listings);
         Assert.Empty(_dbContext.Photos);
+        Assert.Equal([$"{listing.Id}/a.jpg"], _blobs.DeletedBlobNames);
         Assert.Empty(_dbContext.Favorites);
         Assert.Empty(_dbContext.Properties);
         Assert.Empty(_dbContext.PropertyLocations);
@@ -46,7 +51,7 @@ public class DeleteListingHandlerTests
         _dbContext.Listings.Add(relisting);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        await new DeleteListingHandler(_dbContext).Handle(new DeleteListingCommand(first.Id, _ownerId, false), CancellationToken.None);
+        await Handler().Handle(new DeleteListingCommand(first.Id, _ownerId, false), CancellationToken.None);
 
         Assert.Equal(relisting.Id, Assert.Single(_dbContext.Listings).Id);
         Assert.Single(_dbContext.Properties);
@@ -59,7 +64,7 @@ public class DeleteListingHandlerTests
         var listing = ListingTestData.AddListing(_dbContext, _publisherId);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => new DeleteListingHandler(_dbContext).Handle(
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => Handler().Handle(
             new DeleteListingCommand(listing.Id, Guid.NewGuid(), false), CancellationToken.None));
 
         Assert.Single(_dbContext.Listings);
@@ -72,14 +77,14 @@ public class DeleteListingHandlerTests
         var listing = ListingTestData.AddListing(_dbContext, _publisherId);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        Assert.True(await new DeleteListingHandler(_dbContext).Handle(
+        Assert.True(await Handler().Handle(
             new DeleteListingCommand(listing.Id, Guid.NewGuid(), true), CancellationToken.None));
     }
 
     [Fact]
     public async Task Handle_ForUnknownListingId_ReturnsFalse()
     {
-        Assert.False(await new DeleteListingHandler(_dbContext).Handle(
+        Assert.False(await Handler().Handle(
             new DeleteListingCommand(Guid.NewGuid(), _ownerId, false), CancellationToken.None));
     }
 }

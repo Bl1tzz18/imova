@@ -10,6 +10,10 @@ namespace Imova.Domain.Listings;
 // Individual one, or their Agency), and ownership checks go through Publisher.UserId.
 public sealed class Listing : AggregateRoot
 {
+    // How long a listing stays Active before it expires (ExpiresAt) unless the owner renews it.
+    // Every way into Active starts a fresh period: approval, the owner's re-publish and Renew().
+    public const int ActiveMonths = 6;
+
     // For EF Core materialization only.
     private Listing()
         : base(Guid.Empty)
@@ -72,7 +76,13 @@ public sealed class Listing : AggregateRoot
 
     public DateTimeOffset? PublishedAt { get; private set; }
 
+    // When an Active listing expires (the Worker's expiry job calls Expire()). Set whenever the
+    // listing goes Active; null for listings that were never Active.
     public DateTimeOffset? ExpiresAt { get; private set; }
+
+    // When the owner was told this listing expires soon — once per active period, cleared whenever
+    // ExpiresAt moves.
+    public DateTimeOffset? ExpiryReminderSentAt { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
 
@@ -244,6 +254,7 @@ public sealed class Listing : AggregateRoot
 
         Status = ListingStatus.Active;
         PublishedAt ??= DateTimeOffset.UtcNow;
+        StartActivePeriod();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -292,6 +303,13 @@ public sealed class Listing : AggregateRoot
 
         Status = ListingStatus.Active;
         SuspensionReason = null;
+
+        // The owner shouldn't lose a listing to a period that ran out while it was taken down.
+        if (ExpiresAt is not { } expiresAt || expiresAt <= DateTimeOffset.UtcNow)
+        {
+            StartActivePeriod();
+        }
+
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -327,8 +345,22 @@ public sealed class Listing : AggregateRoot
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    // Active -> Expired. Nothing calls this automatically yet (no expiry job) — it exists so the
-    // status is reachable and its transitions are defined in one place.
+    // The owner confirming an Active listing is still available: a fresh ActiveMonths period from
+    // now. Status doesn't change.
+    public void Renew()
+    {
+        if (Status != ListingStatus.Active)
+        {
+            throw new InvalidOperationException("Only an active listing can be renewed.");
+        }
+
+        StartActivePeriod();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkExpiryReminderSent(DateTimeOffset now) => ExpiryReminderSentAt = now;
+
+    // Active -> Expired, called by the Worker's expiry job once ExpiresAt has passed.
     public void Expire()
     {
         if (Status != ListingStatus.Active)
@@ -366,6 +398,13 @@ public sealed class Listing : AggregateRoot
 
         Status = ListingStatus.Active;
         PublishedAt ??= DateTimeOffset.UtcNow;
+        StartActivePeriod();
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    private void StartActivePeriod()
+    {
+        ExpiresAt = DateTimeOffset.UtcNow.AddMonths(ActiveMonths);
+        ExpiryReminderSentAt = null;
     }
 }
