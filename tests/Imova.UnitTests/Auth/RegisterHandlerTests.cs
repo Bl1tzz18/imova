@@ -30,7 +30,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
 
         var user = Assert.Single(_store.Users);
         Assert.Equal(user.Id, result.User.Id);
@@ -48,7 +48,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         await Handler(dbContext).Handle(
-            new RegisterCommand("ana.rusu@example.com", "SuperSecret1", null, "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana.rusu@example.com", "SuperSecret1!", null, "+373 69 123 456"), CancellationToken.None);
 
         Assert.Equal("ana.rusu", Assert.Single(dbContext.Publishers).DisplayName);
     }
@@ -59,7 +59,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
 
         Assert.False(result.User.EmailConfirmed);
         var email = Assert.Single(_email.Sent);
@@ -76,7 +76,7 @@ public class RegisterHandlerTests
         _email.Fail = true;
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
 
         Assert.Equal(Assert.Single(_store.Users).Id, result.User.Id);
         Assert.False(string.IsNullOrEmpty(result.Token));

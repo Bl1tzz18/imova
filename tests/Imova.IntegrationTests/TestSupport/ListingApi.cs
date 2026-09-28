@@ -46,7 +46,7 @@ internal static class ListingApi
         var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
         {
             email,
-            password = "SuperSecret1",
+            password = "SuperSecret1!",
             displayName = "Listing Test User",
             phoneNumber = "+373 69 123 456",
         });
@@ -82,7 +82,7 @@ internal static class ListingApi
         }
 
         var client = factory.CreateClient();
-        var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email = user.Email, password = "SuperSecret1" });
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email = user.Email, password = "SuperSecret1!" });
         login.EnsureSuccessStatusCode();
         var auth = (await login.Content.ReadFromJsonAsync<AuthResultDto>())!;
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);

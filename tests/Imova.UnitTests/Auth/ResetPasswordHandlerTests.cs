@@ -20,7 +20,7 @@ public class ResetPasswordHandlerTests
         _userManager = TestUserManagerFactory.Create(_store);
     }
 
-    private Task ResetAsync(string email, string token, string newPassword = "NewPassword1") =>
+    private Task ResetAsync(string email, string token, string newPassword = "NewPassword1!") =>
         new ResetPasswordHandler(_userManager, _dbContext)
             .Handle(new ResetPasswordCommand(email, token, newPassword), CancellationToken.None);
 
@@ -34,7 +34,7 @@ public class ResetPasswordHandlerTests
 
         await ResetAsync("ana@example.com", LinkToken(user));
 
-        Assert.True(await _userManager.CheckPasswordAsync(user, "NewPassword1"));
+        Assert.True(await _userManager.CheckPasswordAsync(user, "NewPassword1!"));
         Assert.False(await _userManager.CheckPasswordAsync(user, "OldPassword1"));
     }
 
@@ -45,7 +45,7 @@ public class ResetPasswordHandlerTests
 
         await ResetAsync("google@example.com", LinkToken(user));
 
-        Assert.True(await _userManager.CheckPasswordAsync(user, "NewPassword1"));
+        Assert.True(await _userManager.CheckPasswordAsync(user, "NewPassword1!"));
     }
 
     [Theory]

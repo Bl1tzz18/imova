@@ -423,7 +423,11 @@
     "confirmBannerBody": "Anunțurile tale sunt trimise spre verificare doar după ce deschizi linkul primit pe email.",
     "confirmBannerSent": "Ți-am trimis un link nou. Verifică și dosarul Spam.",
     "confirmBannerResend": "Retrimite emailul",
-    "confirmBannerResending": "Se trimite..."
+    "confirmBannerResending": "Se trimite...",
+    "passwordRuleMinLength": "Cel puțin 8 caractere",
+    "passwordRuleNumber": "Cel puțin o cifră",
+    "passwordRuleSpecial": "Cel puțin un caracter special (ex. ! ? # @)",
+    "passwordsMatch": "Parolele coincid"
   },
   "Account": {
     "settingsTitle": "Setările contului",

@@ -26,7 +26,7 @@ public class AccountRecoveryValidatorTests
     [Fact]
     public void ResetPassword_WithAllFields_HasNoErrors()
     {
-        var result = new ResetPasswordValidator().Validate(new ResetPasswordCommand("ana@example.com", "dG9rZW4", "NewPassword1"));
+        var result = new ResetPasswordValidator().Validate(new ResetPasswordCommand("ana@example.com", "dG9rZW4", "NewPassword1!"));
 
         Assert.True(result.IsValid);
     }
@@ -42,7 +42,7 @@ public class AccountRecoveryValidatorTests
     [Fact]
     public void ResetPassword_WithoutAToken_HasAnError()
     {
-        var result = new ResetPasswordValidator().Validate(new ResetPasswordCommand("ana@example.com", "", "NewPassword1"));
+        var result = new ResetPasswordValidator().Validate(new ResetPasswordCommand("ana@example.com", "", "NewPassword1!"));
 
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ResetPasswordCommand.Token));
     }

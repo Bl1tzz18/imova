@@ -20,10 +20,10 @@ public class ChangePasswordHandlerTests
         var handler = CreateHandler(store);
 
         var result = await handler.Handle(
-            new ChangePasswordCommand(user.Id, "OldPassword1", "NewPassword1"), CancellationToken.None);
+            new ChangePasswordCommand(user.Id, "OldPassword1", "NewPassword1!"), CancellationToken.None);
 
         Assert.True(result.HasPassword);
-        var verification = new PasswordHasher<ApplicationUser>().VerifyHashedPassword(user, user.PasswordHash!, "NewPassword1");
+        var verification = new PasswordHasher<ApplicationUser>().VerifyHashedPassword(user, user.PasswordHash!, "NewPassword1!");
         Assert.Equal(PasswordVerificationResult.Success, verification);
     }
 
@@ -35,7 +35,7 @@ public class ChangePasswordHandlerTests
         var handler = CreateHandler(store);
 
         await Assert.ThrowsAsync<ValidationException>(
-            () => handler.Handle(new ChangePasswordCommand(user.Id, "WrongPassword1", "NewPassword1"), CancellationToken.None));
+            () => handler.Handle(new ChangePasswordCommand(user.Id, "WrongPassword1", "NewPassword1!"), CancellationToken.None));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class ChangePasswordHandlerTests
         var handler = CreateHandler(store);
 
         var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => handler.Handle(new ChangePasswordCommand(user.Id, null, "NewPassword1"), CancellationToken.None));
+            () => handler.Handle(new ChangePasswordCommand(user.Id, null, "NewPassword1!"), CancellationToken.None));
 
         Assert.Contains(exception.Errors, e => e.PropertyName == nameof(ChangePasswordCommand.CurrentPassword));
     }
@@ -60,7 +60,7 @@ public class ChangePasswordHandlerTests
         var user = store.SeedUser("google-only@example.com", emailConfirmed: true);
         var handler = CreateHandler(store);
 
-        var result = await handler.Handle(new ChangePasswordCommand(user.Id, null, "NewPassword1"), CancellationToken.None);
+        var result = await handler.Handle(new ChangePasswordCommand(user.Id, null, "NewPassword1!"), CancellationToken.None);
 
         Assert.True(result.HasPassword);
         Assert.NotNull(user.PasswordHash);
@@ -73,6 +73,6 @@ public class ChangePasswordHandlerTests
         var handler = CreateHandler(store);
 
         await Assert.ThrowsAsync<AuthenticationFailedException>(
-            () => handler.Handle(new ChangePasswordCommand(Guid.NewGuid(), null, "NewPassword1"), CancellationToken.None));
+            () => handler.Handle(new ChangePasswordCommand(Guid.NewGuid(), null, "NewPassword1!"), CancellationToken.None));
     }
 }

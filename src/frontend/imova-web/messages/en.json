@@ -423,7 +423,11 @@
     "confirmBannerBody": "Your listings are only sent for review once you open the link we emailed you.",
     "confirmBannerSent": "We've sent you a new link. Check your spam folder too.",
     "confirmBannerResend": "Resend the email",
-    "confirmBannerResending": "Sending..."
+    "confirmBannerResending": "Sending...",
+    "passwordRuleMinLength": "At least 8 characters",
+    "passwordRuleNumber": "At least one number",
+    "passwordRuleSpecial": "At least one special character (e.g. ! ? # @)",
+    "passwordsMatch": "Passwords match"
   },
   "Account": {
     "settingsTitle": "Account settings",

@@ -8,7 +8,7 @@ public class RegisterValidatorTests
 
     private static RegisterCommand ValidCommand(
         string email = "user@example.com",
-        string password = "SuperSecret1",
+        string password = "SuperSecret1!",
         string? displayName = "Test User",
         string phoneNumber = "+373 69 123 456") =>
         new(email, password, displayName, phoneNumber);

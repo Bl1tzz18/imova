@@ -423,7 +423,11 @@
     "confirmBannerBody": "Ваши объявления отправляются на проверку только после того, как вы откроете ссылку из письма.",
     "confirmBannerSent": "Мы отправили новую ссылку. Проверьте и папку «Спам».",
     "confirmBannerResend": "Отправить письмо снова",
-    "confirmBannerResending": "Отправка..."
+    "confirmBannerResending": "Отправка...",
+    "passwordRuleMinLength": "Не менее 8 символов",
+    "passwordRuleNumber": "Хотя бы одна цифра",
+    "passwordRuleSpecial": "Хотя бы один специальный символ (например, ! ? # @)",
+    "passwordsMatch": "Пароли совпадают"
   },
   "Account": {
     "settingsTitle": "Настройки аккаунта",

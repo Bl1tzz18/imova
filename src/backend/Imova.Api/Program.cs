@@ -18,6 +18,7 @@ using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
@@ -71,8 +72,12 @@ builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
     {
         options.User.RequireUniqueEmail = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
+        // Same policy as PasswordRules (the validators) and the web app's live checklist: 8+
+        // characters, a number, a special character — nothing else.
+        options.Password.RequiredLength = PasswordRules.MinLength;
+        options.Password.RequireDigit = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
 
         // See LoginHandler: 5 wrong passwords in a row lock sign-in for 15 minutes.

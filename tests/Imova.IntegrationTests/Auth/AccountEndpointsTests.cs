@@ -14,7 +14,7 @@ namespace Imova.IntegrationTests.Auth;
 // auth rate limit — through the real endpoints, with emails captured instead of sent.
 public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private const string Password = "SuperSecret1";
+    private const string Password = "SuperSecret1!";
     private readonly WebApplicationFactory<Program> _baseFactory;
     private readonly CapturingEmailSender _email = new();
     private readonly WebApplicationFactory<Program> _factory;
@@ -47,11 +47,11 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
         var link = _email.LinkQuery(user.Email);
         Assert.Equal(user.Email, link["email"]);
         var reset = await client.PostAsJsonAsync(
-            "/api/v1/auth/reset-password", new { email = user.Email, token = link["token"], newPassword = "BrandNewPass1" });
+            "/api/v1/auth/reset-password", new { email = user.Email, token = link["token"], newPassword = "BrandNewPass1!" });
         Assert.Equal(HttpStatusCode.NoContent, reset.StatusCode);
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await LoginAsync(client, user.Email, Password)).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await LoginAsync(client, user.Email, "BrandNewPass1")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await LoginAsync(client, user.Email, "BrandNewPass1!")).StatusCode);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
         var client = _factory.CreateClient();
 
         var reset = await client.PostAsJsonAsync(
-            "/api/v1/auth/reset-password", new { email = user.Email, token = "Zm9yZ2Vk", newPassword = "BrandNewPass1" });
+            "/api/v1/auth/reset-password", new { email = user.Email, token = "Zm9yZ2Vk", newPassword = "BrandNewPass1!" });
 
         Assert.Equal(HttpStatusCode.BadRequest, reset.StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await LoginAsync(client, user.Email, Password)).StatusCode);
@@ -145,6 +145,24 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("short1!")]
+    [InlineData("NoNumbers!!")]
+    [InlineData("NoSpecial123")]
+    public async Task Register_WithAPasswordBreakingThePolicy_Returns400OnPassword(string password)
+    {
+        var response = await _factory.CreateClient().PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = $"weak-{Guid.NewGuid():N}@example.com",
+            password,
+            displayName = "Weak Password",
+            phoneNumber = "+373 69 123 456",
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("\"Password\"", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]

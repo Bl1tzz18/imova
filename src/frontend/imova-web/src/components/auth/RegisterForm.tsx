@@ -7,27 +7,27 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, TextInput } from "@/components/ui/Field";
 import { PhoneInput } from "@/components/ui/PhoneInput";
+import { PasswordFields } from "@/components/auth/PasswordFields";
+import { confirmationState, meetsPasswordRules } from "@/lib/auth/passwordRules";
 
 const initialState: AuthFormState = {};
 
 export function RegisterForm({ next }: { next?: string }) {
   const t = useTranslations("Auth");
   const [state, formAction, pending] = useActionState(register, initialState);
-  const [mismatchError, setMismatchError] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
 
-  // The backend never receives confirmPassword — this is purely a client-side check that the two
-  // fields match before letting the form submit at all.
+  // Only submit once the password meets the policy and the confirmation matches — otherwise
+  // PasswordFields turns whatever is still missing red.
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     const form = e.currentTarget;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
-    const confirmPassword = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
+    const confirmation = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
 
-    if (password !== confirmPassword) {
+    if (!meetsPasswordRules(password) || confirmationState(password, confirmation) !== "match") {
       e.preventDefault();
-      setMismatchError(t("passwordMismatch"));
-      return;
+      setAttempted(true);
     }
-    setMismatchError(null);
   }
 
   return (
@@ -48,15 +48,12 @@ export function RegisterForm({ next }: { next?: string }) {
         <PhoneInput name="phone" required />
       </label>
 
-      <label className="block">
-        <FieldLabel>{t("passwordLabel")}</FieldLabel>
-        <TextInput type="password" name="password" required minLength={8} />
-      </label>
-
-      <label className="block">
-        <FieldLabel>{t("confirmPasswordLabel")}</FieldLabel>
-        <TextInput type="password" name="confirmPassword" required minLength={8} />
-      </label>
+      <PasswordFields
+        passwordName="password"
+        passwordLabel={t("passwordLabel")}
+        confirmLabel={t("confirmPasswordLabel")}
+        attempted={attempted}
+      />
 
       <Checkbox name="acceptTerms" required>
         {t.rich("termsAgreement", {
@@ -65,9 +62,9 @@ export function RegisterForm({ next }: { next?: string }) {
         })}
       </Checkbox>
 
-      {(mismatchError ?? state.error) && (
+      {state.error && (
         <p className="rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
-          {mismatchError ?? state.error}
+          {state.error}
         </p>
       )}
 
