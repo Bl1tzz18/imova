@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Unicode;
+using Imova.Application.Common.Emails;
 using Imova.Application.Common.Interfaces;
 
 namespace Imova.Application.Features.SavedSearches.Alerts;
@@ -35,10 +34,6 @@ public static class SavedSearchAlertEmail
         ["Garage"] = "Garaj",
         ["Room"] = "Cameră",
     };
-
-    // Escapes what matters in HTML (<, >, &, quotes) but leaves Romanian/Russian letters readable
-    // (WebUtility.HtmlEncode would turn "â" into "&#226;").
-    private static readonly HtmlEncoder Html5 = HtmlEncoder.Create(UnicodeRanges.All);
 
     public static EmailMessage Build(
         string to, string searchName, IReadOnlyList<AlertListing> listings, int total, string openUrl, string unsubscribeUrl)
@@ -81,7 +76,7 @@ public static class SavedSearchAlertEmail
 
     private static string Html(string headline, string searchName, IReadOnlyList<AlertListing> listings, int more, string openUrl, string unsubscribeUrl)
     {
-        static string E(string value) => Html5.Encode(value);
+        static string E(string value) => EmailLayout.Encode(value);
 
         var cards = new StringBuilder();
         foreach (var listing in listings)
@@ -116,31 +111,16 @@ public static class SavedSearchAlertEmail
             ? $"""<tr><td style="padding:6px 28px 0;font-size:14px;color:#4d6e8c;">…și încă {more}.</td></tr>"""
             : string.Empty;
 
-        return $"""
-            <!DOCTYPE html>
-            <html lang="ro">
-            <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{E(headline)}</title></head>
-            <body style="margin:0;padding:0;background:#eef2f6;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f6;">
-                <tr><td align="center" style="padding:24px 12px;">
-                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;font-family:Arial,Helvetica,sans-serif;color:#0b1620;">
-                    <tr><td style="padding:24px 28px 4px;font-size:22px;font-weight:800;letter-spacing:0.5px;color:#e86a33;">IMOVA</td></tr>
-                    <tr><td style="padding:8px 28px 2px;font-size:20px;font-weight:700;">{E(headline)} pentru „{E(searchName)}”</td></tr>
-                    <tr><td style="padding:0 28px 14px;font-size:14px;color:#4d6e8c;">Au apărut anunțuri noi pentru căutarea ta salvată.</td></tr>
-                    {cards}
-                    {moreRow}
-                    <tr><td align="center" style="padding:22px 28px 10px;">
-                      <a href="{E(openUrl)}" style="display:inline-block;padding:12px 28px;border-radius:999px;background:#e86a33;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">Vezi toate rezultatele</a>
-                    </td></tr>
-                    <tr><td style="padding:16px 28px 24px;border-top:1px solid #e5edf3;font-size:12px;line-height:1.5;color:#7592ac;">
-                      Primești acest email pentru că ai salvat căutarea „{E(searchName)}” pe IMOVA, cu alerte pe email.
-                      <a href="{E(unsubscribeUrl)}" style="color:#4d6e8c;">Oprește alertele pentru această căutare</a>.
-                    </td></tr>
-                  </table>
-                </td></tr>
-              </table>
-            </body>
-            </html>
-            """;
+        var content =
+            EmailLayout.Heading($"{headline} pentru „{searchName}”")
+            + """<tr><td style="padding:0 28px 14px;font-size:14px;color:#4d6e8c;">Au apărut anunțuri noi pentru căutarea ta salvată.</td></tr>"""
+            + cards
+            + moreRow
+            + EmailLayout.Button("Vezi toate rezultatele", openUrl);
+        var footer =
+            $"Primești acest email pentru că ai salvat căutarea „{E(searchName)}” pe IMOVA, cu alerte pe email. " +
+            $"""<a href="{E(unsubscribeUrl)}" style="color:#4d6e8c;">Oprește alertele pentru această căutare</a>.""";
+
+        return EmailLayout.Page(headline, content, footer);
     }
 }
