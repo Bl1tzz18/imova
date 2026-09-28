@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using Imova.Application.Common;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -57,7 +58,8 @@ public static class AuthRateLimiting
 
                 await Results.Problem(
                         "Too many attempts. Wait a minute and try again.",
-                        statusCode: StatusCodes.Status429TooManyRequests)
+                        statusCode: StatusCodes.Status429TooManyRequests,
+                        extensions: ProblemCodes.For(ErrorCodes.RateLimited))
                     .ExecuteAsync(context.HttpContext);
             };
 

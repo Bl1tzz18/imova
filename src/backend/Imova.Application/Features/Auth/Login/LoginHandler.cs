@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
@@ -18,14 +19,14 @@ public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGen
     public async Task<AuthResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(request.Email)
-            ?? throw new AuthenticationFailedException(InvalidCredentials);
+            ?? throw new AuthenticationFailedException(InvalidCredentials, ErrorCodes.InvalidCredentials);
 
         // Identity's lockout (IdentityOptions.Lockout, set in Program.cs): after too many wrong
         // passwords the account refuses sign-in for a while, even with the right one — the per-IP
         // rate limit alone doesn't stop a guesser spread over many IPs. A password reset lifts it.
         if (await userManager.IsLockedOutAsync(user))
         {
-            throw new TooManyRequestsException(LockedOut);
+            throw new TooManyRequestsException(LockedOut, ErrorCodes.LockedOut);
         }
 
         if (!await userManager.CheckPasswordAsync(user, request.Password))
@@ -33,10 +34,10 @@ public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGen
             await userManager.AccessFailedAsync(user);
             if (await userManager.IsLockedOutAsync(user))
             {
-                throw new TooManyRequestsException(LockedOut);
+                throw new TooManyRequestsException(LockedOut, ErrorCodes.LockedOut);
             }
 
-            throw new AuthenticationFailedException(InvalidCredentials);
+            throw new AuthenticationFailedException(InvalidCredentials, ErrorCodes.InvalidCredentials);
         }
 
         if (await userManager.GetAccessFailedCountAsync(user) > 0)

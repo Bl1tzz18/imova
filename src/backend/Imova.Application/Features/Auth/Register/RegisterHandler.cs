@@ -1,5 +1,4 @@
 using FluentValidation;
-using FluentValidation.Results;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Publishers;
@@ -32,7 +31,8 @@ public class RegisterHandler(
         var result = await userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            throw new ValidationException(ToValidationFailures(result.Errors));
+            throw new ValidationException(IdentityFailures.From(
+                result.Errors, emailField: nameof(RegisterCommand.Email), passwordField: nameof(RegisterCommand.Password)));
         }
 
         await userManager.AddToRoleAsync(user, Roles.User);
@@ -68,6 +68,4 @@ public class RegisterHandler(
                 user.EmailConfirmed));
     }
 
-    private static IEnumerable<ValidationFailure> ToValidationFailures(IEnumerable<IdentityError> errors) =>
-        errors.Select(e => new ValidationFailure(nameof(RegisterCommand.Email), e.Description));
 }

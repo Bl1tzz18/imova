@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Contracts.Auth;
@@ -11,7 +12,7 @@ public class GetProfileHandler(UserManager<ApplicationUser> userManager) : IRequ
     public async Task<UserProfileDto> Handle(GetProfileQuery request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         var hasPassword = await userManager.HasPasswordAsync(user);

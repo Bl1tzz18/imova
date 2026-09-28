@@ -1,5 +1,6 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
+using Imova.Application.Common.Validation;
 
 namespace Imova.Application.Features.Listings;
 
@@ -16,7 +17,7 @@ public static class ListingTransitions
         }
         catch (InvalidOperationException ex)
         {
-            throw new ValidationException([new ValidationFailure("Id", ex.Message)]);
+            throw new ValidationException([CodedFailure.Of("Id", ex.Message, ErrorCodes.InvalidTransition)]);
         }
     }
 }

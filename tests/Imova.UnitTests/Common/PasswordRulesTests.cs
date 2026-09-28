@@ -8,12 +8,12 @@ namespace Imova.UnitTests.Common;
 // through each validator that uses it, so none of them can drift from the others.
 public class PasswordRulesTests
 {
-    public static TheoryData<string, string> Rejected => new()
+    public static TheoryData<string, string, string> Rejected => new()
     {
-        { "Ab1!", "at least 8" },
-        { "NoNumbers!!", "number" },
-        { "NoSpecial123", "special" },
-        { "", "must not be empty" },
+        { "Ab1!", "at least 8", "password.tooShort" },
+        { "NoNumbers!!", "number", "password.noNumber" },
+        { "NoSpecial123", "special", "password.noSpecial" },
+        { "", "must not be empty", "NotEmptyValidator" },
     };
 
     [Theory]
@@ -29,7 +29,8 @@ public class PasswordRulesTests
 
     [Theory]
     [MemberData(nameof(Rejected))]
-    public void RejectedPasswords_FailEveryValidator_WithAMessageSayingWhy(string password, string expectedMessagePart)
+    public void RejectedPasswords_FailEveryValidator_WithAMessageAndACodeSayingWhy(
+        string password, string expectedMessagePart, string expectedCode)
     {
         var register = new RegisterValidator().Validate(new RegisterCommand("a@example.com", password, null, "+373 69 123 456"));
         var change = new ChangePasswordValidator().Validate(new ChangePasswordCommand(Guid.NewGuid(), null, password));
@@ -38,5 +39,6 @@ public class PasswordRulesTests
         Assert.Contains(register.Errors, e => e.PropertyName == nameof(RegisterCommand.Password) && e.ErrorMessage.Contains(expectedMessagePart));
         Assert.Contains(change.Errors, e => e.PropertyName == nameof(ChangePasswordCommand.NewPassword) && e.ErrorMessage.Contains(expectedMessagePart));
         Assert.Contains(reset.Errors, e => e.PropertyName == nameof(ResetPasswordCommand.NewPassword) && e.ErrorMessage.Contains(expectedMessagePart));
+        Assert.All([register, change, reset], result => Assert.Contains(result.Errors, e => e.ErrorCode == expectedCode));
     }
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
 using Imova.Contracts.Listings;
@@ -127,6 +128,39 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task Register_WithATakenEmail_ReportsItOnce_WithACode()
+    {
+        var (_, user) = await ListingApi.RegisterAsync(_factory);
+
+        var response = await _factory.CreateClient().PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = user.Email,
+            password = Password,
+            displayName = "Again",
+            phoneNumber = "+373 69 123 456",
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var error = Assert.Single(problem.GetProperty("errorCodes").EnumerateArray());
+        Assert.Equal("identity.DuplicateEmail", error.GetProperty("code").GetString());
+        Assert.Equal("Email", error.GetProperty("field").GetString());
+        Assert.Single(problem.GetProperty("errors").GetProperty("Email").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Login_WithAWrongPassword_Returns401_WithACode()
+    {
+        var (_, user) = await ListingApi.RegisterAsync(_factory);
+
+        var response = await LoginAsync(_factory.CreateClient(), user.Email, "WrongPassword1!");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("auth.invalidCredentials", problem.GetProperty("code").GetString());
+    }
+
+    [Fact]
     public async Task ResendConfirmation_RequiresSignIn()
     {
         var response = await _factory.CreateClient().PostAsync("/api/v1/auth/resend-confirmation", null);
@@ -200,6 +234,7 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
         var blocked = await LoginAsync(client, email, "WrongPassword1");
         Assert.Equal(HttpStatusCode.TooManyRequests, blocked.StatusCode);
         Assert.True(blocked.Headers.Contains("Retry-After"));
+        Assert.Equal("rateLimited", (await blocked.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         // Other endpoints stay reachable.
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health")).StatusCode);

@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
@@ -21,7 +22,7 @@ public class SubmitListingForReviewHandler(IApplicationDbContext dbContext, IBlo
 
         if (!await ReviewEligibility.IsOwnerEmailConfirmedAsync(dbContext, listing, cancellationToken))
         {
-            throw new ForbiddenAccessException(ReviewEligibility.EmailNotConfirmedMessage);
+            throw new ForbiddenAccessException(ReviewEligibility.EmailNotConfirmedMessage, ErrorCodes.EmailNotConfirmed);
         }
 
         ListingTransitions.Apply(listing.SubmitForReview);

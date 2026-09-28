@@ -2,15 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
+import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 async function readActionError(res: Response): Promise<{ error?: string }> {
-  const problem = await res.json().catch(() => null);
-  const message = problem?.errors
-    ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-    : ((problem?.detail as string | undefined) ?? (await getTranslations("AdminModerationPage"))("actionError"));
-  return { error: message };
+  return { error: await apiErrorMessage(res) };
 }
 
 export async function approveListing(listingId: string): Promise<{ error?: string }> {

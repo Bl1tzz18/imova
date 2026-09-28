@@ -1,7 +1,8 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Application.Features.Listings;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -35,5 +36,5 @@ public class ConfirmEmailHandler(UserManager<ApplicationUser> userManager, IAppl
     }
 
     private static ValidationException InvalidLinkError() =>
-        new([new ValidationFailure(nameof(ConfirmEmailCommand.Token), InvalidLink)]);
+        new([CodedFailure.Of(nameof(ConfirmEmailCommand.Token), InvalidLink, ErrorCodes.InvalidLink)]);
 }

@@ -1,7 +1,8 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Contracts.Messaging;
 using Imova.Domain.Listings;
 using Imova.Domain.Messaging;
@@ -35,7 +36,7 @@ public class StartConversationHandler(
         if (publisherUserId == request.UserId)
         {
             throw new ValidationException(
-                [new ValidationFailure(nameof(request.ListingId), "You can't send a message about your own listing.")]);
+                [CodedFailure.Of(nameof(request.ListingId), "You can't send a message about your own listing.", ErrorCodes.OwnListing)]);
         }
 
         var conversation = await dbContext.Conversations
@@ -50,7 +51,9 @@ public class StartConversationHandler(
             if (startedLastHour >= options.MaxNewConversationsPerHour)
             {
                 throw new TooManyRequestsException(
-                    $"You can start at most {options.MaxNewConversationsPerHour} new conversations per hour. Please try again later.");
+                    $"You can start at most {options.MaxNewConversationsPerHour} new conversations per hour. Please try again later.",
+                    ErrorCodes.TooManyConversations,
+                    CodedFailure.Params(("max", options.MaxNewConversationsPerHour)));
             }
 
             conversation = Conversation.Start(listing.Id, request.UserId, publisherUserId, now);

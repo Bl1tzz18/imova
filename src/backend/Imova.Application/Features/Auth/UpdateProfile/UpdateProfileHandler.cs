@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
@@ -14,7 +15,7 @@ public class UpdateProfileHandler(UserManager<ApplicationUser> userManager, IApp
     public async Task<UserProfileDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         user.DisplayName = request.DisplayName;
         user.PhoneNumber = request.PhoneNumber;

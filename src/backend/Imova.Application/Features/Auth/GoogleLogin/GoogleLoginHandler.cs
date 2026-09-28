@@ -25,7 +25,7 @@ public class GoogleLoginHandler(
         var googleUser = await googleTokenValidator.ValidateAsync(request.IdToken, cancellationToken);
         if (googleUser is null)
         {
-            throw new AuthenticationFailedException("Invalid Google token.");
+            throw new AuthenticationFailedException("Invalid Google token.", ErrorCodes.InvalidGoogleToken);
         }
 
         var user = await userManager.FindByEmailAsync(googleUser.Email);

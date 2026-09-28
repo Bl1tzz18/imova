@@ -15,10 +15,10 @@ public static class PasswordRules
     public static IRuleBuilderOptions<T, string> StrongPassword<T>(this IRuleBuilder<T, string> ruleBuilder) =>
         ruleBuilder
             .NotEmpty()
-            .MinimumLength(MinLength)
+            .MinimumLength(MinLength).WithErrorCode(ErrorCodes.PasswordTooShort)
             .MaximumLength(MaxLength)
-            .Must(HasNumber).WithMessage("Password must contain at least one number.")
-            .Must(HasSpecialCharacter).WithMessage("Password must contain at least one special character.");
+            .Must(HasNumber).WithMessage("Password must contain at least one number.").WithErrorCode(ErrorCodes.PasswordNoNumber)
+            .Must(HasSpecialCharacter).WithMessage("Password must contain at least one special character.").WithErrorCode(ErrorCodes.PasswordNoSpecial);
 
     // Same definitions as Identity's RequireDigit / RequireNonAlphanumeric. Null is NotEmpty's to report.
     public static bool HasNumber(string? password) => password is null || password.Any(char.IsDigit);

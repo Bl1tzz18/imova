@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
 import { buildListingPayload } from "@/lib/property/formPayload";
+import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 export type CreateListingState = {
   error?: string;
@@ -39,12 +39,7 @@ export async function createListing(
   });
 
   if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    const message = problem?.errors
-      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : await getTranslations("PropertyForm").then((t) => t("genericError", { status: res.status }));
-
-    return { error: message };
+    return { error: await apiErrorMessage(res) };
   }
 
   const created = (await res.json()) as { status: string };

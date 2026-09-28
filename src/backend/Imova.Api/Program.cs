@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Imova.Api.Common;
 using Imova.Api.Features.Amenities;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
@@ -9,10 +10,9 @@ using Imova.Api.Features.Listings;
 using Imova.Api.Features.Locations;
 using Imova.Api.Features.Media;
 using Imova.Api.Features.Messaging;
+using Imova.Api.Features.Proximities;
 using Imova.Api.Features.Publishers;
 using Imova.Api.Features.Users;
-using Imova.Api.Features.Proximities;
-using Imova.Api.Common;
 using Imova.Application.Common;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
@@ -278,6 +278,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 
+// Every error response carries a language-neutral code next to its English text (ProblemCodes /
+// ErrorCodes) — the web app shows the translated version of the code.
 app.UseExceptionHandler(handler =>
 {
     handler.Run(async context =>
@@ -291,42 +293,31 @@ app.UseExceptionHandler(handler =>
                 .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await Results.ValidationProblem(errors).ExecuteAsync(context);
-            return;
-        }
-
-        if (exception is AuthenticationFailedException authException)
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await Results.Problem(authException.Message, statusCode: StatusCodes.Status401Unauthorized).ExecuteAsync(context);
-            return;
-        }
-
-        // A query string that doesn't bind (e.g. an unknown enum value) is the caller's mistake: 400,
-        // not the 500 an unhandled exception would otherwise become.
-        if (exception is BadHttpRequestException badRequestException)
-        {
-            context.Response.StatusCode = badRequestException.StatusCode;
-            await Results.Problem(badRequestException.Message, statusCode: badRequestException.StatusCode).ExecuteAsync(context);
-            return;
-        }
-
-        if (exception is TooManyRequestsException tooManyRequestsException)
-        {
-            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            await Results.Problem(tooManyRequestsException.Message, statusCode: StatusCodes.Status429TooManyRequests)
+            await Results.ValidationProblem(errors, extensions: ProblemCodes.ForValidation(validationException.Errors))
                 .ExecuteAsync(context);
             return;
         }
 
-        if (exception is ForbiddenAccessException forbiddenException)
+        var (status, detail, code, parameters) = exception switch
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await Results.Problem(forbiddenException.Message, statusCode: StatusCodes.Status403Forbidden).ExecuteAsync(context);
-            return;
+            AuthenticationFailedException e => (StatusCodes.Status401Unauthorized, e.Message, e.Code, null),
+            ForbiddenAccessException e => (StatusCodes.Status403Forbidden, e.Message, e.Code, null),
+            TooManyRequestsException e => (StatusCodes.Status429TooManyRequests, e.Message, e.Code, e.Params),
+            // A query string that doesn't bind (e.g. an unknown enum value) is the caller's mistake:
+            // 400, not the 500 an unhandled exception would otherwise become.
+            BadHttpRequestException e => (e.StatusCode, e.Message, "badRequest", null),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.", "unexpected",
+                (IReadOnlyDictionary<string, object>?)null),
+        };
+
+        if (status == StatusCodes.Status500InternalServerError)
+        {
+            context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("UnhandledException")
+                .LogError(exception, "Unhandled exception for {Method} {Path}", context.Request.Method, context.Request.Path);
         }
 
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.StatusCode = status;
+        await Results.Problem(detail, statusCode: status, extensions: ProblemCodes.For(code, parameters)).ExecuteAsync(context);
     });
 });
 

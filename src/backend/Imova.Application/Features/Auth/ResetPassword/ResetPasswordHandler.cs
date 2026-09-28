@@ -1,7 +1,8 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Application.Features.Listings;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -31,8 +32,8 @@ public class ResetPasswordHandler(UserManager<ApplicationUser> userManager, IApp
                 throw InvalidLinkError();
             }
 
-            throw new ValidationException(result.Errors.Select(e =>
-                new ValidationFailure(nameof(ResetPasswordCommand.NewPassword), e.Description)));
+            throw new ValidationException(IdentityFailures.From(
+                result.Errors, emailField: nameof(ResetPasswordCommand.Email), passwordField: nameof(ResetPasswordCommand.NewPassword)));
         }
 
         // A reset is also the way out of a sign-in lockout (see LoginHandler).
@@ -49,5 +50,5 @@ public class ResetPasswordHandler(UserManager<ApplicationUser> userManager, IApp
     }
 
     private static ValidationException InvalidLinkError() =>
-        new([new ValidationFailure(nameof(ResetPasswordCommand.Token), InvalidLink)]);
+        new([CodedFailure.Of(nameof(ResetPasswordCommand.Token), InvalidLink, ErrorCodes.InvalidLink)]);
 }

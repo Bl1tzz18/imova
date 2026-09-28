@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
 import { buildListingPayload } from "@/lib/property/formPayload";
 import type { Photo } from "@/types/listing";
+import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 export async function setFavorite(listingId: string, saved: boolean, next: string): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
@@ -20,7 +21,7 @@ export async function setFavorite(listingId: string, saved: boolean, next: strin
   });
 
   if (!res.ok) {
-    return { error: `Request failed (${res.status})` };
+    return { error: await apiErrorMessage(res) };
   }
 
   revalidatePath("/saved-listings");
@@ -43,11 +44,7 @@ async function postListingStatusAction(
   });
 
   if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    const message = problem?.errors
-      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : ((problem?.detail as string | undefined) ?? (await getTranslations("MyListingsPage"))("actionError"));
-    return { error: message };
+    return { error: await apiErrorMessage(res) };
   }
 
   revalidatePath("/my-listings");
@@ -92,11 +89,7 @@ export async function updateListingDetails(
   });
 
   if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    const message = problem?.errors
-      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : await getTranslations("PropertyForm").then((t) => t("genericError", { status: res.status }));
-    return { error: message };
+    return { error: await apiErrorMessage(res) };
   }
 
   // Photos the owner removed on this edit page (ImageUploader, deferDeletes mode) are only
@@ -126,7 +119,7 @@ export async function deleteListingPhoto(listingId: string, mediaId: string): Pr
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    return { error: "Not authenticated." };
+    return { error: (await getTranslations("Errors"))("status.401") };
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/media/${mediaId}`, {
@@ -135,7 +128,7 @@ export async function deleteListingPhoto(listingId: string, mediaId: string): Pr
   });
 
   if (!res.ok && res.status !== 404) {
-    return { error: `Request failed (${res.status})` };
+    return { error: await apiErrorMessage(res) };
   }
 
   revalidatePath(`/my-listings/${listingId}/edit`);
@@ -152,7 +145,7 @@ async function postPhotoCall<T>(path: string, body: unknown): Promise<PhotoActio
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    return { error: "Not authenticated." };
+    return { error: (await getTranslations("Errors"))("status.401") };
   }
 
   const res = await fetch(`${apiUrl}${path}`, {
@@ -162,11 +155,7 @@ async function postPhotoCall<T>(path: string, body: unknown): Promise<PhotoActio
   });
 
   if (!res.ok) {
-    const problem = await res.json().catch(() => null);
-    const message = problem?.errors
-      ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-      : ((problem?.detail as string | undefined) ?? `Request failed (${res.status})`);
-    return { error: message };
+    return { error: await apiErrorMessage(res) };
   }
 
   return { data: (await res.json()) as T };

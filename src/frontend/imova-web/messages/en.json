@@ -240,7 +240,6 @@
     "draftNotice": "Once you publish, your listing is sent for review and will go live as soon as it's approved — usually shortly after.",
     "publish": "Publish listing",
     "saving": "Saving...",
-    "genericError": "Error while saving ({status}).",
     "sectionPhotos": "Photos",
     "addPhotos": "Add photos",
     "photoHint": "JPEG, PNG, WebP, GIF, BMP or HEIC, max 10MB per photo",
@@ -395,7 +394,6 @@
     "agencyPrompt": "Have an agency?",
     "agencyCta": "Publish listings as a professional",
     "orDivider": "or",
-    "genericError": "Something went wrong. Please try again.",
     "passwordMismatch": "Passwords don't match.",
     "forgotPasswordTitle": "Forgot your password?",
     "forgotPasswordSubtitle": "Enter your account's email address and we'll send you a link to choose a new password.",
@@ -411,7 +409,6 @@
     "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
     "requestNewLink": "Request a new link",
     "passwordResetDone": "Your password was changed. Sign in with the new one.",
-    "tooManyAttempts": "Too many attempts. Wait a few minutes and try again, or reset your password.",
     "confirmLinkInvalid": "This confirmation link is invalid or has expired.",
     "confirmSuccessTitle": "Email address confirmed",
     "confirmSuccessBody": "Thank you! Your listings saved as drafts have been sent for review.",
@@ -491,7 +488,6 @@
     "deactivateConfirmYes": "Yes, deactivate",
     "deactivateConfirmCancel": "Cancel",
     "activate": "Activate",
-    "actionError": "Something went wrong. Please try again.",
     "resultsCount": "{count, plural, one {# listing} other {# listings}}",
     "emptyTitle": "You haven't listed anything yet",
     "emptyBody": "Publish your first listing and it'll show up here.",
@@ -525,8 +521,7 @@
     "reasonPlaceholder": "Explain why this listing is being rejected...",
     "confirmReject": "Confirm rejection",
     "cancel": "Cancel",
-    "reasonRequired": "A reason is required.",
-    "actionError": "Something went wrong. Please try again."
+    "reasonRequired": "A reason is required."
   },
   "Condition": {
     "New": "New",
@@ -945,7 +940,6 @@
     "sendReport": "Send report",
     "reported": "Thanks — the IMOVA team will review the report.",
     "loginRequired": "Log in to send messages.",
-    "genericError": "Something went wrong. Please try again.",
     "moreActions": "More actions",
     "today": "Today",
     "yesterday": "Yesterday",
@@ -978,5 +972,122 @@
     "noResolvedReports": "No resolved reports yet.",
     "noActiveFlagged": "No flagged messages to review.",
     "noResolvedFlagged": "No resolved flagged messages yet."
+  },
+  "Errors": {
+    "codes": {
+      "auth": {
+        "failed": "Sign-in failed. Please try again.",
+        "invalidCredentials": "Wrong email or password.",
+        "lockedOut": "Too many failed attempts. Try again in a few minutes, or reset your password.",
+        "invalidGoogleToken": "Google sign-in failed. Please try again.",
+        "userNotFound": "Your session has expired. Please sign in again.",
+        "emailThrottled": "We just sent you an email. Wait a minute before asking for another one."
+      },
+      "link": {
+        "invalid": "This link is invalid or has expired. Request a new one."
+      },
+      "phone": {
+        "invalid": "The phone number isn't valid (e.g. +373 69 123 456)."
+      },
+      "password": {
+        "tooShort": "The password must have at least 8 characters.",
+        "noNumber": "The password must contain at least one number.",
+        "noSpecial": "The password must contain at least one special character.",
+        "currentRequired": "Enter your current password."
+      },
+      "identity": {
+        "DuplicateEmail": "An account with this email address already exists.",
+        "DuplicateUserName": "An account with this email address already exists.",
+        "InvalidEmail": "The email address isn't valid.",
+        "InvalidUserName": "The email address isn't valid.",
+        "PasswordMismatch": "Your current password is wrong.",
+        "PasswordTooShort": "The password must have at least 8 characters.",
+        "PasswordRequiresDigit": "The password must contain at least one number.",
+        "PasswordRequiresNonAlphanumeric": "The password must contain at least one special character.",
+        "InvalidToken": "This link is invalid or has expired. Request a new one.",
+        "UserAlreadyHasPassword": "This account already has a password."
+      },
+      "forbidden": "You don't have permission to do this.",
+      "tooManyRequests": "Too many requests. Please try again a little later.",
+      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "badRequest": "The request isn't valid.",
+      "unexpected": "Something unexpected went wrong. Please try again.",
+      "listing": {
+        "emailNotConfirmed": "Confirm your email address before sending the listing for review.",
+        "invalidTransition": "This action isn't possible for the listing's current status.",
+        "streetRequired": "Enter the street."
+      },
+      "contact": {
+        "nameRequired": "Enter the contact person's name.",
+        "emailRequired": "Enter the contact person's email (or a valid phone number).",
+        "hiddenPhoneNeedsMessages": "With a hidden phone number, contact happens only through messages on the platform.",
+        "callHoursInvalid": "Call hours must be between 06:00 and 23:00, with the start before the end."
+      },
+      "upload": {
+        "notFound": "The file didn't reach the server. Try uploading it again.",
+        "tooLarge": "The file exceeds the {maxMb} MB limit.",
+        "notAnImage": "The file isn't a supported image (JPEG, PNG, WebP, GIF, BMP, HEIC).",
+        "notYours": "One of the images doesn't belong to you."
+      },
+      "messaging": {
+        "banned": "You can no longer send messages: your account has been restricted.",
+        "blockedByRecipient": "This user has blocked you — you can't send them messages.",
+        "youBlocked": "You've blocked this user. Unblock them to write to them.",
+        "ownListing": "You can't send a message about your own listing.",
+        "tooManyConversations": "You can start at most {max} new conversations per hour. Try again later."
+      },
+      "message": {
+        "empty": "Write a message or attach at least one image.",
+        "tooLong": "A message can have at most {max} characters.",
+        "tooManyImages": "You can attach at most {max} images."
+      },
+      "report": {
+        "detailsRequired": "Describe the problem."
+      },
+      "publisher": {
+        "agencyExists": "Your account already has an agency."
+      }
+    },
+    "validation": {
+      "required": "“{field}” is required.",
+      "tooLong": "“{field}” can have at most {max} characters.",
+      "tooShort": "“{field}” must have at least {min} characters.",
+      "email": "“{field}” must be a valid email address.",
+      "invalid": "“{field}” isn't valid.",
+      "generic": "Some of the data isn't valid. Check the form and try again."
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "currentPassword": "Current password",
+      "displayName": "Name",
+      "name": "Name",
+      "phoneNumber": "Phone number",
+      "phone": "Phone",
+      "title": "Title",
+      "description": "Description",
+      "price": "Price",
+      "currency": "Currency",
+      "totalAreaM2": "Area",
+      "yearBuilt": "Year built",
+      "streetAddress": "Street",
+      "raionId": "District / Municipality",
+      "localitateId": "Locality",
+      "body": "Message",
+      "reason": "Reason",
+      "details": "Details",
+      "fileExtension": "File type"
+    },
+    "status": {
+      "400": "The data sent isn't valid.",
+      "401": "You need to sign in.",
+      "403": "You don't have permission to do this.",
+      "404": "We couldn't find what you were looking for.",
+      "413": "The file is too large.",
+      "429": "Too many attempts. Wait a moment and try again.",
+      "500": "Something went wrong on the server. Please try again.",
+      "default": "Something went wrong. Please try again."
+    }
   }
 }

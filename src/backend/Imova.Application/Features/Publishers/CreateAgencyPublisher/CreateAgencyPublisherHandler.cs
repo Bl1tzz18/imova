@@ -1,7 +1,8 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Contracts.Publishers;
 using Imova.Domain.Publishers;
 using MediatR;
@@ -15,7 +16,7 @@ public class CreateAgencyPublisherHandler(IApplicationDbContext dbContext)
     public async Task<PublisherDto> Handle(CreateAgencyPublisherCommand request, CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken)
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         // One agency per user (also enforced by a unique index) — surfaced as a validation error
         // rather than a raw constraint violation.
@@ -24,7 +25,7 @@ public class CreateAgencyPublisherHandler(IApplicationDbContext dbContext)
         if (alreadyHasAgency)
         {
             throw new ValidationException(
-                [new ValidationFailure(nameof(CreateAgencyPublisherCommand.UserId), "This account already has an agency publisher.")]);
+                [CodedFailure.Of(nameof(CreateAgencyPublisherCommand.UserId), "This account already has an agency publisher.", ErrorCodes.AgencyExists)]);
         }
 
         var publisher = Publisher.CreateAgency(

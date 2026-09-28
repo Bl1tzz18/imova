@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { fetchGoogleClientId } from "@/lib/api/authConfig";
 import { googleLogin } from "@/lib/auth/actions";
 
@@ -49,6 +49,7 @@ function loadGoogleScript(): Promise<void> {
 // mount instead, so it's correct however the user arrives at the page.
 export function GoogleSignInButton({ next }: { next?: string }) {
   const t = useTranslations("Auth");
+  const locale = useLocale();
   const buttonRef = useRef<HTMLDivElement>(null);
   const [clientId, setClientId] = useState("");
   const [scriptReady, setScriptReady] = useState(false);
@@ -81,9 +82,11 @@ export function GoogleSignInButton({ next }: { next?: string }) {
       size: "large",
       width: 336,
       text: "continue_with",
+      // Google renders the button in its own guess of the language unless told the site's.
+      locale,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientId, scriptReady]);
+  }, [clientId, scriptReady, locale]);
 
   function handleCredential(response: { credential: string }) {
     startTransition(async () => {

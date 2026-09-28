@@ -1,7 +1,7 @@
 using FluentValidation;
-using FluentValidation.Results;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Domain.Listings;
 using Imova.Domain.Messaging;
 
@@ -21,7 +21,7 @@ public static class MessageAttachments
         var names = (blobNames ?? []).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().ToList();
         if (names.Count > Message.MaxAttachments)
         {
-            throw Invalid($"A message can have at most {Message.MaxAttachments} images.");
+            throw Invalid($"A message can have at most {Message.MaxAttachments} images.", ErrorCodes.TooManyImages, CodedFailure.Params(("max", Message.MaxAttachments)));
         }
 
         var ownPrefix = $"messages/{senderUserId}/";
@@ -30,19 +30,19 @@ public static class MessageAttachments
         {
             if (!name.StartsWith(ownPrefix, StringComparison.Ordinal) || name.Contains(".."))
             {
-                throw Invalid("An attachment doesn't belong to you.");
+                throw Invalid("An attachment doesn't belong to you.", ErrorCodes.UploadNotYours);
             }
 
             var info = await blobStorageService.TryGetMessageAttachmentInfoAsync(name, cancellationToken)
-                ?? throw Invalid("An image was not found in storage — the upload may not have completed.");
+                ?? throw Invalid("An image was not found in storage — the upload may not have completed.", ErrorCodes.UploadNotFound);
 
             if (info.SizeBytes > Photo.MaxFileSizeBytes)
             {
-                throw Invalid($"An image exceeds the {Photo.MaxFileSizeBytes / (1024 * 1024)}MB limit.");
+                throw Invalid($"An image exceeds the {Photo.MaxFileSizeBytes / (1024 * 1024)}MB limit.", ErrorCodes.UploadTooLarge, CodedFailure.Params(("maxMb", Photo.MaxFileSizeBytes / (1024 * 1024))));
             }
 
             var contentType = ImageSignature.DetectContentType(info.LeadingBytes)
-                ?? throw Invalid("An attachment is not a recognized image format (JPEG, PNG, WebP).");
+                ?? throw Invalid("An attachment is not a recognized image format (JPEG, PNG, WebP).", ErrorCodes.UploadNotAnImage);
 
             attachments.Add(new MessageAttachment(name, contentType, info.SizeBytes));
         }
@@ -50,6 +50,6 @@ public static class MessageAttachments
         return attachments;
     }
 
-    private static ValidationException Invalid(string message) =>
-        new([new ValidationFailure("AttachmentBlobNames", message)]);
+    private static ValidationException Invalid(string message, string code, IReadOnlyDictionary<string, object>? parameters = null) =>
+        new([CodedFailure.Of("AttachmentBlobNames", message, code, parameters)]);
 }

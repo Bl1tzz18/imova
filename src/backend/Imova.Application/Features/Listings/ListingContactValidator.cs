@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common;
 using Imova.Application.Common.Validation;
 using Imova.Domain.Listings;
 
@@ -16,14 +17,14 @@ public class ListingContactValidator : AbstractValidator<ListingContact>
         RuleFor(c => c.Phone).Cascade(CascadeMode.Stop).ValidPhoneNumber();
 
         RuleFor(c => c.Name)
-            .NotEmpty().WithMessage("Contact name is required when the contact is another person.")
+            .NotEmpty().WithMessage("Contact name is required when the contact is another person.").WithErrorCode(ErrorCodes.ContactNameRequired)
             .When(c => c.PersonType == ContactPersonType.Other);
         RuleFor(c => c.Name).MaximumLength(100);
 
         // Another person needs some way to be reached: an email becomes required when their phone
         // is missing or invalid (which the Phone rule reports too).
         RuleFor(c => c.Email)
-            .NotEmpty().WithMessage("Contact email is required when the contact is another person without a valid phone number.")
+            .NotEmpty().WithMessage("Contact email is required when the contact is another person without a valid phone number.").WithErrorCode(ErrorCodes.ContactEmailRequired)
             .When(c => c.PersonType == ContactPersonType.Other && !HasValidPhone(c));
         RuleFor(c => c.Email)
             .EmailAddress()
@@ -35,13 +36,13 @@ public class ListingContactValidator : AbstractValidator<ListingContact>
         RuleFor(c => c.PreferredContactMethod).IsInEnum();
         RuleFor(c => c.PreferredContactMethod)
             .Equal(PreferredContactMethod.PlatformMessages)
-            .WithMessage("A hidden phone number can only be contacted through platform messages.")
+            .WithMessage("A hidden phone number can only be contacted through platform messages.").WithErrorCode(ErrorCodes.HiddenPhoneNeedsMessages)
             .When(c => c.HidePhoneNumber);
 
         // Picked from two dropdowns (ListingContact.CallHourSlots), so anything else is a bad request.
         RuleFor(c => c)
             .Must(c => ListingContact.IsValidCallHourRange(Blank(c.CallHoursFrom), Blank(c.CallHoursTo)))
-            .WithMessage("Call hours must be two half-hour times between 06:00 and 23:00, the start before the end.")
+            .WithMessage("Call hours must be two half-hour times between 06:00 and 23:00, the start before the end.").WithErrorCode(ErrorCodes.CallHoursInvalid)
             .OverridePropertyName(nameof(ListingContact.CallHoursFrom))
             // Dropped anyway (ListingContact.Normalized) when visitors can't call.
             .When(c => c.AllowsCalls());

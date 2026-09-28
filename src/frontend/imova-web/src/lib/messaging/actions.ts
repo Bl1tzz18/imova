@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Message, ReportReason } from "@/types/messaging";
+import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 // Messaging calls made from client components. They run on the server so the session token (an
 // httpOnly cookie) is never exposed to browser code.
@@ -21,15 +22,10 @@ async function call(path: string, init: RequestInit = {}): Promise<Response | nu
   });
 }
 
-// The API's own message (validation errors, "blocked", rate limit, ...) when it has one.
+// The API's error ("blocked", rate limit, validation, ...) in the current UI language.
 async function errorFrom(res: Response | null): Promise<{ error: string }> {
-  const t = await getTranslations("Messages");
-  if (!res) return { error: t("loginRequired") };
-  const problem = await res.json().catch(() => null);
-  const message = problem?.errors
-    ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-    : (problem?.detail as string | undefined);
-  return { error: message || t("genericError") };
+  if (!res) return { error: (await getTranslations("Messages"))("loginRequired") };
+  return { error: await apiErrorMessage(res) };
 }
 
 export async function startConversation(

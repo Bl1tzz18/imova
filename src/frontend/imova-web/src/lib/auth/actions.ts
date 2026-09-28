@@ -2,9 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getTranslations } from "next-intl/server";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { clearSessionCookie, getSessionToken, setSessionCookie } from "@/lib/auth/session";
+import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 export type AuthFormState = { error?: string; success?: boolean };
 
@@ -20,18 +20,9 @@ type AuthResponseBody = {
   user: { requiresPhoneNumber: boolean };
 };
 
+// Translated into the current UI language from the API's error code (see lib/api/problem.ts).
 async function readAuthError(res: Response): Promise<AuthFormState> {
-  // Rate limit, sign-in lockout, "wait before another email" — the API's text is English only.
-  if (res.status === 429) {
-    return { error: (await getTranslations("Auth"))("tooManyAttempts") };
-  }
-
-  const problem = await res.json().catch(() => null);
-  const message = problem?.errors
-    ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
-    : ((problem?.detail as string | undefined) ?? (await getTranslations("Auth"))("genericError"));
-
-  return { error: message };
+  return { error: await apiErrorMessage(res) };
 }
 
 async function completeSignIn(res: Response, next: string): Promise<AuthFormState> {
@@ -203,11 +194,6 @@ export async function resetPassword(_prevState: AuthFormState, formData: FormDat
   });
 
   if (!res.ok) {
-    // A bad or expired link comes back as a "Token" validation error.
-    const problem = res.status === 400 ? await res.clone().json().catch(() => null) : null;
-    if (problem?.errors?.Token) {
-      return { error: (await getTranslations("Auth"))("resetLinkInvalid") };
-    }
     return readAuthError(res);
   }
 
@@ -227,7 +213,7 @@ export async function confirmEmail(userId: string, token: string): Promise<AuthF
   });
 
   if (!res.ok) {
-    return res.status === 400 ? { error: (await getTranslations("Auth"))("confirmLinkInvalid") } : readAuthError(res);
+    return readAuthError(res);
   }
 
   // No revalidatePath here: it isn't allowed during a render, and the pages it would refresh

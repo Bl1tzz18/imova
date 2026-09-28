@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Domain.Messaging;
@@ -28,17 +29,17 @@ public static class MessagingAccess
         var banned = await dbContext.Users.AnyAsync(u => u.Id == senderUserId && u.IsBannedFromMessaging, cancellationToken);
         if (banned)
         {
-            throw new ForbiddenAccessException("You have been banned from sending messages.");
+            throw new ForbiddenAccessException("You have been banned from sending messages.", ErrorCodes.MessagingBanned);
         }
 
         if (await IsBlockedAsync(dbContext, recipientUserId, senderUserId, cancellationToken))
         {
-            throw new ForbiddenAccessException("This user has blocked you — you can't send them messages.");
+            throw new ForbiddenAccessException("This user has blocked you — you can't send them messages.", ErrorCodes.BlockedByRecipient);
         }
 
         if (await IsBlockedAsync(dbContext, senderUserId, recipientUserId, cancellationToken))
         {
-            throw new ForbiddenAccessException("You have blocked this user — unblock them to send messages.");
+            throw new ForbiddenAccessException("You have blocked this user — unblock them to send messages.", ErrorCodes.YouBlocked);
         }
     }
 
