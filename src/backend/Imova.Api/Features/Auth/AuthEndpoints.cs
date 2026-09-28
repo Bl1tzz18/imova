@@ -5,6 +5,8 @@ using Imova.Api.Features.Auth.ForgotPassword;
 using Imova.Api.Features.Auth.GetProfile;
 using Imova.Api.Features.Auth.GoogleLogin;
 using Imova.Api.Features.Auth.Login;
+using Imova.Api.Features.Auth.Logout;
+using Imova.Api.Features.Auth.RefreshSession;
 using Imova.Api.Features.Auth.Register;
 using Imova.Api.Features.Auth.ResendConfirmation;
 using Imova.Api.Features.Auth.ResetPassword;
@@ -31,5 +33,7 @@ public static class AuthEndpoints
         app.MapConfirmEmail();
         app.MapResendConfirmation();
         app.MapSignOutOtherSessions();
+        app.MapRefreshSession();
+        app.MapLogout();
     }
 }

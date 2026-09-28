@@ -6,8 +6,11 @@ namespace Imova.UnitTests.Auth;
 
 public class LoginHandlerTests
 {
-    private static LoginHandler CreateHandler(FakeUserStore store) =>
-        new(TestUserManagerFactory.Create(store), new FakeJwtTokenGenerator());
+    private static LoginHandler CreateHandler(FakeUserStore store)
+    {
+        var userManager = TestUserManagerFactory.Create(store);
+        return new(userManager, TestSessions.For(userManager));
+    }
 
     [Fact]
     public async Task Handle_WithCorrectCredentials_ReturnsAuthResult()
@@ -20,6 +23,22 @@ public class LoginHandlerTests
 
         Assert.Equal(user.Id, result.User.Id);
         Assert.Equal("user@example.com", result.User.Email);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Handle_StartsASessionThatFollowsRememberMe(bool rememberMe)
+    {
+        var store = new FakeUserStore();
+        store.SeedUserWithPassword("user@example.com", "CorrectPassword1");
+
+        var result = await CreateHandler(store).Handle(
+            new LoginCommand("user@example.com", "CorrectPassword1", rememberMe), CancellationToken.None);
+
+        Assert.Equal(rememberMe, result.Persistent);
+        Assert.NotEmpty(result.RefreshToken);
+        Assert.Equal("fake-token", result.Token);
     }
 
     [Fact]

@@ -2,7 +2,7 @@ using FluentValidation;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
-using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Common.Validation;
 using Imova.Contracts.Auth;
 using MediatR;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Imova.Application.Features.Auth.ChangePassword;
 
-public class ChangePasswordHandler(UserManager<ApplicationUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
+public class ChangePasswordHandler(UserManager<ApplicationUser> userManager, AuthSessions authSessions)
     : IRequestHandler<ChangePasswordCommand, ChangePasswordResultDto>
 {
     public async Task<ChangePasswordResultDto> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -51,13 +51,13 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager, IJw
                 currentPasswordField: nameof(ChangePasswordCommand.CurrentPassword)));
         }
 
-        // Identity has already changed the security stamp, so this token (unlike every older one) is valid.
+        // Identity has already changed the security stamp: every session is signed out, and this one
+        // continues with tokens made from the new stamp.
         var roles = (await userManager.GetRolesAsync(user)).ToList();
-        var token = jwtTokenGenerator.GenerateToken(user, roles);
+        var session = await authSessions.ContinueAsync(user, request.SessionId, cancellationToken);
         return new ChangePasswordResultDto(
             new UserProfileDto(
                 user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true, user.EmailConfirmed),
-            token.Value,
-            token.ExpiresAt);
+            session);
     }
 }

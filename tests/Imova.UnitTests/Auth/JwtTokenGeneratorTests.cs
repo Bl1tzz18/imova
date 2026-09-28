@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Infrastructure.Identity;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,6 +25,8 @@ public class JwtTokenGeneratorTests
         SecurityStamp = "stamp-1",
     };
 
+    private static readonly Guid SessionId = Guid.NewGuid();
+
     private static TokenValidationParameters ValidationParameters(SecurityKey? signingKeyOverride = null, string? audienceOverride = null) => new()
     {
         ValidIssuer = Options.Issuer,
@@ -41,7 +44,7 @@ public class JwtTokenGeneratorTests
         var generator = new JwtTokenGenerator(Options);
         var user = TestUser();
 
-        var token = generator.GenerateToken(user, new List<string> { "User" });
+        var token = generator.GenerateToken(user, new List<string> { "User" }, SessionId);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token.Value);
 
         Assert.Equal(user.Id.ToString(), jwt.Claims.Single(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
@@ -51,6 +54,7 @@ public class JwtTokenGeneratorTests
         Assert.Equal(Options.Issuer, jwt.Issuer);
         Assert.Equal(Options.Audience, jwt.Audiences.Single());
         Assert.Equal(SessionStamp.For("stamp-1"), jwt.Claims.Single(c => c.Type == SessionStamp.ClaimType).Value);
+        Assert.Equal(SessionId.ToString(), jwt.Claims.Single(c => c.Type == AuthSessions.SessionIdClaim).Value);
     }
 
     [Fact]
@@ -60,7 +64,7 @@ public class JwtTokenGeneratorTests
         var user = TestUser();
         user.DisplayName = null;
 
-        var token = generator.GenerateToken(user, []);
+        var token = generator.GenerateToken(user, [], SessionId);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token.Value);
 
         Assert.Equal(user.Email, jwt.Claims.Single(c => c.Type == "name").Value);
@@ -71,7 +75,7 @@ public class JwtTokenGeneratorTests
     {
         var generator = new JwtTokenGenerator(Options);
 
-        var token = generator.GenerateToken(TestUser(), new List<string> { "User", "Admin" });
+        var token = generator.GenerateToken(TestUser(), new List<string> { "User", "Admin" }, SessionId);
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token.Value);
 
         var roleValues = jwt.Claims.Where(c => c.Type == "role").Select(c => c.Value).ToList();
@@ -84,7 +88,7 @@ public class JwtTokenGeneratorTests
         var generator = new JwtTokenGenerator(Options);
         var before = DateTimeOffset.UtcNow;
 
-        var token = generator.GenerateToken(TestUser(), []);
+        var token = generator.GenerateToken(TestUser(), [], SessionId);
 
         var expectedExpiry = before.AddMinutes(Options.ExpiryMinutes);
         Assert.True(Math.Abs((token.ExpiresAt - expectedExpiry).TotalSeconds) < 5);
@@ -96,7 +100,7 @@ public class JwtTokenGeneratorTests
         var generator = new JwtTokenGenerator(Options);
         var user = TestUser();
 
-        var token = generator.GenerateToken(user, new List<string> { "User" });
+        var token = generator.GenerateToken(user, new List<string> { "User" }, SessionId);
 
         // Mirrors Program.cs's JwtBearerOptions.MapInboundClaims = false, without which the
         // handler remaps short claim names ("sub") to their long ClaimTypes.* equivalents.
@@ -110,7 +114,7 @@ public class JwtTokenGeneratorTests
     public void GenerateToken_FailsValidation_WhenSigningKeyDoesNotMatch()
     {
         var generator = new JwtTokenGenerator(Options);
-        var token = generator.GenerateToken(TestUser(), []);
+        var token = generator.GenerateToken(TestUser(), [], SessionId);
         var wrongKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("a-completely-different-signing-key-value"));
 
         Assert.Throws<SecurityTokenSignatureKeyNotFoundException>(
@@ -121,7 +125,7 @@ public class JwtTokenGeneratorTests
     public void GenerateToken_FailsValidation_WhenAudienceDoesNotMatch()
     {
         var generator = new JwtTokenGenerator(Options);
-        var token = generator.GenerateToken(TestUser(), []);
+        var token = generator.GenerateToken(TestUser(), [], SessionId);
 
         Assert.Throws<SecurityTokenInvalidAudienceException>(
             () => new JwtSecurityTokenHandler().ValidateToken(token.Value, ValidationParameters(audienceOverride: "some-other-audience"), out _));

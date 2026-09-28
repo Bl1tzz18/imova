@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
@@ -11,7 +12,7 @@ namespace Imova.Application.Features.Auth.Register;
 
 public class RegisterHandler(
     UserManager<ApplicationUser> userManager,
-    IJwtTokenGenerator jwtTokenGenerator,
+    AuthSessions authSessions,
     IApplicationDbContext dbContext,
     AccountEmails accountEmails,
     ILogger<RegisterHandler> logger)
@@ -54,18 +55,8 @@ public class RegisterHandler(
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
-        var token = jwtTokenGenerator.GenerateToken(user, roles);
-        return new AuthResultDto(
-            token.Value,
-            token.ExpiresAt,
-            new AuthUserDto(
-                user.Id,
-                user.Email!,
-                user.DisplayName,
-                roles,
-                string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl,
-                user.EmailConfirmed));
+        var session = await authSessions.StartAsync(user, persistent: true, cancellationToken);
+        return AuthResults.For(user, roles, session);
     }
 
 }

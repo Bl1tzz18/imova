@@ -4,6 +4,7 @@ using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Publishers;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +15,7 @@ namespace Imova.Application.Features.Auth.GoogleLogin;
 public class GoogleLoginHandler(
     IGoogleTokenValidator googleTokenValidator,
     UserManager<ApplicationUser> userManager,
-    IJwtTokenGenerator jwtTokenGenerator,
+    AuthSessions authSessions,
     IExternalImageFetcher externalImageFetcher,
     IBlobStorageService blobStorageService,
     IApplicationDbContext dbContext,
@@ -73,19 +74,8 @@ public class GoogleLoginHandler(
         }
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
-        var token = jwtTokenGenerator.GenerateToken(user, roles);
-
-        return new AuthResultDto(
-            token.Value,
-            token.ExpiresAt,
-            new AuthUserDto(
-                user.Id,
-                user.Email!,
-                user.DisplayName,
-                roles,
-                string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl,
-                user.EmailConfirmed));
+        var session = await authSessions.StartAsync(user, persistent: true, cancellationToken);
+        return AuthResults.For(user, roles, session);
     }
 
     // Never throws — a failure here (Google's URL is unreachable/expired, an unrecognized image
