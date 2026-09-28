@@ -73,6 +73,9 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
           <Link href="/saved-listings" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
             {t("savedListings")}
           </Link>
+          <Link href="/saved-searches" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+            {t("savedSearches")}
+          </Link>
           <Link href="/account" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
             {t("accountSettings")}
           </Link>

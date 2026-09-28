@@ -16,7 +16,8 @@
     "moderationQueue": "Moderation queue",
     "accountSettings": "Account settings",
     "messages": "Messages",
-    "messagingReports": "Reported messages"
+    "messagingReports": "Reported messages",
+    "savedSearches": "Saved searches"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -1046,6 +1047,9 @@
       },
       "publisher": {
         "agencyExists": "Your account already has an agency."
+      },
+      "savedSearch": {
+        "limitReached": "You can save at most {max} searches. Delete one to save another."
       }
     },
     "validation": {
@@ -1089,5 +1093,45 @@
       "500": "Something went wrong on the server. Please try again.",
       "default": "Something went wrong. Please try again."
     }
+  },
+  "SavedSearches": {
+    "save": "Save this search",
+    "saveSubmit": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "nameLabel": "Name",
+    "alertLabel": "Email alerts",
+    "frequency": {
+      "Off": "No alerts",
+      "Daily": "Once a day",
+      "Instant": "Instantly"
+    },
+    "saved": "Search saved.",
+    "savedNoAlerts": "You'll find it anytime in your saved searches.",
+    "savedWithAlerts": {
+      "Daily": "We'll email you new listings once a day.",
+      "Instant": "We'll email you new listings as soon as they appear."
+    },
+    "viewAll": "View saved searches",
+    "title": "Saved searches",
+    "subtitle": "Come back to your searches and get new listings by email.",
+    "emptyTitle": "You have no saved searches",
+    "emptyBody": "Search for listings and press “Save this search” to come back to them and get alerts for new listings.",
+    "startSearching": "Search listings",
+    "newCount": "{count, plural, other {# new}}",
+    "filterCount": "{count, plural, one {# filter} other {# filters}}",
+    "open": "Open",
+    "rename": "Rename",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this search?",
+    "deleteYes": "Yes, delete",
+    "alertsNeedConfirmedEmail": "Email alerts are only sent once you confirm your email address.",
+    "unsubscribedTitle": "Alerts turned off",
+    "unsubscribedBody": "You won't get emails for “{name}” anymore. The search stays saved — you can turn alerts back on anytime.",
+    "unsubscribeGoneTitle": "This search no longer exists",
+    "unsubscribeGoneBody": "This saved search was deleted, so you won't get emails for it anymore.",
+    "unsubscribeInvalidTitle": "Invalid link",
+    "unsubscribeInvalidBody": "This link isn't valid. You can turn alerts off from your saved searches page.",
+    "manage": "Manage saved searches"
   }
 }

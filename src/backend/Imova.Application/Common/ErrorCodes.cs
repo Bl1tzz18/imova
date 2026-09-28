@@ -57,6 +57,9 @@ public static class ErrorCodes
     public const string TooManyImages = "message.tooManyImages";
     public const string ReportDetailsRequired = "report.detailsRequired";
 
+    // --- Saved searches ---
+    public const string SavedSearchLimit = "savedSearch.limitReached";
+
     // --- Publishers ---
     public const string AgencyExists = "publisher.agencyExists";
 }

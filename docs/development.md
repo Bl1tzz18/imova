@@ -131,3 +131,18 @@ then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Win
 - **Photo uploads** need a signed-in owner: `upload-url`/`confirm` go through the web app's server
   actions (`requestPhotoUploadUrl`/`confirmPhotoUpload`), only the file PUT to storage is done by the
   browser. Before a listing exists, the first user to upload under its id owns that id.
+
+## Worker (background jobs)
+
+`Imova.Worker` runs next to the API (compose service `worker`, same database and email settings)
+and hosts scheduled jobs — for now the saved-search alert emails (`SavedSearchAlerts`). It never
+runs migrations; it starts after the backend and simply retries a failed run on its next tick.
+
+- Interval: `SavedSearchAlerts:IntervalSeconds` (default 300; compose sets 60 so "instant" alerts
+  are quick to try). Alert emails land in Mailpit locally.
+- It shares the API's data-protection key ring (`ApplicationName` "Imova.Api" + the
+  `DataProtectionKeys` table), so the unsubscribe links it puts in emails verify in the API.
+- After changing Application/Infrastructure code, rebuild it too:
+  `docker compose up -d --build backend worker`.
+- Run it outside Docker with `dotnet run --project src/backend/Imova.Worker` and a
+  `ConnectionStrings:Default` pointing at the compose Postgres.

@@ -10,8 +10,11 @@ import { Pagination } from "@/components/search/Pagination";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
 import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
 import { searchListings, SEARCH_PAGE_SIZE } from "@/lib/search/api";
-import { currentPage, parseSearchParams } from "@/lib/search/filters";
+import { currentPage, parseSearchParams, searchHref } from "@/lib/search/filters";
 import { searchTitle } from "@/lib/search/pageTitle";
+import { SaveSearchButton } from "@/components/savedSearches/SaveSearchButton";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { queryToSave } from "@/lib/savedSearches/savedSearch";
 
 type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -27,11 +30,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 // on the server — so any /search URL can be bookmarked, shared or crawled and shows the same results.
 export default async function SearchPage({ searchParams }: PageProps) {
   const state = parseSearchParams(await searchParams);
-  const [t, tPage, results, title] = await Promise.all([
+  const [t, tPage, results, title, profile] = await Promise.all([
     getTranslations("Search"),
     getTranslations("SearchPage"),
     searchListings(state),
     searchTitle(state),
+    getCurrentUserProfile(),
   ]);
   const total = results?.totalCount ?? 0;
   const totalPages = Math.ceil(total / SEARCH_PAGE_SIZE);
@@ -52,7 +56,17 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
               <div className="pb-8">
                 <AppliedFilters />
-                <ResultsToolbar summary={results === null ? t("error") : tPage("resultsCount", { count: total })} />
+                <ResultsToolbar
+                  summary={results === null ? t("error") : tPage("resultsCount", { count: total })}
+                  actions={
+                    <SaveSearchButton
+                      queryString={queryToSave(state)}
+                      defaultName={title}
+                      signedIn={profile !== null}
+                      returnTo={searchHref(state)}
+                    />
+                  }
+                />
 
                 <PendingResults>
                   {results && results.items.length > 0 ? (

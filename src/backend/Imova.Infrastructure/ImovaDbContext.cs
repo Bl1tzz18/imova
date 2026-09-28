@@ -8,6 +8,7 @@ using Imova.Domain.Messaging;
 using Imova.Domain.Properties;
 using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
+using Imova.Domain.SavedSearches;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -52,6 +53,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<ChisinauSector> ChisinauSectors => Set<ChisinauSector>();
 
     public DbSet<Favorite> Favorites => Set<Favorite>();
+
+    public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
 
     public DbSet<Conversation> Conversations => Set<Conversation>();
 
