@@ -6,6 +6,7 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { HeaderMessagesLink } from "@/components/messaging/HeaderMessagesLink";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { searchHref } from "@/lib/search/filters";
 
 export async function Header() {
   const [t, tCommon, profile] = await Promise.all([
@@ -22,10 +23,10 @@ export async function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-ink-600 md:flex">
-          <Link href="/search?listingType=Sale" className="transition-colors hover:text-ink-950">
+          <Link href={searchHref({ transactionType: ["Sale"] })} className="transition-colors hover:text-ink-950">
             {t("buy")}
           </Link>
-          <Link href="/search?listingType=Rent" className="transition-colors hover:text-ink-950">
+          <Link href={searchHref({ transactionType: ["Rent"] })} className="transition-colors hover:text-ink-950">
             {t("rent")}
           </Link>
         </nav>

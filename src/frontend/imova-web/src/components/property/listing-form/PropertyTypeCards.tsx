@@ -48,26 +48,32 @@ const ICONS: Record<string, ReactNode> = {
 
 // The property type as a grid of icon cards. They're real radio inputs, so the form still submits
 // `name`, `required` still applies, and arrow keys move between cards like any radio group.
+// compact: smaller cards, three to a row — the /search filter panel's type picker.
 export function PropertyTypeCards({
   name,
   value,
   onChange,
   options,
   label,
+  required = true,
+  compact = false,
 }: {
   name: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   label: string;
+  required?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div role="radiogroup" aria-label={label} className={cn("grid", compact ? "grid-cols-3 gap-2" : "grid-cols-2 gap-3 sm:grid-cols-3")}>
       {options.map((opt) => (
         <label
           key={opt.value}
           className={cn(
-            "flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-2xl border px-3 py-6 text-center transition-colors",
+            "flex cursor-pointer flex-col items-center justify-center border text-center transition-colors",
+            compact ? "gap-1.5 rounded-xl px-1.5 py-3" : "gap-2.5 rounded-2xl px-3 py-6",
             "border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50/60",
             "has-[:checked]:border-brand-300 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-700",
             "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500/30",
@@ -79,7 +85,7 @@ export function PropertyTypeCards({
             value={opt.value}
             checked={value === opt.value}
             onChange={() => onChange(opt.value)}
-            required
+            required={required}
             className="sr-only"
           />
           <svg
@@ -89,12 +95,12 @@ export function PropertyTypeCards({
             strokeWidth="1.75"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-6 w-6"
+            className={compact ? "h-5 w-5" : "h-6 w-6"}
             aria-hidden="true"
           >
             {ICONS[opt.value]}
           </svg>
-          <span className="text-sm font-semibold">{opt.label}</span>
+          <span className={cn("font-semibold", compact ? "text-xs leading-tight" : "text-sm")}>{opt.label}</span>
         </label>
       ))}
     </div>

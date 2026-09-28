@@ -39,6 +39,8 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
             price.Property(p => p.Currency).HasColumnName("PriceCurrency").HasConversion<string>().HasMaxLength(3);
             price.Property(p => p.PriceEur).HasColumnName("PriceEur").HasColumnType("numeric(14,2)");
             price.Property(p => p.IsNegotiable).HasColumnName("PriceIsNegotiable");
+            // Search: price range filters and price sorting.
+            price.HasIndex(p => p.PriceEur);
         });
         builder.Navigation(l => l.Price).IsRequired();
 
@@ -64,5 +66,7 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
         builder.HasIndex(l => l.PropertyId);
         builder.HasIndex(l => l.PublisherId);
         builder.HasIndex(l => l.Status);
+        // Search: every query filters Active, most also by Sale/Rent.
+        builder.HasIndex(l => new { l.Status, l.TransactionType });
     }
 }

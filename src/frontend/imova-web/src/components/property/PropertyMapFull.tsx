@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvent } from "react-leaflet";
@@ -152,18 +152,45 @@ function ClusteredPropertyMarkers({
   );
 }
 
+// Frames the pins whenever the set of listings changes (a new filter, not a selection or a
+// re-render with the same results): one pin → a street-level view of it, several → all of them in
+// view. The search map opts in, so a filter for one sector shows that sector, not the whole country.
+function FitToPoints({ points }: { points: MapPoint[] }) {
+  const map = useMap();
+  const latest = useRef(points);
+  latest.current = points;
+  const key = points.map((p) => p.listing.id).join(",");
+
+  useEffect(() => {
+    const current = latest.current;
+    if (current.length === 0) return;
+    if (current.length === 1) {
+      map.setView([current[0].lat, current[0].lng], 14);
+      return;
+    }
+    map.fitBounds(
+      current.map((p) => [p.lat, p.lng] as [number, number]),
+      { padding: [48, 48], maxZoom: 15 },
+    );
+  }, [map, key]);
+
+  return null;
+}
+
 export function PropertyMapFull({
   points,
   selectedId,
   onSelect,
   cluster = false,
   onClusterOverflow,
+  fitToPoints = false,
 }: {
   points: MapPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   cluster?: boolean;
   onClusterOverflow?: (points: MapPoint[] | null) => void;
+  fitToPoints?: boolean;
 }) {
   const selectedPoint = points.find((point) => point.listing.id === selectedId) ?? null;
 
@@ -181,6 +208,7 @@ export function PropertyMapFull({
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <FlyToSelected point={selectedPoint} />
+      {fitToPoints && <FitToPoints points={points} />}
       {cluster ? (
         <ClusteredPropertyMarkers
           points={points}

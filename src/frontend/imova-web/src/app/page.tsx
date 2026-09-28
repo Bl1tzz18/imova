@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { PropertyCarousel } from "@/components/property/PropertyCarousel";
 import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
+import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
@@ -45,7 +46,17 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <Hero />
+        <Hero
+          countsByType={listings.reduce<Record<string, number>>((counts, l) => {
+            counts[l.property.propertyType] = (counts[l.property.propertyType] ?? 0) + 1;
+            return counts;
+          }, {})}
+        />
+
+        <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+          <h2 className="mb-5 font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("browseByType")}</h2>
+          <PropertyTypeStats listings={listings} />
+        </section>
 
         <section className="border-b border-ink-100 bg-white">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 pb-10 pt-14 sm:px-6 sm:pt-16 md:grid-cols-4">

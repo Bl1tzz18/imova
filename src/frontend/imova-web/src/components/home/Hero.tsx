@@ -1,24 +1,23 @@
 import Image from "next/image";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { HeroSearchCard } from "@/components/home/HeroSearchCard";
+import { searchHref } from "@/lib/search/filters";
 
 // Single reference point for the hero background image — swap this path (and the file at
 // public/images/hero-bg.jpg) to change it without touching the component below.
 const HERO_IMAGE_SRC = "/images/hero-bg.jpg";
 
-const STATS = ["houses", "apartments", "commercial", "land"] as const;
+// The stat pills, each linking to that category's search results.
+const STATS = [
+  { key: "houses", type: "House" },
+  { key: "apartments", type: "Apartment" },
+  { key: "commercial", type: "Commercial" },
+  { key: "land", type: "Land" },
+] as const;
 
-// Placeholder counts matching the current design mock — not live data. Real per-type counts
-// already exist elsewhere on the homepage via PropertyTypeStats if that's ever wired in here
-// instead.
-const STAT_VALUES: Record<(typeof STATS)[number], number> = {
-  houses: 295,
-  apartments: 533,
-  commercial: 120,
-  land: 187,
-};
-
-export async function Hero() {
+// countsByType: live listing counts per PropertyType (see the homepage).
+export async function Hero({ countsByType }: { countsByType: Record<string, number> }) {
   const t = await getTranslations("Hero");
 
   return (
@@ -38,14 +37,15 @@ export async function Hero() {
         <p className="mt-3 max-w-lg text-balance text-sm text-white/80 sm:text-base">{t("subtitle")}</p>
 
         <div className="mt-5 flex w-full flex-wrap justify-center gap-2 sm:mt-7 sm:gap-3">
-          {STATS.map((key) => (
-            <div
+          {STATS.map(({ key, type }) => (
+            <Link
               key={key}
-              className="flex flex-col items-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-sm sm:min-w-[110px] sm:px-4 sm:py-2.5"
+              href={searchHref({ propertyType: [type] })}
+              className="flex flex-col items-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-sm transition-colors hover:border-white/35 hover:bg-white/20 sm:min-w-[110px] sm:px-4 sm:py-2.5"
             >
-              <span className="font-hero text-lg font-bold text-brand-200 sm:text-2xl">{STAT_VALUES[key]}</span>
+              <span className="font-hero text-lg font-bold text-brand-200 sm:text-2xl">{countsByType[type] ?? 0}</span>
               <span className="text-[10px] font-medium text-white/75 sm:text-[11px]">{t(`stats.${key}`)}</span>
-            </div>
+            </Link>
           ))}
         </div>
 

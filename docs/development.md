@@ -72,6 +72,26 @@ npm run dev                # requires Node 18+ locally
 Backend test suite exists (`tests/`, see above) but there's no CI pipeline running it yet, and the
 frontend still has no linter config beyond `next lint` and no tests.
 
+### Disk space (WSL2)
+
+Every `docker compose up -d --build` leaves the previous image behind as an untagged
+("dangling") image, and BuildKit keeps its build cache. Clean up now and then:
+
+```bash
+docker image prune -f && docker builder prune -f   # never `docker volume prune` — that's the DB
+```
+
+On WSL2 that alone doesn't give space back to Windows: the distro's virtual disk
+(`%LOCALAPPDATA%\Packages\CanonicalGroupLimited.Ubuntu_*\LocalState\ext4.vhdx`) grows but never
+shrinks by itself. Make it sparse once, from PowerShell, so freed space is returned:
+
+```powershell
+wsl --shutdown
+wsl --manage Ubuntu --set-sparse true
+```
+
+then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Windows.
+
 ## Secrets and configuration
 
 - Docker Compose reads secrets (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SIGNING_KEY`,

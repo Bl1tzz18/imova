@@ -543,6 +543,8 @@ namespace Imova.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
+                    b.HasIndex("Status", "TransactionType");
+
                     b.ToTable("Listings");
                 });
 
@@ -1346,6 +1348,8 @@ namespace Imova.Infrastructure.Migrations
                                 .HasColumnName("PriceEur");
 
                             b1.HasKey("ListingId");
+
+                            b1.HasIndex("PriceEur");
 
                             b1.ToTable("Listings");
 
