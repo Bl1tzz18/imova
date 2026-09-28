@@ -1,3 +1,5 @@
+using Imova.Application.Common;
+using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
 using MediatR;
@@ -17,6 +19,11 @@ public class SubmitListingForReviewHandler(IApplicationDbContext dbContext, IBlo
         }
 
         await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
+        if (!await ReviewEligibility.IsOwnerEmailConfirmedAsync(dbContext, listing, cancellationToken))
+        {
+            throw new ForbiddenAccessException(ReviewEligibility.EmailNotConfirmedMessage, ErrorCodes.EmailNotConfirmed);
+        }
 
         ListingTransitions.Apply(listing.SubmitForReview);
         await dbContext.SaveChangesAsync(cancellationToken);

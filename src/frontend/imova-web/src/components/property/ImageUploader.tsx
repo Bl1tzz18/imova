@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { confirmMediaUpload, requestUploadUrl, uploadFileToBlob } from "@/lib/api/media";
-import { deleteListingPhoto } from "@/lib/property/actions";
+import { uploadFileToBlob } from "@/lib/api/media";
+import { confirmPhotoUpload, deleteListingPhoto, requestPhotoUploadUrl } from "@/lib/property/actions";
 import type { Photo } from "@/types/listing";
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif"];
@@ -96,10 +96,12 @@ export function ImageUploader({
 
       void (async () => {
         try {
-          const { uploadUrl, blobName } = await requestUploadUrl(listingId, extension);
-          await uploadFileToBlob(uploadUrl, file);
-          const confirmed = await confirmMediaUpload(listingId, blobName);
-          setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: "done", mediaId: confirmed.id } : it)));
+          const requested = await requestPhotoUploadUrl(listingId, extension);
+          if (requested.error !== undefined) throw new Error(requested.error);
+          await uploadFileToBlob(requested.data.uploadUrl, file);
+          const confirmed = await confirmPhotoUpload(listingId, requested.data.blobName);
+          if (confirmed.error !== undefined) throw new Error(confirmed.error);
+          setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: "done", mediaId: confirmed.data.id } : it)));
         } catch {
           setItems((prev) =>
             prev.map((it) => (it.id === id ? { ...it, status: "error", error: t("photoUploadFailed") } : it))

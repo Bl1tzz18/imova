@@ -9,7 +9,7 @@ public class LoginValidatorTests
     [Fact]
     public void Validate_WithValidCommand_HasNoErrors()
     {
-        var result = _validator.Validate(new LoginCommand("user@example.com", "SuperSecret1"));
+        var result = _validator.Validate(new LoginCommand("user@example.com", "SuperSecret1!"));
 
         Assert.True(result.IsValid);
     }
@@ -17,7 +17,7 @@ public class LoginValidatorTests
     [Fact]
     public void Validate_WithEmptyEmail_HasError()
     {
-        var result = _validator.Validate(new LoginCommand("", "SuperSecret1"));
+        var result = _validator.Validate(new LoginCommand("", "SuperSecret1!"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(LoginCommand.Email));
@@ -37,7 +37,7 @@ public class LoginValidatorTests
     {
         var longEmail = new string('a', 250) + "@example.com";
 
-        var result = _validator.Validate(new LoginCommand(longEmail, "SuperSecret1"));
+        var result = _validator.Validate(new LoginCommand(longEmail, "SuperSecret1!"));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(LoginCommand.Email));
@@ -48,7 +48,7 @@ public class LoginValidatorTests
     {
         // Unlike RegisterValidator, LoginValidator only checks NotEmpty for Email — format
         // validation isn't its job (a malformed email will simply fail to match any account).
-        var result = _validator.Validate(new LoginCommand("not-an-email", "SuperSecret1"));
+        var result = _validator.Validate(new LoginCommand("not-an-email", "SuperSecret1!"));
 
         Assert.True(result.IsValid);
     }

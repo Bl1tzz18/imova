@@ -18,18 +18,21 @@ public class DeleteMediaHandler(IApplicationDbContext dbContext, IBlobStorageSer
             return false;
         }
 
-        // Photos uploaded for a listing that was never actually created have no owner to check
-        // against — treated as not found, same as before listings/publishers existed.
         var listing = await dbContext.Listings
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == request.ListingId, cancellationToken);
 
-        if (listing is null)
+        if (listing is not null)
         {
+            await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
+        }
+        else if (!request.IsAdmin && photo.UploadedByUserId != request.RequestingUserId)
+        {
+            // Listing not created yet (the add-listing form removing a photo it just uploaded):
+            // only its uploader may delete it. Photos from before uploaders were recorded have
+            // none, so they stay not-found here, as they always were.
             return false;
         }
-
-        await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
 
         dbContext.Photos.Remove(photo);
 

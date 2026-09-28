@@ -4,15 +4,17 @@ using MediatR;
 
 namespace Imova.Application.Features.Media.RequestUploadUrl;
 
-public class RequestUploadUrlHandler(IBlobStorageService blobStorageService)
+public class RequestUploadUrlHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
     : IRequestHandler<RequestUploadUrlCommand, UploadUrlDto>
 {
-    public Task<UploadUrlDto> Handle(RequestUploadUrlCommand request, CancellationToken cancellationToken)
+    public async Task<UploadUrlDto> Handle(RequestUploadUrlCommand request, CancellationToken cancellationToken)
     {
+        await MediaAccess.EnsureCanUploadAsync(dbContext, request.ListingId, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
         var expiry = blobStorageService.DefaultUploadExpiry;
         var blobName = blobStorageService.GenerateBlobName(request.ListingId, request.FileExtension);
         var uploadUrl = blobStorageService.GenerateUploadSasUrl(blobName, expiry);
 
-        return Task.FromResult(new UploadUrlDto(uploadUrl, blobName, DateTimeOffset.UtcNow.Add(expiry)));
+        return new UploadUrlDto(uploadUrl, blobName, DateTimeOffset.UtcNow.Add(expiry));
     }
 }

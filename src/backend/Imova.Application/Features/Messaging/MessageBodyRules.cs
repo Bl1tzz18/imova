@@ -1,4 +1,6 @@
 using FluentValidation;
+using Imova.Application.Common;
+using Imova.Application.Common.Validation;
 using Imova.Domain.Messaging;
 
 namespace Imova.Application.Features.Messaging;
@@ -11,15 +13,15 @@ public static class MessageBodyRules
     {
         validator.RuleFor(c => body(c))
             .Must(b => b is null || b.Trim().Length <= Message.MaxBodyLength)
-            .WithMessage($"A message can be at most {Message.MaxBodyLength} characters.")
+            .WithMessage($"A message can be at most {Message.MaxBodyLength} characters.").WithErrorCode(ErrorCodes.MessageTooLong).WithState(_ => CodedFailure.Params(("max", Message.MaxBodyLength)))
             .OverridePropertyName("Body");
         validator.RuleFor(c => c)
             .Must(c => !string.IsNullOrWhiteSpace(body(c)) || (attachments(c)?.Count ?? 0) > 0)
-            .WithMessage("Write a message or attach at least one image.")
+            .WithMessage("Write a message or attach at least one image.").WithErrorCode(ErrorCodes.MessageEmpty)
             .OverridePropertyName("Body");
         validator.RuleFor(c => attachments(c))
             .Must(a => a is null || a.Count <= Message.MaxAttachments)
-            .WithMessage($"A message can have at most {Message.MaxAttachments} images.")
+            .WithMessage($"A message can have at most {Message.MaxAttachments} images.").WithErrorCode(ErrorCodes.TooManyImages).WithState(_ => CodedFailure.Params(("max", Message.MaxAttachments)))
             .OverridePropertyName("AttachmentBlobNames");
     }
 }

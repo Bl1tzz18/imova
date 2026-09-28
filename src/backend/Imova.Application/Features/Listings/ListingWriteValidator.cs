@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings.Attributes;
 using Imova.Domain.Amenities;
@@ -144,7 +145,7 @@ public abstract class ListingWriteValidator<T> : AbstractValidator<T>
             .OverridePropertyName(nameof(IListingWriteCommand.ChisinauSectorId));
 
         RuleFor(c => c.StreetAddress)
-            .NotEmpty().WithMessage("Street address is required.")
+            .NotEmpty().WithMessage("Street address is required.").WithErrorCode(ErrorCodes.StreetRequired)
             .MaximumLength(200);
         RuleFor(c => c.BuildingNumber).MaximumLength(20);
 

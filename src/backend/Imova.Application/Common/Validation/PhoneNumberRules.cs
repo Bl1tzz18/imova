@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using FluentValidation;
+using Imova.Application.Common;
 
 namespace Imova.Application.Common.Validation;
 
@@ -12,10 +13,17 @@ public static class PhoneNumberRules
             .NotEmpty()
             .MaximumLength(20)
             .Must(BeAValidPhoneNumber)
-            .WithMessage("Phone number must be a valid phone number, e.g. +373 69 123 456.");
+            .WithMessage("Phone number must be a valid phone number, e.g. +373 69 123 456.").WithErrorCode(ErrorCodes.PhoneInvalid);
 
-    private static bool BeAValidPhoneNumber(string phoneNumber)
+    // A missing (null) phone is NotEmpty's error to report — the rules run on regardless, and the
+    // regex used to throw on null, turning a missing phoneNumber on register into a 500.
+    private static bool BeAValidPhoneNumber(string? phoneNumber)
     {
+        if (phoneNumber is null)
+        {
+            return true;
+        }
+
         if (!Regex.IsMatch(phoneNumber, @"^\+?[\d\s\-()]+$"))
         {
             return false;

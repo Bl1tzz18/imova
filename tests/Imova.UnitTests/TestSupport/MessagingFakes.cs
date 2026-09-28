@@ -41,8 +41,16 @@ internal sealed class FakeEmailSender : IEmailSender
 {
     public List<EmailMessage> Sent { get; } = [];
 
+    // Set to make every send throw, like an unreachable SMTP server.
+    public bool Fail { get; set; }
+
     public Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
     {
+        if (Fail)
+        {
+            throw new InvalidOperationException("SMTP server unreachable.");
+        }
+
         Sent.Add(message);
         return Task.CompletedTask;
     }

@@ -1,3 +1,6 @@
+using System.Security.Claims;
+using Imova.Api.Common;
+using Imova.Application.Common.Identity;
 using Imova.Application.Features.Media.RequestUploadUrl;
 using MediatR;
 
@@ -12,10 +15,10 @@ public static class RequestUploadUrlEndpoint
     {
         app.MapPost(
             "/api/v1/listings/{listingId:guid}/media/upload-url",
-            async (Guid listingId, RequestUploadUrlRequestBody body, ISender sender, CancellationToken cancellationToken) =>
+            async (Guid listingId, RequestUploadUrlRequestBody body, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
             {
-                var result = await sender.Send(new RequestUploadUrlCommand(listingId, body.FileExtension), cancellationToken);
-                return Results.Ok(result);
-            });
+                var command = new RequestUploadUrlCommand(listingId, body.FileExtension, user.GetUserId(), user.IsInRole(Roles.Admin));
+                return Results.Ok(await sender.Send(command, cancellationToken));
+            }).RequireAuthorization();
     }
 }

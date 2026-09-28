@@ -1,3 +1,4 @@
+using Imova.Application.Common.Identity;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -15,6 +16,18 @@ internal static class ListingTestData
 
     public static Price Eur(decimal amount, bool isNegotiable = false) =>
         Price.Create(amount, Currency.EUR, isNegotiable, eurRate: 1m);
+
+    // The account behind a publisher. Confirmed by default: an unconfirmed owner's listings wait
+    // as Drafts instead of going to review (see ReviewEligibility).
+    public static ApplicationUser AddUser(ImovaDbContext dbContext, Guid id, bool emailConfirmed = true)
+    {
+        var user = new ApplicationUser
+        {
+            Id = id, Email = $"{id:N}@example.com", UserName = $"{id:N}@example.com", EmailConfirmed = emailConfirmed,
+        };
+        dbContext.Users.Add(user);
+        return user;
+    }
 
     public static Publisher AddIndividualPublisher(ImovaDbContext dbContext, Guid? userId = null)
     {

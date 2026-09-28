@@ -240,7 +240,6 @@
     "draftNotice": "După publicare, anunțul este trimis spre verificare și va deveni vizibil imediat ce este aprobat — de obicei în scurt timp.",
     "publish": "Publică anunțul",
     "saving": "Se salvează...",
-    "genericError": "Eroare la salvare ({status}).",
     "sectionPhotos": "Fotografii",
     "addPhotos": "Adaugă fotografii",
     "photoHint": "JPEG, PNG, WebP, GIF, BMP sau HEIC, max. 10MB per fotografie",
@@ -306,7 +305,9 @@
       "amenities": "Dotări",
       "proximities": "Vecinătăți",
       "rentalRules": "Reguli de închiriere"
-    }
+    },
+    "successDraftTitle": "Anunțul tău a fost salvat",
+    "successDraftSubtitle": "Confirmă adresa de email prin linkul pe care ți l-am trimis, iar anunțul va fi trimis automat spre verificare."
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",
@@ -393,8 +394,37 @@
     "agencyPrompt": "Ai o agenție?",
     "agencyCta": "Publică anunțuri ca profesionist",
     "orDivider": "sau",
-    "genericError": "A apărut o eroare. Încearcă din nou.",
-    "passwordMismatch": "Parolele nu coincid."
+    "passwordMismatch": "Parolele nu coincid.",
+    "forgotPasswordTitle": "Ai uitat parola?",
+    "forgotPasswordSubtitle": "Scrie adresa de email a contului și îți trimitem un link pentru a alege o parolă nouă.",
+    "forgotPasswordSubmit": "Trimite linkul",
+    "forgotPasswordPending": "Se trimite...",
+    "forgotPasswordSent": "Dacă există un cont cu această adresă, ți-am trimis un email cu linkul de resetare. Verifică și dosarul Spam. Linkul este valabil 24 de ore.",
+    "backToLogin": "Înapoi la autentificare",
+    "resetPasswordTitle": "Alege o parolă nouă",
+    "resetPasswordSubtitle": "Pentru contul {email}.",
+    "newPasswordLabel": "Parolă nouă",
+    "resetPasswordSubmit": "Salvează parola",
+    "resetPasswordPending": "Se salvează...",
+    "resetLinkInvalid": "Linkul de resetare este invalid sau a expirat. Cere unul nou.",
+    "requestNewLink": "Cere un link nou",
+    "passwordResetDone": "Parola a fost schimbată. Autentifică-te cu parola nouă.",
+    "confirmLinkInvalid": "Linkul de confirmare este invalid sau a expirat.",
+    "confirmSuccessTitle": "Adresa de email a fost confirmată",
+    "confirmSuccessBody": "Mulțumim! Anunțurile tale salvate ca schiță au fost trimise spre verificare.",
+    "confirmSuccessMyListings": "Vezi anunțurile mele",
+    "confirmSuccessHome": "Înapoi la pagina principală",
+    "confirmFailedTitle": "Nu am putut confirma adresa",
+    "confirmFailedSignIn": "Autentifică-te pentru un link nou",
+    "confirmBannerTitle": "Confirmă adresa de email {email}",
+    "confirmBannerBody": "Anunțurile tale sunt trimise spre verificare doar după ce deschizi linkul primit pe email.",
+    "confirmBannerSent": "Ți-am trimis un link nou. Verifică și dosarul Spam.",
+    "confirmBannerResend": "Retrimite emailul",
+    "confirmBannerResending": "Se trimite...",
+    "passwordRuleMinLength": "Cel puțin 8 caractere",
+    "passwordRuleNumber": "Cel puțin o cifră",
+    "passwordRuleSpecial": "Cel puțin un caracter special (ex. ! ? # @)",
+    "passwordsMatch": "Parolele coincid"
   },
   "Account": {
     "settingsTitle": "Setările contului",
@@ -458,7 +488,6 @@
     "deactivateConfirmYes": "Da, dezactivează",
     "deactivateConfirmCancel": "Anulează",
     "activate": "Activează",
-    "actionError": "A apărut o eroare. Încearcă din nou.",
     "resultsCount": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
     "emptyTitle": "Nu ai niciun anunț momentan",
     "emptyBody": "Publică primul tău anunț și va apărea aici.",
@@ -492,8 +521,7 @@
     "reasonPlaceholder": "Explică de ce este respins acest anunț...",
     "confirmReject": "Confirmă respingerea",
     "cancel": "Anulează",
-    "reasonRequired": "Motivul este obligatoriu.",
-    "actionError": "A apărut o eroare. Încearcă din nou."
+    "reasonRequired": "Motivul este obligatoriu."
   },
   "Condition": {
     "New": "Nou",
@@ -912,7 +940,6 @@
     "sendReport": "Trimite raportul",
     "reported": "Mulțumim — echipa IMOVA va verifica raportul.",
     "loginRequired": "Autentifică-te ca să trimiți mesaje.",
-    "genericError": "Ceva n-a mers. Încearcă din nou.",
     "moreActions": "Mai multe acțiuni",
     "today": "Astăzi",
     "yesterday": "Ieri",
@@ -945,5 +972,122 @@
     "noResolvedReports": "Niciun raport rezolvat încă.",
     "noActiveFlagged": "Niciun mesaj semnalat de verificat.",
     "noResolvedFlagged": "Niciun mesaj semnalat rezolvat încă."
+  },
+  "Errors": {
+    "codes": {
+      "auth": {
+        "failed": "Autentificarea a eșuat. Încearcă din nou.",
+        "invalidCredentials": "Email sau parolă greșită.",
+        "lockedOut": "Prea multe încercări nereușite. Încearcă din nou peste câteva minute sau resetează-ți parola.",
+        "invalidGoogleToken": "Autentificarea cu Google a eșuat. Încearcă din nou.",
+        "userNotFound": "Sesiunea ta a expirat. Autentifică-te din nou.",
+        "emailThrottled": "Ți-am trimis deja un email acum câteva momente. Așteaptă un minut înainte să ceri altul."
+      },
+      "link": {
+        "invalid": "Linkul este invalid sau a expirat. Cere unul nou."
+      },
+      "phone": {
+        "invalid": "Numărul de telefon nu este valid (ex. +373 69 123 456)."
+      },
+      "password": {
+        "tooShort": "Parola trebuie să aibă cel puțin 8 caractere.",
+        "noNumber": "Parola trebuie să conțină cel puțin o cifră.",
+        "noSpecial": "Parola trebuie să conțină cel puțin un caracter special.",
+        "currentRequired": "Introdu parola curentă."
+      },
+      "identity": {
+        "DuplicateEmail": "Există deja un cont cu această adresă de email.",
+        "DuplicateUserName": "Există deja un cont cu această adresă de email.",
+        "InvalidEmail": "Adresa de email nu este validă.",
+        "InvalidUserName": "Adresa de email nu este validă.",
+        "PasswordMismatch": "Parola curentă este greșită.",
+        "PasswordTooShort": "Parola trebuie să aibă cel puțin 8 caractere.",
+        "PasswordRequiresDigit": "Parola trebuie să conțină cel puțin o cifră.",
+        "PasswordRequiresNonAlphanumeric": "Parola trebuie să conțină cel puțin un caracter special.",
+        "InvalidToken": "Linkul este invalid sau a expirat. Cere unul nou.",
+        "UserAlreadyHasPassword": "Contul are deja o parolă."
+      },
+      "forbidden": "Nu ai permisiunea să faci această acțiune.",
+      "tooManyRequests": "Prea multe cereri. Încearcă din nou puțin mai târziu.",
+      "rateLimited": "Prea multe încercări. Așteaptă un minut și încearcă din nou.",
+      "badRequest": "Cererea nu este validă.",
+      "unexpected": "A apărut o eroare neașteptată. Încearcă din nou.",
+      "listing": {
+        "emailNotConfirmed": "Confirmă adresa de email înainte de a trimite anunțul spre verificare.",
+        "invalidTransition": "Această acțiune nu este posibilă pentru statusul actual al anunțului.",
+        "streetRequired": "Introdu strada."
+      },
+      "contact": {
+        "nameRequired": "Introdu numele persoanei de contact.",
+        "emailRequired": "Introdu emailul persoanei de contact (sau un număr de telefon valid).",
+        "hiddenPhoneNeedsMessages": "Dacă ascunzi numărul de telefon, contactul se face doar prin mesaje pe platformă.",
+        "callHoursInvalid": "Orele de apel trebuie să fie între 06:00 și 23:00, ora de început înaintea celei de sfârșit."
+      },
+      "upload": {
+        "notFound": "Fișierul nu a ajuns pe server. Încearcă să-l încarci din nou.",
+        "tooLarge": "Fișierul depășește limita de {maxMb} MB.",
+        "notAnImage": "Fișierul nu este o imagine acceptată (JPEG, PNG, WebP, GIF, BMP, HEIC).",
+        "notYours": "Una dintre imagini nu îți aparține."
+      },
+      "messaging": {
+        "banned": "Nu mai poți trimite mesaje: contul tău a fost restricționat.",
+        "blockedByRecipient": "Acest utilizator te-a blocat — nu îi poți trimite mesaje.",
+        "youBlocked": "Ai blocat acest utilizator. Deblochează-l ca să-i poți scrie.",
+        "ownListing": "Nu poți trimite un mesaj despre propriul anunț.",
+        "tooManyConversations": "Poți începe cel mult {max} conversații noi pe oră. Încearcă mai târziu."
+      },
+      "message": {
+        "empty": "Scrie un mesaj sau atașează cel puțin o imagine.",
+        "tooLong": "Mesajul poate avea cel mult {max} caractere.",
+        "tooManyImages": "Poți atașa cel mult {max} imagini."
+      },
+      "report": {
+        "detailsRequired": "Descrie problema."
+      },
+      "publisher": {
+        "agencyExists": "Contul tău are deja o agenție."
+      }
+    },
+    "validation": {
+      "required": "Câmpul „{field}” este obligatoriu.",
+      "tooLong": "Câmpul „{field}” poate avea cel mult {max} caractere.",
+      "tooShort": "Câmpul „{field}” trebuie să aibă cel puțin {min} caractere.",
+      "email": "Câmpul „{field}” trebuie să fie o adresă de email validă.",
+      "invalid": "Câmpul „{field}” nu este valid.",
+      "generic": "Unele date introduse nu sunt valide. Verifică formularul și încearcă din nou."
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Parolă",
+      "newPassword": "Parolă nouă",
+      "currentPassword": "Parola curentă",
+      "displayName": "Nume",
+      "name": "Nume",
+      "phoneNumber": "Număr de telefon",
+      "phone": "Telefon",
+      "title": "Titlu",
+      "description": "Descriere",
+      "price": "Preț",
+      "currency": "Monedă",
+      "totalAreaM2": "Suprafață",
+      "yearBuilt": "An construcției",
+      "streetAddress": "Stradă",
+      "raionId": "Raion / Municipiu",
+      "localitateId": "Localitate",
+      "body": "Mesaj",
+      "reason": "Motiv",
+      "details": "Detalii",
+      "fileExtension": "Tip fișier"
+    },
+    "status": {
+      "400": "Datele trimise nu sunt valide.",
+      "401": "Trebuie să te autentifici.",
+      "403": "Nu ai permisiunea să faci această acțiune.",
+      "404": "Nu am găsit ce căutai.",
+      "413": "Fișierul este prea mare.",
+      "429": "Prea multe încercări. Așteaptă puțin și încearcă din nou.",
+      "500": "A apărut o eroare pe server. Încearcă din nou.",
+      "default": "A apărut o eroare. Încearcă din nou."
+    }
   }
 }

@@ -11,7 +11,7 @@ public class ConfirmMediaUploadValidatorTests
     {
         var listingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg", Guid.NewGuid(), false));
 
         Assert.True(result.IsValid);
     }
@@ -19,7 +19,7 @@ public class ConfirmMediaUploadValidatorTests
     [Fact]
     public void Validate_WithEmptyListingId_HasError()
     {
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(Guid.Empty, "photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(Guid.Empty, "photo.jpg", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.ListingId));
@@ -28,7 +28,7 @@ public class ConfirmMediaUploadValidatorTests
     [Fact]
     public void Validate_WithEmptyBlobName_HasError()
     {
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(Guid.NewGuid(), ""));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(Guid.NewGuid(), "", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));
@@ -40,7 +40,7 @@ public class ConfirmMediaUploadValidatorTests
         var listingId = Guid.NewGuid();
         var otherListingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{otherListingId}/photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{otherListingId}/photo.jpg", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));
@@ -51,7 +51,7 @@ public class ConfirmMediaUploadValidatorTests
     {
         var listingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, "photo.jpg"));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, "photo.jpg", Guid.NewGuid(), false));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));

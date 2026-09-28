@@ -25,7 +25,7 @@ public class GoogleLoginHandler(
         var googleUser = await googleTokenValidator.ValidateAsync(request.IdToken, cancellationToken);
         if (googleUser is null)
         {
-            throw new AuthenticationFailedException("Invalid Google token.");
+            throw new AuthenticationFailedException("Invalid Google token.", ErrorCodes.InvalidGoogleToken);
         }
 
         var user = await userManager.FindByEmailAsync(googleUser.Email);
@@ -84,7 +84,8 @@ public class GoogleLoginHandler(
                 user.DisplayName,
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl));
+                user.ProfilePictureUrl,
+                user.EmailConfirmed));
     }
 
     // Never throws — a failure here (Google's URL is unreachable/expired, an unrecognized image

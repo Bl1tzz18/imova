@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { changePassword, type AuthFormState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { FieldLabel, TextInput } from "@/components/ui/Field";
+import { PasswordFields } from "@/components/auth/PasswordFields";
+import { confirmationState, meetsPasswordRules } from "@/lib/auth/passwordRules";
 
 const initialState: AuthFormState = {};
 
@@ -12,19 +14,19 @@ export function PasswordForm({ hasPassword }: { hasPassword: boolean }) {
   const tAuth = useTranslations("Auth");
   const tAccount = useTranslations("Account");
   const [state, formAction, pending] = useActionState(changePassword, initialState);
-  const [mismatchError, setMismatchError] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
 
+  // Only submit once the password meets the policy and the confirmation matches — otherwise
+  // PasswordFields turns whatever is still missing red.
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     const form = e.currentTarget;
-    const newPassword = (form.elements.namedItem("newPassword") as HTMLInputElement).value;
-    const confirmPassword = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("newPassword") as HTMLInputElement).value;
+    const confirmation = (form.elements.namedItem("confirmPassword") as HTMLInputElement).value;
 
-    if (newPassword !== confirmPassword) {
+    if (!meetsPasswordRules(password) || confirmationState(password, confirmation) !== "match") {
       e.preventDefault();
-      setMismatchError(tAuth("passwordMismatch"));
-      return;
+      setAttempted(true);
     }
-    setMismatchError(null);
   }
 
   return (
@@ -38,23 +40,20 @@ export function PasswordForm({ hasPassword }: { hasPassword: boolean }) {
       {hasPassword && (
         <label className="block">
           <FieldLabel>{tAccount("currentPasswordLabel")}</FieldLabel>
-          <TextInput type="password" name="currentPassword" required minLength={8} />
+          <TextInput type="password" name="currentPassword" autoComplete="current-password" required />
         </label>
       )}
 
-      <label className="block">
-        <FieldLabel>{tAccount("newPasswordLabel")}</FieldLabel>
-        <TextInput type="password" name="newPassword" required minLength={8} />
-      </label>
+      <PasswordFields
+        passwordName="newPassword"
+        passwordLabel={tAccount("newPasswordLabel")}
+        confirmLabel={tAccount("confirmNewPasswordLabel")}
+        attempted={attempted}
+      />
 
-      <label className="block">
-        <FieldLabel>{tAccount("confirmNewPasswordLabel")}</FieldLabel>
-        <TextInput type="password" name="confirmPassword" required minLength={8} />
-      </label>
-
-      {(mismatchError ?? state.error) && (
+      {state.error && (
         <p className="rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
-          {mismatchError ?? state.error}
+          {state.error}
         </p>
       )}
       {state.success && (

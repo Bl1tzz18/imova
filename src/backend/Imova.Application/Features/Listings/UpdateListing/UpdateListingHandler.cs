@@ -54,7 +54,9 @@ public class UpdateListingHandler(
 
         // Saving edits to a Rejected listing is the owner's way of addressing whatever an admin
         // flagged — resubmit it in the same step instead of making them press a separate button.
-        if (listing.Status == ListingStatus.Rejected)
+        // (Only with a confirmed owner email — see ReviewEligibility; otherwise it stays Rejected.)
+        if (listing.Status == ListingStatus.Rejected
+            && await ReviewEligibility.IsOwnerEmailConfirmedAsync(dbContext, listing, cancellationToken))
         {
             listing.SubmitForReview();
         }

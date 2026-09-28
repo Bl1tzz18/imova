@@ -1,7 +1,8 @@
 using FluentValidation;
-using FluentValidation.Results;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
+using Imova.Application.Common.Validation;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +15,7 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
     public async Task<UserProfileDto> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         var hasPassword = await userManager.HasPasswordAsync(user);
 
@@ -29,7 +30,7 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
             {
                 throw new ValidationException(
                 [
-                    new ValidationFailure(nameof(ChangePasswordCommand.CurrentPassword), "Current password is required."),
+                    CodedFailure.Of(nameof(ChangePasswordCommand.CurrentPassword), "Current password is required.", ErrorCodes.CurrentPasswordRequired),
                 ]);
             }
 
@@ -42,12 +43,15 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
 
         if (!result.Succeeded)
         {
-            throw new ValidationException(result.Errors.Select(e =>
-                new ValidationFailure(nameof(ChangePasswordCommand.NewPassword), e.Description)));
+            throw new ValidationException(IdentityFailures.From(
+                result.Errors,
+                emailField: nameof(ChangePasswordCommand.NewPassword),
+                passwordField: nameof(ChangePasswordCommand.NewPassword),
+                currentPasswordField: nameof(ChangePasswordCommand.CurrentPassword)));
         }
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true, user.EmailConfirmed);
     }
 }

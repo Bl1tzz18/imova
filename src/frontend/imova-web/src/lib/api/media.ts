@@ -1,5 +1,3 @@
-import type { Photo } from "@/types/listing";
-
 // Runs in the browser (called from the client-side ImageUploader), so this needs the
 // browser-reachable API origin — NEXT_PUBLIC_API_URL, not the server-only API_URL used by
 // Server Components/Actions. Falls back to localhost:8080 to match the pattern used everywhere
@@ -8,34 +6,9 @@ export function getBrowserApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 }
 
-export type UploadUrlResponse = {
-  uploadUrl: string;
-  blobName: string;
-  expiresAt: string;
-};
-
-
-async function readErrorMessage(res: Response): Promise<string> {
-  const problem = await res.json().catch(() => null);
-  if (problem?.errors) {
-    return Object.values(problem.errors as Record<string, string[]>).flat().join(" ");
-  }
-  return `Request failed (${res.status})`;
-}
-
-export async function requestUploadUrl(listingId: string, fileExtension: string): Promise<UploadUrlResponse> {
-  const res = await fetch(`${getBrowserApiUrl()}/api/v1/listings/${listingId}/media/upload-url`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fileExtension }),
-  });
-
-  if (!res.ok) {
-    throw new Error(await readErrorMessage(res));
-  }
-
-  return res.json();
-}
+// Asking for an upload URL and confirming the upload need the session token, so they're server
+// actions (requestPhotoUploadUrl / confirmPhotoUpload in lib/property/actions.ts); only the file
+// transfer itself happens here in the browser.
 
 // PUTs straight to Azure Blob Storage (Azurite locally) using the SAS URL — the file never
 // passes through our backend. x-ms-blob-type is mandatory for a block blob PUT against the
@@ -53,18 +26,4 @@ export async function uploadFileToBlob(uploadUrl: string, file: File): Promise<v
   if (!res.ok) {
     throw new Error(`Upload to storage failed (${res.status})`);
   }
-}
-
-export async function confirmMediaUpload(listingId: string, blobName: string): Promise<Photo> {
-  const res = await fetch(`${getBrowserApiUrl()}/api/v1/listings/${listingId}/media/confirm`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ blobName }),
-  });
-
-  if (!res.ok) {
-    throw new Error(await readErrorMessage(res));
-  }
-
-  return res.json();
 }

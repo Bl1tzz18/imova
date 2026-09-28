@@ -1,7 +1,7 @@
 using FluentValidation;
-using FluentValidation.Results;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Application.Features.Listings;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
@@ -18,6 +18,8 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
 {
     public async Task<PhotoDto> Handle(ConfirmMediaUploadCommand request, CancellationToken cancellationToken)
     {
+        await MediaAccess.EnsureCanUploadAsync(dbContext, request.ListingId, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
         var existing = await dbContext.Photos
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.BlobName == request.BlobName, cancellationToken);
@@ -33,19 +35,19 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
 
         if (blobInfo is null)
         {
-            throw ValidationErrorFor("The file was not found in storage — the upload may not have completed.");
+            throw ValidationErrorFor("The file was not found in storage — the upload may not have completed.", ErrorCodes.UploadNotFound);
         }
 
         if (blobInfo.SizeBytes > Photo.MaxFileSizeBytes)
         {
-            throw ValidationErrorFor($"File exceeds the {Photo.MaxFileSizeBytes / (1024 * 1024)}MB limit.");
+            throw ValidationErrorFor($"File exceeds the {Photo.MaxFileSizeBytes / (1024 * 1024)}MB limit.", ErrorCodes.UploadTooLarge, CodedFailure.Params(("maxMb", Photo.MaxFileSizeBytes / (1024 * 1024))));
         }
 
         var detectedContentType = ImageSignature.DetectContentType(blobInfo.LeadingBytes);
 
         if (detectedContentType is null)
         {
-            throw ValidationErrorFor("The uploaded file is not a recognized image format (JPEG, PNG, WebP).");
+            throw ValidationErrorFor("The uploaded file is not a recognized image format (JPEG, PNG, WebP).", ErrorCodes.UploadNotAnImage);
         }
 
         var sortOrder = await dbContext.Photos
@@ -55,7 +57,13 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
         // The first photo of a listing becomes its cover image; see DeleteMediaHandler for how
         // that's handed on when the cover is removed.
         var photo = Photo.Create(
-            request.ListingId, request.BlobName, detectedContentType, blobInfo.SizeBytes, sortOrder, isPrimary: sortOrder == 0);
+            request.ListingId,
+            request.BlobName,
+            detectedContentType,
+            blobInfo.SizeBytes,
+            sortOrder,
+            isPrimary: sortOrder == 0,
+            uploadedByUserId: request.RequestingUserId);
 
         dbContext.Photos.Add(photo);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -63,6 +71,6 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
         return photo.ToDto(blobStorageService);
     }
 
-    private static ValidationException ValidationErrorFor(string message) =>
-        new([new ValidationFailure(nameof(ConfirmMediaUploadCommand.BlobName), message)]);
+    private static ValidationException ValidationErrorFor(string message, string code, IReadOnlyDictionary<string, object>? parameters = null) =>
+        new([CodedFailure.Of(nameof(ConfirmMediaUploadCommand.BlobName), message, code, parameters)]);
 }

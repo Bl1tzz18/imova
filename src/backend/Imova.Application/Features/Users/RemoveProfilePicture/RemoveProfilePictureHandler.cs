@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
@@ -13,7 +14,7 @@ public class RemoveProfilePictureHandler(UserManager<ApplicationUser> userManage
     public async Task<UserProfileDto> Handle(RemoveProfilePictureCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         // ProfilePictureUrl, whenever set, is always one of our own blobs (never an external URL
         // — see ApplicationUser.ProfilePictureUrl), so it's always safe to delete.
@@ -33,6 +34,6 @@ public class RemoveProfilePictureHandler(UserManager<ApplicationUser> userManage
         var hasPassword = await userManager.HasPasswordAsync(user);
 
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword, user.EmailConfirmed);
     }
 }

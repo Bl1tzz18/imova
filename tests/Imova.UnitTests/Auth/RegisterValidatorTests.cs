@@ -8,7 +8,7 @@ public class RegisterValidatorTests
 
     private static RegisterCommand ValidCommand(
         string email = "user@example.com",
-        string password = "SuperSecret1",
+        string password = "SuperSecret1!",
         string? displayName = "Test User",
         string phoneNumber = "+373 69 123 456") =>
         new(email, password, displayName, phoneNumber);
@@ -106,5 +106,15 @@ public class RegisterValidatorTests
         var result = _validator.Validate(ValidCommand(phoneNumber: phoneNumber));
 
         Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_WithAMissingPhoneNumber_HasAnErrorInsteadOfThrowing()
+    {
+        // A JSON body without "phoneNumber" binds it as null; the phone regex used to throw on
+        // that and the register endpoint answered 500.
+        var result = _validator.Validate(ValidCommand(phoneNumber: null!));
+
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(RegisterCommand.PhoneNumber));
     }
 }

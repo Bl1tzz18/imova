@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { login, type AuthFormState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +30,9 @@ export function LoginForm({ next }: { next?: string }) {
 
       <div className="flex items-center justify-between">
         <Checkbox name="rememberMe">{t("rememberMe")}</Checkbox>
-        <span className="text-sm text-ink-400">{t("forgotPassword")}</span>
+        <Link href="/forgot-password" className="text-sm font-medium text-brand-700 hover:text-brand-800">
+          {t("forgotPassword")}
+        </Link>
       </div>
 
       {state.error && (

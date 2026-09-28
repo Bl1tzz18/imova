@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { LinkButton } from "@/components/ui/Button";
 import { OwnerListingsList } from "@/components/property/OwnerListingsList";
+import { EmailConfirmationBanner } from "@/components/auth/EmailConfirmationBanner";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
 
@@ -26,9 +28,10 @@ export default async function MyListingsPage() {
     redirect("/login?next=/my-listings");
   }
 
-  const [listings, t] = await Promise.all([
+  const [listings, t, profile] = await Promise.all([
     getMyListings(token),
     getTranslations("MyListingsPage"),
+    getCurrentUserProfile(),
   ]);
 
   return (
@@ -42,6 +45,10 @@ export default async function MyListingsPage() {
             </div>
             <LinkButton href="/properties/new">{t("addNewListing")}</LinkButton>
           </div>
+
+          {profile && !profile.emailConfirmed && (
+            <EmailConfirmationBanner email={profile.email} className="mt-6" />
+          )}
 
           <div className="mt-8">
             <OwnerListingsList listings={listings} />

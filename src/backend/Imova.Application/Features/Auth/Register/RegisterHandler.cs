@@ -1,18 +1,20 @@
 using FluentValidation;
-using FluentValidation.Results;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Imova.Application.Features.Auth.Register;
 
 public class RegisterHandler(
     UserManager<ApplicationUser> userManager,
     IJwtTokenGenerator jwtTokenGenerator,
-    IApplicationDbContext dbContext)
+    IApplicationDbContext dbContext,
+    AccountEmails accountEmails,
+    ILogger<RegisterHandler> logger)
     : IRequestHandler<RegisterCommand, AuthResultDto>
 {
     public async Task<AuthResultDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -29,7 +31,8 @@ public class RegisterHandler(
         var result = await userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            throw new ValidationException(ToValidationFailures(result.Errors));
+            throw new ValidationException(IdentityFailures.From(
+                result.Errors, emailField: nameof(RegisterCommand.Email), passwordField: nameof(RegisterCommand.Password)));
         }
 
         await userManager.AddToRoleAsync(user, Roles.User);
@@ -37,6 +40,17 @@ public class RegisterHandler(
         // Every account publishes as an Individual by default — see PublisherProvisioning.
         dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Best effort: the account exists either way, and the user can ask for another link
+        // (resend-confirmation) — a mail server hiccup must not fail the registration.
+        try
+        {
+            await accountEmails.SendEmailConfirmationAsync(user, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not send the email confirmation link to new user {UserId}.", user.Id);
+        }
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
@@ -50,9 +64,8 @@ public class RegisterHandler(
                 user.DisplayName,
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl));
+                user.ProfilePictureUrl,
+                user.EmailConfirmed));
     }
 
-    private static IEnumerable<ValidationFailure> ToValidationFailures(IEnumerable<IdentityError> errors) =>
-        errors.Select(e => new ValidationFailure(nameof(RegisterCommand.Email), e.Description));
 }

@@ -70,7 +70,13 @@ services:
       # New-message notification emails go to Mailpit (web UI: http://localhost:8025) locally.
       Email__Host: "mailpit"
       Email__Port: "1025"
-      Messaging__WebBaseUrl: "http://localhost:3000"
+      # Links in account/notification emails point here.
+      App__WebBaseUrl: "http://localhost:3000"
+      # The frontend's server actions forward the visitor's IP as X-Forwarded-For; trust it from
+      # the docker networks so the auth rate limit is per visitor, not per frontend container
+      # (see AuthRateLimiting). Local dev only: host-published traffic also arrives from a
+      # 172.x gateway. In production, list only the web server / reverse proxy addresses.
+      ForwardedHeaders__KnownNetworks__0: "172.16.0.0/12"
     depends_on:
       postgres:
         condition: service_healthy

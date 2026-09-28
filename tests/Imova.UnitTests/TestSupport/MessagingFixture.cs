@@ -34,6 +34,8 @@ internal sealed class MessagingFixture
 
     public MessagingOptions Options { get; } = new();
 
+    public AppOptions App { get; } = new();
+
     public ApplicationUser Seller { get; }
 
     public ApplicationUser Visitor { get; }
@@ -58,7 +60,7 @@ internal sealed class MessagingFixture
     }
 
     public MessageDelivery Delivery() =>
-        new(Db, Blobs, Realtime, Presence, Email, Options, Clock, NullLogger<MessageDelivery>.Instance);
+        new(Db, Blobs, Realtime, Presence, Email, App, Clock, NullLogger<MessageDelivery>.Instance);
 
     public Task<StartConversationResultDto?> StartAsync(Guid? userId = null, Guid? listingId = null, string body = "Bună ziua!", IReadOnlyList<string>? attachments = null) =>
         new StartConversationHandler(Db, Delivery(), Options, Clock)

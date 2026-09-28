@@ -1,9 +1,9 @@
 using FluentValidation;
-using FluentValidation.Results;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +21,7 @@ public class UploadProfilePictureHandler(UserManager<ApplicationUser> userManage
     public async Task<UserProfileDto> Handle(UploadProfilePictureCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
-            ?? throw new AuthenticationFailedException("User not found.");
+            ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
         var contentType = ImageSignature.DetectContentType(request.Content);
         var extension = contentType is null ? null : ImageSignature.ExtensionForContentType(contentType);
@@ -30,9 +30,10 @@ public class UploadProfilePictureHandler(UserManager<ApplicationUser> userManage
         {
             throw new ValidationException(
             [
-                new ValidationFailure(
+                CodedFailure.Of(
                     nameof(UploadProfilePictureCommand.Content),
-                    "The uploaded file is not a recognized image format (JPEG, PNG, WebP, GIF, BMP, HEIC, HEIF)."),
+                    "The uploaded file is not a recognized image format (JPEG, PNG, WebP, GIF, BMP, HEIC, HEIF).",
+                    ErrorCodes.UploadNotAnImage),
             ]);
         }
 
@@ -58,6 +59,6 @@ public class UploadProfilePictureHandler(UserManager<ApplicationUser> userManage
         var hasPassword = await userManager.HasPasswordAsync(user);
 
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword, user.EmailConfirmed);
     }
 }

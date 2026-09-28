@@ -55,4 +55,50 @@ public class LoginHandlerTests
         await Assert.ThrowsAsync<AuthenticationFailedException>(
             () => handler.Handle(new LoginCommand("google-only@example.com", "AnyPassword1"), CancellationToken.None));
     }
+
+    [Fact]
+    public async Task Handle_AfterFiveWrongPasswords_LocksSignInEvenWithTheRightPassword()
+    {
+        var store = new FakeUserStore();
+        store.SeedUserWithPassword("user@example.com", "CorrectPassword1");
+        var handler = CreateHandler(store);
+
+        for (var attempt = 1; attempt <= 4; attempt++)
+        {
+            await Assert.ThrowsAsync<AuthenticationFailedException>(
+                () => handler.Handle(new LoginCommand("user@example.com", "WrongPassword1"), CancellationToken.None));
+        }
+
+        var fifth = await Assert.ThrowsAsync<TooManyRequestsException>(
+            () => handler.Handle(new LoginCommand("user@example.com", "WrongPassword1"), CancellationToken.None));
+        Assert.Equal(LoginHandler.LockedOut, fifth.Message);
+        await Assert.ThrowsAsync<TooManyRequestsException>(
+            () => handler.Handle(new LoginCommand("user@example.com", "CorrectPassword1"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Handle_ASuccessfulSignIn_ResetsTheFailedAttemptCount()
+    {
+        var store = new FakeUserStore();
+        var user = store.SeedUserWithPassword("user@example.com", "CorrectPassword1");
+        var handler = CreateHandler(store);
+        await Assert.ThrowsAsync<AuthenticationFailedException>(
+            () => handler.Handle(new LoginCommand("user@example.com", "WrongPassword1"), CancellationToken.None));
+
+        await handler.Handle(new LoginCommand("user@example.com", "CorrectPassword1"), CancellationToken.None);
+
+        Assert.Equal(0, user.AccessFailedCount);
+    }
+
+    [Fact]
+    public async Task Handle_ReportsWhetherTheEmailIsConfirmed()
+    {
+        var store = new FakeUserStore();
+        var user = store.SeedUserWithPassword("user@example.com", "CorrectPassword1");
+        user.EmailConfirmed = false;
+
+        var result = await CreateHandler(store).Handle(new LoginCommand("user@example.com", "CorrectPassword1"), CancellationToken.None);
+
+        Assert.False(result.User.EmailConfirmed);
+    }
 }

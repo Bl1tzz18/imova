@@ -9,7 +9,7 @@ public class ChangePasswordValidatorTests
     [Fact]
     public void Validate_WithValidNewPassword_HasNoErrors()
     {
-        var result = _validator.Validate(new ChangePasswordCommand(Guid.NewGuid(), "OldPassword1", "NewPassword1"));
+        var result = _validator.Validate(new ChangePasswordCommand(Guid.NewGuid(), "OldPassword1", "NewPassword1!"));
 
         Assert.True(result.IsValid);
     }
@@ -19,7 +19,7 @@ public class ChangePasswordValidatorTests
     {
         // CurrentPassword is optional at the validator level — ChangePasswordHandler decides
         // whether it's actually required (only for accounts that already have a password).
-        var result = _validator.Validate(new ChangePasswordCommand(Guid.NewGuid(), null, "NewPassword1"));
+        var result = _validator.Validate(new ChangePasswordCommand(Guid.NewGuid(), null, "NewPassword1!"));
 
         Assert.True(result.IsValid);
     }
