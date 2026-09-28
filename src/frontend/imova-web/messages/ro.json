@@ -16,7 +16,8 @@
     "moderationQueue": "Coadă de moderare",
     "accountSettings": "Setările contului",
     "messages": "Mesaje",
-    "messagingReports": "Mesaje raportate"
+    "messagingReports": "Mesaje raportate",
+    "savedSearches": "Căutări salvate"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -1046,6 +1047,9 @@
       },
       "publisher": {
         "agencyExists": "Contul tău are deja o agenție."
+      },
+      "savedSearch": {
+        "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
       }
     },
     "validation": {
@@ -1089,5 +1093,45 @@
       "500": "A apărut o eroare pe server. Încearcă din nou.",
       "default": "A apărut o eroare. Încearcă din nou."
     }
+  },
+  "SavedSearches": {
+    "save": "Salvează căutarea",
+    "saveSubmit": "Salvează",
+    "saving": "Se salvează...",
+    "cancel": "Anulează",
+    "nameLabel": "Nume",
+    "alertLabel": "Alerte pe email",
+    "frequency": {
+      "Off": "Fără alerte",
+      "Daily": "O dată pe zi",
+      "Instant": "Imediat"
+    },
+    "saved": "Căutarea a fost salvată.",
+    "savedNoAlerts": "O găsești oricând în căutările salvate.",
+    "savedWithAlerts": {
+      "Daily": "Îți trimitem anunțurile noi pe email, o dată pe zi.",
+      "Instant": "Îți trimitem anunțurile noi pe email imediat ce apar."
+    },
+    "viewAll": "Vezi căutările salvate",
+    "title": "Căutări salvate",
+    "subtitle": "Revino la căutările tale și primește anunțurile noi pe email.",
+    "emptyTitle": "Nu ai nicio căutare salvată",
+    "emptyBody": "Caută anunțuri și apasă „Salvează căutarea” ca să revii la ele și să primești alerte pentru anunțurile noi.",
+    "startSearching": "Caută anunțuri",
+    "newCount": "{count, plural, one {# nou} other {# noi}}",
+    "filterCount": "{count, plural, one {# filtru} few {# filtre} other {# de filtre}}",
+    "open": "Deschide",
+    "rename": "Redenumește",
+    "delete": "Șterge",
+    "deleteConfirm": "Ștergi această căutare?",
+    "deleteYes": "Da, șterge",
+    "alertsNeedConfirmedEmail": "Alertele pe email se trimit doar după ce îți confirmi adresa de email.",
+    "unsubscribedTitle": "Alertele au fost oprite",
+    "unsubscribedBody": "Nu vei mai primi emailuri pentru „{name}”. Căutarea rămâne salvată — poți reactiva alertele oricând.",
+    "unsubscribeGoneTitle": "Căutarea nu mai există",
+    "unsubscribeGoneBody": "Această căutare salvată a fost ștearsă, așa că nu vei mai primi emailuri pentru ea.",
+    "unsubscribeInvalidTitle": "Link invalid",
+    "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri alertele din pagina căutărilor salvate.",
+    "manage": "Gestionează căutările salvate"
   }
 }

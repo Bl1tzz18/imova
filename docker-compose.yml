@@ -87,6 +87,31 @@ services:
     ports:
       - "8080:8080"
 
+  # Background jobs (saved-search alert emails). Same database and email setup as the backend;
+  # the backend runs the migrations, so it starts after it.
+  worker:
+    build:
+      context: .
+      dockerfile: src/backend/Imova.Worker/Dockerfile
+    container_name: imova-worker
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=imova;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Email__Host: "mailpit"
+      Email__Port: "1025"
+      App__WebBaseUrl: "http://localhost:3000"
+      # For the listing photos in alert emails — same storage settings as the backend.
+      Storage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      Storage__PublicBlobEndpoint: "http://localhost:10000"
+      # Every minute locally, so "instant" alerts are quick to try out (default: every 5 minutes).
+      SavedSearchAlerts__IntervalSeconds: "60"
+    depends_on:
+      backend:
+        condition: service_started
+      azurite:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
   frontend:
     build:
       context: ./src/frontend/imova-web

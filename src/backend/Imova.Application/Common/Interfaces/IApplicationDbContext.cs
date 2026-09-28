@@ -7,6 +7,7 @@ using Imova.Domain.Messaging;
 using Imova.Domain.Properties;
 using Imova.Domain.Proximities;
 using Imova.Domain.Publishers;
+using Imova.Domain.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Common.Interfaces;
@@ -38,6 +39,8 @@ public interface IApplicationDbContext
     DbSet<ChisinauSector> ChisinauSectors { get; }
 
     DbSet<Favorite> Favorites { get; }
+
+    DbSet<SavedSearch> SavedSearches { get; }
 
     DbSet<Conversation> Conversations { get; }
 

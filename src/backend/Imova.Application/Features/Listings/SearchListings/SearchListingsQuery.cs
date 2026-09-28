@@ -74,4 +74,10 @@ public record SearchListingsQuery : IRequest<PagedResult<ListingDto>>
     public bool OnlyWithCoordinates { get; init; }
 
     public Guid? CurrentUserId { get; init; }
+
+    // Only listings published in (PublishedAfter, PublishedBefore] — saved searches' "new since your
+    // last visit" and alerts. Set in code, never read from the query string.
+    public DateTimeOffset? PublishedAfter { get; init; }
+
+    public DateTimeOffset? PublishedBefore { get; init; }
 }

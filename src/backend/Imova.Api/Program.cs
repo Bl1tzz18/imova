@@ -12,6 +12,7 @@ using Imova.Api.Features.Media;
 using Imova.Api.Features.Messaging;
 using Imova.Api.Features.Proximities;
 using Imova.Api.Features.Publishers;
+using Imova.Api.Features.SavedSearches;
 using Imova.Api.Features.Users;
 using Imova.Application.Common;
 using Imova.Application.Common.Behaviors;
@@ -23,6 +24,7 @@ using Imova.Application.Features.Auth;
 using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Messaging;
+using Imova.Application.Features.SavedSearches;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Geocoding;
@@ -98,6 +100,7 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options => option
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
 builder.Services.AddScoped<AccountEmails>();
+builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
 builder.Services.AddSingleton<AuthEmailThrottle>();
 builder.Services.AddAuthRateLimiting(builder.Configuration);
 
@@ -333,6 +336,7 @@ app.MapUserEndpoints();
 app.MapFavoriteEndpoints();
 app.MapLocationsEndpoints();
 app.MapMessagingEndpoints();
+app.MapSavedSearchEndpoints();
 app.MapHub<MessagingHub>(MessagingHub.Path);
 
 app.Run();

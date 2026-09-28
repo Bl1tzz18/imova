@@ -8,8 +8,11 @@ import { FilterOptionsProvider } from "@/components/search/FilterOptions";
 import { SearchFilterBar } from "@/components/search/SearchFilterBar";
 import { PendingResults, SearchNavigationProvider } from "@/components/search/SearchNavigation";
 import { searchMapListings } from "@/lib/search/api";
-import { parseSearchParams, switchViewHref } from "@/lib/search/filters";
+import { parseSearchParams, searchHref, switchViewHref } from "@/lib/search/filters";
 import { searchTitle } from "@/lib/search/pageTitle";
+import { SaveSearchButton } from "@/components/savedSearches/SaveSearchButton";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { queryToSave } from "@/lib/savedSearches/savedSearch";
 
 type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -25,11 +28,12 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 // as a pin instead of pages of cards.
 export default async function MapPage({ searchParams }: PageProps) {
   const state = parseSearchParams(await searchParams);
-  const [t, tMap, results, title] = await Promise.all([
+  const [t, tMap, results, title, profile] = await Promise.all([
     getTranslations("Search"),
     getTranslations("MapPage"),
     searchMapListings(state),
     searchTitle(state),
+    getCurrentUserProfile(),
   ]);
 
   return (
@@ -49,6 +53,14 @@ export default async function MapPage({ searchParams }: PageProps) {
                 <ResultsToolbar
                   summary={results === null ? t("error") : tMap("resultsCount", { count: results.totalCount })}
                   sortOnPhones={false}
+                  actions={
+                    <SaveSearchButton
+                      queryString={queryToSave(state)}
+                      defaultName={title}
+                      signedIn={profile !== null}
+                      returnTo={searchHref(state, "map")}
+                    />
+                  }
                 />
                 <PendingResults>
                   <div className="mt-4">

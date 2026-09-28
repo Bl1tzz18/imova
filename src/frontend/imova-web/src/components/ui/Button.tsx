@@ -25,6 +25,12 @@ type BaseProps = {
 const base =
   "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none";
 
+// For an element that must look like a button but can't be one of the components below — e.g. a
+// plain <a> to a route handler, which next/link would prefetch.
+export function buttonClassName({ variant = "primary", size = "md", className }: BaseProps = {}) {
+  return cn(base, variants[variant], sizes[size], className);
+}
+
 export function Button({
   variant = "primary",
   size = "md",

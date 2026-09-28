@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Mail;
+using System.Net.Mime;
+using System.Text;
 using Imova.Application.Common.Interfaces;
 
 namespace Imova.Infrastructure.Email;
@@ -19,7 +21,15 @@ public class SmtpEmailSender(EmailOptions options) : IEmailSender
             Subject = message.Subject,
             Body = message.TextBody,
             IsBodyHtml = false,
+            BodyEncoding = Encoding.UTF8,
+            SubjectEncoding = Encoding.UTF8,
         };
+
+        if (message.HtmlBody is not null)
+        {
+            mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(message.HtmlBody, Encoding.UTF8, MediaTypeNames.Text.Html));
+        }
+
         await client.SendMailAsync(mail, cancellationToken);
     }
 }
