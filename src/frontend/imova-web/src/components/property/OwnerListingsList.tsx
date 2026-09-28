@@ -2,17 +2,18 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import { archiveListing, publishListing, submitForReview } from "@/lib/property/actions";
-import { formatLocation, formatPrice } from "@/lib/utils/format";
+import { archiveListing, publishListing, renewListing, submitForReview } from "@/lib/property/actions";
+import { formatDate, formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { coverPhoto } from "@/lib/listing/view";
+import { listingExpiry } from "@/lib/listing/expiry";
 import type { Listing } from "@/types/listing";
 
-type StatusFilter = "all" | "PendingReview" | "Rejected" | "Active" | "Draft" | "Archived";
+type StatusFilter = "all" | "PendingReview" | "Rejected" | "Active" | "Draft" | "Archived" | "Expired";
 
 // "accent" is this app's alert/attention color (same tone used for validation and error
 // banners elsewhere), so it's reserved for statuses that need the owner to act — Rejected and
@@ -38,6 +39,8 @@ const REPUBLISHABLE_STATUSES = new Set(["Archived", "Expired"]);
 
 export function OwnerListingsList({ listings }: { listings: Listing[] }) {
   const t = useTranslations("MyListingsPage");
+  const locale = useLocale();
+  const now = new Date();
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -51,6 +54,7 @@ export function OwnerListingsList({ listings }: { listings: Listing[] }) {
     { id: "PendingReview", label: t("tabPendingReview") },
     { id: "Rejected", label: t("tabRejected") },
     { id: "Archived", label: t("tabArchived") },
+    { id: "Expired", label: t("tabExpired") },
   ];
 
   const filtered = filter === "all" ? listings : listings.filter((p) => p.status === filter);
@@ -104,6 +108,7 @@ export function OwnerListingsList({ listings }: { listings: Listing[] }) {
             const location = formatLocation(listing.property.location);
             const cover = coverPhoto(listing);
             const pending = pendingId === listing.id;
+            const expiry = listingExpiry(listing, now);
             const reason = listing.status === "Rejected"
               ? listing.rejectionReason
               : listing.status === "Suspended"
@@ -140,6 +145,18 @@ export function OwnerListingsList({ listings }: { listings: Listing[] }) {
                       {listing.title}
                     </Link>
                     {location && <p className="mt-0.5 truncate text-xs text-ink-500">{location}</p>}
+                    {expiry.kind === "active" && (
+                      <p
+                        className={cn(
+                          "mt-0.5 text-xs",
+                          expiry.renewable ? "font-medium text-accent-700" : "text-ink-400",
+                        )}
+                      >
+                        {expiry.renewable
+                          ? t("expiresSoon", { date: formatDate(expiry.expiresAt, locale) })
+                          : t("activeUntil", { date: formatDate(expiry.expiresAt, locale) })}
+                      </p>
+                    )}
                   </div>
 
                   <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">
@@ -183,6 +200,16 @@ export function OwnerListingsList({ listings }: { listings: Listing[] }) {
                           onClick={() => runAction(listing.id, submitForReview)}
                         >
                           {t("submitForReview")}
+                        </Button>
+                      )}
+                      {expiry.kind === "active" && expiry.renewable && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() => runAction(listing.id, renewListing)}
+                        >
+                          {t("renew")}
                         </Button>
                       )}
                       {ARCHIVABLE_STATUSES.has(listing.status) && (

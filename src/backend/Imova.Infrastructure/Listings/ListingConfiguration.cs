@@ -68,5 +68,8 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
         builder.HasIndex(l => l.Status);
         // Search: every query filters Active, most also by Sale/Rent.
         builder.HasIndex(l => new { l.Status, l.TransactionType });
+
+        // The Worker's expiry job: Active listings whose ExpiresAt has passed or is close.
+        builder.HasIndex(l => new { l.Status, l.ExpiresAt });
     }
 }

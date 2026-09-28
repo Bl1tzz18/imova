@@ -30,7 +30,7 @@ export async function setFavorite(listingId: string, saved: boolean, next: strin
 
 async function postListingStatusAction(
   listingId: string,
-  action: "submit-for-review" | "archive" | "publish",
+  action: "submit-for-review" | "archive" | "publish" | "renew",
 ): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
@@ -64,6 +64,11 @@ export async function archiveListing(listingId: string): Promise<{ error?: strin
 // The owner re-activating their own Archived/Expired listing — see Listing.Publish().
 export async function publishListing(listingId: string): Promise<{ error?: string }> {
   return postListingStatusAction(listingId, "publish");
+}
+
+// The owner keeping their Active listing live for another 6 months — see Listing.Renew().
+export async function renewListing(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "renew");
 }
 
 export type UpdateListingState = { error?: string; success?: boolean };

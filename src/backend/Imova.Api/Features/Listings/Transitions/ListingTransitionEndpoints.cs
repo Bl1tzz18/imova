@@ -7,6 +7,7 @@ using Imova.Application.Features.Listings.MarkListingAsRented;
 using Imova.Application.Features.Listings.MarkListingAsSold;
 using Imova.Application.Features.Listings.PublishListing;
 using Imova.Application.Features.Listings.ReinstateListing;
+using Imova.Application.Features.Listings.RenewListing;
 using Imova.Application.Features.Listings.SubmitListingForReview;
 using Imova.Contracts.Listings;
 using MediatR;
@@ -24,6 +25,7 @@ public static class ListingTransitionEndpoints
         MapTransition(app, "submit-for-review", (id, user) => new SubmitListingForReviewCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
         MapTransition(app, "archive", (id, user) => new ArchiveListingCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
         MapTransition(app, "publish", (id, user) => new PublishListingCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
+        MapTransition(app, "renew", (id, user) => new RenewListingCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
         MapTransition(app, "mark-as-rented", (id, user) => new MarkListingAsRentedCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
         MapTransition(app, "mark-as-sold", (id, user) => new MarkListingAsSoldCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
 

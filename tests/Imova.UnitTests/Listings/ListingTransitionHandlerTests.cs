@@ -6,6 +6,7 @@ using Imova.Application.Features.Listings.ArchiveListing;
 using Imova.Application.Features.Listings.MarkListingAsRented;
 using Imova.Application.Features.Listings.MarkListingAsSold;
 using Imova.Application.Features.Listings.PublishListing;
+using Imova.Application.Features.Listings.RenewListing;
 using Imova.Application.Features.Listings.ReinstateListing;
 using Imova.Application.Features.Listings.RejectListing;
 using Imova.Application.Features.Listings.SubmitListingForReview;
@@ -91,6 +92,30 @@ public class ListingTransitionHandlerTests
             .Handle(new PublishListingCommand(listing.Id, _ownerId, false), CancellationToken.None);
 
         Assert.Equal("Active", dto!.Status);
+    }
+
+    [Fact]
+    public async Task Renew_ByOwner_GivesAnActiveListingAFreshPeriod()
+    {
+        var listing = await SeedAsync(ListingStatus.Active);
+
+        var dto = await new RenewListingHandler(_dbContext, _blobs)
+            .Handle(new RenewListingCommand(listing.Id, _ownerId, false), CancellationToken.None);
+
+        Assert.Equal("Active", dto!.Status);
+        Assert.True(dto.ExpiresAt > DateTimeOffset.UtcNow.AddMonths(Listing.ActiveMonths).AddMinutes(-1));
+    }
+
+    [Fact]
+    public async Task Renew_OfAnExpiredListing_IsAValidationError_AndByAStranger_Forbidden()
+    {
+        var expired = await SeedAsync(ListingStatus.Expired);
+        await Assert.ThrowsAsync<ValidationException>(() => new RenewListingHandler(_dbContext, _blobs)
+            .Handle(new RenewListingCommand(expired.Id, _ownerId, false), CancellationToken.None));
+
+        var active = await SeedAsync(ListingStatus.Active);
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => new RenewListingHandler(_dbContext, _blobs)
+            .Handle(new RenewListingCommand(active.Id, Guid.NewGuid(), false), CancellationToken.None));
     }
 
     [Fact]
