@@ -2,6 +2,7 @@ using FluentValidation;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
+using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
 using Imova.Contracts.Auth;
 using MediatR;
@@ -9,10 +10,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Imova.Application.Features.Auth.ChangePassword;
 
-public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
-    : IRequestHandler<ChangePasswordCommand, UserProfileDto>
+public class ChangePasswordHandler(UserManager<ApplicationUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
+    : IRequestHandler<ChangePasswordCommand, ChangePasswordResultDto>
 {
-    public async Task<UserProfileDto> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+    public async Task<ChangePasswordResultDto> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
             ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
@@ -50,8 +51,13 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
                 currentPasswordField: nameof(ChangePasswordCommand.CurrentPassword)));
         }
 
+        // Identity has already changed the security stamp, so this token (unlike every older one) is valid.
         var roles = (await userManager.GetRolesAsync(user)).ToList();
-        return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true, user.EmailConfirmed);
+        var token = jwtTokenGenerator.GenerateToken(user, roles);
+        return new ChangePasswordResultDto(
+            new UserProfileDto(
+                user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true, user.EmailConfirmed),
+            token.Value,
+            token.ExpiresAt);
     }
 }

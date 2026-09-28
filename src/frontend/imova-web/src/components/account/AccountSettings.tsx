@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils/cn";
 import type { UserProfile } from "@/lib/auth/profile";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { PasswordForm } from "@/components/account/PasswordForm";
+import { OtherSessionsPanel } from "@/components/account/OtherSessionsPanel";
 
 type Tab = "profile" | "security";
 
@@ -57,7 +58,14 @@ export function AccountSettings({ profile }: { profile: UserProfile }) {
         </nav>
 
         <div className="min-w-0 flex-1 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
-          {tab === "profile" ? <ProfileForm profile={profile} /> : <PasswordForm hasPassword={profile.hasPassword} />}
+          {tab === "profile" ? (
+            <ProfileForm profile={profile} />
+          ) : (
+            <>
+              <PasswordForm hasPassword={profile.hasPassword} />
+              <OtherSessionsPanel />
+            </>
+          )}
         </div>
       </div>
     </>

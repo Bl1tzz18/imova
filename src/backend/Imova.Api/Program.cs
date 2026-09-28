@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
@@ -134,6 +135,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1),
             RoleClaimType = "role",
             NameClaimType = JwtRegisteredClaimNames.Email,
+        };
+
+        // A signature-valid, unexpired token is still refused once the account's security stamp
+        // has moved on (password changed or reset, "sign out other sessions") — see SessionStamp.
+        // One primary-key lookup per authenticated request.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal!;
+                var current = Guid.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId)
+                    && await SessionStamp.IsCurrentAsync(
+                        context.HttpContext.RequestServices.GetRequiredService<IApplicationDbContext>(),
+                        userId,
+                        principal.FindFirstValue(SessionStamp.ClaimType),
+                        context.HttpContext.RequestAborted);
+                if (!current)
+                {
+                    context.Fail("This session has been signed out.");
+                }
+            },
         };
     })
     // Only for the SignalR hub: short-lived tokens with their own audience (see

@@ -451,7 +451,12 @@
     "setPassword": "Setează parola",
     "updatePassword": "Actualizează parola",
     "updating": "Se actualizează...",
-    "passwordUpdated": "Parolă actualizată."
+    "passwordUpdated": "Parolă actualizată. Celelalte dispozitive pe care erai autentificat au fost deconectate.",
+    "sessionsTitle": "Alte dispozitive",
+    "sessionsBody": "Ai intrat în cont pe un calculator străin sau ți-ai pierdut telefonul? Deconectează-te de peste tot, în afară de acest dispozitiv.",
+    "signOutOtherSessions": "Deconectează celelalte dispozitive",
+    "signingOut": "Se deconectează…",
+    "otherSessionsSignedOut": "Gata — celelalte dispozitive au fost deconectate."
   },
   "SavedListingsPage": {
     "title": "Anunțuri salvate",

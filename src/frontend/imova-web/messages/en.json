@@ -451,7 +451,12 @@
     "setPassword": "Set password",
     "updatePassword": "Update password",
     "updating": "Updating...",
-    "passwordUpdated": "Password updated."
+    "passwordUpdated": "Password updated. Every other device you were signed in on has been signed out.",
+    "sessionsTitle": "Other devices",
+    "sessionsBody": "Signed in on a shared computer, or lost your phone? Sign out everywhere except this device.",
+    "signOutOtherSessions": "Sign out other devices",
+    "signingOut": "Signing out…",
+    "otherSessionsSignedOut": "Done — every other device has been signed out."
   },
   "SavedListingsPage": {
     "title": "Saved listings",

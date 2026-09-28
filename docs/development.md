@@ -109,6 +109,12 @@ then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Win
 
 ## Account emails, rate limiting and proxies
 
+**Sessions.** A login token is only accepted while the account's security stamp is unchanged (the
+`sst` claim, checked on every request). Changing or resetting the password, or "Deconectează
+celelalte dispozitive" on /account, signs out every other session at once; the session that did it
+gets a fresh token. If you rotate or edit `AspNetUsers.SecurityStamp` by hand, that user is signed
+out everywhere.
+
 - **Links in emails** (email confirmation, password reset, new-message notifications) point at
   `App:WebBaseUrl` (compose: `App__WebBaseUrl=http://localhost:3000`). In compose the emails land in
   Mailpit (http://localhost:8025); without an `Email:Host` they're only logged.

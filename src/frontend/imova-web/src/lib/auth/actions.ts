@@ -156,7 +156,34 @@ export async function changePassword(_prevState: AuthFormState, formData: FormDa
     return readAuthError(res);
   }
 
+  // A new password signs out every session, this one included — keep this one with the new token.
+  const { token: newToken, expiresAt } = (await res.json()) as { token: string; expiresAt: string };
+  await setSessionCookie(newToken, expiresAt);
+
   revalidatePath("/account");
+  return { success: true };
+}
+
+// "Sign out on every other device": the API revokes every login token and returns a new one for
+// this session.
+export async function signOutOtherSessions(_prevState: AuthFormState): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/sign-out-other-sessions`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  const { token: newToken, expiresAt } = (await res.json()) as { token: string; expiresAt: string };
+  await setSessionCookie(newToken, expiresAt);
   return { success: true };
 }
 

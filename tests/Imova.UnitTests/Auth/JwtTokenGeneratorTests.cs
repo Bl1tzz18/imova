@@ -21,6 +21,7 @@ public class JwtTokenGeneratorTests
         Id = Guid.NewGuid(),
         Email = "user@example.com",
         DisplayName = "Test User",
+        SecurityStamp = "stamp-1",
     };
 
     private static TokenValidationParameters ValidationParameters(SecurityKey? signingKeyOverride = null, string? audienceOverride = null) => new()
@@ -49,6 +50,7 @@ public class JwtTokenGeneratorTests
         Assert.Contains(jwt.Claims, c => c.Type == "role" && c.Value == "User");
         Assert.Equal(Options.Issuer, jwt.Issuer);
         Assert.Equal(Options.Audience, jwt.Audiences.Single());
+        Assert.Equal(SessionStamp.For("stamp-1"), jwt.Claims.Single(c => c.Type == SessionStamp.ClaimType).Value);
     }
 
     [Fact]
