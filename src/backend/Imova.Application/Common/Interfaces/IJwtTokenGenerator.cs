@@ -6,9 +6,10 @@ public record JwtToken(string Value, DateTimeOffset ExpiresAt);
 
 public interface IJwtTokenGenerator
 {
-    JwtToken GenerateToken(ApplicationUser user, IList<string> roles);
+    // sessionId: the login session (AuthSessions) the token belongs to — its "sid" claim.
+    JwtToken GenerateToken(ApplicationUser user, IList<string> roles, Guid sessionId);
 
     // A short-lived token only the realtime (SignalR) hub accepts — handed to browser code, which
-    // never sees the long-lived session token (that stays in an httpOnly cookie).
+    // never sees the session token (that stays in an httpOnly cookie).
     JwtToken GenerateRealtimeToken(Guid userId);
 }

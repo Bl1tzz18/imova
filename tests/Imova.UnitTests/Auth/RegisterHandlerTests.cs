@@ -18,7 +18,7 @@ public class RegisterHandlerTests
         var userManager = TestUserManagerFactory.Create(_store);
         return new RegisterHandler(
             userManager,
-            new FakeJwtTokenGenerator(),
+            TestSessions.For(userManager, dbContext),
             dbContext,
             new AccountEmails(userManager, _email, new AppOptions { WebBaseUrl = "https://imova.test" }),
             NullLogger<RegisterHandler>.Instance);

@@ -9,8 +9,11 @@ namespace Imova.UnitTests.Auth;
 
 public class ChangePasswordHandlerTests
 {
-    private static ChangePasswordHandler CreateHandler(FakeUserStore store) =>
-        new(TestUserManagerFactory.Create(store), new FakeJwtTokenGenerator());
+    private static ChangePasswordHandler CreateHandler(FakeUserStore store)
+    {
+        var userManager = TestUserManagerFactory.Create(store);
+        return new(userManager, TestSessions.For(userManager));
+    }
 
     [Fact]
     public async Task Handle_WithCorrectCurrentPassword_ChangesPassword()
@@ -38,7 +41,8 @@ public class ChangePasswordHandlerTests
             new ChangePasswordCommand(user.Id, "OldPassword1", "NewPassword1!"), CancellationToken.None);
 
         Assert.NotEqual(stampBefore, user.SecurityStamp);
-        Assert.Equal("fake-token", result.Token);
+        Assert.Equal("fake-token", result.Session.Token);
+        Assert.NotEmpty(result.Session.RefreshToken);
     }
 
     [Fact]

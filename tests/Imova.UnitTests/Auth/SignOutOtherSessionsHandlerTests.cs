@@ -14,7 +14,8 @@ public class SignOutOtherSessionsHandlerTests
         var stampBefore = user.SecurityStamp;
         var tokens = new FakeJwtTokenGenerator();
 
-        var result = await new SignOutOtherSessionsHandler(TestUserManagerFactory.Create(store), tokens)
+        var userManager = TestUserManagerFactory.Create(store);
+        var result = await new SignOutOtherSessionsHandler(userManager, TestSessions.For(userManager, jwt: tokens))
             .Handle(new SignOutOtherSessionsCommand(user.Id), CancellationToken.None);
 
         Assert.NotEqual(stampBefore, user.SecurityStamp);
@@ -26,7 +27,8 @@ public class SignOutOtherSessionsHandlerTests
     [Fact]
     public async Task Handle_ForUnknownUser_ThrowsAuthenticationFailedException()
     {
-        var handler = new SignOutOtherSessionsHandler(TestUserManagerFactory.Create(new FakeUserStore()), new FakeJwtTokenGenerator());
+        var userManager = TestUserManagerFactory.Create(new FakeUserStore());
+        var handler = new SignOutOtherSessionsHandler(userManager, TestSessions.For(userManager));
 
         await Assert.ThrowsAsync<AuthenticationFailedException>(
             () => handler.Handle(new SignOutOtherSessionsCommand(Guid.NewGuid()), CancellationToken.None));

@@ -15,6 +15,7 @@ public static class ErrorCodes
     public const string LockedOut = "auth.lockedOut";
     public const string InvalidGoogleToken = "auth.invalidGoogleToken";
     public const string UserNotFound = "auth.userNotFound";
+    public const string SessionExpired = "auth.sessionExpired";
     public const string EmailThrottled = "auth.emailThrottled";
     public const string InvalidLink = "link.invalid";
     public const string PhoneInvalid = "phone.invalid";

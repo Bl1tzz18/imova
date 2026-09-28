@@ -11,10 +11,13 @@ internal sealed class FakeJwtTokenGenerator : IJwtTokenGenerator
 
     public IList<string>? LastRoles { get; private set; }
 
-    public JwtToken GenerateToken(ApplicationUser user, IList<string> roles)
+    public Guid? LastSessionId { get; private set; }
+
+    public JwtToken GenerateToken(ApplicationUser user, IList<string> roles, Guid sessionId)
     {
         LastUser = user;
         LastRoles = roles;
+        LastSessionId = sessionId;
         return new JwtToken("fake-token", DateTimeOffset.UtcNow.AddHours(1));
     }
 

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Auth.Sessions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Imova.Infrastructure.Identity;
@@ -12,7 +13,7 @@ namespace Imova.Infrastructure.Identity;
 // of being silently rewritten to their long-form ClaimTypes.* equivalents on validation.
 public class JwtTokenGenerator(JwtOptions options) : IJwtTokenGenerator
 {
-    public JwtToken GenerateToken(ApplicationUser user, IList<string> roles)
+    public JwtToken GenerateToken(ApplicationUser user, IList<string> roles, Guid sessionId)
     {
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(options.ExpiryMinutes);
 
@@ -25,6 +26,7 @@ public class JwtTokenGenerator(JwtOptions options) : IJwtTokenGenerator
 
             // Revoked when the account's security stamp changes (e.g. a password change) — see SessionStamp.
             new(SessionStamp.ClaimType, SessionStamp.For(user.SecurityStamp)),
+            new(AuthSessions.SessionIdClaim, sessionId.ToString()),
         };
         claims.AddRange(roles.Select(role => new Claim("role", role)));
 

@@ -22,6 +22,7 @@ using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
 using Imova.Application.Features.Auth;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Messaging;
@@ -101,6 +102,9 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options => option
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
 builder.Services.AddScoped<AccountEmails>();
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
+builder.Services.AddScoped<AuthSessions>();
 builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
 builder.Services.AddSingleton<AuthEmailThrottle>();
 builder.Services.AddAuthRateLimiting(builder.Configuration);

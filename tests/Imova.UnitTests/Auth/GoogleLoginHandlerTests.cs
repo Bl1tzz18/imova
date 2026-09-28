@@ -15,15 +15,19 @@ public class GoogleLoginHandlerTests
         FakeGoogleTokenValidator googleTokenValidator,
         FakeExternalImageFetcher? imageFetcher = null,
         FakeBlobStorageService? blobStorageService = null,
-        ImovaDbContext? dbContext = null) =>
-        new(
+        ImovaDbContext? dbContext = null)
+    {
+        var userManager = TestUserManagerFactory.Create(store);
+        var db = dbContext ?? TestDbContextFactory.Create();
+        return new(
             googleTokenValidator,
-            TestUserManagerFactory.Create(store),
-            new FakeJwtTokenGenerator(),
+            userManager,
+            TestSessions.For(userManager, db),
             imageFetcher ?? new FakeExternalImageFetcher(),
             blobStorageService ?? new FakeBlobStorageService(),
-            dbContext ?? TestDbContextFactory.Create(),
+            db,
             NullLogger<GoogleLoginHandler>.Instance);
+    }
 
     [Fact]
     public async Task Handle_WithNoExistingAccount_CreatesAnIndividualPublisherForTheNewUser()

@@ -1,14 +1,14 @@
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
-using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Auth.Sessions;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Imova.Application.Features.Auth.SignOutOtherSessions;
 
-public class SignOutOtherSessionsHandler(UserManager<ApplicationUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
+public class SignOutOtherSessionsHandler(UserManager<ApplicationUser> userManager, AuthSessions authSessions)
     : IRequestHandler<SignOutOtherSessionsCommand, SessionTokenDto>
 {
     public async Task<SessionTokenDto> Handle(SignOutOtherSessionsCommand request, CancellationToken cancellationToken)
@@ -18,7 +18,6 @@ public class SignOutOtherSessionsHandler(UserManager<ApplicationUser> userManage
 
         await userManager.UpdateSecurityStampAsync(user);
 
-        var token = jwtTokenGenerator.GenerateToken(user, await userManager.GetRolesAsync(user));
-        return new SessionTokenDto(token.Value, token.ExpiresAt);
+        return await authSessions.ContinueAsync(user, request.SessionId, cancellationToken);
     }
 }

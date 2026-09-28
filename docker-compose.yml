@@ -64,7 +64,7 @@ services:
       Jwt__Key: "${JWT_SIGNING_KEY}"
       Jwt__Issuer: "Imova.Api"
       Jwt__Audience: "Imova.Client"
-      Jwt__ExpiryMinutes: "10080"
+      Jwt__ExpiryMinutes: "15"
       GoogleAuth__ClientId: "${GOOGLE_CLIENT_ID}"
       GoogleAuth__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
       # New-message notification emails go to Mailpit (web UI: http://localhost:8025) locally.

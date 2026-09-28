@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
-import { clearSessionCookie, getSessionToken, setSessionCookie } from "@/lib/auth/session";
+import { clearSessionCookies, getRefreshToken, getSessionToken, setSessionCookies } from "@/lib/auth/session";
+import type { SessionTokens } from "@/lib/auth/sessionCookies";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 export type AuthFormState = { error?: string; success?: boolean };
@@ -14,9 +15,7 @@ function safeNext(next: FormDataEntryValue | string | null): string {
   return typeof next === "string" && next.startsWith("/") ? next : "/";
 }
 
-type AuthResponseBody = {
-  token: string;
-  expiresAt: string;
+type AuthResponseBody = SessionTokens & {
   user: { requiresPhoneNumber: boolean };
 };
 
@@ -30,8 +29,7 @@ async function completeSignIn(res: Response, next: string): Promise<AuthFormStat
     return readAuthError(res);
   }
 
-  const { token, expiresAt } = (await res.json()) as AuthResponseBody;
-  await setSessionCookie(token, expiresAt);
+  await setSessionCookies((await res.json()) as AuthResponseBody);
   redirect(next);
 }
 
@@ -44,6 +42,8 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
     body: JSON.stringify({
       email: formData.get("email"),
       password: formData.get("password"),
+      // "Ține-mă minte": a 30-day session instead of one that ends with the browser.
+      rememberMe: formData.get("rememberMe") === "on",
     }),
   });
 
@@ -80,8 +80,9 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
     return readAuthError(res);
   }
 
-  const { token, expiresAt, user } = (await res.json()) as AuthResponseBody;
-  await setSessionCookie(token, expiresAt);
+  const session = (await res.json()) as AuthResponseBody;
+  await setSessionCookies(session);
+  const { user } = session;
 
   const safeNextPath = safeNext(next ?? null);
   redirect(
@@ -156,16 +157,15 @@ export async function changePassword(_prevState: AuthFormState, formData: FormDa
     return readAuthError(res);
   }
 
-  // A new password signs out every session, this one included — keep this one with the new token.
-  const { token: newToken, expiresAt } = (await res.json()) as { token: string; expiresAt: string };
-  await setSessionCookie(newToken, expiresAt);
+  // A new password signs out every session, this one included — keep this one with the new tokens.
+  const { session } = (await res.json()) as { session: SessionTokens };
+  await setSessionCookies(session);
 
   revalidatePath("/account");
   return { success: true };
 }
 
-// "Sign out on every other device": the API revokes every login token and returns a new one for
-// this session.
+// "Sign out on every other device": the API revokes every session and returns new tokens for this one.
 export async function signOutOtherSessions(_prevState: AuthFormState): Promise<AuthFormState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
@@ -182,8 +182,7 @@ export async function signOutOtherSessions(_prevState: AuthFormState): Promise<A
     return readAuthError(res);
   }
 
-  const { token: newToken, expiresAt } = (await res.json()) as { token: string; expiresAt: string };
-  await setSessionCookie(newToken, expiresAt);
+  await setSessionCookies((await res.json()) as SessionTokens);
   return { success: true };
 }
 
@@ -323,7 +322,23 @@ export async function removeProfilePicture(): Promise<UploadProfilePictureResult
   return { profilePictureUrl: profile.profilePictureUrl };
 }
 
+// Ends the session on the server too (its refresh token stops working), then drops the cookies.
+// Best effort: the cookies go either way.
 export async function logout() {
-  await clearSessionCookie();
+  const refreshToken = await getRefreshToken();
+  if (refreshToken) {
+    const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+    try {
+      await fetch(`${apiUrl}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // The API being down must not keep anyone signed in on this browser.
+    }
+  }
+
+  await clearSessionCookies();
   redirect("/");
 }

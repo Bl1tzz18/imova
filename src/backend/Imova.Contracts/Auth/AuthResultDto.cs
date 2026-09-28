@@ -1,6 +1,13 @@
 namespace Imova.Contracts.Auth;
 
-public record AuthResultDto(string Token, DateTimeOffset ExpiresAt, AuthUserDto User);
+// Sign-in / registration result: the session's tokens (see SessionTokenDto) and who signed in.
+public record AuthResultDto(
+    string Token,
+    DateTimeOffset ExpiresAt,
+    AuthUserDto User,
+    string RefreshToken,
+    DateTimeOffset RefreshTokenExpiresAt,
+    bool Persistent);
 
 public record AuthUserDto(
     Guid Id,

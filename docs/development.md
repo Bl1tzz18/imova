@@ -115,6 +115,12 @@ celelalte dispozitive" on /account, signs out every other session at once; the s
 gets a fresh token. If you rotate or edit `AspNetUsers.SecurityStamp` by hand, that user is signed
 out everywhere.
 
+The login token lasts 15 minutes; `src/middleware.ts` in the web app renews it from the
+`imova_refresh` cookie before each request (30 days idle with "Ține-mă minte", else 24 hours;
+90 days at most — the `Sessions` settings). To watch a renewal locally, set
+`Jwt__ExpiryMinutes: "2"` for the backend in docker-compose.yml, sign in, wait a minute and reload:
+a new row appears in `RefreshTokens` with the previous one marked `ReplacedAt`.
+
 - **Links in emails** (email confirmation, password reset, new-message notifications) point at
   `App:WebBaseUrl` (compose: `App__WebBaseUrl=http://localhost:3000`). In compose the emails land in
   Mailpit (http://localhost:8025); without an `Email:Host` they're only logged.

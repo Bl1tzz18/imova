@@ -15,7 +15,7 @@ public static class ChangePasswordEndpoint
             ISender sender,
             CancellationToken cancellationToken) =>
         {
-            var command = new ChangePasswordCommand(user.GetUserId(), request.CurrentPassword, request.NewPassword);
+            var command = new ChangePasswordCommand(user.GetUserId(), request.CurrentPassword, request.NewPassword, user.GetSessionId());
             return Results.Ok(await sender.Send(command, cancellationToken));
         }).RequireAuthorization();
     }

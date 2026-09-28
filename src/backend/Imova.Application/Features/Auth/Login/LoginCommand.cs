@@ -3,4 +3,5 @@ using MediatR;
 
 namespace Imova.Application.Features.Auth.Login;
 
-public record LoginCommand(string Email, string Password) : IRequest<AuthResultDto>;
+// RememberMe: "Ține-mă minte" — see AuthSessionOptions.
+public record LoginCommand(string Email, string Password, bool RememberMe = false) : IRequest<AuthResultDto>;

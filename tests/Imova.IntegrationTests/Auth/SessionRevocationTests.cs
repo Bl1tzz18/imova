@@ -63,7 +63,7 @@ public class SessionRevocationTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Unauthorized, await MeAsync(otherDevice));
         // The token this device used before is revoked too — it continues with the one it got back.
         Assert.Equal(HttpStatusCode.Unauthorized, await MeAsync(thisDevice));
-        UseToken(thisDevice, result.Token);
+        UseToken(thisDevice, result.Session.Token);
         Assert.Equal(HttpStatusCode.OK, await MeAsync(thisDevice));
     }
 
