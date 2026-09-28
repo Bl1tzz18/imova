@@ -9,6 +9,8 @@ export type UserProfile = {
   profilePictureUrl: string | null;
   roles: string[];
   hasPassword: boolean;
+  // Unconfirmed: listings wait as drafts until the emailed link is opened (EmailConfirmationBanner).
+  emailConfirmed: boolean;
 };
 
 // Not a Server Action (no "use server" here) — this reads data for a Server Component render,

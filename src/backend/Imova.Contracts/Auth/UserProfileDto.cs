@@ -7,4 +7,5 @@ public record UserProfileDto(
     string? PhoneNumber,
     string? ProfilePictureUrl,
     IReadOnlyList<string> Roles,
-    bool HasPassword);
+    bool HasPassword,
+    bool EmailConfirmed);

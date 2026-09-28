@@ -49,7 +49,12 @@ public class CreateListingHandler(
         // A new listing goes straight into the admin review queue — the owner doesn't take a
         // separate "submit for review" step for a listing they just finished creating.
         // SubmitListingForReview stays available for resubmitting a fixed Rejected listing.
-        listing.SubmitForReview();
+        // Unless the owner's email isn't confirmed yet: then it waits as a Draft, and confirming
+        // the email submits it (see ReviewEligibility).
+        if (await ReviewEligibility.IsEmailConfirmedAsync(dbContext, publisher.UserId, cancellationToken))
+        {
+            listing.SubmitForReview();
+        }
 
         // One SaveChanges = one transaction: the location, property (+ amenities and proximities), and listing are
         // either all created or none are.

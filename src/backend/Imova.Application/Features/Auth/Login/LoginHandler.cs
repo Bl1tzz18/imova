@@ -10,12 +10,38 @@ namespace Imova.Application.Features.Auth.Login;
 public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGenerator jwtTokenGenerator)
     : IRequestHandler<LoginCommand, AuthResultDto>
 {
+    public const string InvalidCredentials = "Invalid email or password.";
+
+    public const string LockedOut =
+        "Too many failed sign-in attempts. Try again in a few minutes, or reset your password.";
+
     public async Task<AuthResultDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByEmailAsync(request.Email);
-        if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
+        var user = await userManager.FindByEmailAsync(request.Email)
+            ?? throw new AuthenticationFailedException(InvalidCredentials);
+
+        // Identity's lockout (IdentityOptions.Lockout, set in Program.cs): after too many wrong
+        // passwords the account refuses sign-in for a while, even with the right one — the per-IP
+        // rate limit alone doesn't stop a guesser spread over many IPs. A password reset lifts it.
+        if (await userManager.IsLockedOutAsync(user))
         {
-            throw new AuthenticationFailedException("Invalid email or password.");
+            throw new TooManyRequestsException(LockedOut);
+        }
+
+        if (!await userManager.CheckPasswordAsync(user, request.Password))
+        {
+            await userManager.AccessFailedAsync(user);
+            if (await userManager.IsLockedOutAsync(user))
+            {
+                throw new TooManyRequestsException(LockedOut);
+            }
+
+            throw new AuthenticationFailedException(InvalidCredentials);
+        }
+
+        if (await userManager.GetAccessFailedCountAsync(user) > 0)
+        {
+            await userManager.ResetAccessFailedCountAsync(user);
         }
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
@@ -30,6 +56,7 @@ public class LoginHandler(UserManager<ApplicationUser> userManager, IJwtTokenGen
                 user.DisplayName,
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl));
+                user.ProfilePictureUrl,
+                user.EmailConfirmed));
     }
 }

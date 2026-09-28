@@ -306,7 +306,9 @@
       "amenities": "Dotări",
       "proximities": "Vecinătăți",
       "rentalRules": "Reguli de închiriere"
-    }
+    },
+    "successDraftTitle": "Anunțul tău a fost salvat",
+    "successDraftSubtitle": "Confirmă adresa de email prin linkul pe care ți l-am trimis, iar anunțul va fi trimis automat spre verificare."
   },
   "PropertyDetail": {
     "back": "Înapoi la anunțuri",
@@ -394,7 +396,34 @@
     "agencyCta": "Publică anunțuri ca profesionist",
     "orDivider": "sau",
     "genericError": "A apărut o eroare. Încearcă din nou.",
-    "passwordMismatch": "Parolele nu coincid."
+    "passwordMismatch": "Parolele nu coincid.",
+    "forgotPasswordTitle": "Ai uitat parola?",
+    "forgotPasswordSubtitle": "Scrie adresa de email a contului și îți trimitem un link pentru a alege o parolă nouă.",
+    "forgotPasswordSubmit": "Trimite linkul",
+    "forgotPasswordPending": "Se trimite...",
+    "forgotPasswordSent": "Dacă există un cont cu această adresă, ți-am trimis un email cu linkul de resetare. Verifică și dosarul Spam. Linkul este valabil 24 de ore.",
+    "backToLogin": "Înapoi la autentificare",
+    "resetPasswordTitle": "Alege o parolă nouă",
+    "resetPasswordSubtitle": "Pentru contul {email}.",
+    "newPasswordLabel": "Parolă nouă",
+    "resetPasswordSubmit": "Salvează parola",
+    "resetPasswordPending": "Se salvează...",
+    "resetLinkInvalid": "Linkul de resetare este invalid sau a expirat. Cere unul nou.",
+    "requestNewLink": "Cere un link nou",
+    "passwordResetDone": "Parola a fost schimbată. Autentifică-te cu parola nouă.",
+    "tooManyAttempts": "Prea multe încercări. Așteaptă câteva minute și încearcă din nou, sau resetează-ți parola.",
+    "confirmLinkInvalid": "Linkul de confirmare este invalid sau a expirat.",
+    "confirmSuccessTitle": "Adresa de email a fost confirmată",
+    "confirmSuccessBody": "Mulțumim! Anunțurile tale salvate ca schiță au fost trimise spre verificare.",
+    "confirmSuccessMyListings": "Vezi anunțurile mele",
+    "confirmSuccessHome": "Înapoi la pagina principală",
+    "confirmFailedTitle": "Nu am putut confirma adresa",
+    "confirmFailedSignIn": "Autentifică-te pentru un link nou",
+    "confirmBannerTitle": "Confirmă adresa de email {email}",
+    "confirmBannerBody": "Anunțurile tale sunt trimise spre verificare doar după ce deschizi linkul primit pe email.",
+    "confirmBannerSent": "Ți-am trimis un link nou. Verifică și dosarul Spam.",
+    "confirmBannerResend": "Retrimite emailul",
+    "confirmBannerResending": "Se trimite..."
   },
   "Account": {
     "settingsTitle": "Setările contului",

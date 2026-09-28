@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { LinkButton } from "@/components/ui/Button";
 
-export function SuccessPanel() {
+export function SuccessPanel({ awaitingEmailConfirmation }: { awaitingEmailConfirmation?: boolean }) {
   const t = useTranslations("PropertyForm");
 
   return (
@@ -21,8 +21,12 @@ export function SuccessPanel() {
           <path d="M4.5 12.5 9.5 17.5 19.5 6.5" />
         </svg>
       </div>
-      <h2 className="font-hero text-2xl font-bold text-ink-950">{t("successTitle")}</h2>
-      <p className="max-w-md text-sm leading-relaxed text-ink-500">{t("successSubtitle")}</p>
+      <h2 className="font-hero text-2xl font-bold text-ink-950">
+        {awaitingEmailConfirmation ? t("successDraftTitle") : t("successTitle")}
+      </h2>
+      <p className="max-w-md text-sm leading-relaxed text-ink-500">
+        {awaitingEmailConfirmation ? t("successDraftSubtitle") : t("successSubtitle")}
+      </p>
       <div className="mt-2 flex flex-wrap justify-center gap-3">
         <LinkButton href="/my-listings">{t("successViewMine")}</LinkButton>
         <LinkButton href="/" variant="secondary">

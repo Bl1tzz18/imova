@@ -8,6 +8,9 @@ import { buildListingPayload } from "@/lib/property/formPayload";
 export type CreateListingState = {
   error?: string;
   success?: boolean;
+  // The new listing stayed a Draft because the owner's email isn't confirmed yet — it goes to
+  // review by itself once they open the confirmation link.
+  awaitingEmailConfirmation?: boolean;
 };
 
 // Creates the Property and its Listing together in one request (the backend saves both
@@ -44,6 +47,7 @@ export async function createListing(
     return { error: message };
   }
 
+  const created = (await res.json()) as { status: string };
   revalidatePath("/");
-  return { success: true };
+  return { success: true, awaitingEmailConfirmation: created.status === "Draft" };
 }

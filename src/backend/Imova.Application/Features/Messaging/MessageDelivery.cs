@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Messaging;
 using Imova.Domain.Messaging;
@@ -15,7 +16,7 @@ public class MessageDelivery(
     IRealtimeNotifier realtimeNotifier,
     IPresenceTracker presenceTracker,
     IEmailSender emailSender,
-    MessagingOptions options,
+    AppOptions appOptions,
     TimeProvider timeProvider,
     ILogger<MessageDelivery> logger)
 {
@@ -85,7 +86,7 @@ public class MessageDelivery(
             .Select(l => l.Title)
             .FirstOrDefaultAsync(cancellationToken) ?? "un anunț";
         var preview = message.Body.Length > 300 ? message.Body[..300] + "…" : message.Body;
-        var link = $"{options.WebBaseUrl.TrimEnd('/')}/messages/{conversation.Id}";
+        var link = appOptions.WebUrl($"/messages/{conversation.Id}");
 
         await emailSender.SendAsync(
             new EmailMessage(

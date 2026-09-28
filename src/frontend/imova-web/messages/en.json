@@ -306,7 +306,9 @@
       "amenities": "Amenities",
       "proximities": "Nearby",
       "rentalRules": "Rental rules"
-    }
+    },
+    "successDraftTitle": "Your listing has been saved",
+    "successDraftSubtitle": "Confirm your email address with the link we sent you, and the listing will be sent for review automatically."
   },
   "PropertyDetail": {
     "back": "Back to listings",
@@ -394,7 +396,34 @@
     "agencyCta": "Publish listings as a professional",
     "orDivider": "or",
     "genericError": "Something went wrong. Please try again.",
-    "passwordMismatch": "Passwords don't match."
+    "passwordMismatch": "Passwords don't match.",
+    "forgotPasswordTitle": "Forgot your password?",
+    "forgotPasswordSubtitle": "Enter your account's email address and we'll send you a link to choose a new password.",
+    "forgotPasswordSubmit": "Send the link",
+    "forgotPasswordPending": "Sending...",
+    "forgotPasswordSent": "If an account exists for this address, we've emailed you a reset link. Check your spam folder too. The link is valid for 24 hours.",
+    "backToLogin": "Back to sign in",
+    "resetPasswordTitle": "Choose a new password",
+    "resetPasswordSubtitle": "For the account {email}.",
+    "newPasswordLabel": "New password",
+    "resetPasswordSubmit": "Save password",
+    "resetPasswordPending": "Saving...",
+    "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
+    "requestNewLink": "Request a new link",
+    "passwordResetDone": "Your password was changed. Sign in with the new one.",
+    "tooManyAttempts": "Too many attempts. Wait a few minutes and try again, or reset your password.",
+    "confirmLinkInvalid": "This confirmation link is invalid or has expired.",
+    "confirmSuccessTitle": "Email address confirmed",
+    "confirmSuccessBody": "Thank you! Your listings saved as drafts have been sent for review.",
+    "confirmSuccessMyListings": "View my listings",
+    "confirmSuccessHome": "Back to the home page",
+    "confirmFailedTitle": "We couldn't confirm your address",
+    "confirmFailedSignIn": "Sign in to get a new link",
+    "confirmBannerTitle": "Confirm your email address {email}",
+    "confirmBannerBody": "Your listings are only sent for review once you open the link we emailed you.",
+    "confirmBannerSent": "We've sent you a new link. Check your spam folder too.",
+    "confirmBannerResend": "Resend the email",
+    "confirmBannerResending": "Sending..."
   },
   "Account": {
     "settingsTitle": "Account settings",

@@ -6,13 +6,16 @@ using Imova.Application.Features.Publishers;
 using Imova.Contracts.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Imova.Application.Features.Auth.Register;
 
 public class RegisterHandler(
     UserManager<ApplicationUser> userManager,
     IJwtTokenGenerator jwtTokenGenerator,
-    IApplicationDbContext dbContext)
+    IApplicationDbContext dbContext,
+    AccountEmails accountEmails,
+    ILogger<RegisterHandler> logger)
     : IRequestHandler<RegisterCommand, AuthResultDto>
 {
     public async Task<AuthResultDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -38,6 +41,17 @@ public class RegisterHandler(
         dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // Best effort: the account exists either way, and the user can ask for another link
+        // (resend-confirmation) — a mail server hiccup must not fail the registration.
+        try
+        {
+            await accountEmails.SendEmailConfirmationAsync(user, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not send the email confirmation link to new user {UserId}.", user.Id);
+        }
+
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
         var token = jwtTokenGenerator.GenerateToken(user, roles);
@@ -50,7 +64,8 @@ public class RegisterHandler(
                 user.DisplayName,
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl));
+                user.ProfilePictureUrl,
+                user.EmailConfirmed));
     }
 
     private static IEnumerable<ValidationFailure> ToValidationFailures(IEnumerable<IdentityError> errors) =>

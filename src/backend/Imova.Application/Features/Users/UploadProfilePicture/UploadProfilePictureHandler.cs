@@ -58,6 +58,6 @@ public class UploadProfilePictureHandler(UserManager<ApplicationUser> userManage
         var hasPassword = await userManager.HasPasswordAsync(user);
 
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword, user.EmailConfirmed);
     }
 }

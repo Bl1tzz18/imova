@@ -306,7 +306,9 @@
       "amenities": "Удобства",
       "proximities": "Поблизости",
       "rentalRules": "Правила аренды"
-    }
+    },
+    "successDraftTitle": "Ваше объявление сохранено",
+    "successDraftSubtitle": "Подтвердите адрес электронной почты по ссылке из нашего письма, и объявление автоматически отправится на проверку."
   },
   "PropertyDetail": {
     "back": "Назад к объявлениям",
@@ -394,7 +396,34 @@
     "agencyCta": "Публикуйте объявления как профессионал",
     "orDivider": "или",
     "genericError": "Произошла ошибка. Попробуйте снова.",
-    "passwordMismatch": "Пароли не совпадают."
+    "passwordMismatch": "Пароли не совпадают.",
+    "forgotPasswordTitle": "Забыли пароль?",
+    "forgotPasswordSubtitle": "Введите email вашего аккаунта, и мы пришлём ссылку для выбора нового пароля.",
+    "forgotPasswordSubmit": "Отправить ссылку",
+    "forgotPasswordPending": "Отправка...",
+    "forgotPasswordSent": "Если аккаунт с этим адресом существует, мы отправили письмо со ссылкой для сброса. Проверьте и папку «Спам». Ссылка действительна 24 часа.",
+    "backToLogin": "Вернуться ко входу",
+    "resetPasswordTitle": "Выберите новый пароль",
+    "resetPasswordSubtitle": "Для аккаунта {email}.",
+    "newPasswordLabel": "Новый пароль",
+    "resetPasswordSubmit": "Сохранить пароль",
+    "resetPasswordPending": "Сохранение...",
+    "resetLinkInvalid": "Ссылка для сброса недействительна или устарела. Запросите новую.",
+    "requestNewLink": "Запросить новую ссылку",
+    "passwordResetDone": "Пароль изменён. Войдите с новым паролем.",
+    "tooManyAttempts": "Слишком много попыток. Подождите несколько минут и попробуйте снова или сбросьте пароль.",
+    "confirmLinkInvalid": "Ссылка для подтверждения недействительна или устарела.",
+    "confirmSuccessTitle": "Адрес электронной почты подтверждён",
+    "confirmSuccessBody": "Спасибо! Ваши объявления, сохранённые как черновики, отправлены на проверку.",
+    "confirmSuccessMyListings": "Мои объявления",
+    "confirmSuccessHome": "На главную",
+    "confirmFailedTitle": "Не удалось подтвердить адрес",
+    "confirmFailedSignIn": "Войдите, чтобы получить новую ссылку",
+    "confirmBannerTitle": "Подтвердите адрес электронной почты {email}",
+    "confirmBannerBody": "Ваши объявления отправляются на проверку только после того, как вы откроете ссылку из письма.",
+    "confirmBannerSent": "Мы отправили новую ссылку. Проверьте и папку «Спам».",
+    "confirmBannerResend": "Отправить письмо снова",
+    "confirmBannerResending": "Отправка..."
   },
   "Account": {
     "settingsTitle": "Настройки аккаунта",

@@ -107,4 +107,14 @@ public class RegisterValidatorTests
 
         Assert.True(result.IsValid);
     }
+
+    [Fact]
+    public void Validate_WithAMissingPhoneNumber_HasAnErrorInsteadOfThrowing()
+    {
+        // A JSON body without "phoneNumber" binds it as null; the phone regex used to throw on
+        // that and the register endpoint answered 500.
+        var result = _validator.Validate(ValidCommand(phoneNumber: null!));
+
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(RegisterCommand.PhoneNumber));
+    }
 }

@@ -8,4 +8,5 @@ public record AuthUserDto(
     string? DisplayName,
     IReadOnlyList<string> Roles,
     bool RequiresPhoneNumber,
-    string? ProfilePictureUrl);
+    string? ProfilePictureUrl,
+    bool EmailConfirmed);

@@ -17,6 +17,6 @@ public class GetProfileHandler(UserManager<ApplicationUser> userManager) : IRequ
         var hasPassword = await userManager.HasPasswordAsync(user);
 
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, hasPassword, user.EmailConfirmed);
     }
 }

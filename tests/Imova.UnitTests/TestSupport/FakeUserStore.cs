@@ -11,7 +11,8 @@ internal sealed class FakeUserStore :
     IUserStore<ApplicationUser>,
     IUserEmailStore<ApplicationUser>,
     IUserRoleStore<ApplicationUser>,
-    IUserPasswordStore<ApplicationUser>
+    IUserPasswordStore<ApplicationUser>,
+    IUserLockoutStore<ApplicationUser>
 {
     private readonly Dictionary<Guid, ApplicationUser> _usersById = [];
     private readonly Dictionary<Guid, HashSet<string>> _rolesByUserId = [];
@@ -31,6 +32,8 @@ internal sealed class FakeUserStore :
             Email = email,
             NormalizedEmail = email.ToUpperInvariant(),
             EmailConfirmed = emailConfirmed,
+            // What UserManager.CreateAsync sets for every real account (Lockout.AllowedForNewUsers).
+            LockoutEnabled = true,
         };
         _usersById[user.Id] = user;
         return user;
@@ -172,4 +175,35 @@ internal sealed class FakeUserStore :
 
     public Task<bool> HasPasswordAsync(ApplicationUser user, CancellationToken cancellationToken) =>
         Task.FromResult(user.PasswordHash is not null);
+
+    // IUserLockoutStore<ApplicationUser>
+    public Task<DateTimeOffset?> GetLockoutEndDateAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.LockoutEnd);
+
+    public Task SetLockoutEndDateAsync(ApplicationUser user, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken)
+    {
+        user.LockoutEnd = lockoutEnd;
+        return Task.CompletedTask;
+    }
+
+    public Task<int> IncrementAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(++user.AccessFailedCount);
+
+    public Task ResetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        user.AccessFailedCount = 0;
+        return Task.CompletedTask;
+    }
+
+    public Task<int> GetAccessFailedCountAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.AccessFailedCount);
+
+    public Task<bool> GetLockoutEnabledAsync(ApplicationUser user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.LockoutEnabled);
+
+    public Task SetLockoutEnabledAsync(ApplicationUser user, bool enabled, CancellationToken cancellationToken)
+    {
+        user.LockoutEnabled = enabled;
+        return Task.CompletedTask;
+    }
 }

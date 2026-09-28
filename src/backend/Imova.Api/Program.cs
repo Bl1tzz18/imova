@@ -12,10 +12,13 @@ using Imova.Api.Features.Messaging;
 using Imova.Api.Features.Publishers;
 using Imova.Api.Features.Users;
 using Imova.Api.Features.Proximities;
+using Imova.Api.Common;
+using Imova.Application.Common;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Auth;
 using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Messaging;
@@ -28,6 +31,7 @@ using Imova.Infrastructure.Locations;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -63,10 +67,27 @@ builder.Services
         options.Password.RequiredLength = 8;
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequireUppercase = false;
+
+        // See LoginHandler: 5 wrong passwords in a row lock sign-in for 15 minutes.
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ImovaDbContext>()
     .AddDefaultTokenProviders();
+
+// Password-reset and email-confirmation links (AccountEmails) are data-protection tokens: the
+// keys live in Postgres so links survive a redeploy/container restart (and would work across
+// several API instances) — with the default per-container key ring every restart voided them.
+builder.Services.AddDataProtection()
+    .SetApplicationName("Imova.Api")
+    .PersistKeysToDbContext<ImovaDbContext>();
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = AccountEmails.LinkLifetime);
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
+builder.Services.AddScoped<AccountEmails>();
+builder.Services.AddSingleton<AuthEmailThrottle>();
+builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException($"Configuration section \"{JwtOptions.SectionName}\" is missing.");
@@ -236,10 +257,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// First, so everything after (the auth rate limiter in particular) sees the real client IP — see AuthRateLimiting.
+app.UseForwardedHeaders();
+
 app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.UseExceptionHandler(handler =>
 {

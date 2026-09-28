@@ -106,3 +106,21 @@ then, back in WSL, `sudo fstrim -av` hands the currently free blocks back to Win
   ```
 
   `appsettings.Development.json` itself is gitignored and kept with empty placeholder values.
+
+## Account emails, rate limiting and proxies
+
+- **Links in emails** (email confirmation, password reset, new-message notifications) point at
+  `App:WebBaseUrl` (compose: `App__WebBaseUrl=http://localhost:3000`). In compose the emails land in
+  Mailpit (http://localhost:8025); without an `Email:Host` they're only logged.
+- **Link tokens** are ASP.NET data-protection tokens, valid 24 h. The key ring is stored in Postgres
+  (`DataProtectionKeys` table), so links survive a backend rebuild/restart. Deleting that table's
+  rows invalidates every outstanding link.
+- **Auth rate limit** (`RateLimiting:Auth` — `Enabled`, `PermitLimit` = 10, `WindowSeconds` = 60):
+  per client IP on login, register, Google sign-in, forgot/reset password, confirm/resend. Hitting it
+  locally? Wait a minute, or restart the backend (the counters are in memory).
+- **Client IP**: the web app's server actions forward the visitor's IP as `X-Forwarded-For`, and the
+  API only believes that header from `ForwardedHeaders:KnownNetworks` (plus loopback). Compose
+  trusts `172.16.0.0/12` — fine locally, but in production list only the web server / reverse
+  proxy, and put a reverse proxy in front of Next.js (Next keeps a client-sent `X-Forwarded-For`).
+- **Login lockout**: 5 wrong passwords lock the account's sign-in for 15 minutes (429). A password
+  reset lifts it; so does clearing `LockoutEnd` in `AspNetUsers`.

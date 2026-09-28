@@ -30,6 +30,7 @@ public class CreateListingHandlerTests
         _user = new ApplicationUser
         {
             Id = Guid.NewGuid(), Email = "ion@example.com", UserName = "ion@example.com", DisplayName = "Ion", PhoneNumber = "+373 69 123 456",
+            EmailConfirmed = true,
         };
         _dbContext.Raioane.Add(_raion);
         _dbContext.Localitati.Add(_localitate);
@@ -107,6 +108,17 @@ public class CreateListingHandlerTests
         var result = await Handler().Handle(Command(), CancellationToken.None);
 
         Assert.Equal("PendingReview", result.Status);
+    }
+
+    [Fact]
+    public async Task Handle_ForAnOwnerWithAnUnconfirmedEmail_KeepsTheListingAsADraft()
+    {
+        _user.EmailConfirmed = false;
+        await _dbContext.SaveChangesAsync();
+
+        var result = await Handler().Handle(Command(), CancellationToken.None);
+
+        Assert.Equal("Draft", result.Status);
     }
 
     [Fact]

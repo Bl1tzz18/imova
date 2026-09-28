@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
+import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { clearSessionCookie, getSessionToken, setSessionCookie } from "@/lib/auth/session";
 
 export type AuthFormState = { error?: string; success?: boolean };
@@ -20,6 +21,11 @@ type AuthResponseBody = {
 };
 
 async function readAuthError(res: Response): Promise<AuthFormState> {
+  // Rate limit, sign-in lockout, "wait before another email" — the API's text is English only.
+  if (res.status === 429) {
+    return { error: (await getTranslations("Auth"))("tooManyAttempts") };
+  }
+
   const problem = await res.json().catch(() => null);
   const message = problem?.errors
     ? Object.values(problem.errors as Record<string, string[]>).flat().join(" ")
@@ -43,7 +49,7 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
 
   const res = await fetch(`${apiUrl}/api/v1/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
     body: JSON.stringify({
       email: formData.get("email"),
       password: formData.get("password"),
@@ -58,7 +64,7 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
 
   const res = await fetch(`${apiUrl}/api/v1/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
     body: JSON.stringify({
       email: formData.get("email"),
       password: formData.get("password"),
@@ -75,7 +81,7 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
 
   const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
     body: JSON.stringify({ idToken }),
   });
 
@@ -160,6 +166,91 @@ export async function changePassword(_prevState: AuthFormState, formData: FormDa
   }
 
   revalidatePath("/account");
+  return { success: true };
+}
+
+// Always "sent" as far as the user can tell — the API answers the same whether or not the email
+// has an account, so the page can't reveal that either.
+export async function forgotPassword(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
+    body: JSON.stringify({ email: formData.get("email") }),
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
+  return { success: true };
+}
+
+// From the emailed link (/reset-password?email=…&token=…). On success the user signs in with the
+// new password — /login shows a "password changed" notice.
+export async function resetPassword(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
+    body: JSON.stringify({
+      email: formData.get("email"),
+      token: formData.get("token"),
+      newPassword: formData.get("newPassword"),
+    }),
+  });
+
+  if (!res.ok) {
+    // A bad or expired link comes back as a "Token" validation error.
+    const problem = res.status === 400 ? await res.clone().json().catch(() => null) : null;
+    if (problem?.errors?.Token) {
+      return { error: (await getTranslations("Auth"))("resetLinkInvalid") };
+    }
+    return readAuthError(res);
+  }
+
+  redirect("/login?reset=1");
+}
+
+// Called while rendering /confirm-email (the emailed link) rather than from a form: opening the
+// link is the confirmation. Harmless to repeat — an already-confirmed account just succeeds.
+export async function confirmEmail(userId: string, token: string): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/confirm-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
+    body: JSON.stringify({ userId, token }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    return res.status === 400 ? { error: (await getTranslations("Auth"))("confirmLinkInvalid") } : readAuthError(res);
+  }
+
+  // No revalidatePath here: it isn't allowed during a render, and the pages it would refresh
+  // (my listings, account) fetch with cache: "no-store" anyway.
+  return { success: true };
+}
+
+export async function resendEmailConfirmation(): Promise<AuthFormState> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/auth/resend-confirmation`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, ...(await forwardedForHeader()) },
+  });
+
+  if (!res.ok) {
+    return readAuthError(res);
+  }
+
   return { success: true };
 }
 

@@ -48,6 +48,6 @@ public class ChangePasswordHandler(UserManager<ApplicationUser> userManager)
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         return new UserProfileDto(
-            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true);
+            user.Id, user.Email!, user.DisplayName, user.PhoneNumber, user.ProfilePictureUrl, roles, HasPassword: true, user.EmailConfirmed);
     }
 }

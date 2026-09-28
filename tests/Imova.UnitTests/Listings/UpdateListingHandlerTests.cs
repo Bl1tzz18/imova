@@ -34,6 +34,7 @@ public class UpdateListingHandlerTests
         _dbContext.ChisinauSectors.Add(_sector);
         _dbContext.Amenities.AddRange(new Amenity(_parking, "parking", "Parcare"), new Amenity(_balcony, "balcony", "Balcon/Logie"));
         _dbContext.Proximities.AddRange(new Proximity(_school, "school", "Școală"), new Proximity(_park, "park", "Parc / zonă verde"));
+        ListingTestData.AddUser(_dbContext, _ownerId);
         var publisher = ListingTestData.AddIndividualPublisher(_dbContext, _ownerId);
         var property = ListingTestData.AddProperty(_dbContext, amenityIds: [_parking], proximityIds: [_school]);
         _listing = ListingTestData.NewListing(property.Id, publisher.Id);
@@ -144,6 +145,18 @@ public class UpdateListingHandlerTests
 
         Assert.Equal("PendingReview", result!.Status);
         Assert.Null(result.RejectionReason);
+    }
+
+    [Fact]
+    public async Task Handle_ForRejectedListing_OfAnOwnerWithAnUnconfirmedEmail_KeepsItRejected()
+    {
+        (await _dbContext.Users.SingleAsync(u => u.Id == _ownerId)).EmailConfirmed = false;
+        _listing.MoveTo(ListingStatus.Rejected);
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var result = await Handler().Handle(Command(), CancellationToken.None);
+
+        Assert.Equal("Rejected", result!.Status);
     }
 
     [Fact]

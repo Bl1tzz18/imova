@@ -84,7 +84,8 @@ public class GoogleLoginHandler(
                 user.DisplayName,
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
-                user.ProfilePictureUrl));
+                user.ProfilePictureUrl,
+                user.EmailConfirmed));
     }
 
     // Never throws — a failure here (Google's URL is unreachable/expired, an unrecognized image

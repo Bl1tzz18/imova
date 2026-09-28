@@ -1,5 +1,6 @@
 using FluentValidation;
 using Imova.Application.Common.Exceptions;
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.ApproveListing;
 using Imova.Application.Features.Listings.ArchiveListing;
 using Imova.Application.Features.Listings.MarkListingAsRented;
@@ -28,6 +29,7 @@ public class ListingTransitionHandlerTests
 
     public ListingTransitionHandlerTests()
     {
+        ListingTestData.AddUser(_dbContext, _ownerId);
         _publisherId = ListingTestData.AddIndividualPublisher(_dbContext, _ownerId).Id;
     }
 
@@ -53,6 +55,20 @@ public class ListingTransitionHandlerTests
 
         Assert.Equal("PendingReview", dto!.Status);
         Assert.Equal(ListingStatus.PendingReview, await StoredStatusAsync(listing.Id));
+    }
+
+    [Fact]
+    public async Task SubmitForReview_WhenTheOwnersEmailIsUnconfirmed_IsForbiddenAndLeavesTheDraft()
+    {
+        var listing = await SeedAsync(ListingStatus.Draft);
+        (await _dbContext.Users.SingleAsync(u => u.Id == _ownerId)).EmailConfirmed = false;
+        await _dbContext.SaveChangesAsync();
+
+        var error = await Assert.ThrowsAsync<ForbiddenAccessException>(() => new SubmitListingForReviewHandler(_dbContext, _blobs)
+            .Handle(new SubmitListingForReviewCommand(listing.Id, _ownerId, false), CancellationToken.None));
+
+        Assert.Equal(ReviewEligibility.EmailNotConfirmedMessage, error.Message);
+        Assert.Equal(ListingStatus.Draft, await StoredStatusAsync(listing.Id));
     }
 
     [Fact]

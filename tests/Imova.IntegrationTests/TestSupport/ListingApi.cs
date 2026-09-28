@@ -23,6 +23,10 @@ internal static class ListingApi
         {
             builder.UseSetting("ConnectionStrings:Default", ConnectionString);
 
+            // Every test registers users from the same in-process "IP"; the auth rate limit has
+            // its own tests (AccountEndpointsTests) that turn it back on.
+            builder.UseSetting("RateLimiting:Auth:Enabled", "false");
+
             // Integration tests must never hit the real Nominatim API.
             builder.ConfigureServices(services =>
             {
@@ -31,7 +35,10 @@ internal static class ListingApi
             });
         });
 
-    public static async Task<(HttpClient Client, AuthUserDto User)> RegisterAsync(WebApplicationFactory<Program> factory)
+    // Confirms the new account's email by default (as if the emailed link had been opened), since
+    // an unconfirmed owner's listings don't go to review — pass confirmEmail: false to test that.
+    public static async Task<(HttpClient Client, AuthUserDto User)> RegisterAsync(
+        WebApplicationFactory<Program> factory, bool confirmEmail = true)
     {
         var client = factory.CreateClient();
         var email = $"listing-test-{Guid.NewGuid():N}@example.com";
@@ -47,6 +54,17 @@ internal static class ListingApi
 
         var auth = (await response.Content.ReadFromJsonAsync<AuthResultDto>())!;
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+
+        if (confirmEmail)
+        {
+            using var scope = factory.Services.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var appUser = (await userManager.FindByIdAsync(auth.User.Id.ToString()))!;
+            appUser.EmailConfirmed = true;
+            await userManager.UpdateAsync(appUser);
+            return (client, auth.User with { EmailConfirmed = true });
+        }
+
         return (client, auth.User);
     }
 

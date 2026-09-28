@@ -131,7 +131,8 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
   }));
 
   if (state.success && !isEdit) {
-    return <SuccessPanel />;
+    // Create mode, so this is createListing's state.
+    return <SuccessPanel awaitingEmailConfirmation={(state as CreateListingState).awaitingEmailConfirmation} />;
   }
 
   const primaryLabel = pending
