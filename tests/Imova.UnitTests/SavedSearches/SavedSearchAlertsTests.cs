@@ -48,7 +48,7 @@ public class SavedSearchAlertsTests
     });
 
     private Task<int> RunAsync() => new SavedSearchAlerts(
-            _db, Search(), _email, new AppOptions { WebBaseUrl = "https://imova.test" }, _tokens, _clock,
+            _db, Search(), new FakeBlobStorageService(), _email, new AppOptions { WebBaseUrl = "https://imova.test" }, _tokens, _clock,
             NullLogger<SavedSearchAlerts>.Instance)
         .RunAsync(CancellationToken.None);
 

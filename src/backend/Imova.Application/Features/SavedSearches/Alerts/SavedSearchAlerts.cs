@@ -1,6 +1,6 @@
-using System.Globalization;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Domain.SavedSearches;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +16,7 @@ namespace Imova.Application.Features.SavedSearches.Alerts;
 public class SavedSearchAlerts(
     IApplicationDbContext dbContext,
     IListingSearch listingSearch,
+    IBlobStorageService blobStorageService,
     IEmailSender emailSender,
     AppOptions appOptions,
     SavedSearchUnsubscribeTokens unsubscribeTokens,
@@ -83,29 +84,40 @@ public class SavedSearchAlerts(
     private async Task<EmailMessage> BuildEmailAsync(
         string to, SavedSearch savedSearch, IReadOnlyList<Guid> ids, int total, CancellationToken cancellationToken)
     {
-        var listings = await dbContext.Listings.AsNoTracking()
+        // The same data the site's cards show (main photo URL, location names), via the shared loader.
+        var byId = await dbContext.Listings.AsNoTracking()
             .Where(l => ids.Contains(l.Id))
-            .Select(l => new { l.Id, l.Title, l.Price.Amount, l.Price.Currency })
-            .ToListAsync(cancellationToken);
+            .ToDictionaryAsync(l => l.Id, cancellationToken);
         // In the search's order; a listing removed in the meantime is simply left out.
-        var byId = listings.ToDictionary(l => l.Id);
         var ordered = ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+        var dtos = await ListingDtoLoader.LoadAsync(dbContext, blobStorageService, ordered, currentUserId: null, cancellationToken);
 
-        var subject = total == 1
-            ? $"Un anunț nou pentru „{savedSearch.Name}” — IMOVA"
-            : $"{total} anunțuri noi pentru „{savedSearch.Name}” — IMOVA";
+        var listings = dtos.Select(l =>
+        {
+            var photo = l.Photos.FirstOrDefault(p => p.IsPrimary) ?? l.Photos.OrderBy(p => p.SortOrder).FirstOrDefault();
+            var location = l.Property.Location is { } loc
+                ? string.Join(", ", new[] { loc.ChisinauSectorName ?? loc.LocalitateName, loc.RaionName }.Where(n => !string.IsNullOrWhiteSpace(n)))
+                : null;
+            return new AlertListing(
+                l.Id,
+                l.Title,
+                l.Price.Amount,
+                l.Price.Currency,
+                l.TransactionType,
+                l.Property.PropertyType,
+                l.Property.TotalAreaM2,
+                string.IsNullOrWhiteSpace(location) ? null : location,
+                photo?.Url,
+                appOptions.WebUrl($"/property/{l.Id}"));
+        }).ToList();
 
-        var lines = ordered.Select(l =>
-            $"• {l.Title} — {l.Amount.ToString("#,0", CultureInfo.InvariantCulture).Replace(',', ' ')} {l.Currency}\n  {appOptions.WebUrl($"/property/{l.Id}")}");
-        var more = total > ordered.Count ? $"\n…și încă {total - ordered.Count}.\n" : string.Empty;
-
-        var body =
-            $"Au apărut anunțuri noi pentru căutarea ta salvată „{savedSearch.Name}”:\n\n" +
-            string.Join("\n\n", lines) + "\n" + more + "\n" +
-            $"Vezi toate rezultatele: {appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open")}\n\n" +
-            "Nu mai vrei aceste emailuri? Oprește alertele pentru această căutare:\n" +
-            $"{appOptions.WebUrl($"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}")}\n";
-
-        return new EmailMessage(to, subject, body);
+        return SavedSearchAlertEmail.Build(
+            to,
+            savedSearch.Name,
+            listings,
+            total,
+            openUrl: appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open"),
+            unsubscribeUrl: appOptions.WebUrl(
+                $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}"));
     }
 }

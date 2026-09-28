@@ -6,6 +6,7 @@ using Imova.Application.Features.SavedSearches.Alerts;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Listings;
+using Imova.Infrastructure.Storage;
 using Imova.Worker;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,12 @@ builder.Services.AddDbContext<ImovaDbContext>(options =>
         npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
 builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ImovaDbContext>());
 builder.Services.AddScoped<IListingSearch, ListingSearch>();
+
+// Alert emails show each listing's main photo — its public blob URL.
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(BlobStorageOptions.SectionName).Get<BlobStorageOptions>()
+    ?? throw new InvalidOperationException($"Configuration section \"{BlobStorageOptions.SectionName}\" is missing."));
+builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 
 var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
 builder.Services.AddSingleton(emailOptions);
