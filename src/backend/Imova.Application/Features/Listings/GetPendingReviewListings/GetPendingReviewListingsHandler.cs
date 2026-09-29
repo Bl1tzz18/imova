@@ -18,19 +18,51 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
             throw new ForbiddenAccessException();
         }
 
-        var pendingReviewQuery = dbContext.Listings
+        var query = dbContext.Listings
             .AsNoTracking()
-            .Where(l => l.Status == ListingStatus.PendingReview);
+            .Where(l => l.Status == request.Status);
 
-        // Oldest submission first — a fair, first-in-first-out review queue.
-        var totalCount = await pendingReviewQuery.CountAsync(cancellationToken);
-        var listings = await pendingReviewQuery
-            .OrderBy(l => l.UpdatedAt)
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var term = request.Search.Trim();
+            if (ListingIdIn(term) is { } listingId)
+            {
+                query = query.Where(l => l.Id == listingId);
+            }
+            else
+            {
+                var lower = term.ToLower();
+                query =
+                    from l in query
+                    join p in dbContext.Publishers on l.PublisherId equals p.Id
+                    where l.Title.ToLower().Contains(lower)
+                        || p.DisplayName.ToLower().Contains(lower)
+                        || p.Email.ToLower().Contains(lower)
+                    select l;
+            }
+        }
+
+        // The review queue: oldest submission first (first in, first out). Active/Suspended: most
+        // recently changed first. Id breaks ties so pages are stable.
+        var ordered = request.Status == ListingStatus.PendingReview
+            ? query.OrderBy(l => l.UpdatedAt).ThenBy(l => l.Id)
+            : query.OrderByDescending(l => l.UpdatedAt).ThenBy(l => l.Id);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var listings = await ordered
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
         var items = await ListingDtoLoader.LoadAsync(dbContext, blobStorageService, listings, currentUserId: null, cancellationToken);
         return new PagedResult<ListingDto>(items, request.Page, request.PageSize, totalCount);
+    }
+
+    // "https://imova.md/property/<id>", "<id>" — the admin usually has the listing's link at hand.
+    private static Guid? ListingIdIn(string term)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            term, "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        return match.Success ? Guid.Parse(match.Value) : null;
     }
 }

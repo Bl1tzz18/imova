@@ -17,7 +17,8 @@
     "accountSettings": "Setările contului",
     "messages": "Mesaje",
     "messagingReports": "Mesaje raportate",
-    "savedSearches": "Căutări salvate"
+    "savedSearches": "Căutări salvate",
+    "administrators": "Administratori"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -559,17 +560,49 @@
     "forbiddenText": "Nu ai permisiunea să editezi acest anunț."
   },
   "AdminModerationPage": {
-    "title": "Coadă de moderare",
-    "resultsCount": "{count, plural, one {# anunț în așteptare} few {# anunțuri în așteptare} other {# de anunțuri în așteptare}}",
-    "emptyTitle": "Nimic de verificat",
-    "emptyBody": "Anunțurile noi trimise spre verificare vor apărea aici.",
+    "title": "Moderare anunțuri",
     "forbiddenText": "Nu ai permisiunea să vezi această pagină.",
     "approve": "Aprobă",
     "reject": "Respinge",
     "reasonPlaceholder": "Explică de ce este respins acest anunț...",
     "confirmReject": "Confirmă respingerea",
     "cancel": "Anulează",
-    "reasonRequired": "Motivul este obligatoriu."
+    "reasonRequired": "Motivul este obligatoriu.",
+    "tabs": {
+      "pending": "În așteptare",
+      "active": "Active",
+      "suspended": "Suspendate"
+    },
+    "count": {
+      "pending": "{count, plural, one {# anunț în așteptare} few {# anunțuri în așteptare} other {# de anunțuri în așteptare}}",
+      "active": "{count, plural, one {# anunț activ} few {# anunțuri active} other {# de anunțuri active}}",
+      "suspended": "{count, plural, one {# anunț suspendat} few {# anunțuri suspendate} other {# de anunțuri suspendate}}"
+    },
+    "empty": {
+      "pending": "Nimic de verificat",
+      "active": "Niciun anunț activ",
+      "suspended": "Niciun anunț suspendat"
+    },
+    "emptyBody": {
+      "pending": "Anunțurile noi trimise spre verificare vor apărea aici.",
+      "active": "Anunțurile publicate vor apărea aici, cele mai recente primele.",
+      "suspended": "Anunțurile suspendate apar aici; le poți reactiva oricând."
+    },
+    "suspend": "Suspendă",
+    "suspendReasonPlaceholder": "Explică proprietarului de ce este suspendat anunțul...",
+    "confirmSuspend": "Confirmă suspendarea",
+    "reinstate": "Reactivează",
+    "suspensionReason": "Motivul suspendării",
+    "searchLabel": "Caută un anunț",
+    "searchPlaceholder": "ID sau link al anunțului, titlu, nume ori email al publicantului",
+    "search": "Caută",
+    "clearSearch": "Șterge căutarea",
+    "noMatchTitle": "Niciun anunț găsit",
+    "noMatchBody": "Nimic nu corespunde căutării „{q}” în această filă.",
+    "pagination": "Pagini",
+    "previous": "Anterioara",
+    "next": "Următoarea",
+    "pageOf": "Pagina {page} din {pageCount}"
   },
   "Condition": {
     "New": "Nou",
@@ -1105,6 +1138,12 @@
         "passwordRequired": "Introdu parola pentru a șterge contul.",
         "wrongPassword": "Parola este greșită.",
         "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email."
+      },
+      "admin": {
+        "userNotFound": "Nu există niciun cont cu acest email.",
+        "emailNotConfirmed": "Contul nu și-a confirmat încă adresa de email.",
+        "alreadyAdmin": "Acest cont este deja administrator.",
+        "passwordNeeded": "Setează mai întâi o parolă pentru contul tău (Setările contului → Securitate) — e necesară pentru confirmare."
       }
     },
     "validation": {
@@ -1188,5 +1227,22 @@
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri alertele din pagina căutărilor salvate.",
     "manage": "Gestionează căutările salvate"
+  },
+  "AdminAdminsPage": {
+    "title": "Administratori",
+    "subtitle": "Cine are acces complet la moderare și la datele utilizatorilor.",
+    "forbidden": "Doar administratorii au acces aici.",
+    "you": "(tu)",
+    "grantedBy": "Adăugat de {by}, {date}",
+    "grantedBeforeAudit": "Adăugat înainte de jurnalul de audit",
+    "deletedAccount": "un cont șters",
+    "addTitle": "Adaugă un administrator",
+    "addBody": "Persoana trebuie să aibă deja un cont IMOVA cu emailul confirmat. Confirmă cu parola ta. Noul administrator și toți administratorii primesc un email, iar acțiunea rămâne în jurnalul de audit.",
+    "emailLabel": "Emailul contului",
+    "passwordLabel": "Parola ta",
+    "acknowledge": "Înțeleg că această persoană va putea modera anunțuri și vedea conversații raportate.",
+    "grant": "Fă-l administrator",
+    "granting": "Se adaugă…",
+    "granted": "{email} este acum administrator. Va vedea meniul de administrare după următoarea autentificare (cel mult 15 minute)."
   }
 }

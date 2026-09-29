@@ -23,7 +23,7 @@ public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Progra
         {
             builder.UseSetting(
                 "ConnectionStrings:Default",
-                "Host=localhost;Port=5432;Database=imova;Username=imova;Password=imova");
+                ListingApi.ConnectionString);
             builder.ConfigureServices(services =>
             {
                 // Never hit the real Photon API from the test suite — see

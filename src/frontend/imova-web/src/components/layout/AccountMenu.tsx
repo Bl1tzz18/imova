@@ -89,6 +89,11 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
               {t("messagingReports")}
             </Link>
           )}
+          {profile.roles.includes("Admin") && (
+            <Link href="/admin/admins" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+              {t("administrators")}
+            </Link>
+          )}
 
           <form action={logout}>
             <button type="submit" role="menuitem" className={`w-full text-left ${menuItemClass}`}>

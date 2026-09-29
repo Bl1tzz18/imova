@@ -1,3 +1,4 @@
+using Imova.Api.Common;
 using System.Security.Claims;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Listings.SuspendListing;
@@ -20,6 +21,6 @@ public static class SuspendListingEndpoint
         {
             var listing = await sender.Send(new SuspendListingCommand(id, user.IsInRole(Roles.Admin), request.Reason), cancellationToken);
             return listing is null ? Results.NotFound() : Results.Ok(listing);
-        }).RequireAuthorization();
+        }).RequireAdmin();
     }
 }

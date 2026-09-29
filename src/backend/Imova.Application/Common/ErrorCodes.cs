@@ -29,6 +29,12 @@ public static class ErrorCodes
     public const string AccountWrongPassword = "account.wrongPassword";
     public const string AccountNoPassword = "account.noPassword";
 
+    // Granting the Admin role (see GrantAdmin).
+    public const string AdminUserNotFound = "admin.userNotFound";
+    public const string AdminEmailNotConfirmed = "admin.emailNotConfirmed";
+    public const string AlreadyAdmin = "admin.alreadyAdmin";
+    public const string AdminPasswordNeeded = "admin.passwordNeeded";
+
     // Identity's own errors pass through as "identity.<IdentityError.Code>" (DuplicateEmail, PasswordMismatch, …).
     public const string IdentityPrefix = "identity.";
 

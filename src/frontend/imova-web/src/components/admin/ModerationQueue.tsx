@@ -6,12 +6,15 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import { approveListing, rejectListing } from "@/lib/admin/actions";
+import { approveListing, reinstateListing, rejectListing, suspendListing } from "@/lib/admin/actions";
+import type { ModerationTab } from "@/lib/admin/moderationTabs";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
 import type { Listing } from "@/types/listing";
 
-export function ModerationQueue({ listings }: { listings: Listing[] }) {
+// One list for every moderation tab: the review queue (approve / reject with a reason), Active
+// listings (suspend with a reason) and Suspended ones (shows the reason; reinstate).
+export function ModerationQueue({ listings, tab = "pending" }: { listings: Listing[]; tab?: ModerationTab }) {
   const t = useTranslations("AdminModerationPage");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -19,11 +22,12 @@ export function ModerationQueue({ listings }: { listings: Listing[] }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [, startTransition] = useTransition();
 
+  // Approve (review queue) or reinstate (suspended) — the one-click actions.
   function handleApprove(listingId: string) {
     setErrors((prev) => ({ ...prev, [listingId]: "" }));
     setPendingId(listingId);
     startTransition(async () => {
-      const result = await approveListing(listingId);
+      const result = tab === "suspended" ? await reinstateListing(listingId) : await approveListing(listingId);
       setPendingId(null);
       if (result.error) {
         setErrors((prev) => ({ ...prev, [listingId]: result.error! }));
@@ -47,7 +51,7 @@ export function ModerationQueue({ listings }: { listings: Listing[] }) {
     setPendingId(listingId);
     setRejectingId(null);
     startTransition(async () => {
-      const result = await rejectListing(listingId, trimmed);
+      const result = tab === "active" ? await suspendListing(listingId, trimmed) : await rejectListing(listingId, trimmed);
       setPendingId(null);
       if (result.error) {
         setErrors((prev) => ({ ...prev, [listingId]: result.error! }));
@@ -93,7 +97,9 @@ export function ModerationQueue({ listings }: { listings: Listing[] }) {
                 >
                   {listing.title}
                 </Link>
-                {location && <p className="mt-0.5 truncate text-xs text-ink-500">{location}</p>}
+                <p className="mt-0.5 truncate text-xs text-ink-500">
+                  {[listing.publisher.displayName, location].filter(Boolean).join(" · ")}
+                </p>
               </div>
 
               <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">
@@ -102,33 +108,43 @@ export function ModerationQueue({ listings }: { listings: Listing[] }) {
 
               {!rejecting && (
                 <div className="flex shrink-0 gap-2">
-                  <Button variant="primary" size="sm" disabled={pending} onClick={() => handleApprove(listing.id)}>
-                    {t("approve")}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={pending}
-                    onClick={() => handleStartReject(listing.id)}
-                  >
-                    {t("reject")}
-                  </Button>
+                  {tab !== "active" && (
+                    <Button variant="primary" size="sm" disabled={pending} onClick={() => handleApprove(listing.id)}>
+                      {tab === "suspended" ? t("reinstate") : t("approve")}
+                    </Button>
+                  )}
+                  {tab !== "suspended" && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => handleStartReject(listing.id)}
+                    >
+                      {tab === "active" ? t("suspend") : t("reject")}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
+
+            {tab === "suspended" && listing.suspensionReason && (
+              <p className="rounded-xl bg-ink-50 px-3 py-2 text-xs text-ink-600">
+                <span className="font-medium text-ink-800">{t("suspensionReason")}:</span> {listing.suspensionReason}
+              </p>
+            )}
 
             {rejecting && (
               <div className="flex flex-col gap-2 rounded-xl border border-ink-100 bg-ink-50/50 p-3">
                 <TextAreaInput
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder={t("reasonPlaceholder")}
+                  placeholder={tab === "active" ? t("suspendReasonPlaceholder") : t("reasonPlaceholder")}
                   rows={3}
                   maxLength={1000}
                 />
                 <div className="flex gap-2">
                   <Button variant="primary" size="sm" onClick={() => handleConfirmReject(listing.id)}>
-                    {t("confirmReject")}
+                    {tab === "active" ? t("confirmSuspend") : t("confirmReject")}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setRejectingId(null)}>
                     {t("cancel")}
