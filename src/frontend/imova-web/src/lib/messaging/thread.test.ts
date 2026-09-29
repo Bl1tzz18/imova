@@ -4,6 +4,7 @@ import {
   isTypingVisible,
   mergeMessages,
   messagePreview,
+  participantName,
   relativeDay,
   shouldSendTyping,
   startsNewDay,
@@ -114,5 +115,15 @@ describe("startsNewDay", () => {
     expect(startsNewDay(undefined, morning)).toBe(true);
     expect(startsNewDay(morning, msg("b", "2026-09-25T18:00:00"))).toBe(false);
     expect(startsNewDay(morning, msg("c", "2026-09-26T08:00:00"))).toBe(true);
+  });
+});
+
+describe("participantName", () => {
+  it("is the display name of an existing account", () => {
+    expect(participantName({ userId: "u1", displayName: "Ion", avatarUrl: null }, "Cont șters")).toBe("Ion");
+  });
+
+  it("is the deleted-account label once that account is gone", () => {
+    expect(participantName({ userId: "u1", displayName: "", avatarUrl: null, isDeleted: true }, "Cont șters")).toBe("Cont șters");
   });
 });

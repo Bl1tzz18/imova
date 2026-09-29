@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Imova.Api.Common;
+using Imova.Api.Features.Account;
 using Imova.Api.Features.Amenities;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
@@ -21,6 +22,7 @@ using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
+using Imova.Application.Features.Account;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Listings.GetListings;
@@ -102,6 +104,8 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options => option
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
 builder.Services.AddScoped<AccountEmails>();
+builder.Services.AddScoped<AccountDeletion>();
+builder.Services.AddScoped<AccountDeletionEmails>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
 builder.Services.AddScoped<AuthSessions>();
@@ -359,6 +363,7 @@ app.MapProximityEndpoints();
 app.MapMediaEndpoints();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
+app.MapAccountEndpoints();
 app.MapFavoriteEndpoints();
 app.MapLocationsEndpoints();
 app.MapMessagingEndpoints();

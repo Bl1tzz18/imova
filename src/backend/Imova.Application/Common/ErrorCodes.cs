@@ -24,6 +24,11 @@ public static class ErrorCodes
     public const string PasswordNoSpecial = "password.noSpecial";
     public const string CurrentPasswordRequired = "password.currentRequired";
 
+    // Deleting the account (see AccountDeletion).
+    public const string AccountPasswordRequired = "account.passwordRequired";
+    public const string AccountWrongPassword = "account.wrongPassword";
+    public const string AccountNoPassword = "account.noPassword";
+
     // Identity's own errors pass through as "identity.<IdentityError.Code>" (DuplicateEmail, PasswordMismatch, …).
     public const string IdentityPrefix = "identity.";
 
@@ -51,6 +56,7 @@ public static class ErrorCodes
     public const string MessagingBanned = "messaging.banned";
     public const string BlockedByRecipient = "messaging.blockedByRecipient";
     public const string YouBlocked = "messaging.youBlocked";
+    public const string RecipientDeleted = "messaging.recipientDeleted";
     public const string OwnListing = "messaging.ownListing";
     public const string TooManyConversations = "messaging.tooManyConversations";
     public const string MessageEmpty = "message.empty";

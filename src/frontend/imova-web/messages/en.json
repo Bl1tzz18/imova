@@ -456,7 +456,45 @@
     "sessionsBody": "Signed in on a shared computer, or lost your phone? Sign out everywhere except this device.",
     "signOutOtherSessions": "Sign out other devices",
     "signingOut": "Signing out…",
-    "otherSessionsSignedOut": "Done — every other device has been signed out."
+    "otherSessionsSignedOut": "Done — every other device has been signed out.",
+    "privacyTab": "My data",
+    "privacyTitle": "Your personal data",
+    "privacyBody": "You can download a copy of all the data we keep about you at any time: your profile, your listings with their photos, favorites, saved searches and conversations. You get a ZIP archive with a JSON file — easy to read or import into other apps — and all the images.",
+    "downloadData": "Download my data",
+    "downloadHint": "Preparing the archive can take a moment if you have many photos.",
+    "exportTooSoon": "You've downloaded your data several times in the last few minutes. Try again in 10 minutes.",
+    "exportFailed": "We couldn't prepare the archive. Please try again a bit later.",
+    "rectifyHint": "You can correct your name, phone and photo at any time in the Profile tab, and your listings in My listings.",
+    "deleteTitle": "Delete account",
+    "deleteIntro": "Deletion is immediate and permanent — we can't undo it. This deletes:",
+    "deletion": {
+      "account": "your account: profile, contact details and every sign-in session",
+      "listings": "{count, plural, one {# listing} other {# listings}}, with their photos",
+      "agency": "your agency profile",
+      "favorites": "{count, plural, one {# favorite listing} other {# favorite listings}}",
+      "savedSearches": "{count, plural, one {# saved search} other {# saved searches}}, with their alerts"
+    },
+    "deleteKeeps": "Messages you sent to other users stay in their conversations, without your name, photo or contact details, and those conversations can't continue.",
+    "deleteDownloadFirst": "We recommend downloading your data first.",
+    "deleteStart": "I want to delete my account",
+    "deletePasswordLabel": "Confirm with your password",
+    "deleteByEmailHint": "Your account has no password (you signed in with Google), so we'll email you a confirmation link.",
+    "deleteAcknowledge": "I understand that deleting my account is permanent and can't be undone.",
+    "deleteConfirm": "Permanently delete account",
+    "deleting": "Deleting…",
+    "deleteCancel": "Cancel",
+    "deleteSendLink": "Email me the confirmation link",
+    "sendingLink": "Sending…",
+    "deleteLinkSent": "We've emailed {email}. Open the link in it (valid for 24 hours) and confirm the deletion.",
+    "deleteConfirmPageTitle": "Delete your IMOVA account",
+    "deleteConfirmPageBody": "Your account, your listings with their photos, favorites and saved searches will be permanently deleted. Messages you sent stay in other people's conversations, without your name.",
+    "deleteKeepAccount": "No, keep my account",
+    "deleteLinkInvalid": "This link is incomplete. Open it again from the email, or request a new one from your account page.",
+    "deleteBackToAccount": "Go to my account",
+    "accountDeletedTitle": "Your account has been deleted",
+    "accountDeletedBody": "All of your account's data has been deleted. Thank you for using IMOVA — you're welcome back any time with a new account.",
+    "accountDeletedHome": "Go to the home page",
+    "privacyRights": "These rights — to access your data, to take it with you, to correct it and to have it erased — are guaranteed by the personal data protection law of the Republic of Moldova and, if you live in the European Union, by the General Data Protection Regulation (GDPR)."
   },
   "SavedListingsPage": {
     "title": "Saved listings",
@@ -955,7 +993,9 @@
     "yesterday": "Yesterday",
     "unreadCount": "{count, plural, one {# unread message} other {# unread messages}}",
     "archiveAction": "Archive",
-    "viewListing": "View listing"
+    "viewListing": "View listing",
+    "deletedAccount": "Deleted account",
+    "deletedAccountNotice": "This person has deleted their account. You can still read the conversation, but you can't send new messages."
   },
   "AdminMessaging": {
     "title": "Reported messages",
@@ -1019,7 +1059,7 @@
       },
       "forbidden": "You don't have permission to do this.",
       "tooManyRequests": "Too many requests. Please try again a little later.",
-      "rateLimited": "Too many attempts. Wait a minute and try again.",
+      "rateLimited": "Too many attempts. Wait a moment and try again.",
       "badRequest": "The request isn't valid.",
       "unexpected": "Something unexpected went wrong. Please try again.",
       "listing": {
@@ -1044,7 +1084,8 @@
         "blockedByRecipient": "This user has blocked you — you can't send them messages.",
         "youBlocked": "You've blocked this user. Unblock them to write to them.",
         "ownListing": "You can't send a message about your own listing.",
-        "tooManyConversations": "You can start at most {max} new conversations per hour. Try again later."
+        "tooManyConversations": "You can start at most {max} new conversations per hour. Try again later.",
+        "recipientDeleted": "This person has deleted their account — you can't message them anymore."
       },
       "message": {
         "empty": "Write a message or attach at least one image.",
@@ -1059,6 +1100,11 @@
       },
       "savedSearch": {
         "limitReached": "You can save at most {max} searches. Delete one to save another."
+      },
+      "account": {
+        "passwordRequired": "Enter your password to delete the account.",
+        "wrongPassword": "The password is incorrect.",
+        "noPassword": "Your account has no password — confirm the deletion through the emailed link."
       }
     },
     "validation": {

@@ -26,6 +26,7 @@ internal static class ListingApi
             // Every test registers users from the same in-process "IP"; the auth rate limit has
             // its own tests (AccountEndpointsTests) that turn it back on.
             builder.UseSetting("RateLimiting:Auth:Enabled", "false");
+            builder.UseSetting("RateLimiting:Account:Enabled", "false");
 
             // Integration tests must never hit the real Nominatim API.
             builder.ConfigureServices(services =>
