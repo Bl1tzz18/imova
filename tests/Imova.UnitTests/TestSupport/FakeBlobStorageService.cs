@@ -39,6 +39,33 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
     public Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken) =>
         Task.FromResult<Stream?>(MessageAttachmentInfoByName.ContainsKey(blobName) ? new MemoryStream([1, 2, 3]) : null);
 
+    // Blob names that exist in each container, for the List*/Open calls.
+    public HashSet<string> StoredBlobNames { get; } = [];
+
+    public HashSet<string> StoredMessageAttachmentNames { get; } = [];
+
+    public List<string> DeletedMessageAttachmentNames { get; } = [];
+
+    public Task<IReadOnlyList<string>> ListMessageAttachmentBlobNamesAsync(string prefix, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<string>>(
+            StoredMessageAttachmentNames.Concat(MessageAttachmentInfoByName.Keys).Distinct()
+                .Where(n => n.StartsWith(prefix, StringComparison.Ordinal)).ToList());
+
+    public Task DeleteMessageAttachmentAsync(string blobName, CancellationToken cancellationToken)
+    {
+        DeletedMessageAttachmentNames.Add(blobName);
+        StoredMessageAttachmentNames.Remove(blobName);
+        MessageAttachmentInfoByName.Remove(blobName);
+        return Task.CompletedTask;
+    }
+
+    // The bytes are the blob name, so a test can tell which file landed where.
+    public Task<Stream?> OpenAsync(string blobName, CancellationToken cancellationToken) =>
+        Task.FromResult<Stream?>(StoredBlobNames.Contains(blobName) ? new MemoryStream(System.Text.Encoding.UTF8.GetBytes(blobName)) : null);
+
+    public Task<IReadOnlyList<string>> ListBlobNamesAsync(string prefix, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<string>>(StoredBlobNames.Where(n => n.StartsWith(prefix, StringComparison.Ordinal)).ToList());
+
     public string GenerateUploadSasUrl(string blobName, TimeSpan expiry) => $"https://blob.test/{blobName}?sas";
 
     public string GetPublicUrl(string blobName) => $"https://blob.test/{blobName}";

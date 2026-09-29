@@ -30,6 +30,11 @@ public interface IBlobStorageService
     // Null when the blob doesn't exist.
     Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken);
 
+    // Every message-attachment blob whose name starts with prefix (e.g. "messages/{userId}/").
+    Task<IReadOnlyList<string>> ListMessageAttachmentBlobNamesAsync(string prefix, CancellationToken cancellationToken);
+
+    Task DeleteMessageAttachmentAsync(string blobName, CancellationToken cancellationToken);
+
     string GenerateUploadSasUrl(string blobName, TimeSpan expiry);
 
     string GetPublicUrl(string blobName);
@@ -48,6 +53,12 @@ public interface IBlobStorageService
     Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken);
 
     Task DeleteAsync(string blobName, CancellationToken cancellationToken);
+
+    // A blob of the public container (listing photos, profile pictures). Null when it doesn't exist.
+    Task<Stream?> OpenAsync(string blobName, CancellationToken cancellationToken);
+
+    // Every public-container blob whose name starts with prefix (e.g. "profile-pictures/{userId}/").
+    Task<IReadOnlyList<string>> ListBlobNamesAsync(string prefix, CancellationToken cancellationToken);
 }
 
 public record UploadedBlobInfo(long SizeBytes, string? ReportedContentType, byte[] LeadingBytes);

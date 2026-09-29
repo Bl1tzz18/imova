@@ -93,9 +93,26 @@ public sealed class BlobStorageService : IBlobStorageService
     public Task<UploadedBlobInfo?> TryGetMessageAttachmentInfoAsync(string blobName, CancellationToken cancellationToken) =>
         TryGetUploadedBlobInfoAsync(_messageAttachmentsClient, blobName, cancellationToken);
 
-    public async Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken)
+    public Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken) =>
+        OpenAsync(_messageAttachmentsClient, blobName, cancellationToken);
+
+    public Task<Stream?> OpenAsync(string blobName, CancellationToken cancellationToken) =>
+        OpenAsync(_containerClient, blobName, cancellationToken);
+
+    public Task<IReadOnlyList<string>> ListMessageAttachmentBlobNamesAsync(string prefix, CancellationToken cancellationToken) =>
+        ListBlobNamesAsync(_messageAttachmentsClient, prefix, cancellationToken);
+
+    public Task<IReadOnlyList<string>> ListBlobNamesAsync(string prefix, CancellationToken cancellationToken) =>
+        ListBlobNamesAsync(_containerClient, prefix, cancellationToken);
+
+    public async Task DeleteMessageAttachmentAsync(string blobName, CancellationToken cancellationToken)
     {
-        var blobClient = _messageAttachmentsClient.GetBlobClient(blobName);
+        await _messageAttachmentsClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+    }
+
+    private static async Task<Stream?> OpenAsync(BlobContainerClient container, string blobName, CancellationToken cancellationToken)
+    {
+        var blobClient = container.GetBlobClient(blobName);
         try
         {
             var download = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
@@ -105,6 +122,18 @@ public sealed class BlobStorageService : IBlobStorageService
         {
             return null;
         }
+    }
+
+    private static async Task<IReadOnlyList<string>> ListBlobNamesAsync(
+        BlobContainerClient container, string prefix, CancellationToken cancellationToken)
+    {
+        var names = new List<string>();
+        await foreach (var blob in container.GetBlobsAsync(new GetBlobsOptions { Prefix = prefix }, cancellationToken))
+        {
+            names.Add(blob.Name);
+        }
+
+        return names;
     }
 
     private string GenerateUploadSasUrl(BlobContainerClient container, string blobName, TimeSpan expiry)

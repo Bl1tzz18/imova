@@ -7,7 +7,15 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useIsClient } from "@/lib/hooks/useIsClient";
 import { loadOlderMessages, markConversationRead, sendMessage } from "@/lib/messaging/actions";
 import { RealtimeEvents } from "@/lib/messaging/realtime";
-import { applyStatusChange, isTypingVisible, mergeMessages, relativeDay, startsNewDay, TYPING_DISPLAY_MS } from "@/lib/messaging/thread";
+import {
+  applyStatusChange,
+  isTypingVisible,
+  mergeMessages,
+  participantName,
+  relativeDay,
+  startsNewDay,
+  TYPING_DISPLAY_MS,
+} from "@/lib/messaging/thread";
 import { cn } from "@/lib/utils/cn";
 import type { ConversationThread, Message, MessageStatusChange, PresenceEvent, TypingEvent } from "@/types/messaging";
 import { ConversationActions } from "./ConversationActions";
@@ -32,6 +40,7 @@ export function ThreadView({
   const { connection, connected } = useRealtime();
   const conversation = thread.conversation;
   const other = conversation.otherParticipant;
+  const otherName = participantName(other, t("deletedAccount"));
 
   const [messages, setMessages] = useState<Message[]>(thread.messages);
   const [hasMore, setHasMore] = useState(thread.hasMore);
@@ -167,13 +176,15 @@ export function ThreadView({
               </svg>
             </Link>
           )}
-          <Avatar userId={other.userId} displayName={other.displayName} pictureUrl={other.avatarUrl} size={42} />
+          <Avatar userId={other.userId} displayName={otherName} pictureUrl={other.avatarUrl} size={42} />
           <div className="min-w-0">
-            <p className="truncate font-semibold text-ink-950">{other.displayName}</p>
-            <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
-              <span className={cn("h-2 w-2 shrink-0 rounded-full", otherOnline ? "bg-emerald-500" : "bg-ink-300")} aria-hidden />
-              <span className="shrink-0">{otherOnline ? t("online") : t("offline")}</span>
-            </p>
+            <p className={cn("truncate font-semibold", other.isDeleted ? "italic text-ink-500" : "text-ink-950")}>{otherName}</p>
+            {!other.isDeleted && (
+              <p className="flex min-w-0 items-center gap-1.5 text-xs text-ink-500">
+                <span className={cn("h-2 w-2 shrink-0 rounded-full", otherOnline ? "bg-emerald-500" : "bg-ink-300")} aria-hidden />
+                <span className="shrink-0">{otherOnline ? t("online") : t("offline")}</span>
+              </p>
+            )}
           </div>
         </div>
         <ConversationActions
@@ -210,7 +221,7 @@ export function ThreadView({
           </div>
         ))}
         {typing && (
-          <div className="flex justify-start" role="status" aria-label={t("typingNamed", { name: other.displayName })}>
+          <div className="flex justify-start" role="status" aria-label={t("typingNamed", { name: otherName })}>
             <span className="flex items-center gap-1 rounded-[16px_16px_16px_4px] bg-bubble px-4 py-3">
               {[0, 150, 300].map((delay) => (
                 <span key={delay} className="h-1.5 w-1.5 animate-typing-dot rounded-full bg-ink-400" style={{ animationDelay: `${delay}ms` }} />
@@ -221,7 +232,9 @@ export function ThreadView({
       </div>
 
       <div className="border-t border-line px-4 py-3">
-        {blockedByOther ? (
+        {other.isDeleted ? (
+          <p className="rounded-[14px] bg-bubble px-4 py-3 text-sm text-ink-600">{t("deletedAccountNotice")}</p>
+        ) : blockedByOther ? (
           <p className="rounded-[14px] bg-bubble px-4 py-3 text-sm text-ink-600">{t("blockedByOther")}</p>
         ) : blockedByMe ? (
           <p className="rounded-[14px] bg-bubble px-4 py-3 text-sm text-ink-600">{t("blockedByMe")}</p>

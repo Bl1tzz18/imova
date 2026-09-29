@@ -32,6 +32,12 @@ public static class MessagingAccess
             throw new ForbiddenAccessException("You have been banned from sending messages.", ErrorCodes.MessagingBanned);
         }
 
+        // The other person deleted their account (see AccountDeletion): the thread stays readable only.
+        if (!await dbContext.Users.AnyAsync(u => u.Id == recipientUserId, cancellationToken))
+        {
+            throw new ForbiddenAccessException("This account has been deleted — the conversation can't be continued.", ErrorCodes.RecipientDeleted);
+        }
+
         if (await IsBlockedAsync(dbContext, recipientUserId, senderUserId, cancellationToken))
         {
             throw new ForbiddenAccessException("This user has blocked you — you can't send them messages.", ErrorCodes.BlockedByRecipient);

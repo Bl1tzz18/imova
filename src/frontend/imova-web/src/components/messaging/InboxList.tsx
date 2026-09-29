@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useIsClient } from "@/lib/hooks/useIsClient";
 import { applyIncomingMessage, markConversationRead } from "@/lib/messaging/inbox";
 import { RealtimeEvents } from "@/lib/messaging/realtime";
-import { messagePreview } from "@/lib/messaging/thread";
+import { messagePreview, participantName } from "@/lib/messaging/thread";
 import { cn } from "@/lib/utils/cn";
 import type { ConversationSummary, Message } from "@/types/messaging";
 import { useRealtimeEvent } from "./RealtimeProvider";
@@ -63,11 +63,12 @@ export function InboxList({
         const active = c.id === activeConversationId;
         const deleted = c.listing.title === null;
         const fromMe = c.lastMessage?.senderUserId === currentUserId;
+        const name = participantName(c.otherParticipant, t("deletedAccount"));
         return (
           <li key={c.id}>
             <Link
               href={`/messages/${c.id}`}
-              aria-label={unread ? `${c.otherParticipant.displayName} — ${t("unreadCount", { count: c.unreadCount })}` : undefined}
+              aria-label={unread ? `${name} — ${t("unreadCount", { count: c.unreadCount })}` : undefined}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3.5 border-l-[3px] px-4 py-3.5 transition-colors",
@@ -91,8 +92,14 @@ export function InboxList({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-3">
-                  <p className={cn("truncate text-[15px] text-ink-950", unread ? "font-bold" : "font-semibold")}>
-                    {c.otherParticipant.displayName}
+                  <p
+                    className={cn(
+                      "truncate text-[15px]",
+                      c.otherParticipant.isDeleted ? "italic text-ink-500" : "text-ink-950",
+                      unread ? "font-bold" : "font-semibold",
+                    )}
+                  >
+                    {name}
                   </p>
                   <span className={cn("shrink-0 text-xs", unread ? "font-medium text-accent-600" : "text-ink-400")}>
                     {isClient && (at.toDateString() === today ? time.format(at) : date.format(at))}

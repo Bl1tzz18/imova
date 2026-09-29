@@ -12,7 +12,9 @@ public record MessageDto(
     DateTimeOffset CreatedAt,
     string Status);
 
-public record ConversationParticipantDto(Guid UserId, string DisplayName, string? AvatarUrl);
+// IsDeleted: that person deleted their account — their messages stay readable, but the
+// conversation can't be continued (DisplayName is then empty; the web app shows "deleted account").
+public record ConversationParticipantDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsDeleted = false);
 
 // Title is null when the listing has since been deleted (the conversation stays).
 public record ConversationListingDto(Guid Id, string? Title, string? PhotoUrl);

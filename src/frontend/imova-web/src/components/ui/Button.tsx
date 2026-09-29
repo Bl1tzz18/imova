@@ -8,6 +8,8 @@ const variants = {
   secondary:
     "bg-white text-ink-900 border border-ink-200 hover:border-ink-300 hover:bg-ink-50",
   ghost: "text-ink-700 hover:bg-white/60",
+  // Irreversible actions only (deleting the account).
+  danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-600/20",
 } as const;
 
 const sizes = {

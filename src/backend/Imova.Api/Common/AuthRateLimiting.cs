@@ -18,6 +18,19 @@ public class AuthRateLimitOptions
     public int WindowSeconds { get; set; } = 60;
 }
 
+// Bound from "RateLimiting:Account": per signed-in user, per endpoint — the personal data export
+// (heavy: it reads every file of the account) and the account deletion endpoints.
+public class AccountRateLimitOptions
+{
+    public const string SectionName = "RateLimiting:Account";
+
+    public bool Enabled { get; set; } = true;
+
+    public int PermitLimit { get; set; } = 5;
+
+    public int WindowSeconds { get; set; } = 600;
+}
+
 // A per-client-IP fixed window on the anonymous auth endpoints (login, register, Google sign-in,
 // forgot/reset password, email confirmation) — slows down password guessing and account/email
 // spamming. Per-account protection is separate: Identity lockout (LoginHandler) and
@@ -32,10 +45,15 @@ public static class AuthRateLimiting
 {
     public const string Policy = "auth";
 
+    // See AccountRateLimitOptions. Needs an authenticated endpoint (partitions by the user id).
+    public const string AccountPolicy = "account";
+
     public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
         var options = configuration.GetSection(AuthRateLimitOptions.SectionName).Get<AuthRateLimitOptions>()
             ?? new AuthRateLimitOptions();
+        var accountOptions = configuration.GetSection(AccountRateLimitOptions.SectionName).Get<AccountRateLimitOptions>()
+            ?? new AccountRateLimitOptions();
 
         services.Configure<ForwardedHeadersOptions>(forwarded =>
         {
@@ -70,6 +88,17 @@ public static class AuthRateLimiting
                     {
                         PermitLimit = options.PermitLimit,
                         Window = TimeSpan.FromSeconds(options.WindowSeconds),
+                        QueueLimit = 0,
+                    })
+                : RateLimitPartition.GetNoLimiter("disabled"));
+
+            limiter.AddPolicy(AccountPolicy, httpContext => accountOptions.Enabled
+                ? RateLimitPartition.GetFixedWindowLimiter(
+                    $"{httpContext.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value}:{httpContext.Request.Method}:{httpContext.Request.Path}",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = accountOptions.PermitLimit,
+                        Window = TimeSpan.FromSeconds(accountOptions.WindowSeconds),
                         QueueLimit = 0,
                     })
                 : RateLimitPartition.GetNoLimiter("disabled"));

@@ -456,7 +456,45 @@
     "sessionsBody": "Ai intrat în cont pe un calculator străin sau ți-ai pierdut telefonul? Deconectează-te de peste tot, în afară de acest dispozitiv.",
     "signOutOtherSessions": "Deconectează celelalte dispozitive",
     "signingOut": "Se deconectează…",
-    "otherSessionsSignedOut": "Gata — celelalte dispozitive au fost deconectate."
+    "otherSessionsSignedOut": "Gata — celelalte dispozitive au fost deconectate.",
+    "privacyTab": "Datele mele",
+    "privacyTitle": "Datele tale personale",
+    "privacyBody": "Poți descărca oricând o copie a tuturor datelor pe care le păstrăm despre tine: profilul, anunțurile cu fotografiile lor, favoritele, căutările salvate și conversațiile. Primești o arhivă ZIP cu un fișier JSON — ușor de citit sau de importat în alte aplicații — și toate imaginile.",
+    "downloadData": "Descarcă datele mele",
+    "downloadHint": "Pregătirea arhivei poate dura câteva momente dacă ai multe fotografii.",
+    "exportTooSoon": "Ai descărcat datele de mai multe ori în ultimele minute. Încearcă din nou peste 10 minute.",
+    "exportFailed": "Nu am putut pregăti arhiva. Încearcă din nou puțin mai târziu.",
+    "rectifyHint": "Numele, telefonul și fotografia le poți corecta oricând din fila Profil, iar anunțurile din Anunțurile mele.",
+    "deleteTitle": "Șterge contul",
+    "deleteIntro": "Ștergerea este imediată și definitivă — nu o mai putem anula. Se șterg:",
+    "deletion": {
+      "account": "contul tău: profilul, datele de contact și toate sesiunile de autentificare",
+      "listings": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}, cu fotografiile lor",
+      "agency": "profilul agenției tale",
+      "favorites": "{count, plural, one {# anunț favorit} few {# anunțuri favorite} other {# de anunțuri favorite}}",
+      "savedSearches": "{count, plural, one {# căutare salvată} few {# căutări salvate} other {# de căutări salvate}}, cu alertele lor"
+    },
+    "deleteKeeps": "Mesajele pe care le-ai trimis altor utilizatori rămân în conversațiile lor, fără numele, fotografia sau datele tale de contact, iar conversațiile nu mai pot continua.",
+    "deleteDownloadFirst": "Îți recomandăm să îți descarci mai întâi datele.",
+    "deleteStart": "Vreau să îmi șterg contul",
+    "deletePasswordLabel": "Confirmă cu parola ta",
+    "deleteByEmailHint": "Contul tău nu are parolă (te-ai autentificat cu Google), așa că îți trimitem pe email un link de confirmare.",
+    "deleteAcknowledge": "Înțeleg că ștergerea contului este definitivă și nu poate fi anulată.",
+    "deleteConfirm": "Șterge definitiv contul",
+    "deleting": "Se șterge…",
+    "deleteCancel": "Anulează",
+    "deleteSendLink": "Trimite-mi linkul de confirmare",
+    "sendingLink": "Se trimite…",
+    "deleteLinkSent": "Ți-am trimis un email la {email}. Deschide linkul din el (valabil 24 de ore) și confirmă ștergerea.",
+    "deleteConfirmPageTitle": "Șterge contul IMOVA",
+    "deleteConfirmPageBody": "Contul tău, anunțurile cu fotografiile lor, favoritele și căutările salvate vor fi șterse definitiv. Mesajele trimise rămân în conversațiile celorlalți, fără numele tău.",
+    "deleteKeepAccount": "Nu, păstrez contul",
+    "deleteLinkInvalid": "Linkul este incomplet. Deschide-l din nou din email sau cere unul nou din pagina contului.",
+    "deleteBackToAccount": "Mergi la contul meu",
+    "accountDeletedTitle": "Contul tău a fost șters",
+    "accountDeletedBody": "Toate datele contului tău au fost șterse. Îți mulțumim că ai folosit IMOVA — poți reveni oricând cu un cont nou.",
+    "accountDeletedHome": "Mergi la pagina principală",
+    "privacyRights": "Aceste drepturi — de acces la date, de portabilitate, de rectificare și de ștergere — îți sunt garantate de legislația Republicii Moldova privind protecția datelor cu caracter personal și, dacă locuiești în Uniunea Europeană, de Regulamentul general privind protecția datelor (GDPR)."
   },
   "SavedListingsPage": {
     "title": "Anunțuri salvate",
@@ -955,7 +993,9 @@
     "yesterday": "Ieri",
     "unreadCount": "{count, plural, one {# mesaj necitit} other {# mesaje necitite}}",
     "archiveAction": "Arhivează",
-    "viewListing": "Vezi anunțul"
+    "viewListing": "Vezi anunțul",
+    "deletedAccount": "Cont șters",
+    "deletedAccountNotice": "Această persoană și-a șters contul. Poți citi în continuare conversația, dar nu mai poți trimite mesaje."
   },
   "AdminMessaging": {
     "title": "Mesaje raportate",
@@ -1019,7 +1059,7 @@
       },
       "forbidden": "Nu ai permisiunea să faci această acțiune.",
       "tooManyRequests": "Prea multe cereri. Încearcă din nou puțin mai târziu.",
-      "rateLimited": "Prea multe încercări. Așteaptă un minut și încearcă din nou.",
+      "rateLimited": "Prea multe încercări. Așteaptă puțin și încearcă din nou.",
       "badRequest": "Cererea nu este validă.",
       "unexpected": "A apărut o eroare neașteptată. Încearcă din nou.",
       "listing": {
@@ -1044,7 +1084,8 @@
         "blockedByRecipient": "Acest utilizator te-a blocat — nu îi poți trimite mesaje.",
         "youBlocked": "Ai blocat acest utilizator. Deblochează-l ca să-i poți scrie.",
         "ownListing": "Nu poți trimite un mesaj despre propriul anunț.",
-        "tooManyConversations": "Poți începe cel mult {max} conversații noi pe oră. Încearcă mai târziu."
+        "tooManyConversations": "Poți începe cel mult {max} conversații noi pe oră. Încearcă mai târziu.",
+        "recipientDeleted": "Această persoană și-a șters contul — nu îi mai poți trimite mesaje."
       },
       "message": {
         "empty": "Scrie un mesaj sau atașează cel puțin o imagine.",
@@ -1059,6 +1100,11 @@
       },
       "savedSearch": {
         "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
+      },
+      "account": {
+        "passwordRequired": "Introdu parola pentru a șterge contul.",
+        "wrongPassword": "Parola este greșită.",
+        "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email."
       }
     },
     "validation": {

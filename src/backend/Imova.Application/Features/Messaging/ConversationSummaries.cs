@@ -73,10 +73,12 @@ public static class ConversationSummaries
             // The visitor sees who they wrote to as the listing's publisher (e.g. the agency);
             // the publisher sees the visitor's own account name.
             var publisher = listing is null ? null : publishers.GetValueOrDefault(listing.PublisherId);
-            var other = isInitiator && publisher is not null
-                ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, publisher.LogoUrl ?? otherUser?.ProfilePictureUrl)
-                : new ConversationParticipantDto(
-                    otherUserId, otherUser?.DisplayName ?? otherUser?.Email ?? "—", otherUser?.ProfilePictureUrl);
+            var other = otherUser is null
+                ? new ConversationParticipantDto(otherUserId, string.Empty, null, IsDeleted: true)
+                : isInitiator && publisher is not null
+                    ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, publisher.LogoUrl ?? otherUser.ProfilePictureUrl)
+                    : new ConversationParticipantDto(
+                        otherUserId, otherUser.DisplayName ?? otherUser.Email ?? "—", otherUser.ProfilePictureUrl);
 
             var photo = photos.GetValueOrDefault(c.ListingId);
             return new ConversationSummaryDto(

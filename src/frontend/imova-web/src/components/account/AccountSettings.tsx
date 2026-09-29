@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils/cn";
 import type { UserProfile } from "@/lib/auth/profile";
+import type { AccountDataSummary } from "@/lib/account/deletion";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { PasswordForm } from "@/components/account/PasswordForm";
 import { OtherSessionsPanel } from "@/components/account/OtherSessionsPanel";
+import { PrivacyPanel, type ExportStatus } from "@/components/account/PrivacyPanel";
 
-type Tab = "profile" | "security";
+export type AccountTab = "profile" | "security" | "privacy";
 
 const tabIcon = {
   profile: (
@@ -23,15 +25,32 @@ const tabIcon = {
       <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
     </svg>
   ),
+  privacy: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
+      <path d="M12 3.5 5 6.5v5c0 4.3 3 7.8 7 9 4-1.2 7-4.7 7-9v-5l-7-3Z" strokeLinejoin="round" />
+      <path d="m9.2 12 2 2 3.8-4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
 };
 
-export function AccountSettings({ profile }: { profile: UserProfile }) {
+export function AccountSettings({
+  profile,
+  summary = null,
+  initialTab = "profile",
+  exportStatus,
+}: {
+  profile: UserProfile;
+  summary?: AccountDataSummary | null;
+  initialTab?: AccountTab;
+  exportStatus?: ExportStatus;
+}) {
   const t = useTranslations("Account");
-  const [tab, setTab] = useState<Tab>("profile");
+  const [tab, setTab] = useState<AccountTab>(initialTab);
 
-  const tabs: { id: Tab; label: string }[] = [
+  const tabs: { id: AccountTab; label: string }[] = [
     { id: "profile", label: t("profileTab") },
     { id: "security", label: t("securityTab") },
+    { id: "privacy", label: t("privacyTab") },
   ];
 
   return (
@@ -46,6 +65,7 @@ export function AccountSettings({ profile }: { profile: UserProfile }) {
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
+              aria-current={tab === item.id ? "page" : undefined}
               className={cn(
                 "flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-left text-sm font-medium transition-colors",
                 tab === item.id ? "bg-brand-100/70 text-brand-700" : "text-ink-500 hover:bg-ink-50 hover:text-ink-900",
@@ -60,11 +80,18 @@ export function AccountSettings({ profile }: { profile: UserProfile }) {
         <div className="min-w-0 flex-1 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
           {tab === "profile" ? (
             <ProfileForm profile={profile} />
-          ) : (
+          ) : tab === "security" ? (
             <>
               <PasswordForm hasPassword={profile.hasPassword} />
               <OtherSessionsPanel />
             </>
+          ) : (
+            <PrivacyPanel
+              email={profile.email}
+              hasPassword={profile.hasPassword}
+              summary={summary}
+              exportStatus={exportStatus}
+            />
           )}
         </div>
       </div>
