@@ -559,17 +559,49 @@
     "forbiddenText": "Nu ai permisiunea să editezi acest anunț."
   },
   "AdminModerationPage": {
-    "title": "Coadă de moderare",
-    "resultsCount": "{count, plural, one {# anunț în așteptare} few {# anunțuri în așteptare} other {# de anunțuri în așteptare}}",
-    "emptyTitle": "Nimic de verificat",
-    "emptyBody": "Anunțurile noi trimise spre verificare vor apărea aici.",
+    "title": "Moderare anunțuri",
     "forbiddenText": "Nu ai permisiunea să vezi această pagină.",
     "approve": "Aprobă",
     "reject": "Respinge",
     "reasonPlaceholder": "Explică de ce este respins acest anunț...",
     "confirmReject": "Confirmă respingerea",
     "cancel": "Anulează",
-    "reasonRequired": "Motivul este obligatoriu."
+    "reasonRequired": "Motivul este obligatoriu.",
+    "tabs": {
+      "pending": "În așteptare",
+      "active": "Active",
+      "suspended": "Suspendate"
+    },
+    "count": {
+      "pending": "{count, plural, one {# anunț în așteptare} few {# anunțuri în așteptare} other {# de anunțuri în așteptare}}",
+      "active": "{count, plural, one {# anunț activ} few {# anunțuri active} other {# de anunțuri active}}",
+      "suspended": "{count, plural, one {# anunț suspendat} few {# anunțuri suspendate} other {# de anunțuri suspendate}}"
+    },
+    "empty": {
+      "pending": "Nimic de verificat",
+      "active": "Niciun anunț activ",
+      "suspended": "Niciun anunț suspendat"
+    },
+    "emptyBody": {
+      "pending": "Anunțurile noi trimise spre verificare vor apărea aici.",
+      "active": "Anunțurile publicate vor apărea aici, cele mai recente primele.",
+      "suspended": "Anunțurile suspendate apar aici; le poți reactiva oricând."
+    },
+    "suspend": "Suspendă",
+    "suspendReasonPlaceholder": "Explică proprietarului de ce este suspendat anunțul...",
+    "confirmSuspend": "Confirmă suspendarea",
+    "reinstate": "Reactivează",
+    "suspensionReason": "Motivul suspendării",
+    "searchLabel": "Caută un anunț",
+    "searchPlaceholder": "ID sau link al anunțului, titlu, nume ori email al publicantului",
+    "search": "Caută",
+    "clearSearch": "Șterge căutarea",
+    "noMatchTitle": "Niciun anunț găsit",
+    "noMatchBody": "Nimic nu corespunde căutării „{q}” în această filă.",
+    "pagination": "Pagini",
+    "previous": "Anterioara",
+    "next": "Următoarea",
+    "pageOf": "Pagina {page} din {pageCount}"
   },
   "Condition": {
     "New": "Nou",

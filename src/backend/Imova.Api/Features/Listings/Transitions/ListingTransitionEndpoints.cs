@@ -29,15 +29,19 @@ public static class ListingTransitionEndpoints
         MapTransition(app, "mark-as-rented", (id, user) => new MarkListingAsRentedCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
         MapTransition(app, "mark-as-sold", (id, user) => new MarkListingAsSoldCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin)));
 
-        // Admin-only actions (enforced by their handlers).
-        MapTransition(app, "approve", (id, user) => new ApproveListingCommand(id, user.IsInRole(Roles.Admin)));
-        MapTransition(app, "reinstate", (id, user) => new ReinstateListingCommand(id, user.IsInRole(Roles.Admin)));
+        // Admin-only actions: refused at the route for anyone without the Admin role (and checked
+        // again by their handlers).
+        MapTransition(app, "approve", (id, user) => new ApproveListingCommand(id, user.IsInRole(Roles.Admin)), adminOnly: true);
+        MapTransition(app, "reinstate", (id, user) => new ReinstateListingCommand(id, user.IsInRole(Roles.Admin)), adminOnly: true);
     }
 
     private static void MapTransition(
-        IEndpointRouteBuilder app, string action, Func<Guid, ClaimsPrincipal, IRequest<ListingDto?>> createCommand)
+        IEndpointRouteBuilder app,
+        string action,
+        Func<Guid, ClaimsPrincipal, IRequest<ListingDto?>> createCommand,
+        bool adminOnly = false)
     {
-        app.MapPost($"/api/v1/listings/{{id:guid}}/{action}", async (
+        var endpoint = app.MapPost($"/api/v1/listings/{{id:guid}}/{action}", async (
             Guid id,
             ClaimsPrincipal user,
             ISender sender,
@@ -45,6 +49,15 @@ public static class ListingTransitionEndpoints
         {
             var listing = await sender.Send(createCommand(id, user), cancellationToken);
             return listing is null ? Results.NotFound() : Results.Ok(listing);
-        }).RequireAuthorization();
+        });
+
+        if (adminOnly)
+        {
+            endpoint.RequireAdmin();
+        }
+        else
+        {
+            endpoint.RequireAuthorization();
+        }
     }
 }
