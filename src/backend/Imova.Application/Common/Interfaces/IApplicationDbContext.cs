@@ -54,5 +54,7 @@ public interface IApplicationDbContext
 
     DbSet<RefreshToken> RefreshTokens { get; }
 
+    DbSet<AdminAuditEntry> AdminAuditEntries { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -17,7 +17,8 @@
     "accountSettings": "Setările contului",
     "messages": "Mesaje",
     "messagingReports": "Mesaje raportate",
-    "savedSearches": "Căutări salvate"
+    "savedSearches": "Căutări salvate",
+    "administrators": "Administratori"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -1137,6 +1138,12 @@
         "passwordRequired": "Introdu parola pentru a șterge contul.",
         "wrongPassword": "Parola este greșită.",
         "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email."
+      },
+      "admin": {
+        "userNotFound": "Nu există niciun cont cu acest email.",
+        "emailNotConfirmed": "Contul nu și-a confirmat încă adresa de email.",
+        "alreadyAdmin": "Acest cont este deja administrator.",
+        "passwordNeeded": "Setează mai întâi o parolă pentru contul tău (Setările contului → Securitate) — e necesară pentru confirmare."
       }
     },
     "validation": {
@@ -1220,5 +1227,22 @@
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri alertele din pagina căutărilor salvate.",
     "manage": "Gestionează căutările salvate"
+  },
+  "AdminAdminsPage": {
+    "title": "Administratori",
+    "subtitle": "Cine are acces complet la moderare și la datele utilizatorilor.",
+    "forbidden": "Doar administratorii au acces aici.",
+    "you": "(tu)",
+    "grantedBy": "Adăugat de {by}, {date}",
+    "grantedBeforeAudit": "Adăugat înainte de jurnalul de audit",
+    "deletedAccount": "un cont șters",
+    "addTitle": "Adaugă un administrator",
+    "addBody": "Persoana trebuie să aibă deja un cont IMOVA cu emailul confirmat. Confirmă cu parola ta. Noul administrator și toți administratorii primesc un email, iar acțiunea rămâne în jurnalul de audit.",
+    "emailLabel": "Emailul contului",
+    "passwordLabel": "Parola ta",
+    "acknowledge": "Înțeleg că această persoană va putea modera anunțuri și vedea conversații raportate.",
+    "grant": "Fă-l administrator",
+    "granting": "Se adaugă…",
+    "granted": "{email} este acum administrator. Va vedea meniul de administrare după următoarea autentificare (cel mult 15 minute)."
   }
 }

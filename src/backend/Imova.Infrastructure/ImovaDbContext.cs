@@ -66,6 +66,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Must run first — this is what configures the Identity entity types.

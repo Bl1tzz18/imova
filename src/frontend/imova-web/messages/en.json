@@ -17,7 +17,8 @@
     "accountSettings": "Account settings",
     "messages": "Messages",
     "messagingReports": "Reported messages",
-    "savedSearches": "Saved searches"
+    "savedSearches": "Saved searches",
+    "administrators": "Administrators"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -1137,6 +1138,12 @@
         "passwordRequired": "Enter your password to delete the account.",
         "wrongPassword": "The password is incorrect.",
         "noPassword": "Your account has no password — confirm the deletion through the emailed link."
+      },
+      "admin": {
+        "userNotFound": "There is no account with this email.",
+        "emailNotConfirmed": "That account hasn't confirmed its email address yet.",
+        "alreadyAdmin": "That account is already an administrator.",
+        "passwordNeeded": "Set a password on your account first (Account settings → Security) — it's needed to confirm this."
       }
     },
     "validation": {
@@ -1220,5 +1227,22 @@
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn alerts off from your saved searches page.",
     "manage": "Manage saved searches"
+  },
+  "AdminAdminsPage": {
+    "title": "Administrators",
+    "subtitle": "Who has full access to moderation and user data.",
+    "forbidden": "Only administrators can see this page.",
+    "you": "(you)",
+    "grantedBy": "Added by {by}, {date}",
+    "grantedBeforeAudit": "Added before the audit log",
+    "deletedAccount": "a deleted account",
+    "addTitle": "Add an administrator",
+    "addBody": "The person must already have an IMOVA account with a confirmed email. Confirm with your password. The new administrator and every administrator get an email, and the action stays in the audit log.",
+    "emailLabel": "Account email",
+    "passwordLabel": "Your password",
+    "acknowledge": "I understand this person will be able to moderate listings and see reported conversations.",
+    "grant": "Make administrator",
+    "granting": "Adding…",
+    "granted": "{email} is now an administrator. They will see the admin menu after their next sign-in (within 15 minutes)."
   }
 }
