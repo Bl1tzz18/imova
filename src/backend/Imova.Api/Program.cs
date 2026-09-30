@@ -118,6 +118,16 @@ builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException($"Configuration section \"{JwtOptions.SectionName}\" is missing.");
+// Without these the API would still start, sign tokens with no issuer/audience and then refuse
+// every one of them (401 on every signed-in call) — fail at startup instead. Issuer/Audience are
+// in appsettings.json; the key is a secret (user secrets locally, Jwt__Key elsewhere).
+foreach (var (name, value) in new[] { ("Key", jwtOptions.Key), ("Issuer", jwtOptions.Issuer), ("Audience", jwtOptions.Audience) })
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        throw new InvalidOperationException($"Configuration value \"{JwtOptions.SectionName}:{name}\" is missing.");
+    }
+}
 builder.Services.AddSingleton(jwtOptions);
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 

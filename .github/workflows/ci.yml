@@ -50,6 +50,9 @@ jobs:
       POSTGRES_USER: imova
       POSTGRES_PASSWORD: imova
       IMOVA_TEST_CONNECTION_STRING: Host=localhost;Port=5432;Database=imova_test;Username=imova;Password=imova
+      # Azurite's well-known development account (the same in every install, not a secret) — locally
+      # this comes from the gitignored appsettings.Development.json.
+      Storage__ConnectionString: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -70,25 +73,6 @@ jobs:
       - run: sudo sysctl -w fs.inotify.max_user_instances=8192
       - run: dotnet restore tests/Imova.IntegrationTests
       - run: dotnet build tests/Imova.IntegrationTests --no-restore -c Release
-      # TEMPORARY diagnostic (remove once CI is green): why are bearer tokens refused here?
-      - name: Diagnose bearer auth
-        continue-on-error: true
-        env:
-          ConnectionStrings__Default: ${{ env.IMOVA_TEST_CONNECTION_STRING }}
-          ASPNETCORE_ENVIRONMENT: Development
-          ASPNETCORE_URLS: http://127.0.0.1:5080
-          Logging__LogLevel__Microsoft.AspNetCore.Authentication: Debug
-        run: |
-          dotnet run --project src/backend/Imova.Api -c Release --no-launch-profile > api.log 2>&1 &
-          for i in $(seq 60); do curl -sf http://127.0.0.1:5080/health >/dev/null && break; sleep 2; done
-          token=$(curl -s http://127.0.0.1:5080/api/v1/auth/register -H 'Content-Type: application/json' \
-            -d '{"email":"diag-'$RANDOM'@example.com","password":"SuperSecret1!","displayName":"Diag","phoneNumber":"+373 69 123 456"}' \
-            | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
-          echo "$token" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null; echo
-          date -u
-          curl -si http://127.0.0.1:5080/api/v1/auth/me -H "Authorization: Bearer $token" | head -15
-          kill %1 || true
-          grep -i -A3 "authentic\|bearer\|token\|fail\|exception" api.log | head -60
       - name: Integration tests
         run: dotnet test tests/Imova.IntegrationTests --no-build -c Release --logger trx --results-directory TestResults
       - uses: actions/upload-artifact@v4
