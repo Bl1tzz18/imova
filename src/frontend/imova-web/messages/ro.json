@@ -378,7 +378,8 @@
       "parkingType": "tip loc de parcare",
       "bathroomType": "baie",
       "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
-    }
+    },
+    "call": "Sună"
   },
   "DashboardPage": {
     "title": "Dashboard"

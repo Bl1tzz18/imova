@@ -378,7 +378,8 @@
       "parkingType": "тип парковки",
       "bathroomType": "санузел",
       "roommateCount": "{count, plural, one {сосед} few {соседа} many {соседей} other {соседа}}"
-    }
+    },
+    "call": "Позвонить"
   },
   "DashboardPage": {
     "title": "Панель управления"

@@ -20,3 +20,16 @@ export function messageButtonHref(listingId: string, loggedIn: boolean, existing
   if (!loggedIn) return `/login?next=${encodeURIComponent(compose)}`;
   return existingConversationId ? `/messages/${existingConversationId}` : compose;
 }
+
+// The phone-only action bar pinned to the bottom of a listing page: "Sună" (only when the number
+// is public) and "Scrie mesaj". The main one follows the owner's preference — messages first when
+// they asked for platform messages or there's no number to call. The owner sees no bar on their
+// own listing (null).
+export type MobileContactBar = { phone: string | null; primary: "call" | "message" };
+
+export function mobileContactBar(contact: ListingContact | null | undefined, viewerIsOwner: boolean): MobileContactBar | null {
+  if (viewerIsOwner) return null;
+  const phone = contact?.hidePhoneNumber ? null : (contact?.phone ?? null);
+  const primary = !phone || contact?.preferredContactMethod === "PlatformMessages" ? "message" : "call";
+  return { phone, primary };
+}

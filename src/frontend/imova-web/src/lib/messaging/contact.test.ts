@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { messageButtonEmphasis, messageButtonHref, showsRelayNotice } from "@/lib/messaging/contact";
+import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
 import type { ListingContact } from "@/types/listing";
 
 const contact = (extra: Partial<ListingContact> = {}): ListingContact => ({
@@ -49,5 +49,28 @@ describe("messageButtonHref", () => {
   it("opens an existing conversation, or the compose page", () => {
     expect(messageButtonHref("L1", true, "C9")).toBe("/messages/C9");
     expect(messageButtonHref("L1", true, null)).toBe("/messages/new?listing=L1");
+  });
+});
+
+describe("mobileContactBar", () => {
+  it("offers a call first when the number is public", () => {
+    expect(mobileContactBar(contact(), false)).toEqual({ phone: "+37369111222", primary: "call" });
+  });
+
+  it("leads with messages when the owner prefers them", () => {
+    expect(mobileContactBar(contact({ preferredContactMethod: "PlatformMessages" }), false)).toEqual({
+      phone: "+37369111222",
+      primary: "message",
+    });
+  });
+
+  it("offers only messages when the number is hidden or missing", () => {
+    expect(mobileContactBar(contact({ hidePhoneNumber: true, phone: "+37369111222" }), false)).toEqual({ phone: null, primary: "message" });
+    expect(mobileContactBar(contact({ phone: null }), false)).toEqual({ phone: null, primary: "message" });
+    expect(mobileContactBar(null, false)).toEqual({ phone: null, primary: "message" });
+  });
+
+  it("shows nothing to the owner", () => {
+    expect(mobileContactBar(contact(), true)).toBeNull();
   });
 });

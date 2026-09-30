@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
-import { LinkButton } from "@/components/ui/Button";
+import { LinkButton, buttonClassName } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { ListingDetails, ListingKeyFacts, ListingRentalTerms } from "@/components/property/ListingDetails";
 import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
@@ -13,7 +13,8 @@ import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format"
 import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
-import { messageButtonEmphasis, messageButtonHref, showsRelayNotice } from "@/lib/messaging/contact";
+import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
+import { cn } from "@/lib/utils/cn";
 import type { Listing } from "@/types/listing";
 
 async function getListing(id: string): Promise<Listing | null> {
@@ -74,8 +75,42 @@ export default async function ProprietatePage({
       {existingConversationId ? t("openConversation") : t("sendMessage")}
     </LinkButton>
   );
+  // The price, its lease terms and the dates — beside the photos on a desktop, right under them on
+  // a phone (never after all the details, where it used to end up).
+  const priceCard = (
+    <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
+      <p className="font-display text-3xl font-semibold text-ink-950">
+        {formatPrice(listing.price.amount, listing.price.currency)}
+        {listing.transactionType === "Rent" && (
+          <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
+        )}
+      </p>
+      {listing.price.currency !== "EUR" && (
+        <p className="mt-1 text-sm text-ink-500">
+          {t("approxEur", { price: formatPrice(listing.price.priceEur, "EUR") })}
+        </p>
+      )}
+      {listing.price.isNegotiable && (
+        <Badge tone="neutral" className="mt-3">
+          {t("negotiable")}
+        </Badge>
+      )}
+
+      <ListingRentalTerms listing={listing} />
+
+      <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
+        <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
+        {listing.updatedAt !== listing.createdAt && (
+          <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const contactBar = mobileContactBar(contact, isOwner);
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={cn("flex min-h-screen flex-col", contactBar && "pb-20 lg:pb-0")}>
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <Link
@@ -113,17 +148,13 @@ export default async function ProprietatePage({
                 {location}
               </p>
             )}
-
-            {/* On a phone the price card comes after all the details — so the price shows here too. */}
-            <p className="mt-3 font-display text-2xl font-semibold text-ink-950 lg:hidden">
-              {formatPrice(listing.price.amount, listing.price.currency)}
-              {listing.transactionType === "Rent" && <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>}
-            </p>
           </div>
 
           <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
               <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
+
+              <div className="mt-5 lg:hidden">{priceCard}</div>
 
               <ListingKeyFacts listing={listing} />
 
@@ -164,36 +195,11 @@ export default async function ProprietatePage({
             </div>
 
             <aside className="w-full shrink-0 lg:w-80">
-              <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
-                <p className="font-display text-3xl font-semibold text-ink-950">
-                  {formatPrice(listing.price.amount, listing.price.currency)}
-                  {listing.transactionType === "Rent" && (
-                    <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
-                  )}
-                </p>
-                {listing.price.currency !== "EUR" && (
-                  <p className="mt-1 text-sm text-ink-500">
-                    {t("approxEur", { price: formatPrice(listing.price.priceEur, "EUR") })}
-                  </p>
-                )}
-                {listing.price.isNegotiable && (
-                  <Badge tone="neutral" className="mt-3">
-                    {t("negotiable")}
-                  </Badge>
-                )}
-
-                <ListingRentalTerms listing={listing} />
-
-                <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
-                  <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
-                  {listing.updatedAt !== listing.createdAt && (
-                    <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
-                  )}
-                </div>
-              </div>
+              {/* Desktop: the price card beside the photos. (On a phone it's under the photos.) */}
+              <div className="hidden lg:block">{priceCard}</div>
 
               {contact && (
-                <div className="mt-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
+                <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:mt-4">
                   <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
                   <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
                     {contact.name ?? publisher.displayName}
@@ -278,6 +284,34 @@ export default async function ProprietatePage({
       </main>
 
       <Footer />
+
+      {/* Phones: calling or messaging stays one tap away wherever the visitor has scrolled to. */}
+      {contactBar && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-md gap-2">
+            {contactBar.phone && (
+              <a
+                href={`tel:${contactBar.phone}`}
+                className={buttonClassName({ variant: contactBar.primary === "call" ? "primary" : "secondary", className: "flex-1" })}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
+                  <path
+                    d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                {t("call")}
+              </a>
+            )}
+            <LinkButton href={messageHref} variant={contactBar.primary === "message" ? "primary" : "secondary"} className="flex-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
+                <path d="M4 5h16v11H8l-4 4V5Z" strokeLinejoin="round" />
+              </svg>
+              {existingConversationId ? t("openConversation") : t("sendMessage")}
+            </LinkButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

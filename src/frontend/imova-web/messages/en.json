@@ -378,7 +378,8 @@
       "parkingType": "parking type",
       "bathroomType": "bathroom",
       "roommateCount": "{count, plural, one {roommate} other {roommates}}"
-    }
+    },
+    "call": "Call"
   },
   "DashboardPage": {
     "title": "Dashboard"
