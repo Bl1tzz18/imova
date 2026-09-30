@@ -1,8 +1,8 @@
 namespace Imova.Infrastructure.Identity;
 
-// Bound from the "Jwt" configuration section — see appsettings.Development.json for the local dev
-// signing key (generated once for this repo) and docker-compose.yml for the same values passed to
-// the containerized backend.
+// Bound from the "Jwt" configuration section. Issuer/Audience/ExpiryMinutes are in the committed
+// appsettings.json; the signing key is a secret — user secrets locally, JWT_SIGNING_KEY in
+// docker-compose.yml, a random Jwt__Key per CI run. Program.cs refuses to start without all three.
 public class JwtOptions
 {
     public const string SectionName = "Jwt";

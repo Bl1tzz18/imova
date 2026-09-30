@@ -16,9 +16,9 @@ namespace Imova.IntegrationTests.TestSupport;
 internal static class ListingApi
 {
     // Its own database on the compose Postgres, never the dev one ("imova"): every run registers new
-    // users (admins among them), listings and conversations and nothing is cleaned up, so sharing
-    // would bury the dev data. Reading it makes sure that database exists and is migrated and seeded
-    // (TestDatabase) — wipe it any time with `docker compose exec postgres dropdb -U imova imova_test`.
+    // users (admins among them), listings and conversations, so sharing would bury the dev data.
+    // Reading it makes sure that database has been recreated, migrated and seeded for this run
+    // (TestDatabase).
     public static string ConnectionString
     {
         get
