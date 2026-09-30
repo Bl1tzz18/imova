@@ -36,14 +36,12 @@ code 0, no output) while `dotnet vstest <path-to-dll>` printed normally; try `do
 and fall back to `dotnet vstest tests/<Project>/bin/Debug/net10.0/<Project>.dll` if it goes quiet.
 
 Integration tests use their **own database**, `imova_test`, on the same compose Postgres — never the
-dev `imova` database. It's created, migrated and seeded automatically on the first run
-(`tests/Imova.IntegrationTests/TestSupport/TestDatabase.cs`). Tests never clean up after themselves
-(every run registers new users, admins among them, plus listings and conversations), so wipe it
-whenever you like:
+dev `imova` database. Every run **drops and recreates it** before the first test, then migrates and
+seeds it (`tests/Imova.IntegrationTests/TestSupport/TestDatabase.cs`), so each run starts clean —
+don't keep anything in it you want to see after the run. Set `IMOVA_TEST_CONNECTION_STRING` to use
+another server; the database name must end in `_test` (anything else is refused rather than
+dropped). The default is `Host=localhost;Port=5432;Database=imova_test;Username=imova;Password=imova`.
 
-```bash
-docker compose exec postgres dropdb -U imova --force imova_test
-```
 `Imova.IntegrationTests` needs a reachable Postgres (it runs the real `Program.cs` startup,
 migrations included) — point it at the running compose Postgres (`localhost:5432`).
 
