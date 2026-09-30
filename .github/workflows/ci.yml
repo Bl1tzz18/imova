@@ -61,12 +61,34 @@ jobs:
         run: docker compose up -d --wait postgres azurite
       # Locally the signing key comes from user secrets; here a fresh random one per run.
       - name: JWT signing key
-        run: echo "Jwt__Key=$(openssl rand -base64 64 | tr -d '\n')" >> "$GITHUB_ENV"
+        run: |
+          key=$(openssl rand -base64 64 | tr -d '\n')
+          echo "::add-mask::$key"
+          echo "Jwt__Key=$key" >> "$GITHUB_ENV"
       # Each test class starts its own API host, and each host watches its config files; the
       # runner's default inotify instance limit is too low for that many.
       - run: sudo sysctl -w fs.inotify.max_user_instances=8192
       - run: dotnet restore tests/Imova.IntegrationTests
       - run: dotnet build tests/Imova.IntegrationTests --no-restore -c Release
+      # TEMPORARY diagnostic (remove once CI is green): why are bearer tokens refused here?
+      - name: Diagnose bearer auth
+        continue-on-error: true
+        env:
+          ConnectionStrings__Default: ${{ env.IMOVA_TEST_CONNECTION_STRING }}
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://127.0.0.1:5080
+          Logging__LogLevel__Microsoft.AspNetCore.Authentication: Debug
+        run: |
+          dotnet run --project src/backend/Imova.Api -c Release --no-launch-profile > api.log 2>&1 &
+          for i in $(seq 60); do curl -sf http://127.0.0.1:5080/health >/dev/null && break; sleep 2; done
+          token=$(curl -s http://127.0.0.1:5080/api/v1/auth/register -H 'Content-Type: application/json' \
+            -d '{"email":"diag-'$RANDOM'@example.com","password":"SuperSecret1!","displayName":"Diag","phoneNumber":"+373 69 123 456"}' \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+          echo "$token" | cut -d. -f2 | tr '_-' '/+' | base64 -d 2>/dev/null; echo
+          date -u
+          curl -si http://127.0.0.1:5080/api/v1/auth/me -H "Authorization: Bearer $token" | head -15
+          kill %1 || true
+          grep -i -A3 "authentic\|bearer\|token\|fail\|exception" api.log | head -60
       - name: Integration tests
         run: dotnet test tests/Imova.IntegrationTests --no-build -c Release --logger trx --results-directory TestResults
       - uses: actions/upload-artifact@v4
