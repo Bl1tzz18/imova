@@ -164,7 +164,7 @@ export default async function ProprietatePage({
             </div>
 
             <aside className="w-full shrink-0 lg:w-80">
-              <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:sticky lg:top-24">
+              <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)]">
                 <p className="font-display text-3xl font-semibold text-ink-950">
                   {formatPrice(listing.price.amount, listing.price.currency)}
                   {listing.transactionType === "Rent" && (
