@@ -118,12 +118,16 @@ export default async function ProprietatePage({
 
 <ListingKeyFacts listing={listing} />
 
-              <div className="mt-8">
-                <h2 className="font-display text-xl font-medium text-ink-950">{t("description")}</h2>
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-600">
+              {/* The owner's own words — the first thing most people read, so it gets a card of its
+                  own and body-size text, kept to a comfortable line length. */}
+              <section className="mt-8 rounded-2xl border border-ink-100 bg-white p-6 sm:p-7" aria-labelledby="listing-description-title">
+                <h2 id="listing-description-title" className="font-display text-xl font-medium text-ink-950">
+                  {t("description")}
+                </h2>
+                <p className="mt-3 max-w-[70ch] whitespace-pre-line text-[15px] leading-7 text-ink-800 sm:text-base">
                   {listing.description}
                 </p>
-              </div>
+              </section>
 
               <ListingDetails listing={listing} />
 
