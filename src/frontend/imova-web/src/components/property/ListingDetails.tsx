@@ -243,14 +243,16 @@ export async function ListingDetails({ listing }: { listing: Listing }) {
       <p className="mt-1 text-sm text-ink-500">{t("propertyDetailsHint")}</p>
       {/* The facts first (type, areas, systems, …), then the picks. Every fact section, always:
           at most five per type, so nothing needs hiding. CSS columns keep the cards' reading order
-          (the form's order) while packing unequal heights; each card brings its own bottom gap. */}
-      {factSections.length > 0 && <div className="mt-4 gap-4 sm:columns-2">{factSections.map(card)}</div>}
+          (the form's order) while packing unequal heights. Cards are spaced by their bottom margin,
+          but a browser drops that margin where a column ends — so the last card has none and the
+          panel below brings its own gap, never relying on it. */}
+      {factSections.length > 0 && (
+        <div className="mt-4 gap-4 sm:columns-2 [&>*:last-child]:mb-0">{factSections.map(card)}</div>
+      )}
 
       {/* What the home comes with and what's nearby, in one panel — a column per section. */}
       {highlights.length > 0 && (
-        <div
-          className={`${factSections.length > 0 ? "" : "mt-4 "}grid gap-x-6 gap-y-5 rounded-2xl border border-ink-100 bg-white p-5 sm:grid-cols-2`}
-        >
+        <div className="mt-4 grid gap-x-6 gap-y-5 rounded-2xl border border-ink-100 bg-white p-5 sm:grid-cols-2">
           {highlights.map((section) => (
             <section key={section.id} aria-labelledby={`details-${section.id}`}>
               <h3 id={`details-${section.id}`} className="flex items-center gap-2.5 text-sm font-semibold text-ink-900">
