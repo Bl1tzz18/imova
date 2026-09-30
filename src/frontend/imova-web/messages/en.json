@@ -379,7 +379,8 @@
       "bathroomType": "bathroom",
       "roommateCount": "{count, plural, one {roommate} other {roommates}}"
     },
-    "call": "Call"
+    "contactDetails": "Contact details",
+    "closeContactDetails": "Close contact details"
   },
   "DashboardPage": {
     "title": "Dashboard"

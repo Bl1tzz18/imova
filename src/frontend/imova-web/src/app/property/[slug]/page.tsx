@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
-import { LinkButton, buttonClassName } from "@/components/ui/Button";
+import { LinkButton } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { ListingDetails, ListingKeyFacts, ListingRentalTerms } from "@/components/property/ListingDetails";
 import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { ReportListingButton } from "@/components/property/ReportListingButton";
+import { ContactSheet } from "@/components/property/ContactSheet";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
 import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
@@ -107,6 +108,82 @@ export default async function ProprietatePage({
     </div>
   );
 
+  // Who to contact and how — at the end of the page, and in the phone bar's "Date de contact" sheet.
+  const contactCard = contact && (
+    <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:mt-4">
+      <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
+      <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
+        {contact.name ?? publisher.displayName}
+        {contact.personType === "Self" && publisher.publisherType === "Agency" && (
+          <Badge tone="brand">{t("agency")}</Badge>
+        )}
+      </p>
+      {contact.personType === "Self" && publisher.bio && (
+        <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>
+      )}
+      {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
+      {!isOwner && messageEmphasis === "primary" && messageButton}
+      <dl className="mt-3 space-y-3 text-sm">
+        {contact.email && (
+          <div>
+            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
+            <dd className="mt-0.5">
+              <a href={`mailto:${contact.email}`} className="font-medium text-brand-700 hover:underline">
+                {contact.email}
+              </a>
+            </dd>
+          </div>
+        )}
+        <div>
+          <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
+          <dd className="mt-0.5">
+            {contact.phone ? (
+              <a href={`tel:${contact.phone}`} className="font-medium text-brand-700 hover:underline">
+                {contact.phone}
+              </a>
+            ) : (
+              <span className="text-ink-400">
+                {contact.hidePhoneNumber ? t("phoneHidden") : t("phoneNotProvided")}
+              </span>
+            )}
+          </dd>
+        </div>
+        {contact.phone && contact.messagingApps.length > 0 && (
+          <div>
+            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("availableOn")}</dt>
+            <dd className="mt-1 flex flex-wrap gap-1.5">
+              {contact.messagingApps.map((app) => (
+                <Badge key={app} tone="neutral">
+                  {app}
+                </Badge>
+              ))}
+            </dd>
+          </div>
+        )}
+        {contact.preferredContactMethod !== "Any" && (
+          <div>
+            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("preferredContact")}</dt>
+            <dd className="mt-0.5 text-ink-900">{tMethod(contact.preferredContactMethod)}</dd>
+          </div>
+        )}
+        {contact.phone && contact.callHoursFrom && contact.callHoursTo && (
+          <div>
+            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("callHours")}</dt>
+            <dd className="mt-0.5 text-ink-900">
+              {contact.callHoursFrom}–{contact.callHoursTo}
+            </dd>
+          </div>
+        )}
+      </dl>
+      {!isOwner && messageEmphasis === "secondary" && messageButton}
+      {showsRelayNotice(contact, isOwner) && (
+        <p className="mt-4 rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700">
+          {t("relayNotice", { name: contact.name ?? "" })}
+        </p>
+      )}
+    </div>
+  );
+
   const contactBar = mobileContactBar(contact, isOwner);
 
   return (
@@ -198,80 +275,8 @@ export default async function ProprietatePage({
               {/* Desktop: the price card beside the photos. (On a phone it's under the photos.) */}
               <div className="hidden lg:block">{priceCard}</div>
 
-              {contact && (
-                <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:mt-4">
-                  <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
-                  <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
-                    {contact.name ?? publisher.displayName}
-                    {contact.personType === "Self" && publisher.publisherType === "Agency" && (
-                      <Badge tone="brand">{t("agency")}</Badge>
-                    )}
-                  </p>
-                  {contact.personType === "Self" && publisher.bio && (
-                    <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>
-                  )}
-                  {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
-                  {!isOwner && messageEmphasis === "primary" && messageButton}
-                  <dl className="mt-3 space-y-3 text-sm">
-                    {contact.email && (
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
-                        <dd className="mt-0.5">
-                          <a href={`mailto:${contact.email}`} className="font-medium text-brand-700 hover:underline">
-                            {contact.email}
-                          </a>
-                        </dd>
-                      </div>
-                    )}
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
-                      <dd className="mt-0.5">
-                        {contact.phone ? (
-                          <a href={`tel:${contact.phone}`} className="font-medium text-brand-700 hover:underline">
-                            {contact.phone}
-                          </a>
-                        ) : (
-                          <span className="text-ink-400">
-                            {contact.hidePhoneNumber ? t("phoneHidden") : t("phoneNotProvided")}
-                          </span>
-                        )}
-                      </dd>
-                    </div>
-                    {contact.phone && contact.messagingApps.length > 0 && (
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("availableOn")}</dt>
-                        <dd className="mt-1 flex flex-wrap gap-1.5">
-                          {contact.messagingApps.map((app) => (
-                            <Badge key={app} tone="neutral">
-                              {app}
-                            </Badge>
-                          ))}
-                        </dd>
-                      </div>
-                    )}
-                    {contact.preferredContactMethod !== "Any" && (
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("preferredContact")}</dt>
-                        <dd className="mt-0.5 text-ink-900">{tMethod(contact.preferredContactMethod)}</dd>
-                      </div>
-                    )}
-                    {contact.phone && contact.callHoursFrom && contact.callHoursTo && (
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("callHours")}</dt>
-                        <dd className="mt-0.5 text-ink-900">
-                          {contact.callHoursFrom}–{contact.callHoursTo}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                  {!isOwner && messageEmphasis === "secondary" && messageButton}
-                  {showsRelayNotice(contact, isOwner) && (
-                    <p className="mt-4 rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700">
-                      {t("relayNotice", { name: contact.name ?? "" })}
-                    </p>
-                  )}
-                </div>
-              )}
+              {contactCard}
+
               {/* Only a live listing can be reported, and never by its owner. */}
               {!isOwner && listing.status === "Active" && (
                 <div className="px-1">
@@ -289,19 +294,10 @@ export default async function ProprietatePage({
       {contactBar && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-md gap-2">
-            {contactBar.phone && (
-              <a
-                href={`tel:${contactBar.phone}`}
-                className={buttonClassName({ variant: contactBar.primary === "call" ? "primary" : "secondary", className: "flex-1" })}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
-                  <path
-                    d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {t("call")}
-              </a>
+            {contactBar.contactDetails && (
+              <ContactSheet label={t("contactDetails")} closeLabel={t("closeContactDetails")} primary={contactBar.primary === "contactDetails"}>
+                {contactCard}
+              </ContactSheet>
             )}
             <LinkButton href={messageHref} variant={contactBar.primary === "message" ? "primary" : "secondary"} className="flex-1">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>

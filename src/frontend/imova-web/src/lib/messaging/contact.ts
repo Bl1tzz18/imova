@@ -21,15 +21,16 @@ export function messageButtonHref(listingId: string, loggedIn: boolean, existing
   return existingConversationId ? `/messages/${existingConversationId}` : compose;
 }
 
-// The phone-only action bar pinned to the bottom of a listing page: "Sună" (only when the number
-// is public) and "Scrie mesaj". The main one follows the owner's preference — messages first when
-// they asked for platform messages or there's no number to call. The owner sees no bar on their
-// own listing (null).
-export type MobileContactBar = { phone: string | null; primary: "call" | "message" };
+// The phone-only action bar pinned to the bottom of a listing page: "Date de contact" (opens the
+// contact card — who, the number, apps, call hours) and "Scrie mesaj". The highlighted one follows
+// the owner: messages when they asked for platform messages or hid the number, the contact
+// details otherwise. The owner sees no bar on their own listing (null); a listing without contact
+// details (from before the Contact step) only offers messages.
+export type MobileContactBar = { contactDetails: boolean; primary: "contactDetails" | "message" };
 
 export function mobileContactBar(contact: ListingContact | null | undefined, viewerIsOwner: boolean): MobileContactBar | null {
   if (viewerIsOwner) return null;
-  const phone = contact?.hidePhoneNumber ? null : (contact?.phone ?? null);
-  const primary = !phone || contact?.preferredContactMethod === "PlatformMessages" ? "message" : "call";
-  return { phone, primary };
+  if (!contact) return { contactDetails: false, primary: "message" };
+  const prefersMessages = contact.preferredContactMethod === "PlatformMessages" || contact.hidePhoneNumber || !contact.phone;
+  return { contactDetails: true, primary: prefersMessages ? "message" : "contactDetails" };
 }

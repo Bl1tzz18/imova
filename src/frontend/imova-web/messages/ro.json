@@ -379,7 +379,8 @@
       "bathroomType": "baie",
       "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
     },
-    "call": "Sună"
+    "contactDetails": "Date de contact",
+    "closeContactDetails": "Închide datele de contact"
   },
   "DashboardPage": {
     "title": "Dashboard"

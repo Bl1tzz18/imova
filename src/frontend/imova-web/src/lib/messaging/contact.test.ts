@@ -53,21 +53,17 @@ describe("messageButtonHref", () => {
 });
 
 describe("mobileContactBar", () => {
-  it("offers a call first when the number is public", () => {
-    expect(mobileContactBar(contact(), false)).toEqual({ phone: "+37369111222", primary: "call" });
+  it("highlights the contact details when the number is public", () => {
+    expect(mobileContactBar(contact(), false)).toEqual({ contactDetails: true, primary: "contactDetails" });
   });
 
-  it("leads with messages when the owner prefers them", () => {
-    expect(mobileContactBar(contact({ preferredContactMethod: "PlatformMessages" }), false)).toEqual({
-      phone: "+37369111222",
-      primary: "message",
-    });
+  it("highlights messages when the owner prefers them or hid the number", () => {
+    expect(mobileContactBar(contact({ preferredContactMethod: "PlatformMessages" }), false)).toEqual({ contactDetails: true, primary: "message" });
+    expect(mobileContactBar(contact({ hidePhoneNumber: true, phone: null }), false)).toEqual({ contactDetails: true, primary: "message" });
   });
 
-  it("offers only messages when the number is hidden or missing", () => {
-    expect(mobileContactBar(contact({ hidePhoneNumber: true, phone: "+37369111222" }), false)).toEqual({ phone: null, primary: "message" });
-    expect(mobileContactBar(contact({ phone: null }), false)).toEqual({ phone: null, primary: "message" });
-    expect(mobileContactBar(null, false)).toEqual({ phone: null, primary: "message" });
+  it("offers only messages for a listing without contact details", () => {
+    expect(mobileContactBar(null, false)).toEqual({ contactDetails: false, primary: "message" });
   });
 
   it("shows nothing to the owner", () => {
