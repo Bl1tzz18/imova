@@ -88,35 +88,44 @@ export default async function ProprietatePage({
             {t("back")}
           </Link>
 
-          <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
-
-          <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
-                    {tListing(listing.transactionType)}
-                  </Badge>
-                  <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
-                </div>
-                <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
+          {/* Title, location and save above; then the photos with the price & contact beside them. */}
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
+                  {tListing(listing.transactionType)}
+                </Badge>
+                <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
               </div>
+              <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
+            </div>
 
-              <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">
-                {listing.title}
-              </h1>
+            <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">
+              {listing.title}
+            </h1>
 
-              {location && (
-                <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-500">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4 shrink-0">
-                    <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11Z" />
-                    <circle cx="12" cy="10" r="2.5" />
-                  </svg>
-                  {location}
-                </p>
-              )}
+            {location && (
+              <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-500">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4 shrink-0">
+                  <path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11Z" />
+                  <circle cx="12" cy="10" r="2.5" />
+                </svg>
+                {location}
+              </p>
+            )}
 
-<ListingKeyFacts listing={listing} />
+            {/* On a phone the price card comes after all the details — so the price shows here too. */}
+            <p className="mt-3 font-display text-2xl font-semibold text-ink-950 lg:hidden">
+              {formatPrice(listing.price.amount, listing.price.currency)}
+              {listing.transactionType === "Rent" && <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>}
+            </p>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-start">
+            <div className="min-w-0 flex-1">
+              <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
+
+              <ListingKeyFacts listing={listing} />
 
               {/* The owner's own words — the first thing most people read, so it gets a card of its
                   own and body-size text, kept to a comfortable line length. */}

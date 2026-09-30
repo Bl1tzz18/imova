@@ -59,8 +59,8 @@ export function PropertyGallery({
 
   if (media.length === 0) {
     return (
-      <div className="mt-4 overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600">
-        <div className="flex aspect-[21/9] items-center justify-center">
+      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600">
+        <div className="flex aspect-[4/3] items-center justify-center sm:aspect-[16/9]">
           <PropertyIcon type={propertyType} className="h-20 w-20 text-white/25 sm:h-28 sm:w-28" />
         </div>
       </div>
@@ -72,9 +72,9 @@ export function PropertyGallery({
       <button
         type="button"
         onClick={() => setOpenIndex(0)}
-        className="group mt-4 block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
+        className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
       >
-        <div className="relative aspect-[21/9]">
+        <div className="relative aspect-[4/3] sm:aspect-[16/9]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={media[0].url}
