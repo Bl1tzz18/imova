@@ -571,7 +571,8 @@
     "tabs": {
       "pending": "Pending",
       "active": "Active",
-      "suspended": "Suspended"
+      "suspended": "Suspended",
+      "reports": "Reports"
     },
     "count": {
       "pending": "{count, plural, one {# listing pending} other {# listings pending}}",
@@ -1144,6 +1145,11 @@
         "emailNotConfirmed": "That account hasn't confirmed its email address yet.",
         "alreadyAdmin": "That account is already an administrator.",
         "passwordNeeded": "Set a password on your account first (Account settings → Security) — it's needed to confirm this."
+      },
+      "listingReport": {
+        "ownListing": "You can't report your own listing.",
+        "limitReached": "You can report at most {max} listings a day. Please try again tomorrow.",
+        "noneOpen": "This listing's reports were already handled (perhaps by another admin). Reload the page."
       }
     },
     "validation": {
@@ -1244,5 +1250,118 @@
     "grant": "Make administrator",
     "granting": "Adding…",
     "granted": "{email} is now an administrator. They will see the admin menu after their next sign-in (within 15 minutes)."
+  },
+  "ListingReport": {
+    "open": "Report this listing",
+    "title": "Report this listing",
+    "intro": "Tell us what's wrong. The IMOVA team reviews every report.",
+    "reasonLabel": "What's the problem?",
+    "reason": {
+      "Fraud": "Scam or fraud",
+      "WrongInformation": "Wrong information",
+      "NoLongerAvailable": "Already sold or rented",
+      "Duplicate": "Duplicate listing",
+      "Other": "Something else"
+    },
+    "reasonHint": {
+      "Fraud": "Asks for money up front, fake listing or stolen photos.",
+      "WrongInformation": "The price, area, address or photos don't match.",
+      "NoLongerAvailable": "The property is no longer available.",
+      "Duplicate": "The same property is posted more than once.",
+      "Other": "Describe the problem below."
+    },
+    "detailsOptional": "Details (optional)",
+    "detailsRequired": "Details (required)",
+    "detailsPlaceholder": "What did you notice? Any detail helps us check faster.",
+    "privacy": "The listing's owner won't find out who reported it.",
+    "cancel": "Cancel",
+    "send": "Send report",
+    "sending": "Sending…",
+    "sentTitle": "Thanks for reporting",
+    "amendedTitle": "We've updated your report",
+    "sentBody": "An admin will review the listing and take action if needed.",
+    "fraudTip": "Never pay a deposit before you've seen the property and its papers.",
+    "close": "Close",
+    "signedOut": "Your session has expired. Sign in again to send the report.",
+    "signIn": "Sign in",
+    "problem": {
+      "reasonRequired": "Choose a reason.",
+      "detailsRequired": "Describe the problem.",
+      "detailsTooLong": "Details can be at most 1000 characters."
+    }
+  },
+  "AdminListingReports": {
+    "status": {
+      "Draft": "Draft",
+      "PendingReview": "Pending review",
+      "Active": "Active",
+      "Rejected": "Rejected",
+      "Suspended": "Suspended",
+      "Rented": "Rented",
+      "Sold": "Sold",
+      "Archived": "Archived",
+      "Expired": "Expired"
+    },
+    "publishedBy": "Published by",
+    "reportCount": "{count, plural, one {# report} other {# reports}}",
+    "reporterCount": "{count, plural, one {from # person} other {from # people}}",
+    "waiting": "first reported {since}",
+    "showAll": "Show all {count} reports",
+    "showFewer": "Show fewer",
+    "decided": {
+      "ListingSuspended": "Listing suspended by {name} · {date}",
+      "Dismissed": "Reports dismissed by {name} · {date}"
+    },
+    "unknownAdmin": "an admin",
+    "reasonShownToOwner": "Reason (shown to the owner)",
+    "adminNote": "Internal note",
+    "reinstateHint": "Can be reinstated from the Suspended tab →",
+    "deletedAccount": "Deleted account",
+    "noName": "No name",
+    "edited": "edited",
+    "noDetails": "No details.",
+    "record": {
+      "first": "This person's first report.",
+      "history": "Has filed {filed, plural, one {# report} other {# reports}} in total, {dismissed} dismissed.",
+      "oftenDismissed": "many of their reports were dismissed"
+    },
+    "notActive": "The listing is no longer active ({status}), so it can't be suspended — you can only close the reports.",
+    "suspendLabel": "Reason for the suspension",
+    "dismissLabel": "Internal note (optional)",
+    "dismissPlaceholder": "Why is no action needed? E.g. \"Checked, the listing is accurate.\"",
+    "suspendHint": "The owner sees this text. The listing leaves search, and all its reports are closed.",
+    "dismissHint": "The listing stays published. The note is visible to admins only.",
+    "confirmSuspend": "Suspend listing",
+    "confirmDismiss": "{count, plural, one {Dismiss the report} other {Dismiss the # reports}}",
+    "cancel": "Cancel",
+    "suspend": "Suspend listing",
+    "dismiss": "No problem — dismiss",
+    "close": "Close the reports",
+    "openListing": "Open listing",
+    "suspendReasonRequired": "Write the reason for the suspension — the owner will see it.",
+    "suspendTemplate": {
+      "Fraud": "Your listing was suspended after several reports of possible fraud. Contact the IMOVA team if you think this is a mistake.",
+      "WrongInformation": "Your listing was suspended because it contains information that doesn't match reality (price, area, address or photos). Correct it and contact us to have it reinstated.",
+      "NoLongerAvailable": "Your listing was suspended because the property appears to be no longer available. If it still is, contact us to have it reinstated.",
+      "Duplicate": "Your listing was suspended because it duplicates another listing for the same property.",
+      "Other": "Your listing was suspended following reports from users."
+    },
+    "openSummary": "{listings, plural, =0 {No new reports} one {# reported listing} other {# reported listings}}{reports, plural, =0 {} one {, # report to review} other {, # reports to review}}",
+    "historySummary": "{count, plural, =0 {No decisions yet} one {# decision} other {# decisions}}",
+    "views": {
+      "open": "To review",
+      "resolved": "History"
+    },
+    "openHint": "The most-reported listings come first.",
+    "historyHint": "Decisions made, most recent first.",
+    "empty": {
+      "open": "No reports to review",
+      "resolved": "No decisions yet"
+    },
+    "emptyBody": {
+      "open": "When visitors report a listing, it shows up here.",
+      "resolved": "Suspended listings and dismissed reports show up here."
+    },
+    "contact": "Contact:"
   }
 }

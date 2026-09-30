@@ -7,6 +7,7 @@ import { LinkButton } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
 import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
+import { ReportListingButton } from "@/components/property/ReportListingButton";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
 import { squareMetersToAri } from "@/lib/listing/view";
 import { attributeSchemaFor } from "@/lib/property/attributeSchema";
@@ -356,6 +357,12 @@ export default async function ProprietatePage({
                       {t("relayNotice", { name: contact.name ?? "" })}
                     </p>
                   )}
+                </div>
+              )}
+              {/* Only a live listing can be reported, and never by its owner. */}
+              {!isOwner && listing.status === "Active" && (
+                <div className="px-1">
+                  <ReportListingButton listingId={listing.id} signedIn={profile !== null} />
                 </div>
               )}
             </aside>

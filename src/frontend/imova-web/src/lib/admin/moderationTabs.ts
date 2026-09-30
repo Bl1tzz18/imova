@@ -1,9 +1,13 @@
-// The admin moderation page's tabs (?tab=…) and the listing status each one lists.
-export const MODERATION_TABS = ["pending", "active", "suspended"] as const;
+// The admin moderation page's tabs (?tab=…): three lists of listings by status, and the reports
+// visitors filed on listings (?tab=reports, with ?view=open|resolved).
+export const MODERATION_TABS = ["pending", "active", "suspended", "reports"] as const;
 
 export type ModerationTab = (typeof MODERATION_TABS)[number];
 
-const STATUS: Record<ModerationTab, "PendingReview" | "Active" | "Suspended"> = {
+// The tabs that list listings by status (the reports tab lists report cases instead).
+export type ListingTab = Exclude<ModerationTab, "reports">;
+
+const STATUS: Record<ListingTab, "PendingReview" | "Active" | "Suspended"> = {
   pending: "PendingReview",
   active: "Active",
   suspended: "Suspended",
@@ -14,18 +18,42 @@ export function parseModerationTab(value: string | undefined): ModerationTab {
   return MODERATION_TABS.find((tab) => tab === value) ?? "pending";
 }
 
-export function statusForTab(tab: ModerationTab) {
+export function isListingTab(tab: ModerationTab): tab is ListingTab {
+  return tab !== "reports";
+}
+
+export function statusForTab(tab: ListingTab) {
   return STATUS[tab];
+}
+
+// The reports tab: cases still waiting for a decision, or the decisions already made.
+export const REPORT_VIEWS = ["open", "resolved"] as const;
+
+export type ReportView = (typeof REPORT_VIEWS)[number];
+
+export function parseReportView(value: string | undefined): ReportView {
+  return value === "resolved" ? "resolved" : "open";
 }
 
 export const MODERATION_PAGE_SIZE = 20;
 
 // A link within the moderation page. Only what differs from the defaults goes into the URL
-// (the review queue, no search, page 1).
-export function moderationHref({ tab, q, page }: { tab: ModerationTab; q?: string; page?: number }): string {
+// (the review queue, no search, page 1, open reports).
+export function moderationHref({
+  tab,
+  q,
+  page,
+  view,
+}: {
+  tab: ModerationTab;
+  q?: string;
+  page?: number;
+  view?: ReportView;
+}): string {
   const params = new URLSearchParams();
   if (tab !== "pending") params.set("tab", tab);
-  const search = q?.trim();
+  if (tab === "reports" && view === "resolved") params.set("view", view);
+  const search = isListingTab(tab) ? q?.trim() : undefined;
   if (search) params.set("q", search);
   if (page && page > 1) params.set("page", String(page));
   const query = params.toString();

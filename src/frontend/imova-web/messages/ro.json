@@ -571,7 +571,8 @@
     "tabs": {
       "pending": "În așteptare",
       "active": "Active",
-      "suspended": "Suspendate"
+      "suspended": "Suspendate",
+      "reports": "Raportări"
     },
     "count": {
       "pending": "{count, plural, one {# anunț în așteptare} few {# anunțuri în așteptare} other {# de anunțuri în așteptare}}",
@@ -1144,6 +1145,11 @@
         "emailNotConfirmed": "Contul nu și-a confirmat încă adresa de email.",
         "alreadyAdmin": "Acest cont este deja administrator.",
         "passwordNeeded": "Setează mai întâi o parolă pentru contul tău (Setările contului → Securitate) — e necesară pentru confirmare."
+      },
+      "listingReport": {
+        "ownListing": "Nu poți raporta propriul anunț.",
+        "limitReached": "Poți raporta cel mult {max} anunțuri pe zi. Încearcă din nou mâine.",
+        "noneOpen": "Raportările acestui anunț au fost deja tratate (poate de alt administrator). Reîncarcă pagina."
       }
     },
     "validation": {
@@ -1244,5 +1250,118 @@
     "grant": "Fă-l administrator",
     "granting": "Se adaugă…",
     "granted": "{email} este acum administrator. Va vedea meniul de administrare după următoarea autentificare (cel mult 15 minute)."
+  },
+  "ListingReport": {
+    "open": "Raportează anunțul",
+    "title": "Raportează anunțul",
+    "intro": "Spune-ne ce nu e în regulă. Echipa IMOVA verifică fiecare raportare.",
+    "reasonLabel": "Care este problema?",
+    "reason": {
+      "Fraud": "Înșelătorie sau fraudă",
+      "WrongInformation": "Informații greșite",
+      "NoLongerAvailable": "Deja vândut sau închiriat",
+      "Duplicate": "Anunț duplicat",
+      "Other": "Altceva"
+    },
+    "reasonHint": {
+      "Fraud": "Cere bani în avans, anunț fals sau fotografii furate.",
+      "WrongInformation": "Prețul, suprafața, adresa sau pozele nu corespund.",
+      "NoLongerAvailable": "Proprietatea nu mai este disponibilă.",
+      "Duplicate": "Aceeași proprietate e publicată de mai multe ori.",
+      "Other": "Descrie problema mai jos."
+    },
+    "detailsOptional": "Detalii (opțional)",
+    "detailsRequired": "Detalii (obligatoriu)",
+    "detailsPlaceholder": "Ce ai observat? Orice detaliu ne ajută să verificăm mai repede.",
+    "privacy": "Proprietarul anunțului nu va afla cine a trimis raportarea.",
+    "cancel": "Anulează",
+    "send": "Trimite raportarea",
+    "sending": "Se trimite…",
+    "sentTitle": "Mulțumim pentru raportare",
+    "amendedTitle": "Am actualizat raportarea ta",
+    "sentBody": "Un administrator va verifica anunțul și va lua măsuri dacă e cazul.",
+    "fraudTip": "Nu plăti niciodată un avans înainte de a vedea proprietatea și actele ei.",
+    "close": "Închide",
+    "signedOut": "Sesiunea ta a expirat. Autentifică-te din nou pentru a trimite raportarea.",
+    "signIn": "Autentificare",
+    "problem": {
+      "reasonRequired": "Alege motivul raportării.",
+      "detailsRequired": "Descrie problema.",
+      "detailsTooLong": "Detaliile pot avea cel mult 1000 de caractere."
+    }
+  },
+  "AdminListingReports": {
+    "status": {
+      "Draft": "Ciornă",
+      "PendingReview": "În așteptare",
+      "Active": "Activ",
+      "Rejected": "Respins",
+      "Suspended": "Suspendat",
+      "Rented": "Închiriat",
+      "Sold": "Vândut",
+      "Archived": "Arhivat",
+      "Expired": "Expirat"
+    },
+    "publishedBy": "Publicat de",
+    "reportCount": "{count, plural, one {# raportare} few {# raportări} other {# de raportări}}",
+    "reporterCount": "{count, plural, one {de la # persoană} few {de la # persoane} other {de la # de persoane}}",
+    "waiting": "prima raportare {since}",
+    "showAll": "Arată toate cele {count} raportări",
+    "showFewer": "Arată mai puține",
+    "decided": {
+      "ListingSuspended": "Anunț suspendat de {name} · {date}",
+      "Dismissed": "Raportări respinse de {name} · {date}"
+    },
+    "unknownAdmin": "un administrator",
+    "reasonShownToOwner": "Motiv (văzut de proprietar)",
+    "adminNote": "Notă internă",
+    "reinstateHint": "Poate fi reactivat din fila Suspendate →",
+    "deletedAccount": "Cont șters",
+    "noName": "Fără nume",
+    "edited": "modificată",
+    "noDetails": "Fără detalii.",
+    "record": {
+      "first": "Prima raportare a acestei persoane.",
+      "history": "A trimis {filed, plural, one {# raportare} few {# raportări} other {# de raportări}} în total, {dismissed} respinse.",
+      "oftenDismissed": "multe dintre raportările sale au fost respinse"
+    },
+    "notActive": "Anunțul nu mai este activ ({status}), deci nu poate fi suspendat — poți doar închide raportările.",
+    "suspendLabel": "Motivul suspendării",
+    "dismissLabel": "Notă internă (opțional)",
+    "dismissPlaceholder": "De ce nu e nevoie de nicio măsură? De ex.: „Am verificat, anunțul e corect.”",
+    "suspendHint": "Proprietarul vede acest text. Anunțul dispare din căutare, iar toate raportările lui se închid.",
+    "dismissHint": "Anunțul rămâne publicat. Nota e vizibilă doar administratorilor.",
+    "confirmSuspend": "Suspendă anunțul",
+    "confirmDismiss": "{count, plural, one {Respinge raportarea} few {Respinge cele # raportări} other {Respinge cele # de raportări}}",
+    "cancel": "Anulează",
+    "suspend": "Suspendă anunțul",
+    "dismiss": "Nicio problemă — respinge",
+    "close": "Închide raportările",
+    "openListing": "Deschide anunțul",
+    "suspendReasonRequired": "Scrie motivul suspendării — proprietarul îl va vedea.",
+    "suspendTemplate": {
+      "Fraud": "Anunțul a fost suspendat în urma mai multor semnalări de posibilă fraudă. Contactează echipa IMOVA dacă crezi că este o greșeală.",
+      "WrongInformation": "Anunțul a fost suspendat deoarece conține informații care nu corespund realității (preț, suprafață, adresă sau fotografii). Corectează-le și contactează-ne pentru reactivare.",
+      "NoLongerAvailable": "Anunțul a fost suspendat deoarece proprietatea pare să nu mai fie disponibilă. Dacă este încă disponibilă, contactează-ne pentru reactivare.",
+      "Duplicate": "Anunțul a fost suspendat deoarece dublează un alt anunț pentru aceeași proprietate.",
+      "Other": "Anunțul a fost suspendat în urma unor semnalări ale utilizatorilor."
+    },
+    "openSummary": "{listings, plural, =0 {Nicio raportare nouă} one {# anunț raportat} few {# anunțuri raportate} other {# de anunțuri raportate}}{reports, plural, =0 {} one {, # raportare de verificat} few {, # raportări de verificat} other {, # de raportări de verificat}}",
+    "historySummary": "{count, plural, =0 {Nicio decizie încă} one {# decizie} few {# decizii} other {# de decizii}}",
+    "views": {
+      "open": "De verificat",
+      "resolved": "Istoric"
+    },
+    "openHint": "Cele mai raportate anunțuri apar primele.",
+    "historyHint": "Deciziile luate, cele mai recente primele.",
+    "empty": {
+      "open": "Nicio raportare de verificat",
+      "resolved": "Nicio decizie încă"
+    },
+    "emptyBody": {
+      "open": "Când vizitatorii raportează un anunț, apare aici.",
+      "resolved": "Anunțurile suspendate sau raportările respinse apar aici."
+    },
+    "contact": "Contact:"
   }
 }

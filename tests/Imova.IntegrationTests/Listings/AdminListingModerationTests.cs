@@ -57,6 +57,9 @@ public class AdminListingModerationTests(WebApplicationFactory<Program> factory)
         { "POST", "/api/v1/listings/{0}/reject" },
         { "POST", "/api/v1/listings/{0}/suspend" },
         { "POST", "/api/v1/listings/{0}/reinstate" },
+        { "GET", "/api/v1/admin/listing-reports" },
+        { "GET", "/api/v1/admin/listing-reports/summary" },
+        { "POST", "/api/v1/admin/listing-reports/{0}/dismiss" },
     };
 
     [Theory]

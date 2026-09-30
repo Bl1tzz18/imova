@@ -50,6 +50,8 @@ public interface IApplicationDbContext
 
     DbSet<ConversationReport> ConversationReports { get; }
 
+    DbSet<ListingReport> ListingReports { get; }
+
     DbSet<ApplicationUser> Users { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }

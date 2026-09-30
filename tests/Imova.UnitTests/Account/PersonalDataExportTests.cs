@@ -163,6 +163,23 @@ public class PersonalDataExportTests
     }
 
     [Fact]
+    public async Task Export_IncludesTheListingsYouReported_WithTheOutcome()
+    {
+        var report = ListingReport.Create(_f.Listing, _f.Visitor.Id, ListingReportReason.Fraud, "Cere avans.", _f.Clock.Now);
+        report.Resolve(ListingReportOutcome.Dismissed, Guid.NewGuid(), "Only for the admins.", _f.Clock.Now);
+        _f.Db.ListingReports.Add(report);
+        await _f.Db.SaveChangesAsync();
+
+        var exported = Assert.Single((await ExportAsync(_f.Visitor.Id)).Data.ListingReportsYouFiled);
+
+        Assert.Equal(_f.Listing.Id, exported.ListingId);
+        Assert.Equal("Fraud", exported.Reason);
+        Assert.Equal("Cere avans.", exported.Details);
+        Assert.Equal("Dismissed", exported.Outcome);
+        Assert.Empty((await ExportAsync(_f.Seller.Id)).Data.ListingReportsYouFiled);
+    }
+
+    [Fact]
     public async Task Export_OfAVisitor_ShowsTheirRoleAndOnlyTheirData()
     {
         await _f.StartAsync();

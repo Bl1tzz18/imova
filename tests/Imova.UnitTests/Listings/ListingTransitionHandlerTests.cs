@@ -221,8 +221,8 @@ public class ListingTransitionHandlerTests
     {
         var listing = await SeedAsync(ListingStatus.Active);
 
-        var suspended = await new SuspendListingHandler(_dbContext, _blobs)
-            .Handle(new SuspendListingCommand(listing.Id, true, "Duplicat."), CancellationToken.None);
+        var suspended = await new SuspendListingHandler(_dbContext, _blobs, TimeProvider.System)
+            .Handle(new SuspendListingCommand(listing.Id, true, Guid.NewGuid(), "Duplicat."), CancellationToken.None);
         var reinstated = await new ReinstateListingHandler(_dbContext, _blobs)
             .Handle(new ReinstateListingCommand(listing.Id, true), CancellationToken.None);
 

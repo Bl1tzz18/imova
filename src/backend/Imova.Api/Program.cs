@@ -9,6 +9,7 @@ using Imova.Api.Features.Admins;
 using Imova.Api.Features.Amenities;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
+using Imova.Api.Features.ListingReports;
 using Imova.Api.Features.Listings;
 using Imova.Api.Features.Locations;
 using Imova.Api.Features.Media;
@@ -17,6 +18,7 @@ using Imova.Api.Features.Proximities;
 using Imova.Api.Features.Publishers;
 using Imova.Api.Features.SavedSearches;
 using Imova.Api.Features.Users;
+using Imova.Application.Features.Listings;
 using Imova.Application.Common;
 using Imova.Application.Common.Behaviors;
 using Imova.Application.Common.Exceptions;
@@ -221,6 +223,8 @@ builder.Services.AddSingleton<IPresenceTracker>(sp => sp.GetRequiredService<Pres
 builder.Services.AddSingleton<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>() ?? new MessagingOptions());
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(ListingReportOptions.SectionName).Get<ListingReportOptions>() ?? new ListingReportOptions());
 builder.Services.AddScoped<MessageDelivery>();
 builder.Services.AddScoped<IListingSearch, ListingSearch>();
 var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
@@ -370,6 +374,7 @@ app.UseExceptionHandler(handler =>
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapListingEndpoints();
+app.MapListingReportEndpoints();
 app.MapPublisherEndpoints();
 app.MapAmenityEndpoints();
 app.MapProximityEndpoints();
