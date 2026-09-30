@@ -5,6 +5,7 @@ using Imova.Api.Features.Listings.GetListings;
 using Imova.Api.Features.Listings.GetMyListings;
 using Imova.Api.Features.Listings.GetPendingReviewListings;
 using Imova.Api.Features.Listings.RejectListing;
+using Imova.Api.Features.Listings.ReportListing;
 using Imova.Api.Features.Listings.SearchListings;
 using Imova.Api.Features.Listings.SuspendListing;
 using Imova.Api.Features.Listings.Transitions;
@@ -29,5 +30,6 @@ public static class ListingEndpoints
         app.MapRejectListing();
         app.MapSuspendListing();
         app.MapGetPendingReviewListings();
+        app.MapReportListing();
     }
 }

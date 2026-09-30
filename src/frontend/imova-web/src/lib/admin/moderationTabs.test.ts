@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { moderationHref, parseModerationTab, parsePage, statusForTab } from "@/lib/admin/moderationTabs";
+import { isListingTab, moderationHref, parseModerationTab, parsePage, parseReportView, statusForTab } from "@/lib/admin/moderationTabs";
 
 describe("parseModerationTab", () => {
   it("reads the known tabs", () => {
     expect(parseModerationTab("active")).toBe("active");
     expect(parseModerationTab("suspended")).toBe("suspended");
+    expect(parseModerationTab("reports")).toBe("reports");
   });
 
   it("falls back to the review queue", () => {
@@ -21,6 +22,23 @@ describe("statusForTab", () => {
   });
 });
 
+describe("isListingTab", () => {
+  it("is every tab but the reports", () => {
+    expect(isListingTab("pending")).toBe(true);
+    expect(isListingTab("suspended")).toBe(true);
+    expect(isListingTab("reports")).toBe(false);
+  });
+});
+
+describe("parseReportView", () => {
+  it("reads the history, and falls back to the open cases", () => {
+    expect(parseReportView("resolved")).toBe("resolved");
+    expect(parseReportView("open")).toBe("open");
+    expect(parseReportView(undefined)).toBe("open");
+    expect(parseReportView("all")).toBe("open");
+  });
+});
+
 describe("moderationHref", () => {
   it("leaves the defaults out", () => {
     expect(moderationHref({ tab: "pending" })).toBe("/admin/moderation");
@@ -29,6 +47,13 @@ describe("moderationHref", () => {
 
   it("keeps the tab, the trimmed search and the page", () => {
     expect(moderationHref({ tab: "active", q: " Ion Popescu ", page: 3 })).toBe("/admin/moderation?tab=active&q=Ion+Popescu&page=3");
+  });
+
+  it("keeps the reports view (open is the default) and never a search there", () => {
+    expect(moderationHref({ tab: "reports" })).toBe("/admin/moderation?tab=reports");
+    expect(moderationHref({ tab: "reports", view: "open", q: "x" })).toBe("/admin/moderation?tab=reports");
+    expect(moderationHref({ tab: "reports", view: "resolved", page: 2 })).toBe("/admin/moderation?tab=reports&view=resolved&page=2");
+    expect(moderationHref({ tab: "active", view: "resolved" })).toBe("/admin/moderation?tab=active");
   });
 });
 

@@ -48,6 +48,7 @@ public class ExportPersonalDataHandler(
             await ConversationsAsync(userId, files, cancellationToken),
             await BlocksAsync(userId, cancellationToken),
             await ReportsAsync(userId, cancellationToken),
+            await ListingReportsAsync(userId, cancellationToken),
             MissingFiles: []);
 
         return new PersonalDataExport(data, files);
@@ -250,6 +251,17 @@ public class ExportPersonalDataHandler(
             .OrderBy(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
         return reports.Select(r => new ExportedReportDto(r.ConversationId, r.Reason.ToString(), r.Details, r.CreatedAt, r.ResolvedAt))
+            .ToList();
+    }
+
+    private async Task<List<ExportedListingReportDto>> ListingReportsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var reports = await dbContext.ListingReports.AsNoTracking()
+            .Where(r => r.ReporterUserId == userId)
+            .OrderBy(r => r.CreatedAt)
+            .ToListAsync(cancellationToken);
+        return reports
+            .Select(r => new ExportedListingReportDto(r.ListingId, r.Reason.ToString(), r.Details, r.CreatedAt, r.ResolvedAt, r.Outcome?.ToString()))
             .ToList();
     }
 }

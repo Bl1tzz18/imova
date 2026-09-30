@@ -31,6 +31,7 @@ public record PersonalDataExportDto(
     IReadOnlyList<ExportedConversationDto> Conversations,
     IReadOnlyList<ExportedBlockDto> BlockedUsers,
     IReadOnlyList<ExportedReportDto> ReportsYouFiled,
+    IReadOnlyList<ExportedListingReportDto> ListingReportsYouFiled,
     IReadOnlyList<string> MissingFiles);
 
 public record ExportedAccountDto(
@@ -101,6 +102,16 @@ public record ExportedMessageDto(
     IReadOnlyList<string> AttachmentFiles);
 
 public record ExportedBlockDto(string? BlockedUser, DateTimeOffset BlockedAt);
+
+// The outcome (ListingSuspended / Dismissed) is included, the admin's note isn't — that's
+// the moderators' own record.
+public record ExportedListingReportDto(
+    Guid ListingId,
+    string Reason,
+    string? Details,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ResolvedAt,
+    string? Outcome);
 
 public record ExportedReportDto(
     Guid ConversationId,

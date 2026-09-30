@@ -94,6 +94,29 @@ export async function reinstateListing(listingId: string): Promise<{ error?: str
   return {};
 }
 
+// Closes the open reports on a listing without acting on it; the note is for the other admins only.
+// (Acting on it = suspendListing, which closes its reports too.)
+export async function dismissListingReports(listingId: string, note: string): Promise<{ error?: string }> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login?next=/admin/moderation?tab=reports");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/admin/listing-reports/${listingId}/dismiss`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ note: note.trim() || null }),
+  });
+
+  if (!res.ok) {
+    return readActionError(res);
+  }
+
+  revalidatePath("/admin/moderation");
+  return {};
+}
+
 export type GrantAdminState = { error?: string; grantedEmail?: string };
 
 // Makes an existing, email-confirmed account an admin. The API checks everything that matters —

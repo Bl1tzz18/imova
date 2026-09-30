@@ -19,7 +19,7 @@ public static class SuspendListingEndpoint
             ISender sender,
             CancellationToken cancellationToken) =>
         {
-            var listing = await sender.Send(new SuspendListingCommand(id, user.IsInRole(Roles.Admin), request.Reason), cancellationToken);
+            var listing = await sender.Send(new SuspendListingCommand(id, user.IsInRole(Roles.Admin), user.GetUserId(), request.Reason), cancellationToken);
             return listing is null ? Results.NotFound() : Results.Ok(listing);
         }).RequireAdmin();
     }

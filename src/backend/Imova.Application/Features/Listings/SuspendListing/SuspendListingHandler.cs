@@ -1,12 +1,14 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.ListingReports;
 using Imova.Contracts.Listings;
+using Imova.Domain.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Listings.SuspendListing;
 
-public class SuspendListingHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
+public class SuspendListingHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService, TimeProvider timeProvider)
     : IRequestHandler<SuspendListingCommand, ListingDto?>
 {
     public async Task<ListingDto?> Handle(SuspendListingCommand request, CancellationToken cancellationToken)
@@ -23,6 +25,9 @@ public class SuspendListingHandler(IApplicationDbContext dbContext, IBlobStorage
         }
 
         ListingTransitions.Apply(() => listing.Suspend(request.Reason));
+        await ListingReportResolution.ResolveOpenAsync(
+            dbContext, listing.Id, ListingReportOutcome.ListingSuspended, request.AdminUserId, request.Reason,
+            timeProvider.GetUtcNow(), cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return await ListingDtoLoader.LoadOneAsync(dbContext, blobStorageService, listing, currentUserId: null, cancellationToken);

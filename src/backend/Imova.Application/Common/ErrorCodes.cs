@@ -70,6 +70,11 @@ public static class ErrorCodes
     public const string TooManyImages = "message.tooManyImages";
     public const string ReportDetailsRequired = "report.detailsRequired";
 
+    // --- Listing reports (report.detailsRequired above is shared) ---
+    public const string ReportOwnListing = "listingReport.ownListing";
+    public const string ReportLimitReached = "listingReport.limitReached";
+    public const string NoOpenReports = "listingReport.noneOpen";
+
     // --- Saved searches ---
     public const string SavedSearchLimit = "savedSearch.limitReached";
 

@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { approveListing, reinstateListing, rejectListing, suspendListing } from "@/lib/admin/actions";
-import type { ModerationTab } from "@/lib/admin/moderationTabs";
+import type { ListingTab } from "@/lib/admin/moderationTabs";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
 import type { Listing } from "@/types/listing";
 
 // One list for every moderation tab: the review queue (approve / reject with a reason), Active
 // listings (suspend with a reason) and Suspended ones (shows the reason; reinstate).
-export function ModerationQueue({ listings, tab = "pending" }: { listings: Listing[]; tab?: ModerationTab }) {
+export function ModerationQueue({ listings, tab = "pending" }: { listings: Listing[]; tab?: ListingTab }) {
   const t = useTranslations("AdminModerationPage");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);

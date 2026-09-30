@@ -12,6 +12,14 @@ export function formatDate(isoDate: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(isoDate));
 }
 
+// "1 oct. 2026, 14:05" — for moderation, where the time of day matters too. Always Moldova's time
+// (like the emails), so the server render and the browser agree whatever their own time zones.
+export function formatDateTime(isoDate: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Chisinau" }).format(
+    new Date(isoDate),
+  );
+}
+
 // Several raion seats share their raion's exact name (e.g. the town "Soroca" is the seat of
 // Soroca raion) — showing both would read as "Soroca, Soroca", so the raion name is dropped
 // whenever it's identical to the more specific localitate/sector name.
