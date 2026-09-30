@@ -361,7 +361,24 @@
     "agency": "Agency",
     "sendMessage": "Send message",
     "openConversation": "Open conversation",
-    "relayNotice": "Messages sent through the platform arrive in your inbox, not to {name} — pass them on if needed."
+    "relayNotice": "Messages sent through the platform arrive in your inbox, not to {name} — pass them on if needed.",
+    "propertyDetails": "Property details",
+    "propertyDetailsHint": "Everything the owner filled in, by category.",
+    "locationTitle": "Location",
+    "keyFacts": {
+      "rooms": "{count, plural, one {room} other {rooms}}",
+      "area": "area",
+      "landArea": "land",
+      "floor": "floor",
+      "houseFloors": "{count, plural, one {level} other {levels}}",
+      "bathrooms": "{count, plural, one {bathroom} other {bathrooms}}",
+      "yearBuilt": "year built",
+      "plotType": "plot type",
+      "spaceType": "space type",
+      "parkingType": "parking type",
+      "bathroomType": "bathroom",
+      "roommateCount": "{count, plural, one {roommate} other {roommates}}"
+    }
   },
   "DashboardPage": {
     "title": "Dashboard"

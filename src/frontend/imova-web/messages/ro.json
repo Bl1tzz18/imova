@@ -361,7 +361,24 @@
     "agency": "Agenție",
     "sendMessage": "Scrie mesaj",
     "openConversation": "Deschide conversația",
-    "relayNotice": "Mesajele trimise prin platformă ajung în căsuța ta, nu la {name} — transmite-i-le tu dacă e nevoie."
+    "relayNotice": "Mesajele trimise prin platformă ajung în căsuța ta, nu la {name} — transmite-i-le tu dacă e nevoie.",
+    "propertyDetails": "Detalii proprietate",
+    "propertyDetailsHint": "Tot ce a completat proprietarul, pe categorii.",
+    "locationTitle": "Locație",
+    "keyFacts": {
+      "rooms": "{count, plural, one {cameră} few {camere} other {de camere}}",
+      "area": "suprafață",
+      "landArea": "teren",
+      "floor": "etaj",
+      "houseFloors": "{count, plural, one {nivel} few {niveluri} other {de niveluri}}",
+      "bathrooms": "{count, plural, one {baie} few {băi} other {de băi}}",
+      "yearBuilt": "anul construcției",
+      "plotType": "tip teren",
+      "spaceType": "tip spațiu",
+      "parkingType": "tip loc de parcare",
+      "bathroomType": "baie",
+      "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
+    }
   },
   "DashboardPage": {
     "title": "Dashboard"

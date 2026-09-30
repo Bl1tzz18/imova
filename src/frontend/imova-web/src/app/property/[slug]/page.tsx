@@ -5,12 +5,11 @@ import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { PropertyGallery } from "@/components/property/PropertyGallery";
+import { ListingDetails, ListingKeyFacts, ListingRentalTerms } from "@/components/property/ListingDetails";
 import { PropertyLocationPreview } from "@/components/property/PropertyLocationPreview";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { ReportListingButton } from "@/components/property/ReportListingButton";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
-import { squareMetersToAri } from "@/lib/listing/view";
-import { attributeSchemaFor } from "@/lib/property/attributeSchema";
 import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
@@ -48,22 +47,18 @@ export default async function ProprietatePage({
     notFound();
   }
 
-  const [locale, t, tType, tListing, tCard, tAttr, tCondition, tAmenity, tProximity, tMethod] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tMethod] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
     getTranslations("ListingType"),
     getTranslations("PropertyCard"),
-    getTranslations("Attributes"),
-    getTranslations("Condition"),
-    getTranslations("Amenity"),
-    getTranslations("Proximity"),
     getTranslations("ContactMethod"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
 
-  const { property, rentalDetails, publisher, contact } = listing;
+  const { publisher, contact } = listing;
 
   // "Scrie mesaj" always reaches the publisher's own inbox (never the listing's "Other" contact).
   const profile = await getCurrentUserProfile();
@@ -79,78 +74,10 @@ export default async function ProprietatePage({
       {existingConversationId ? t("openConversation") : t("sendMessage")}
     </LinkButton>
   );
-  const yesNo = (value: boolean) => (value ? t("yes") : t("no"));
-
-  // Physical facts: area, building data, then whatever the property type's attribute schema
-  // defines (see ATTRIBUTE_SCHEMA) — only the fields actually filled in are shown.
-  const facts: { label: string; value: string }[] = [];
-  facts.push({
-    label: t("area"),
-    value:
-      property.propertyType === "Land"
-        ? `${property.totalAreaM2} m² (${squareMetersToAri(property.totalAreaM2)} ari)`
-        : `${property.totalAreaM2} m²`,
-  });
-  if (property.yearBuilt != null) facts.push({ label: t("yearBuilt"), value: String(property.yearBuilt) });
-  if (property.condition) facts.push({ label: t("condition"), value: tCondition(property.condition) });
-
-  const attributes = property.typeSpecificAttributes;
-  // Below-ground levels read better by name: -1 = basement (subsol), 0 = semi-basement (demisol).
-  const formatFloor = (floor: unknown) => {
-    const n = Number(floor);
-    if (n < 0) return `${tAttr("floorLevels.basement")} (${n})`;
-    if (n === 0) return `${tAttr("floorLevels.semiBasement")} (0)`;
-    return String(floor);
-  };
-  for (const field of attributeSchemaFor(property.propertyType)) {
-    const value = attributes[field.name];
-    // totalFloors is folded into the floor fact ("3 of 9") when both are present.
-    if (value == null || (field.name === "totalFloors" && typeof attributes.floor === "number")) continue;
-    // Form labels carry their unit ("Living area (m²)"); here the value already shows it.
-    const label = (t.has(field.name) ? t(field.name) : tAttr(`${field.name}.label`)).replace(/\s*\((m²|m|м²|м)\)$/, "");
-
-    if (field.name === "floor" && typeof attributes.totalFloors === "number") {
-      facts.push({ label, value: t("floorOf", { floor: formatFloor(value), totalFloors: attributes.totalFloors }) });
-    } else if (field.name === "floor") {
-      facts.push({ label, value: formatFloor(value) });
-    } else if (field.kind === "enum") {
-      facts.push({ label, value: tAttr(`${field.name}.options.${String(value)}`) });
-    } else if (field.kind === "yesno") {
-      facts.push({ label, value: yesNo(value === true) });
-    } else if (field.name.endsWith("AreaM2")) {
-      facts.push({ label, value: `${String(value)} m²` });
-    } else if (field.name === "ceilingHeightM") {
-      facts.push({ label, value: `${String(value)} m` });
-    } else {
-      facts.push({ label, value: String(value) });
-    }
-  }
-
-  // Terms of this particular rental offer, not of the property itself.
-  const rentalFacts: { label: string; value: string }[] = [];
-  if (rentalDetails) {
-    if (rentalDetails.minLeasePeriodMonths != null) {
-      rentalFacts.push({ label: t("minLeasePeriod"), value: t("months", { count: rentalDetails.minLeasePeriodMonths }) });
-    }
-    if (rentalDetails.securityDepositAmount != null) {
-      rentalFacts.push({
-        label: t("securityDeposit"),
-        value: formatPrice(rentalDetails.securityDepositAmount, listing.price.currency),
-      });
-    }
-    if (rentalDetails.availableFrom) {
-      rentalFacts.push({ label: t("availableFrom"), value: formatDate(rentalDetails.availableFrom, locale) });
-    }
-    rentalFacts.push({ label: t("utilitiesIncluded"), value: yesNo(rentalDetails.utilitiesIncluded) });
-    if (rentalDetails.petsAllowed != null) {
-      rentalFacts.push({ label: t("petsAllowed"), value: yesNo(rentalDetails.petsAllowed) });
-    }
-  }
-
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 transition-colors hover:text-ink-900"
@@ -161,7 +88,7 @@ export default async function ProprietatePage({
             {t("back")}
           </Link>
 
-          <PropertyGallery media={listing.photos} title={listing.title} propertyType={property.propertyType} />
+          <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
 
           <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
@@ -189,20 +116,7 @@ export default async function ProprietatePage({
                 </p>
               )}
 
-              {listing.property.location &&
-                (listing.property.location.latitude != null && listing.property.location.longitude != null ? (
-                  <div className="mt-4">
-                    <PropertyLocationPreview
-                      listing={listing}
-                      lat={listing.property.location.latitude}
-                      lng={listing.property.location.longitude}
-                    />
-                  </div>
-                ) : (
-                  <p className="mt-4 rounded-xl border border-dashed border-ink-200 bg-ink-50 px-3.5 py-2.5 text-xs text-ink-500">
-                    {t("locationPending")}
-                  </p>
-                ))}
+<ListingKeyFacts listing={listing} />
 
               <div className="mt-8">
                 <h2 className="font-display text-xl font-medium text-ink-950">{t("description")}</h2>
@@ -211,50 +125,28 @@ export default async function ProprietatePage({
                 </p>
               </div>
 
-              {facts.length > 0 && (
-                <div className="mt-8">
-                  <h2 className="font-display text-xl font-medium text-ink-950">{t("details")}</h2>
-                  <FactGrid facts={facts} />
-                </div>
-              )}
+              <ListingDetails listing={listing} />
 
-              {property.amenities.length > 0 && (
-                <div className="mt-8">
-                  <h2 className="font-display text-xl font-medium text-ink-950">{t("amenities")}</h2>
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {property.amenities.map((amenity) => (
-                      <li
-                        key={amenity.id}
-                        className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
-                      >
-                        {tAmenity.has(amenity.key) ? tAmenity(amenity.key) : amenity.labelRo}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {property.proximities.length > 0 && (
-                <div className="mt-8">
-                  <h2 className="font-display text-xl font-medium text-ink-950">{t("proximities")}</h2>
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {property.proximities.map((proximity) => (
-                      <li
-                        key={proximity.id}
-                        className="rounded-full border border-ink-100 bg-white px-3 py-1.5 text-sm text-ink-700"
-                      >
-                        {tProximity.has(proximity.key) ? tProximity(proximity.key) : proximity.labelRo}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {rentalFacts.length > 0 && (
-                <div className="mt-8">
-                  <h2 className="font-display text-xl font-medium text-ink-950">{t("rentalTerms")}</h2>
-                  <FactGrid facts={rentalFacts} />
-                </div>
+              {listing.property.location && (
+                <section className="mt-10" aria-labelledby="listing-location-title">
+                  <h2 id="listing-location-title" className="font-display text-xl font-medium text-ink-950">
+                    {t("locationTitle")}
+                  </h2>
+                  {location && <p className="mt-1 text-sm text-ink-500">{location}</p>}
+                  <div className="mt-4">
+                    {listing.property.location.latitude != null && listing.property.location.longitude != null ? (
+                      <PropertyLocationPreview
+                        listing={listing}
+                        lat={listing.property.location.latitude}
+                        lng={listing.property.location.longitude}
+                      />
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-ink-200 bg-ink-50 px-3.5 py-2.5 text-xs text-ink-500">
+                        {t("locationPending")}
+                      </p>
+                    )}
+                  </div>
+                </section>
               )}
             </div>
 
@@ -276,6 +168,8 @@ export default async function ProprietatePage({
                     {t("negotiable")}
                   </Badge>
                 )}
+
+                <ListingRentalTerms listing={listing} />
 
                 <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
                   <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
@@ -384,17 +278,4 @@ export async function generateMetadata({
   const listing = await getListing(id);
 
   return { title: listing ? `${listing.title} — IMOVA` : "IMOVA" };
-}
-
-function FactGrid({ facts }: { facts: { label: string; value: string }[] }) {
-  return (
-    <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {facts.map((fact) => (
-        <div key={fact.label} className="rounded-xl border border-ink-100 bg-white px-4 py-3">
-          <dt className="text-[11px] uppercase tracking-wide text-ink-400">{fact.label}</dt>
-          <dd className="mt-1 text-sm font-semibold text-ink-900">{fact.value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
 }

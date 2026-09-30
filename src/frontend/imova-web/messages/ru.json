@@ -361,7 +361,24 @@
     "agency": "Агентство",
     "sendMessage": "Написать",
     "openConversation": "Открыть переписку",
-    "relayNotice": "Сообщения через платформу приходят вам, а не {name} — при необходимости передайте их сами."
+    "relayNotice": "Сообщения через платформу приходят вам, а не {name} — при необходимости передайте их сами.",
+    "propertyDetails": "Характеристики",
+    "propertyDetailsHint": "Всё, что указал владелец, по категориям.",
+    "locationTitle": "Расположение",
+    "keyFacts": {
+      "rooms": "{count, plural, one {комната} few {комнаты} many {комнат} other {комнаты}}",
+      "area": "площадь",
+      "landArea": "участок",
+      "floor": "этаж",
+      "houseFloors": "{count, plural, one {уровень} few {уровня} many {уровней} other {уровня}}",
+      "bathrooms": "{count, plural, one {санузел} few {санузла} many {санузлов} other {санузла}}",
+      "yearBuilt": "год постройки",
+      "plotType": "тип участка",
+      "spaceType": "тип помещения",
+      "parkingType": "тип парковки",
+      "bathroomType": "санузел",
+      "roommateCount": "{count, plural, one {сосед} few {соседа} many {соседей} other {соседа}}"
+    }
   },
   "DashboardPage": {
     "title": "Панель управления"
