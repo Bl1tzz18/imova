@@ -394,7 +394,11 @@
     "contactDetails": "Contact details",
     "closeContactDetails": "Close contact details",
     "openGallery": "Open the gallery ({count} photos)",
-    "photoNumber": "Photo {number} of {total}"
+    "photoNumber": "Photo {number} of {total}",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "copyLinkPrompt": "Copy the listing's link:"
   },
   "DashboardPage": {
     "title": "Dashboard"

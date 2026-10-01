@@ -394,7 +394,11 @@
     "contactDetails": "Контакты",
     "closeContactDetails": "Закрыть контакты",
     "openGallery": "Открыть галерею ({count} фото)",
-    "photoNumber": "Фото {number} из {total}"
+    "photoNumber": "Фото {number} из {total}",
+    "share": "Поделиться",
+    "copyLink": "Скопировать ссылку",
+    "linkCopied": "Ссылка скопирована",
+    "copyLinkPrompt": "Скопируйте ссылку на объявление:"
   },
   "DashboardPage": {
     "title": "Панель управления"

@@ -14,6 +14,8 @@ import { ContactActions } from "@/components/property/ContactActions";
 import { SimilarListings } from "@/components/property/SimilarListings";
 import { EndedListingView } from "@/components/property/EndedListingView";
 import { OwnerListingBar } from "@/components/property/OwnerListingBar";
+import { ShareListingButton } from "@/components/property/ShareListingButton";
+import { shareText } from "@/lib/listing/share";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
 import { formatDate, formatFullLocation, formatLocation, formatPrice } from "@/lib/utils/format";
@@ -282,7 +284,19 @@ export default async function ProprietatePage({
                 </Badge>
                 <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
               </div>
-              <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
+              <div className="flex items-center gap-2">
+                <ShareListingButton
+                  url={`${siteUrl()}${listingPath(listing.id)}`}
+                  title={listing.title}
+                  text={shareText([
+                    listing.title,
+                    formatPrice(listing.price.amount, listing.price.currency) +
+                      (listing.transactionType === "Rent" ? ` ${tCard("perMonth")}` : ""),
+                    formatLocation(listing.property.location),
+                  ])}
+                />
+                <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
+              </div>
             </div>
 
             <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">

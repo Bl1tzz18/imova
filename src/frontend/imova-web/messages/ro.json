@@ -394,7 +394,11 @@
     "contactDetails": "Date de contact",
     "closeContactDetails": "Închide datele de contact",
     "openGallery": "Deschide galeria ({count} fotografii)",
-    "photoNumber": "Fotografia {number} din {total}"
+    "photoNumber": "Fotografia {number} din {total}",
+    "share": "Distribuie",
+    "copyLink": "Copiază linkul",
+    "linkCopied": "Link copiat",
+    "copyLinkPrompt": "Copiază linkul anunțului:"
   },
   "DashboardPage": {
     "title": "Dashboard"

@@ -61,8 +61,10 @@ export function SaveListingButton({
         onClick={handleClick}
         disabled={pending}
         aria-pressed={saved}
+        aria-label={saved ? t("savedListing") : t("saveListing")}
+        // A round icon on a phone (beside "Distribuie", on the badges' row); with its words from sm up.
         className={cn(
-          "inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60",
+          "inline-flex h-[42px] w-[42px] items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors disabled:opacity-60 sm:w-auto sm:px-4",
           saved
             ? "border-accent-200 bg-accent-50 text-accent-700 hover:bg-accent-100"
             : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
@@ -70,7 +72,7 @@ export function SaveListingButton({
         )}
       >
         <HeartIcon filled={saved} className="h-4 w-4" />
-        {saved ? t("savedListing") : t("saveListing")}
+        <span className="hidden sm:inline">{saved ? t("savedListing") : t("saveListing")}</span>
       </button>
     );
   }

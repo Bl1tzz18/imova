@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, LinkButton } from "@/components/ui/Button";
+import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import {
   archiveListing,
   markListingAsRented,
@@ -105,93 +106,26 @@ export function OwnerListingActions({
       <div className="flex items-center gap-2">
         {primary && button(primary, "primary")}
         {edit && button(edit, "secondary")}
-        {more.length > 0 && <MoreMenu label={t("moreActions")} items={more.map((a) => ({ id: a, label: t(a) }))} onChoose={choose} disabled={pending} />}
+        {more.length > 0 && (
+          <DropdownMenu
+            label={t("moreActions")}
+            disabled={pending}
+            items={more.map((action) => ({ id: action, label: t(action), onSelect: () => choose(action) }))}
+            triggerClassName="flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 disabled:opacity-50"
+            trigger={
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
+                <circle cx="5" cy="12" r="1.8" />
+                <circle cx="12" cy="12" r="1.8" />
+                <circle cx="19" cy="12" r="1.8" />
+              </svg>
+            }
+          />
+        )}
       </div>
       {error && (
         <p role="alert" className="mt-2 text-sm text-accent-700">
           {error}
         </p>
-      )}
-    </div>
-  );
-}
-
-// "⋯" → a small menu. Escape or a click outside closes it; opening it moves focus to the first item.
-function MoreMenu({
-  label,
-  items,
-  onChoose,
-  disabled,
-}: {
-  label: string;
-  items: { id: OwnerAction; label: string }[];
-  onChoose: (action: OwnerAction) => void;
-  disabled: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    root.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
-    function onPointerDown(e: PointerEvent) {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-        trigger.current?.focus();
-      }
-    }
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
-  return (
-    <div ref={root} className="relative shrink-0">
-      <button
-        ref={trigger}
-        type="button"
-        aria-label={label}
-        title={label}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-ink-200 bg-white text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 disabled:opacity-50"
-      >
-        <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
-          <circle cx="5" cy="12" r="1.8" />
-          <circle cx="12" cy="12" r="1.8" />
-          <circle cx="19" cy="12" r="1.8" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          role="menu"
-          aria-label={label}
-          className="absolute right-0 top-full z-20 mt-1.5 min-w-52 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-[var(--shadow-card-hover)]"
-        >
-          {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onChoose(item.id);
-              }}
-              className="block w-full px-4 py-2.5 text-left text-sm text-ink-800 hover:bg-ink-50 focus:bg-ink-50 focus:outline-none"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
       )}
     </div>
   );
