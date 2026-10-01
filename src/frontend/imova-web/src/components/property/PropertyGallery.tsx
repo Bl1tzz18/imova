@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { swipeDirection } from "@/lib/listing/swipe";
 import type { Photo } from "@/types/listing";
 
 function ChevronIcon({ direction, className }: { direction: "left" | "right"; className?: string }) {
@@ -14,8 +15,10 @@ function ChevronIcon({ direction, className }: { direction: "left" | "right"; cl
 }
 
 // Hero image + thumbnail strip on the property detail page, backed by a full-screen lightbox
-// for stepping through every photo at full size. Client-only because it needs click/keyboard
-// state — the page itself stays a Server Component and just passes the fetched media down.
+// for stepping through every photo at full size — arrows, keyboard (← → Esc) and, on a phone,
+// swiping. Opening it moves focus into it (the close button) and closing returns focus to the photo
+// that opened it; the photos either side of the current one are preloaded. Client-only because it
+// needs click/keyboard state — the page itself stays a Server Component and passes the media down.
 export function PropertyGallery({
   media,
   title,
@@ -27,8 +30,18 @@ export function PropertyGallery({
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const t = useTranslations("PropertyDetail");
+  const opener = useRef<HTMLElement | null>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
-  const close = useCallback(() => setOpenIndex(null), []);
+  const open = useCallback((index: number, from: HTMLElement) => {
+    opener.current = from;
+    setOpenIndex(index);
+  }, []);
+  const close = useCallback(() => {
+    setOpenIndex(null);
+    opener.current?.focus();
+  }, []);
   const showPrev = useCallback(
     () => setOpenIndex((i) => (i === null ? null : (i - 1 + media.length) % media.length)),
     [media.length]
@@ -37,6 +50,11 @@ export function PropertyGallery({
     () => setOpenIndex((i) => (i === null ? null : (i + 1) % media.length)),
     [media.length]
   );
+
+  const isOpen = openIndex !== null;
+  useEffect(() => {
+    if (isOpen) closeButton.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (openIndex === null) return;
@@ -71,7 +89,8 @@ export function PropertyGallery({
     <>
       <button
         type="button"
-        onClick={() => setOpenIndex(0)}
+        onClick={(e) => open(0, e.currentTarget)}
+        aria-label={t("openGallery", { count: media.length })}
         className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
       >
         <div className="relative aspect-[4/3] sm:aspect-[16/9]">
@@ -95,13 +114,14 @@ export function PropertyGallery({
             <button
               key={item.id}
               type="button"
-              onClick={() => setOpenIndex(i + 1)}
+              onClick={(e) => open(i + 1, e.currentTarget)}
+              aria-label={t("photoNumber", { number: i + 2, total: media.length })}
               className="aspect-square cursor-zoom-in overflow-hidden rounded-xl border border-ink-100"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.url}
-                alt={title}
+                alt=""
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform hover:scale-105"
               />
@@ -117,10 +137,24 @@ export function PropertyGallery({
           aria-modal="true"
           aria-label={title}
           onClick={close}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+          }}
+          onTouchEnd={(e) => {
+            const start = touchStart.current;
+            const touch = e.changedTouches[0];
+            touchStart.current = null;
+            if (!start || !touch || media.length < 2) return;
+            const direction = swipeDirection(touch.clientX - start.x, touch.clientY - start.y);
+            if (direction === "next") showNext();
+            if (direction === "previous") showPrev();
+          }}
         >
           <div className="flex shrink-0 items-center justify-between px-2 text-sm text-white/70">
             <span>{t("photoCounter", { current: openIndex + 1, total: media.length })}</span>
             <button
+              ref={closeButton}
               type="button"
               onClick={close}
               aria-label={t("closeGallery")}
@@ -151,9 +185,16 @@ export function PropertyGallery({
             <img
               src={media[openIndex].url}
               alt={title}
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full select-none object-contain"
+              draggable={false}
               onClick={(e) => e.stopPropagation()}
             />
+            {/* The neighbours, loaded ahead so the next swipe shows its photo at once. */}
+            {media.length > 1 &&
+              [media[(openIndex + 1) % media.length], media[(openIndex - 1 + media.length) % media.length]].map((p) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={p.id} src={p.url} alt="" aria-hidden className="hidden" />
+              ))}
 
             {media.length > 1 && (
               <button
@@ -180,6 +221,8 @@ export function PropertyGallery({
                     e.stopPropagation();
                     setOpenIndex(i);
                   }}
+                  aria-label={t("photoNumber", { number: i + 1, total: media.length })}
+                  aria-current={i === openIndex ? "true" : undefined}
                   className={`h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-opacity ${
                     i === openIndex ? "border-white opacity-100" : "border-transparent opacity-50 hover:opacity-80"
                   }`}

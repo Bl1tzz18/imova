@@ -392,7 +392,9 @@
       "roommateCount": "{count, plural, one {roommate} other {roommates}}"
     },
     "contactDetails": "Contact details",
-    "closeContactDetails": "Close contact details"
+    "closeContactDetails": "Close contact details",
+    "openGallery": "Open the gallery ({count} photos)",
+    "photoNumber": "Photo {number} of {total}"
   },
   "DashboardPage": {
     "title": "Dashboard"

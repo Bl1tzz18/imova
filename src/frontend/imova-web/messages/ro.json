@@ -392,7 +392,9 @@
       "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
     },
     "contactDetails": "Date de contact",
-    "closeContactDetails": "Închide datele de contact"
+    "closeContactDetails": "Închide datele de contact",
+    "openGallery": "Deschide galeria ({count} fotografii)",
+    "photoNumber": "Fotografia {number} din {total}"
   },
   "DashboardPage": {
     "title": "Dashboard"
