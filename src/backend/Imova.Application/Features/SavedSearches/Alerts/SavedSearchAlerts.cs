@@ -107,7 +107,7 @@ public class SavedSearchAlerts(
                 l.Property.PropertyType,
                 l.Property.TotalAreaM2,
                 string.IsNullOrWhiteSpace(location) ? null : location,
-                photo?.Url,
+                photo?.CardUrl,
                 appOptions.WebUrl($"/property/{l.Id}"));
         }).ToList();
 

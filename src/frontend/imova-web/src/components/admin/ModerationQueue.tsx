@@ -82,7 +82,7 @@ export function ModerationQueue({ listings, tab = "pending" }: { listings: Listi
                 {cover ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={cover.url}
+                    src={cover.thumbnailUrl}
                     alt={listing.title}
                     className="h-full w-full object-cover"
                   />

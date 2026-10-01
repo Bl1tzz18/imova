@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { swipeDirection } from "@/lib/listing/swipe";
+import { photoSrcSet } from "@/lib/listing/view";
 import type { Photo } from "@/types/listing";
 
 function ChevronIcon({ direction, className }: { direction: "left" | "right"; className?: string }) {
@@ -105,6 +106,8 @@ export function PropertyGallery({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={media[0].url}
+              srcSet={photoSrcSet(media[0], "large")}
+              sizes="(min-width: 1024px) 800px, 100vw"
               alt={title}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
@@ -130,7 +133,7 @@ export function PropertyGallery({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={item.url}
+                src={item.thumbnailUrl}
                 alt=""
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform hover:scale-105"
@@ -238,7 +241,7 @@ export function PropertyGallery({
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.url} alt="" className="h-full w-full object-cover" />
+                  <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

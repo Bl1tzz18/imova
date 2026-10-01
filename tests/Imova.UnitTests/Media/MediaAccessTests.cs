@@ -3,9 +3,11 @@ using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Media.ConfirmMediaUpload;
 using Imova.Application.Features.Media.DeleteMedia;
 using Imova.Application.Features.Media.RequestUploadUrl;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Imova.UnitTests.Media;
 
@@ -32,9 +34,14 @@ public class MediaAccessTests
         new RequestUploadUrlHandler(_dbContext, _blobs)
             .Handle(new RequestUploadUrlCommand(listingId, ".jpg", userId, isAdmin), CancellationToken.None);
 
-    private Task ConfirmAsync(Guid listingId, Guid userId, bool isAdmin = false) =>
-        new ConfirmMediaUploadHandler(_dbContext, _blobs)
-            .Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/{Guid.NewGuid()}.jpg", userId, isAdmin), CancellationToken.None);
+    private Task ConfirmAsync(Guid listingId, Guid userId, bool isAdmin = false)
+    {
+        var blobName = $"{listingId}/{Guid.NewGuid()}.jpg";
+        _blobs.StoredBlobNames.Add(blobName);
+        return new ConfirmMediaUploadHandler(
+                _dbContext, _blobs, new PhotoSizeGenerator(_blobs, new FakePhotoResizer()), NullLogger<ConfirmMediaUploadHandler>.Instance)
+            .Handle(new ConfirmMediaUploadCommand(listingId, blobName, userId, isAdmin), CancellationToken.None);
+    }
 
     [Fact]
     public async Task ExistingListing_TheOwnerAndAnAdminMayUpload()

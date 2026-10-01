@@ -34,6 +34,7 @@ using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Listings.GetSimilarListings;
 using Imova.Application.Features.Listings.Visitors;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.Messaging;
 using Imova.Application.Features.SavedSearches;
 using Imova.Infrastructure;
@@ -247,6 +248,10 @@ var blobStorageOptions = builder.Configuration.GetSection(BlobStorageOptions.Sec
     ?? throw new InvalidOperationException($"Configuration section \"{BlobStorageOptions.SectionName}\" is missing.");
 builder.Services.AddSingleton(blobStorageOptions);
 builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+
+// Display sizes of listing photos, made when an upload is confirmed (see PhotoSizes).
+builder.Services.AddSingleton<IPhotoResizer, MagickPhotoResizer>();
+builder.Services.AddScoped<PhotoSizeGenerator>();
 
 // Typed HttpClient for downloading external images (currently just Google profile pictures on
 // new-account sign-in — see GoogleLoginHandler). A short timeout since this is a synchronous

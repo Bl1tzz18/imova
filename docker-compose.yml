@@ -107,6 +107,7 @@ services:
       # Also every minute locally (defaults: expiry hourly, photo cleanup every 6 hours).
       ListingExpiry__IntervalSeconds: "60"
       PhotoCleanup__IntervalSeconds: "60"
+      PhotoSizes__IntervalSeconds: "60"
     depends_on:
       backend:
         condition: service_started

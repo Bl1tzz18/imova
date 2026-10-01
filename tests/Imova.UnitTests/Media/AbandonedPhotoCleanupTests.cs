@@ -38,7 +38,7 @@ public class AbandonedPhotoCleanupTests
         _clock.Advance(TimeSpan.FromDays(2));
         Assert.Equal(1, await RunAsync());
         Assert.Empty(_db.Photos);
-        Assert.Equal(["abandoned.jpg"], _blobs.DeletedBlobNames);
+        Assert.Equal(["abandoned.jpg", "abandoned_400.jpg", "abandoned_800.jpg", "abandoned_1600.jpg"], _blobs.DeletedBlobNames);
     }
 
     [Fact]

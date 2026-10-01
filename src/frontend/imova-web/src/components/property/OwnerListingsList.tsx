@@ -234,7 +234,7 @@ function OwnerListingRow({ listing, now, showStatus }: { listing: Listing; now: 
         >
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover.url} alt="" className="h-full w-full object-cover" />
+            <img src={cover.thumbnailUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <PropertyIcon type={listing.property.propertyType} className="h-7 w-7 text-white/40" />
           )}

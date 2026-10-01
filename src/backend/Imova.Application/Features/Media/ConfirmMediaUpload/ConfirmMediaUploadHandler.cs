@@ -3,17 +3,23 @@ using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
 using Imova.Application.Features.Listings;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Imova.Application.Features.Media.ConfirmMediaUpload;
 
 // Runs after the client has already PUT the file directly to the SAS URL from RequestUploadUrl.
 // This is the "did the upload actually happen, and is it what it claims to be" checkpoint —
 // nothing here trusts the client-reported content-type or file extension.
-public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService)
+public class ConfirmMediaUploadHandler(
+    IApplicationDbContext dbContext,
+    IBlobStorageService blobStorageService,
+    PhotoSizeGenerator photoSizeGenerator,
+    ILogger<ConfirmMediaUploadHandler> logger)
     : IRequestHandler<ConfirmMediaUploadCommand, PhotoDto>
 {
     public async Task<PhotoDto> Handle(ConfirmMediaUploadCommand request, CancellationToken cancellationToken)
@@ -64,6 +70,27 @@ public class ConfirmMediaUploadHandler(IApplicationDbContext dbContext, IBlobSto
             sortOrder,
             isPrimary: sortOrder == 0,
             uploadedByUserId: request.RequestingUserId);
+
+        // The display sizes right away, so nobody is ever served the full original. A file that
+        // only looks like an image is refused here; a storage hiccup just leaves the sizes to the
+        // Worker's backfill (the original is shown until then).
+        try
+        {
+            var outcome = await photoSizeGenerator.GenerateAsync(photo, cancellationToken);
+            if (outcome == PhotoSizeOutcome.Unreadable)
+            {
+                throw ValidationErrorFor("The uploaded file could not be read as an image.", ErrorCodes.UploadNotAnImage);
+            }
+
+            if (outcome == PhotoSizeOutcome.SourceMissing)
+            {
+                throw ValidationErrorFor("The file was not found in storage — the upload may not have completed.", ErrorCodes.UploadNotFound);
+            }
+        }
+        catch (Exception ex) when (ex is not ValidationException and not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not make the display sizes of {BlobName} on upload; the backfill will.", request.BlobName);
+        }
 
         dbContext.Photos.Add(photo);
         await dbContext.SaveChangesAsync(cancellationToken);
