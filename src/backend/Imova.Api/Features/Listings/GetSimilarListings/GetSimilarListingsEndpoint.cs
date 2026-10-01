@@ -7,7 +7,7 @@ namespace Imova.Api.Features.Listings.GetSimilarListings;
 
 public static class GetSimilarListingsEndpoint
 {
-    // Public, like the listing itself: 404 unless the listing exists and is Active.
+    // Public, like the listing itself: 404 unless the listing is Active or has ended (sold, rented, …).
     public static void MapGetSimilarListings(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v1/listings/{id:guid}/similar", async (

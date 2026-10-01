@@ -30,7 +30,7 @@ export async function setFavorite(listingId: string, saved: boolean, next: strin
 
 async function postListingStatusAction(
   listingId: string,
-  action: "submit-for-review" | "archive" | "publish" | "renew",
+  action: "submit-for-review" | "archive" | "publish" | "renew" | "mark-as-sold" | "mark-as-rented",
 ): Promise<{ error?: string }> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
@@ -48,6 +48,7 @@ async function postListingStatusAction(
   }
 
   revalidatePath("/my-listings");
+  revalidatePath(`/property/${listingId}`);
   return {};
 }
 
@@ -69,6 +70,16 @@ export async function publishListing(listingId: string): Promise<{ error?: strin
 // The owner keeping their Active listing live for another 6 months — see Listing.Renew().
 export async function renewListing(listingId: string): Promise<{ error?: string }> {
   return postListingStatusAction(listingId, "renew");
+}
+
+// The deal is done: an Active sale → Sold, an Active rental → Rented (Listing.MarkAsSold/
+// MarkAsRented). Visitors then see that it's no longer available; the owner can still deactivate it.
+export async function markListingAsSold(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "mark-as-sold");
+}
+
+export async function markListingAsRented(listingId: string): Promise<{ error?: string }> {
+  return postListingStatusAction(listingId, "mark-as-rented");
 }
 
 export type UpdateListingState = { error?: string; success?: boolean };

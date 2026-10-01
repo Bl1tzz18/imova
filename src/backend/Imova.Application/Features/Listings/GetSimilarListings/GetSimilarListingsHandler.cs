@@ -1,5 +1,6 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
+using Imova.Application.Features.Listings.GetEndedListing;
 using Imova.Domain.Listings;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,8 @@ public class GetSimilarListingsHandler(
                 from l in dbContext.Listings.AsNoTracking()
                 join p in dbContext.Properties.AsNoTracking() on l.PropertyId equals p.Id
                 join loc in dbContext.PropertyLocations.AsNoTracking() on p.LocationId equals loc.Id
-                where l.Id == request.ListingId && l.Status == ListingStatus.Active
+                where l.Id == request.ListingId
+                      && (l.Status == ListingStatus.Active || EndedListingStatuses.All.Contains(l.Status))
                 select new { Listing = l, Property = p, loc.RaionId, loc.ChisinauSectorId, loc.LocalitateId })
             .FirstOrDefaultAsync(cancellationToken);
 

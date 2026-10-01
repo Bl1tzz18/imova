@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Imova.Api.Common;
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Listings.GetEndedListing;
 using Imova.Application.Features.Listings.GetListingById;
 using MediatR;
 
@@ -19,7 +20,15 @@ public static class GetListingByIdEndpoint
             var currentUserId = user.Identity?.IsAuthenticated == true ? user.GetUserId() : (Guid?)null;
             var isAdmin = user.Identity?.IsAuthenticated == true && user.IsInRole(Roles.Admin);
             var listing = await sender.Send(new GetListingByIdQuery(id, currentUserId, isAdmin), cancellationToken);
-            return listing is null ? Results.NotFound() : Results.Ok(listing);
+            if (listing is not null)
+            {
+                return Results.Ok(listing);
+            }
+
+            // Sold, rented, expired or taken down: 410 Gone with what may still be shown of it, so the
+            // page can say so (and offer similar listings) instead of a dead end.
+            var ended = await sender.Send(new GetEndedListingQuery(id), cancellationToken);
+            return ended is null ? Results.NotFound() : Results.Json(ended, statusCode: StatusCodes.Status410Gone);
         });
     }
 }

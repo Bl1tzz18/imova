@@ -126,6 +126,8 @@ services:
     container_name: imova-frontend
     environment:
       API_URL: http://backend:8080
+      # The site's public address — canonical links, link previews (og:url), structured data.
+      SITE_URL: http://localhost:3000
     ports:
       - "3000:3000"
     depends_on:

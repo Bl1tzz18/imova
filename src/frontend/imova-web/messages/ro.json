@@ -366,6 +366,8 @@
     "availableFrom": "Disponibil din",
     "utilitiesIncluded": "Utilități incluse",
     "approxEur": "≈ {price}",
+    "pricePerSquareMetre": "{price}/m²",
+    "pricePerAr": "{price}/ar",
     "negotiable": "Preț negociabil",
     "agency": "Agenție",
     "sendMessage": "Scrie mesaj",
@@ -537,13 +539,6 @@
     "title": "Anunțurile mele",
     "subtitle": "Gestionează-ți anunțurile publicate dintr-un singur loc.",
     "addNewListing": "Adaugă un anunț nou",
-    "tabAll": "Toate",
-    "tabPublished": "Active",
-    "tabPendingReview": "În verificare",
-    "tabRejected": "Respinse",
-    "tabDraft": "Schițe",
-    "tabArchived": "Dezactivate",
-    "tabExpired": "Expirate",
     "activeUntil": "Activ până pe {date}",
     "expiresSoon": "Expiră pe {date} — prelungește-l ca să rămână activ",
     "renew": "Prelungește",
@@ -562,16 +557,47 @@
     "publish": "Publică",
     "submitForReview": "Trimite spre verificare",
     "deactivate": "Dezactivează",
-    "deactivateConfirm": "Dezactivezi acest anunț?",
-    "deactivateConfirmYes": "Da, dezactivează",
     "deactivateConfirmCancel": "Anulează",
     "activate": "Activează",
     "resultsCount": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
     "emptyTitle": "Nu ai niciun anunț momentan",
     "emptyBody": "Publică primul tău anunț și va apărea aici.",
-    "emptyTitleFiltered": "Niciun anunț în această categorie",
-    "emptyBodyFiltered": "Încearcă altă filă sau revino după ce anunțurile tale își schimbă statusul.",
-    "statusExpired": "Expirat"
+    "statusExpired": "Expirat",
+    "markAsSold": "Marchează ca vândut",
+    "markAsRented": "Marchează ca închiriat",
+    "confirm": {
+      "markAsSold": "Marchezi anunțul ca vândut? Vizitatorii vor vedea că nu mai este disponibil.",
+      "markAsRented": "Marchezi anunțul ca închiriat? Vizitatorii vor vedea că nu mai este disponibil.",
+      "deactivate": "Dezactivezi acest anunț?"
+    },
+    "confirmYes": {
+      "markAsSold": "Da, e vândut",
+      "markAsRented": "Da, e închiriat",
+      "deactivate": "Da, dezactivează"
+    },
+    "group": {
+      "active": "Active",
+      "unpublished": "Nepublicate",
+      "ended": "Încheiate"
+    },
+    "groupEmpty": {
+      "active": "Niciun anunț activ acum.",
+      "unpublished": "Nicio ciornă și nimic în verificare.",
+      "ended": "Niciun anunț încheiat."
+    },
+    "needsAttention": "Necesită atenția ta",
+    "moreActions": "Mai multe acțiuni",
+    "searchLabel": "Caută în anunțurile tale",
+    "searchPlaceholder": "Caută după titlu sau adresă",
+    "sortLabel": "Ordonează",
+    "sort": {
+      "recommended": "Recomandat",
+      "newest": "Cele mai noi",
+      "priceAsc": "Preț crescător",
+      "priceDesc": "Preț descrescător"
+    },
+    "searchEmpty": "Niciun anunț din această filă nu se potrivește cu „{query}”.",
+    "clearSearch": "Șterge căutarea"
   },
   "EditListingPage": {
     "title": "Editează anunțul",
@@ -1395,5 +1421,44 @@
       "resolved": "Anunțurile suspendate sau raportările respinse apar aici."
     },
     "contact": "Contact:"
+  },
+  "EndedListing": {
+    "title": "Acest anunț nu mai este disponibil",
+    "status": {
+      "Sold": "Vândut",
+      "Rented": "Închiriat",
+      "Expired": "Expirat",
+      "Archived": "Retras"
+    },
+    "reason": {
+      "Sold": "Proprietatea a fost vândută.",
+      "Rented": "Proprietatea a fost închiriată.",
+      "Expired": "Anunțul a expirat și nu a fost prelungit.",
+      "Archived": "Autorul a retras anunțul."
+    },
+    "lastPrice": "Ultimul preț:",
+    "searchSimilar": "Caută anunțuri similare în zonă",
+    "metaTitle": "{title} — nu mai este disponibil"
+  },
+  "OwnerListingBar": {
+    "title": "Anunțul tău",
+    "active": "Este public — activ până pe {date}.",
+    "activeRenew": "Expiră pe {date} — prelungește-l ca să rămână public.",
+    "activeNoDate": "Este public.",
+    "notPublic": {
+      "Draft": "Ciornă — nu este public încă. Trimite-l spre verificare când e gata.",
+      "PendingReview": "În verificare — devine public după ce îl aprobă un moderator.",
+      "Expired": "A expirat — nu mai este public. Activează-l ca să reapară.",
+      "Archived": "Dezactivat — nu este public. Îl poți activa oricând."
+    },
+    "ended": {
+      "Sold": "Marcat ca vândut — vizitatorii văd că nu mai este disponibil.",
+      "Rented": "Marcat ca închiriat — vizitatorii văd că nu mai este disponibil."
+    },
+    "blocked": {
+      "Rejected": "Respins de moderatori — nu este public. Corectează-l și retrimite-l.",
+      "Suspended": "Suspendat de moderatori — nu este public."
+    },
+    "reasonLabel": "Motiv:"
   }
 }

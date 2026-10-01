@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
@@ -11,19 +12,29 @@ import { ReportListingButton } from "@/components/property/ReportListingButton";
 import { ContactSheet } from "@/components/property/ContactSheet";
 import { ContactActions } from "@/components/property/ContactActions";
 import { SimilarListings } from "@/components/property/SimilarListings";
+import { EndedListingView } from "@/components/property/EndedListingView";
+import { OwnerListingBar } from "@/components/property/OwnerListingBar";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
-import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
+import { formatDate, formatFullLocation, formatLocation, formatPrice } from "@/lib/utils/format";
 import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
 import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
 import { contactRole, isMessagingApp, maskPhone } from "@/lib/listing/contactCard";
+import { convertFromEur, unitPrice } from "@/lib/listing/price";
+import { getExchangeRates } from "@/lib/api/exchangeRates";
+import { coverPhotoUrl, jsonLdScript, listingJsonLd, listingMetaDescription, listingPath } from "@/lib/listing/seo";
+import { siteUrl } from "@/lib/site";
 import { listingBackHref } from "@/lib/navigation/history";
 import { cn } from "@/lib/utils/cn";
-import type { Listing } from "@/types/listing";
+import type { EndedListing, Listing } from "@/types/listing";
 
-async function getListing(id: string): Promise<Listing | null> {
+// The listing; or, for one that has ended (sold, rented, expired, taken down — the API answers 410
+// Gone), what may still be shown of it; or null (404: no such listing, or not public).
+type ListingResult = { kind: "listing"; listing: Listing } | { kind: "ended"; ended: EndedListing } | null;
+
+async function getListing(id: string): Promise<ListingResult> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   const res = await fetch(`${apiUrl}/api/v1/listings/${id}`, {
@@ -35,11 +46,15 @@ async function getListing(id: string): Promise<Listing | null> {
     return null;
   }
 
+  if (res.status === 410) {
+    return { kind: "ended", ended: (await res.json()) as EndedListing };
+  }
+
   if (!res.ok) {
     throw new Error(`Failed to fetch listing: ${res.status}`);
   }
 
-  return res.json();
+  return { kind: "listing", listing: (await res.json()) as Listing };
 }
 
 // "Anunțuri asemănătoare": an extra, not the page — any failure just leaves the section out.
@@ -63,11 +78,22 @@ export default async function ProprietatePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: id } = await params;
-  const [listing, similarListings] = await Promise.all([getListing(id), getSimilarListings(id)]);
+  const [result, similarListings, rates] = await Promise.all([getListing(id), getSimilarListings(id), getExchangeRates()]);
 
-  if (!listing) {
+  if (!result) {
     notFound();
   }
+
+  if (result.kind === "ended") {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <EndedListingView ended={result.ended} similar={similarListings} />
+        <Footer />
+      </div>
+    );
+  }
+
+  const listing = result.listing;
 
   const [locale, t, tType, tListing, tCard, tMethod] = await Promise.all([
     getLocale(),
@@ -96,6 +122,11 @@ export default async function ProprietatePage({
       {existingConversationId ? t("openConversation") : t("sendMessage")}
     </LinkButton>
   );
+  const perUnit = unitPrice(listing);
+  const equivalents = [
+    listing.price.currency !== "EUR" ? { amount: listing.price.priceEur, currency: "EUR" } : null,
+    listing.price.currency !== "MDL" ? { amount: convertFromEur(listing.price.priceEur, "MDL", rates), currency: "MDL" } : null,
+  ].filter((e): e is { amount: number; currency: string } => e !== null && e.amount !== null);
   // The price, its lease terms and the dates — beside the photos on a desktop, right under them on
   // a phone (never after all the details, where it used to end up).
   const priceCard = (
@@ -106,9 +137,18 @@ export default async function ProprietatePage({
           <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
         )}
       </p>
-      {listing.price.currency !== "EUR" && (
-        <p className="mt-1 text-sm text-ink-500">
-          {t("approxEur", { price: formatPrice(listing.price.priceEur, "EUR") })}
+      {/* A sale's price per m² (per ar for land) — how buyers compare — then the price in the
+          other currencies people here think in: EUR and MDL, whichever it isn't listed in. */}
+      {perUnit && (
+        <p className="mt-1 text-sm font-medium text-ink-700">
+          {t(perUnit.unit === "ar" ? "pricePerAr" : "pricePerSquareMetre", {
+            price: formatPrice(perUnit.amount, perUnit.currency),
+          })}
+        </p>
+      )}
+      {equivalents.length > 0 && (
+        <p className="mt-0.5 text-sm text-ink-500">
+          {equivalents.map((e) => t("approxEur", { price: formatPrice(e.amount, e.currency) })).join(" · ")}
         </p>
       )}
       {listing.price.isNegotiable && (
@@ -215,6 +255,13 @@ export default async function ProprietatePage({
   return (
     <div className={cn("flex min-h-screen flex-col", contactBar && "pb-20 lg:pb-0")}>
       <main className="flex-1">
+        {/* Structured data for search engines — only while the listing is public. */}
+        {listing.status === "Active" && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: jsonLdScript(listingJsonLd(listing, `${siteUrl()}${listingPath(listing.id)}`)) }}
+          />
+        )}
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           {/* Back to the visitor's last search (filters, sort and page as they left them); from outside
               the site, to a search for the same kind of listing. */}
@@ -223,6 +270,8 @@ export default async function ProprietatePage({
             label={t("back")}
             toLastSearch
           />
+
+          {isOwner && <OwnerListingBar listing={listing} />}
 
           {/* Title, location and save above; then the photos with the price & contact beside them. */}
           <div className="mt-4">
@@ -341,13 +390,51 @@ export default async function ProprietatePage({
   );
 }
 
+// The tab title, and the link preview Viber/Telegram/Facebook/WhatsApp show when the listing is
+// shared: the cover photo, and price · type · area · place before the owner's own words. Only an
+// Active listing is indexed — an ended one (or the owner's own draft) is noindex.
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const { slug: id } = await params;
-  const listing = await getListing(id);
+  const result = await getListing(id);
+  if (!result) {
+    return { title: "IMOVA" };
+  }
 
-  return { title: listing ? `${listing.title} — IMOVA` : "IMOVA" };
+  if (result.kind === "ended") {
+    const tEnded = await getTranslations("EndedListing");
+    return {
+      title: `${tEnded("metaTitle", { title: result.ended.title })} — IMOVA`,
+      robots: { index: false, follow: true },
+    };
+  }
+
+  const { listing } = result;
+  const [tType, tCard] = await Promise.all([getTranslations("PropertyType"), getTranslations("PropertyCard")]);
+  const price = formatPrice(listing.price.amount, listing.price.currency) + (listing.transactionType === "Rent" ? ` ${tCard("perMonth")}` : "");
+  const description = listingMetaDescription(
+    [price, tType(listing.property.propertyType), `${listing.property.totalAreaM2} m²`, formatLocation(listing.property.location)],
+    listing.description,
+  );
+  const url = listingPath(listing.id);
+  const cover = coverPhotoUrl(listing);
+
+  return {
+    title: `${listing.title} — IMOVA`,
+    description,
+    alternates: { canonical: url },
+    robots: listing.status === "Active" ? undefined : { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      siteName: "IMOVA",
+      url,
+      title: listing.title,
+      description,
+      ...(cover ? { images: [{ url: cover, alt: listing.title }] } : {}),
+    },
+    twitter: { card: cover ? "summary_large_image" : "summary", title: listing.title, description },
+  };
 }

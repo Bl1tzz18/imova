@@ -154,3 +154,22 @@ export type Listing = {
   // Only on the detail view — null/absent on cards and search results.
   contact?: ListingContact | null;
 };
+
+// What may still be shown of a listing that has ended (GET /api/v1/listings/{id} → 410 Gone): no
+// photos, description, address or contact.
+export type EndedListingStatus = "Sold" | "Rented" | "Expired" | "Archived";
+
+export type EndedListing = {
+  id: string;
+  status: EndedListingStatus;
+  transactionType: "Sale" | "Rent";
+  propertyType: string;
+  title: string;
+  price: Listing["price"];
+  totalAreaM2: number;
+  raionId: string;
+  raionName: string;
+  localitateName: string | null;
+  chisinauSectorName: string | null;
+  endedAt: string;
+};

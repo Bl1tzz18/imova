@@ -105,4 +105,14 @@ public class GetSimilarListingsHandlerTests
         Assert.Null((await RunAsync(draft.Id, 6)).Result);
         Assert.Null((await RunAsync(Guid.NewGuid(), 6)).Result);
     }
+
+    [Fact]
+    public async Task ASoldListing_StillGetsSimilarOnes()
+    {
+        var sold = ListingTestData.AddListing(_dbContext, _publisherId, TransactionType.Sale, ListingTestData.Eur(80_000m)).MoveTo(ListingStatus.Sold);
+
+        var (result, _) = await RunAsync(sold.Id, 6);
+
+        Assert.Equal(6, result!.Count);
+    }
 }
