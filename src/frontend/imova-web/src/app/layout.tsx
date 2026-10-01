@@ -1,7 +1,9 @@
 import { Fraunces, Inter, Sora } from "next/font/google";
+import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
+import { NavigationTracker } from "@/components/layout/NavigationTracker";
 import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getUnreadCount } from "@/lib/messaging/api";
@@ -51,6 +53,10 @@ export default async function RootLayout({
           <RealtimeProvider userId={profile?.id ?? null} initialUnreadCount={unreadCount}>
             <Header />
             {children}
+            {/* useSearchParams needs a Suspense boundary, or every page would render client-side only. */}
+            <Suspense fallback={null}>
+              <NavigationTracker />
+            </Suspense>
           </RealtimeProvider>
         </NextIntlClientProvider>
       </body>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
@@ -10,11 +9,16 @@ import { PropertyLocationPreview } from "@/components/property/PropertyLocationP
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { ReportListingButton } from "@/components/property/ReportListingButton";
 import { ContactSheet } from "@/components/property/ContactSheet";
+import { ContactActions } from "@/components/property/ContactActions";
+import { Avatar } from "@/components/ui/Avatar";
+import { BackLink } from "@/components/layout/BackLink";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
 import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
 import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
+import { contactRole, isMessagingApp, maskPhone } from "@/lib/listing/contactCard";
+import { listingBackHref } from "@/lib/navigation/history";
 import { cn } from "@/lib/utils/cn";
 import type { Listing } from "@/types/listing";
 
@@ -109,73 +113,79 @@ export default async function ProprietatePage({
   );
 
   // Who to contact and how — at the end of the page, and in the phone bar's "Date de contact" sheet.
-  const contactCard = contact && (
+  // The person first (photo, name, and what they are: an agency's agent, a private person, …), then
+  // the ways to reach them: the number — half-hidden until asked for, with the hours they take
+  // calls right under it — the messaging apps they use, and messages on IMOVA. No email: the API
+  // only gives it to the owner and admins.
+  const role = contact && contactRole(contact);
+  const apps = contact?.messagingApps.filter(isMessagingApp) ?? [];
+  const contactCard = contact && role && (
     <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[var(--shadow-card)] lg:mt-4">
-      <h2 className="font-display text-base font-medium text-ink-950">{t("contactOwner")}</h2>
-      <p className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-ink-900">
-        {contact.name ?? publisher.displayName}
-        {contact.personType === "Self" && publisher.publisherType === "Agency" && (
-          <Badge tone="brand">{t("agency")}</Badge>
-        )}
-      </p>
+      <h2 className="font-display text-lg font-semibold text-ink-950">{t("contactOwner")}</h2>
+
+      <div className="mt-4 flex items-center gap-3.5">
+        <Avatar
+          userId={publisher.userId}
+          displayName={contact.name ?? publisher.displayName}
+          pictureUrl={contact.pictureUrl}
+          size={52}
+          className="shrink-0 ring-2 ring-white shadow-sm"
+        />
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-ink-950">{contact.name ?? publisher.displayName}</p>
+          <p className="text-sm text-ink-500">
+            {t(
+              role.kind === "agent"
+                ? "roleAgent"
+                : role.kind === "agency"
+                  ? "roleAgency"
+                  : role.kind === "individual"
+                    ? "roleIndividual"
+                    : "roleContactPerson",
+            )}
+          </p>
+          {/* The agency on its own line, so a long name wraps instead of being cut off. */}
+          {role.kind === "agent" && <p className="text-sm font-medium leading-5 text-ink-800">{role.agencyName}</p>}
+        </div>
+      </div>
       {contact.personType === "Self" && publisher.bio && (
-        <p className="mt-1 text-xs text-ink-500">{publisher.bio}</p>
+        <p className="mt-3 line-clamp-3 text-xs leading-5 text-ink-500">{publisher.bio}</p>
       )}
+
       {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
       {!isOwner && messageEmphasis === "primary" && messageButton}
-      <dl className="mt-3 space-y-3 text-sm">
-        {contact.email && (
-          <div>
-            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("email")}</dt>
-            <dd className="mt-0.5">
-              <a href={`mailto:${contact.email}`} className="font-medium text-brand-700 hover:underline">
-                {contact.email}
-              </a>
-            </dd>
-          </div>
-        )}
-        <div>
-          <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("phone")}</dt>
-          <dd className="mt-0.5">
-            {contact.phone ? (
-              <a href={`tel:${contact.phone}`} className="font-medium text-brand-700 hover:underline">
-                {contact.phone}
-              </a>
-            ) : (
-              <span className="text-ink-400">
-                {contact.hidePhoneNumber ? t("phoneHidden") : t("phoneNotProvided")}
-              </span>
-            )}
-          </dd>
-        </div>
-        {contact.phone && contact.messagingApps.length > 0 && (
-          <div>
-            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("availableOn")}</dt>
-            <dd className="mt-1 flex flex-wrap gap-1.5">
-              {contact.messagingApps.map((app) => (
-                <Badge key={app} tone="neutral">
-                  {app}
-                </Badge>
-              ))}
-            </dd>
-          </div>
-        )}
-        {contact.preferredContactMethod !== "Any" && (
-          <div>
-            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("preferredContact")}</dt>
-            <dd className="mt-0.5 text-ink-900">{tMethod(contact.preferredContactMethod)}</dd>
-          </div>
-        )}
-        {contact.phone && contact.callHoursFrom && contact.callHoursTo && (
-          <div>
-            <dt className="text-[11px] uppercase tracking-wide text-ink-400">{t("callHours")}</dt>
-            <dd className="mt-0.5 text-ink-900">
-              {contact.callHoursFrom}–{contact.callHoursTo}
-            </dd>
-          </div>
-        )}
-      </dl>
+
+      {contact.phone ? (
+        <ContactActions
+          listingId={listing.id}
+          maskedPhone={maskPhone(contact.phone)}
+          ownPhone={isOwner ? contact.phone : null}
+          apps={apps}
+          callHours={
+            contact.callHoursFrom && contact.callHoursTo
+              ? t("callHoursBetween", { from: contact.callHoursFrom, to: contact.callHoursTo })
+              : null
+          }
+        />
+      ) : (
+        <p className="mt-4 rounded-xl bg-ink-50 px-3.5 py-3 text-sm text-ink-600">
+          {contact.hidePhoneNumber ? t("phoneHidden") : t("phoneNotProvided")}
+        </p>
+      )}
+
       {!isOwner && messageEmphasis === "secondary" && messageButton}
+
+      {contact.preferredContactMethod !== "Any" && (
+        <p className="mt-5 flex items-center gap-2.5 border-t border-ink-100 pt-4 text-sm text-ink-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4 shrink-0 text-ink-400" aria-hidden>
+            <path d="m5 12 5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>
+            {t("preferredContact")}: <span className="font-medium text-ink-800">{tMethod(contact.preferredContactMethod)}</span>
+          </span>
+        </p>
+      )}
+
       {showsRelayNotice(contact, isOwner) && (
         <p className="mt-4 rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700">
           {t("relayNotice", { name: contact.name ?? "" })}
@@ -190,15 +200,13 @@ export default async function ProprietatePage({
     <div className={cn("flex min-h-screen flex-col", contactBar && "pb-20 lg:pb-0")}>
       <main className="flex-1">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 transition-colors hover:text-ink-900"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            {t("back")}
-          </Link>
+          {/* Back to the visitor's last search (filters, sort and page as they left them); from outside
+              the site, to a search for the same kind of listing. */}
+          <BackLink
+            href={listingBackHref(null, { transactionType: listing.transactionType, propertyType: listing.property.propertyType })}
+            label={t("back")}
+            toLastSearch
+          />
 
           {/* Title, location and save above; then the photos with the price & contact beside them. */}
           <div className="mt-4">
@@ -256,8 +264,10 @@ export default async function ProprietatePage({
                   {location && <p className="mt-1 text-sm text-ink-500">{location}</p>}
                   <div className="mt-4">
                     {listing.property.location.latitude != null && listing.property.location.longitude != null ? (
+                      // A client component: everything it gets is serialized into the page, so never
+                      // the contact (the full phone number is only fetched on "Arată").
                       <PropertyLocationPreview
-                        listing={listing}
+                        listing={{ ...listing, contact: null }}
                         lat={listing.property.location.latitude}
                         lng={listing.property.location.longitude}
                       />

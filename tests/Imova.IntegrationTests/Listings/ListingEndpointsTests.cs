@@ -451,6 +451,11 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(agency.Id, listing.Publisher.Id);
         Assert.Equal("Imobil Grup", listing.Publisher.DisplayName);
 
+        // The detail view's contact is the agent behind the agency, by their own name, with the agency beside them.
+        var contact = (await client.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!.Contact!;
+        Assert.Equal("Listing Test User", contact.Name);
+        Assert.Equal("Imobil Grup", contact.AgencyName);
+
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }
 

@@ -34,7 +34,8 @@ public class GetListingByIdHandlerTests
 
         Assert.NotNull(dto);
         Assert.Equal("+373 69 123 456", dto!.Contact!.Phone);
-        Assert.Equal("ion@example.com", dto.Contact.Email);
+        // The email is the owner's/admins' only — a visitor gets the phone, apps and messages.
+        Assert.Null(dto.Contact.Email);
         Assert.Null(dto.Publisher.Phone);
         Assert.Equal("Strada Ismail", dto.Property.Location!.Street);
         Assert.Equal(47.0105, dto.Property.Location.Latitude);

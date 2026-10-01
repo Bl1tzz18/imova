@@ -12,6 +12,8 @@ const contact = (extra: Partial<ListingContact> = {}): ListingContact => ({
   hidePhoneNumber: false,
   callHoursFrom: null,
   callHoursTo: null,
+  pictureUrl: null,
+  agencyName: null,
   ...extra,
 });
 

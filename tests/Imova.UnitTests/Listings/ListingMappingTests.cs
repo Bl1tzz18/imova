@@ -82,20 +82,29 @@ public class ListingMappingTests
 
     // --- Contact ---
 
-    private static ListingDto DetailFor(ListingContact? contact, bool canSeeHiddenPhone = false, bool includeContactDetails = true)
+    private static readonly Publisher Agency = Publisher.CreateAgency(
+        Guid.NewGuid(), "Casa Ta Imobiliare", "+373 22 000 111", "office@casata.md", "https://blob/logo.png", null);
+
+    private static ListingDto DetailFor(
+        ListingContact? contact,
+        bool canSeePrivateDetails = false,
+        bool includeContactDetails = true,
+        Publisher? publisher = null,
+        PublisherPerson? person = null)
     {
+        publisher ??= Publisher;
         var location = Location();
         var property = Property.Create(PropertyType.Garage, 18m, null, null, location.Id, new GarageAttributes(ParkingType.Garage));
-        var listing = ListingTestData.NewListing(property.Id, Publisher.Id, contact: contact);
+        var listing = ListingTestData.NewListing(property.Id, publisher.Id, contact: contact);
         return listing.ToDto(
-            property, location, Publisher, new Dictionary<Guid, Amenity>(), new Dictionary<Guid, Proximity>(), [], false,
-            includeContactDetails, canSeeHiddenPhone);
+            property, location, publisher, new Dictionary<Guid, Amenity>(), new Dictionary<Guid, Proximity>(), [], false,
+            includeContactDetails, canSeePrivateDetails, person);
     }
 
     [Fact]
     public void Contact_Self_TakesNameAndEmailFromThePublisherButKeepsItsOwnPhone()
     {
-        var contact = DetailFor(TestContacts.Self with { MessagingApps = [ContactMessagingApp.Viber] }).Contact!;
+        var contact = DetailFor(TestContacts.Self with { MessagingApps = [ContactMessagingApp.Viber] }, canSeePrivateDetails: true).Contact!;
 
         Assert.Equal("Self", contact.PersonType);
         Assert.Equal("Ion", contact.Name);
@@ -108,7 +117,7 @@ public class ListingMappingTests
     [Fact]
     public void Contact_Other_UsesItsOwnNamePhoneAndEmail()
     {
-        var contact = DetailFor(TestContacts.Other).Contact!;
+        var contact = DetailFor(TestContacts.Other, canSeePrivateDetails: true).Contact!;
 
         Assert.Equal("Other", contact.PersonType);
         Assert.Equal("Maria Popescu", contact.Name);
@@ -125,14 +134,14 @@ public class ListingMappingTests
         Assert.Null(dto.Contact.Phone);
         Assert.Null(dto.Publisher.Phone);
         Assert.Equal("PlatformMessages", dto.Contact.PreferredContactMethod);
-        // Name/email stay — only the number is hidden.
+        // The name stays — only the number is hidden.
         Assert.Equal("Ion", dto.Contact.Name);
     }
 
     [Fact]
     public void Contact_HiddenPhone_IsStillShownToTheOwnerOrAnAdmin()
     {
-        Assert.Equal("+373 69 555 666", DetailFor(TestContacts.HiddenPhone, canSeeHiddenPhone: true).Contact!.Phone);
+        Assert.Equal("+373 69 555 666", DetailFor(TestContacts.HiddenPhone, canSeePrivateDetails: true).Contact!.Phone);
     }
 
     [Fact]
@@ -144,12 +153,64 @@ public class ListingMappingTests
     [Fact]
     public void Contact_OfAListingFromBeforeTheContactStep_FallsBackToThePublisher()
     {
-        var contact = DetailFor(null).Contact!;
+        var contact = DetailFor(null, canSeePrivateDetails: true).Contact!;
 
         Assert.Equal("Self", contact.PersonType);
         Assert.Equal("+373 69 123 456", contact.Phone);
         Assert.Equal("ion@example.com", contact.Email);
         Assert.False(contact.HidePhoneNumber);
         Assert.Equal("Any", contact.PreferredContactMethod);
+    }
+
+    [Fact]
+    public void Contact_SelfIndividual_ShowsTheirProfilePictureAndNoAgency()
+    {
+        var contact = DetailFor(TestContacts.Self, person: new PublisherPerson("Ion Popescu", "https://blob/ion.jpg")).Contact!;
+
+        // An individual's name is the publisher's (kept in step with the account).
+        Assert.Equal("Ion", contact.Name);
+        Assert.Equal("https://blob/ion.jpg", contact.PictureUrl);
+        Assert.Null(contact.AgencyName);
+    }
+
+    [Fact]
+    public void Contact_SelfAgency_IsTheAgentByName_WithTheAgencyBesideThem()
+    {
+        var contact = DetailFor(TestContacts.Self, publisher: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
+
+        Assert.Equal("Elena Ciobanu", contact.Name);
+        Assert.Equal("Casa Ta Imobiliare", contact.AgencyName);
+        Assert.Equal("https://blob/elena.jpg", contact.PictureUrl);
+    }
+
+    [Fact]
+    public void Contact_SelfAgency_WithoutTheAgentsNameOrPhoto_FallsBackToTheAgencysNameAndLogo()
+    {
+        var contact = DetailFor(TestContacts.Self, publisher: Agency, person: new PublisherPerson(" ", null)).Contact!;
+
+        Assert.Equal("Casa Ta Imobiliare", contact.Name);
+        Assert.Equal("https://blob/logo.png", contact.PictureUrl);
+    }
+
+    [Fact]
+    public void Contact_Other_HasNoPictureButStillNamesTheAgency()
+    {
+        var contact = DetailFor(TestContacts.Other, publisher: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
+
+        Assert.Equal("Maria Popescu", contact.Name);
+        Assert.Null(contact.PictureUrl);
+        Assert.Equal("Casa Ta Imobiliare", contact.AgencyName);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Contact_Email_IsOnlyForTheOwnerOrAnAdmin(bool canSeePrivateDetails)
+    {
+        foreach (var contact in new ListingContact?[] { TestContacts.Self, TestContacts.Other, null })
+        {
+            var email = DetailFor(contact, canSeePrivateDetails).Contact!.Email;
+            Assert.Equal(canSeePrivateDetails, email is not null);
+        }
     }
 }

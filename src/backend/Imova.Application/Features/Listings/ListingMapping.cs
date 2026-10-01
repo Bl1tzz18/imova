@@ -55,8 +55,11 @@ public static class ListingMapping
         IReadOnlyList<PhotoDto> photos,
         bool isSaved,
         bool includeContactDetails,
-        // The owner or an admin — they still see a phone number the owner hid from the public.
-        bool canSeeHiddenPhone = false) =>
+        // The owner or an admin — they still see the contact's email and a phone number the owner
+        // hid from the public.
+        bool canSeePrivateDetails = false,
+        // The account behind the publisher — only needed with contact details.
+        PublisherPerson? publisherPerson = null) =>
         listing.ToDto(
             property.ToDto(location, amenitiesById, proximitiesById),
             // Never the publisher's own phone/email here: the listing's Contact is what the owner
@@ -64,32 +67,45 @@ public static class ListingMapping
             publisher.ToDto(includeContactDetails: false),
             photos,
             isSaved,
-            includeContactDetails ? listing.ContactDto(publisher, canSeeHiddenPhone) : null);
+            includeContactDetails ? listing.ContactDto(publisher, canSeePrivateDetails, publisherPerson) : null);
 
-    // Resolves a Self contact's name/email from the publisher, and treats a listing from before
-    // contact details existed as "Self, the publisher's own phone".
-    public static ListingContactDto ContactDto(this Listing listing, Publisher publisher, bool canSeeHiddenPhone)
+    // Resolves a Self contact's name/email/photo from the publisher, and treats a listing from before
+    // contact details existed as "Self, the publisher's own phone". The email is never public — the
+    // listing page offers the phone, the apps and platform messages — only the owner and admins get it. An agency's Self contact is the
+    // agent — the account behind the agency — shown by their own name and photo, with the agency
+    // named beside them (falling back to the agency's name/logo while the account has none).
+    public static ListingContactDto ContactDto(
+        this Listing listing, Publisher publisher, bool canSeePrivateDetails, PublisherPerson? publisherPerson = null)
     {
+        var isAgency = publisher.PublisherType == PublisherType.Agency;
+        var agencyName = isAgency ? publisher.DisplayName : null;
+        var selfName = isAgency && !string.IsNullOrWhiteSpace(publisherPerson?.DisplayName)
+            ? publisherPerson.DisplayName
+            : publisher.DisplayName;
+        var selfPicture = publisherPerson?.PictureUrl ?? publisher.LogoUrl;
+
         var contact = listing.Contact;
         if (contact is null)
         {
             return new ListingContactDto(
-                nameof(ContactPersonType.Self), publisher.DisplayName, publisher.Phone, publisher.Email, [],
-                nameof(PreferredContactMethod.Any), false, null, null);
+                nameof(ContactPersonType.Self), selfName, publisher.Phone, canSeePrivateDetails ? publisher.Email : null, [],
+                nameof(PreferredContactMethod.Any), false, null, null, selfPicture, agencyName);
         }
 
         var isSelf = contact.PersonType == ContactPersonType.Self;
-        var phoneHidden = contact.HidePhoneNumber && !canSeeHiddenPhone;
+        var phoneHidden = contact.HidePhoneNumber && !canSeePrivateDetails;
         return new ListingContactDto(
             contact.PersonType.ToString(),
-            isSelf ? publisher.DisplayName : contact.Name,
+            isSelf ? selfName : contact.Name,
             phoneHidden ? null : contact.Phone,
-            isSelf ? publisher.Email : contact.Email,
+            !canSeePrivateDetails ? null : isSelf ? publisher.Email : contact.Email,
             (contact.MessagingApps ?? []).Select(a => a.ToString()).ToList(),
             contact.PreferredContactMethod.ToString(),
             contact.HidePhoneNumber,
             contact.CallHoursFrom,
-            contact.CallHoursTo);
+            contact.CallHoursTo,
+            isSelf ? selfPicture : null,
+            agencyName);
     }
 
     public static PriceDto ToDto(this Price price) =>
@@ -158,3 +174,7 @@ public static class ListingMapping
             photo.IsPrimary,
             photo.CreatedAt);
 }
+
+// The account behind a publisher, as a listing's contact shows it: its own name and profile picture
+// (a public URL of our own blob storage).
+public sealed record PublisherPerson(string? DisplayName, string? PictureUrl);

@@ -51,6 +51,11 @@ export type ListingContact = {
   // "HH:mm", both or neither — e.g. 09:00 and 18:00.
   callHoursFrom: string | null;
   callHoursTo: string | null;
+  // The person's photo (Self: the publisher's profile picture, else the agency's logo); null for
+  // an "Other" person.
+  pictureUrl: string | null;
+  // Set when an agency publishes the listing — the contact works for it.
+  agencyName: string | null;
 };
 
 export type PublisherType = "Individual" | "Agency";

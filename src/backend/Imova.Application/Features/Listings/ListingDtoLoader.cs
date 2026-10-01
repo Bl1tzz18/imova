@@ -49,6 +49,15 @@ public static class ListingDtoLoader
             .Where(p => publisherIds.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
+        // Contact details show the person behind each publisher (an agency's agent): their name and photo.
+        var publisherUserIds = publishersById.Values.Select(p => p.UserId).Distinct().ToList();
+        var peopleByUserId = includeContactDetails
+            ? await dbContext.Users
+                .AsNoTracking()
+                .Where(u => publisherUserIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => new PublisherPerson(u.DisplayName, u.ProfilePictureUrl), cancellationToken)
+            : [];
+
         // Small seeded reference tables — cheaper to load whole than to collect ids first.
         var amenitiesById = await dbContext.Amenities.AsNoTracking().ToDictionaryAsync(a => a.Id, cancellationToken);
         var proximitiesById = await dbContext.Proximities.AsNoTracking().ToDictionaryAsync(p => p.Id, cancellationToken);
@@ -86,7 +95,8 @@ public static class ListingDtoLoader
                     photosByListingId.GetValueOrDefault(listing.Id) ?? [],
                     savedListingIds.Contains(listing.Id),
                     includeContactDetails,
-                    canSeeHiddenPhone: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId));
+                    canSeePrivateDetails: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId),
+                    publisherPerson: peopleByUserId.GetValueOrDefault(publisher.UserId));
             })
             .ToList();
     }
