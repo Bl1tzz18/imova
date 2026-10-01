@@ -614,13 +614,29 @@
     "saveChanges": "Salvează modificările",
     "saveAndResubmit": "Salvează și retrimite spre verificare",
     "saving": "Se salvează...",
-    "saved": "Modificări salvate.",
-    "savedAndResubmitted": "Modificări salvate — anunțul a fost retrimis spre verificare.",
     "rejectedNoticeTitle": "Acest anunț a fost respins",
     "rejectedNoticeBody": "Corectează problema de mai sus, apoi salvează — anunțul va fi retrimis automat spre verificare.",
     "notFoundTitle": "Anunțul nu a fost găsit",
     "notFoundText": "Este posibil să fi fost șters sau linkul este greșit.",
-    "forbiddenText": "Nu ai permisiunea să editezi acest anunț."
+    "forbiddenText": "Nu ai permisiunea să editezi acest anunț.",
+    "savedDialog": {
+      "liveTitle": "Modificări salvate",
+      "liveBody": "Anunțul este actualizat — vizitatorii văd deja noile detalii.",
+      "priceReduced": "Vizitatorii văd acum „{badge}” față de {price}.",
+      "resubmittedTitle": "Trimis din nou spre verificare",
+      "resubmittedBody": "Am salvat modificările. Un moderator verifică anunțul și îți scriem pe email când este publicat.",
+      "inReviewTitle": "Modificări salvate",
+      "inReviewBody": "Anunțul așteaptă încă verificarea unui moderator — modificările intră în aceeași verificare.",
+      "needsEmailTitle": "Modificări salvate",
+      "needsEmailBody": "Anunțul rămâne ciornă până îți confirmi adresa de email — apoi pleacă automat spre verificare. Linkul de confirmare ți l-am trimis pe email.",
+      "needsEmailToResubmitTitle": "Modificări salvate",
+      "needsEmailToResubmitBody": "Ca să retrimiți anunțul spre verificare, confirmă-ți întâi adresa de email (linkul ți l-am trimis pe email), apoi salvează din nou.",
+      "notPublicTitle": "Modificări salvate",
+      "notPublicBody": "Anunțul nu este public acum, așa că vizitatorii nu văd modificările. Îl poți gestiona din Anunțurile mele.",
+      "viewListing": "Vezi anunțul",
+      "myListings": "Anunțurile mele",
+      "keepEditing": "Continuă editarea"
+    }
   },
   "AdminModerationPage": {
     "title": "Moderare anunțuri",
@@ -1475,5 +1491,16 @@
     "phoneReveals": "{count, plural, one {# persoană a văzut numărul} few {# persoane au văzut numărul} other {# de persoane au văzut numărul}}",
     "adminTitle": "Admin",
     "openInModeration": "Deschide în moderare"
+  },
+  "PriceHistory": {
+    "badge": "Preț redus {percent}",
+    "previousPrice": "Prețul anterior:",
+    "reducedOn": "redus pe {date}",
+    "title": "Istoricul prețului",
+    "published": "La publicare",
+    "publishedOn": "Publicat pe {date}",
+    "earlier": "Anterior",
+    "showAll": "Arată tot istoricul ({count})",
+    "showLess": "Arată mai puțin"
   }
 }

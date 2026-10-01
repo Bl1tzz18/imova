@@ -614,13 +614,29 @@
     "saveChanges": "Save changes",
     "saveAndResubmit": "Save & resubmit for review",
     "saving": "Saving...",
-    "saved": "Changes saved.",
-    "savedAndResubmitted": "Changes saved — your listing was resubmitted for review.",
     "rejectedNoticeTitle": "This listing was rejected",
     "rejectedNoticeBody": "Fix the issue above, then save — your listing will automatically be resubmitted for review.",
     "notFoundTitle": "Listing not found",
     "notFoundText": "It may have been removed, or the link is wrong.",
-    "forbiddenText": "You don't have permission to edit this listing."
+    "forbiddenText": "You don't have permission to edit this listing.",
+    "savedDialog": {
+      "liveTitle": "Changes saved",
+      "liveBody": "Your listing is updated — visitors already see the new details.",
+      "priceReduced": "Visitors now see “{badge}” from {price}.",
+      "resubmittedTitle": "Sent back for review",
+      "resubmittedBody": "We saved your changes. A moderator will check the listing and we'll email you once it's published.",
+      "inReviewTitle": "Changes saved",
+      "inReviewBody": "The listing is still waiting for a moderator — your changes are part of that review.",
+      "needsEmailTitle": "Changes saved",
+      "needsEmailBody": "The listing stays a draft until you confirm your email address — then it goes to review by itself. We emailed you the confirmation link.",
+      "needsEmailToResubmitTitle": "Changes saved",
+      "needsEmailToResubmitBody": "To send the listing back for review, first confirm your email address (we emailed you the link), then save again.",
+      "notPublicTitle": "Changes saved",
+      "notPublicBody": "The listing isn't public right now, so visitors don't see the changes. You can manage it from My listings.",
+      "viewListing": "View listing",
+      "myListings": "My listings",
+      "keepEditing": "Keep editing"
+    }
   },
   "AdminModerationPage": {
     "title": "Listing moderation",
@@ -1475,5 +1491,16 @@
     "phoneReveals": "{count, plural, one {# person saw the number} other {# people saw the number}}",
     "adminTitle": "Admin",
     "openInModeration": "Open in moderation"
+  },
+  "PriceHistory": {
+    "badge": "Price cut {percent}",
+    "previousPrice": "Previous price:",
+    "reducedOn": "reduced on {date}",
+    "title": "Price history",
+    "published": "When published",
+    "publishedOn": "Published on {date}",
+    "earlier": "Earlier",
+    "showAll": "Show full history ({count})",
+    "showLess": "Show less"
   }
 }

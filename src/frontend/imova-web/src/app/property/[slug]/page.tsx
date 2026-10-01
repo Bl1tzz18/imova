@@ -17,6 +17,8 @@ import { OwnerListingBar } from "@/components/property/OwnerListingBar";
 import { AdminListingBar } from "@/components/property/AdminListingBar";
 import { ShareListingButton } from "@/components/property/ShareListingButton";
 import { ListingViewTracker } from "@/components/property/ListingViewTracker";
+import { PriceHistoryList } from "@/components/property/PriceHistoryList";
+import { formatPercentChange } from "@/lib/listing/priceHistory";
 import { shareText } from "@/lib/listing/share";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
@@ -99,13 +101,14 @@ export default async function ProprietatePage({
 
   const listing = result.listing;
 
-  const [locale, t, tType, tListing, tCard, tMethod] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tMethod, tPrice] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
     getTranslations("ListingType"),
     getTranslations("PropertyCard"),
     getTranslations("ContactMethod"),
+    getTranslations("PriceHistory"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
@@ -142,6 +145,20 @@ export default async function ProprietatePage({
           <span className="ml-1 text-base font-normal text-ink-500">{tCard("perMonth")}</span>
         )}
       </p>
+      {/* "Preț redus": how much, from what, since when (rule: the API's ListingPriceHistory). */}
+      {listing.priceReduction && (
+        <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-500">
+          <Badge tone="success">
+            {tPrice("badge", { percent: formatPercentChange(-listing.priceReduction.percent) ?? "" })}
+          </Badge>
+          <span>
+            <span className="sr-only">{tPrice("previousPrice")} </span>
+            <s>{formatPrice(listing.priceReduction.previousAmount, listing.priceReduction.previousCurrency)}</s>
+            {" · "}
+            {tPrice("reducedOn", { date: formatDate(listing.priceReduction.reducedAt, locale) })}
+          </span>
+        </p>
+      )}
       {/* A sale's price per m² (per ar for land) — how buyers compare — then the price in the
           other currencies people here think in: EUR and MDL, whichever it isn't listed in. */}
       {perUnit && (
@@ -163,6 +180,8 @@ export default async function ProprietatePage({
       )}
 
       <ListingRentalTerms listing={listing} />
+
+      {listing.priceHistory && <PriceHistoryList history={listing.priceHistory} publishedAt={listing.publishedAt} />}
 
       <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
         <p>{t("listingNumber", { number: listing.number })}</p>

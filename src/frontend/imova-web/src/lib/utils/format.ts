@@ -8,8 +8,11 @@ export function formatPrice(price: number, currency: string) {
   }).format(price);
 }
 
+// Moldova's calendar day, wherever it's rendered: without a fixed time zone the server (UTC) and a
+// browser in Chișinău named different days for anything after 21:00 UTC — and React then complained
+// that server and browser output differ.
 export function formatDate(isoDate: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(isoDate));
+  return new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "Europe/Chisinau" }).format(new Date(isoDate));
 }
 
 // "1 oct. 2026, 14:05" — for moderation, where the time of day matters too. Always Moldova's time

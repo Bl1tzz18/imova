@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
 import { buildListingPayload } from "@/lib/property/formPayload";
-import type { Photo } from "@/types/listing";
+import type { Listing, Photo, PriceReduction } from "@/types/listing";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 
 export async function setFavorite(listingId: string, saved: boolean, next: string): Promise<{ error?: string }> {
@@ -82,7 +82,15 @@ export async function markListingAsRented(listingId: string): Promise<{ error?: 
   return postListingStatusAction(listingId, "mark-as-rented");
 }
 
-export type UpdateListingState = { error?: string; success?: boolean };
+// On success: the listing as saved — its status decides what the "saved" dialog says, and a price
+// reduction is shown there too. savedAt makes each save a new state (the dialog opens per save).
+export type UpdateListingState = {
+  error?: string;
+  success?: boolean;
+  savedAt?: number;
+  status?: string;
+  priceReduction?: PriceReduction | null;
+};
 
 // Bound with the listing id from the client (updateListingDetails.bind(null, id)) so it fits
 // useActionState's (prevState, formData) signature — see PropertyForm, which reuses the exact
@@ -107,6 +115,7 @@ export async function updateListingDetails(
   if (!res.ok) {
     return { error: await apiErrorMessage(res) };
   }
+  const saved = (await res.json()) as Listing;
 
   // Photos the owner removed on this edit page (ImageUploader, deferDeletes mode) are only
   // hidden client-side up to this point — this is the actual commit, and it only runs once the
@@ -124,7 +133,7 @@ export async function updateListingDetails(
   revalidatePath("/my-listings");
   revalidatePath(`/my-listings/${listingId}/edit`);
   revalidatePath(`/property/${listingId}`);
-  return { success: true };
+  return { success: true, savedAt: Date.now(), status: saved.status, priceReduction: saved.priceReduction ?? null };
 }
 
 // Called directly from the client (ImageUploader), not via a form action — same pattern as

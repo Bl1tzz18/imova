@@ -55,4 +55,34 @@ public class ListingPriceHistoryTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/v1/listings/{listing.Id}")).StatusCode);
         Assert.Empty(await HistoryAsync(listing.Id));
     }
+
+    [Fact]
+    public async Task APublishedListingWhosePriceDrops_ShowsPretRedusEverywhere_AndItsHistoryOnTheDetailView()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+        var anonymous = _factory.CreateClient();
+        var body = await ListingApi.ValidBodyAsync(owner);
+        body["price"] = 600;
+        var listing = (await (await owner.PostAsJsonAsync("/api/v1/listings", body)).Content.ReadFromJsonAsync<ListingDto>())!;
+        (await admin.PostAsync($"/api/v1/listings/{listing.Id}/approve", null)).EnsureSuccessStatusCode();
+
+        body["price"] = 540;
+        var saved = await owner.PutAsJsonAsync($"/api/v1/listings/{listing.Id}", body);
+        var savedDto = (await saved.Content.ReadFromJsonAsync<ListingDto>())!;
+
+        // The save's own answer already tells the owner what visitors will see.
+        Assert.Equal((600m, 10), (savedDto.PriceReduction!.PreviousAmount, savedDto.PriceReduction.Percent));
+
+        var detail = (await anonymous.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
+        Assert.Equal(10, detail.PriceReduction!.Percent);
+        var change = Assert.Single(detail.PriceHistory!.Changes);
+        Assert.Equal((600m, 540m, -10), (change.OldAmount, change.NewAmount, change.ChangePercent));
+        Assert.True(detail.PriceHistory.StartsAtPublication);
+
+        var mine = (await owner.GetFromJsonAsync<List<ListingDto>>("/api/v1/users/me/listings"))!;
+        var card = mine.Single(l => l.Id == listing.Id);
+        Assert.Equal(10, card.PriceReduction!.Percent);
+        Assert.Null(card.PriceHistory);
+    }
 }
