@@ -17,5 +17,5 @@ export function StartConversationForm({ listingId }: { listingId: string }) {
     return {};
   }
 
-  return <MessageComposer onSend={handleSend} autoFocus placeholder={t("firstMessagePlaceholder")} />;
+  return <MessageComposer onSend={handleSend} autoFocus placeholder={t("firstMessagePlaceholder")} variant="card" />;
 }

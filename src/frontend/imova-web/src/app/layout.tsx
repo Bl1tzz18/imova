@@ -1,9 +1,13 @@
 import { Fraunces, Inter, Sora } from "next/font/google";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Header } from "@/components/layout/Header";
+import { NavigationTracker } from "@/components/layout/NavigationTracker";
 import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { siteUrl } from "@/lib/site";
 import { getUnreadCount } from "@/lib/messaging/api";
 import "./globals.css";
 
@@ -31,9 +35,12 @@ const sora = Sora({
   weight: ["700", "800"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
+  // Relative links in page metadata (canonical, og:url) resolve against the site's own address.
+  metadataBase: new URL(siteUrl()),
   title: "IMOVA — Imobiliare în Moldova",
   description: "Imobiliare de la persoane fizice și agenții, în Moldova",
+  openGraph: { siteName: "IMOVA", locale: "ro_MD", type: "website" },
 };
 
 export default async function RootLayout({
@@ -51,6 +58,10 @@ export default async function RootLayout({
           <RealtimeProvider userId={profile?.id ?? null} initialUnreadCount={unreadCount}>
             <Header />
             {children}
+            {/* useSearchParams needs a Suspense boundary, or every page would render client-side only. */}
+            <Suspense fallback={null}>
+              <NavigationTracker />
+            </Suspense>
           </RealtimeProvider>
         </NextIntlClientProvider>
       </body>

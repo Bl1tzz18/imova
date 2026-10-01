@@ -331,13 +331,22 @@
     "backHome": "Înapoi la pagina principală",
     "contact": "Contact",
     "contactOwner": "Contactează anunțătorul",
+    "roleAgent": "Agent imobiliar",
+    "roleAgency": "Agenție imobiliară",
+    "roleIndividual": "Persoană fizică",
+    "roleContactPerson": "Persoană de contact",
+    "showPhone": "Arată",
+    "showPhoneLabel": "Arată numărul de telefon",
+    "showingPhone": "Se încarcă…",
+    "callNumber": "Sună la {phone}",
+    "phoneRevealFailed": "Nu am putut afișa numărul. Încearcă din nou.",
+    "writeOn": "Scrie pe {app}",
+    "callHoursBetween": "Sună între {from} și {to}",
     "email": "Email",
     "phone": "Telefon",
     "phoneNotProvided": "Telefon nefurnizat",
     "phoneHidden": "Numărul este ascuns — scrie-i prin mesaje pe platformă.",
-    "availableOn": "Disponibil pe",
     "preferredContact": "Preferă",
-    "callHours": "Apeluri",
     "openInGoogleMaps": "Deschide în Google Maps",
     "expandMap": "Extinde harta",
     "closeMap": "Închide harta",
@@ -357,11 +366,33 @@
     "availableFrom": "Disponibil din",
     "utilitiesIncluded": "Utilități incluse",
     "approxEur": "≈ {price}",
+    "pricePerSquareMetre": "{price}/m²",
+    "pricePerAr": "{price}/ar",
     "negotiable": "Preț negociabil",
     "agency": "Agenție",
     "sendMessage": "Scrie mesaj",
     "openConversation": "Deschide conversația",
-    "relayNotice": "Mesajele trimise prin platformă ajung în căsuța ta, nu la {name} — transmite-i-le tu dacă e nevoie."
+    "relayNotice": "Mesajele trimise prin platformă ajung în căsuța ta, nu la {name} — transmite-i-le tu dacă e nevoie.",
+    "propertyDetails": "Detalii proprietate",
+    "propertyDetailsHint": "Tot ce a completat proprietarul, pe categorii.",
+    "locationTitle": "Locație",
+    "similarListings": "Anunțuri asemănătoare",
+    "keyFacts": {
+      "rooms": "{count, plural, one {cameră} few {camere} other {de camere}}",
+      "area": "suprafață",
+      "landArea": "teren",
+      "floor": "etaj",
+      "houseFloors": "{count, plural, one {nivel} few {niveluri} other {de niveluri}}",
+      "bathrooms": "{count, plural, one {baie} few {băi} other {de băi}}",
+      "yearBuilt": "anul construcției",
+      "plotType": "tip teren",
+      "spaceType": "tip spațiu",
+      "parkingType": "tip loc de parcare",
+      "bathroomType": "baie",
+      "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
+    },
+    "contactDetails": "Date de contact",
+    "closeContactDetails": "Închide datele de contact"
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -508,13 +539,6 @@
     "title": "Anunțurile mele",
     "subtitle": "Gestionează-ți anunțurile publicate dintr-un singur loc.",
     "addNewListing": "Adaugă un anunț nou",
-    "tabAll": "Toate",
-    "tabPublished": "Active",
-    "tabPendingReview": "În verificare",
-    "tabRejected": "Respinse",
-    "tabDraft": "Schițe",
-    "tabArchived": "Dezactivate",
-    "tabExpired": "Expirate",
     "activeUntil": "Activ până pe {date}",
     "expiresSoon": "Expiră pe {date} — prelungește-l ca să rămână activ",
     "renew": "Prelungește",
@@ -533,16 +557,47 @@
     "publish": "Publică",
     "submitForReview": "Trimite spre verificare",
     "deactivate": "Dezactivează",
-    "deactivateConfirm": "Dezactivezi acest anunț?",
-    "deactivateConfirmYes": "Da, dezactivează",
     "deactivateConfirmCancel": "Anulează",
     "activate": "Activează",
     "resultsCount": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
     "emptyTitle": "Nu ai niciun anunț momentan",
     "emptyBody": "Publică primul tău anunț și va apărea aici.",
-    "emptyTitleFiltered": "Niciun anunț în această categorie",
-    "emptyBodyFiltered": "Încearcă altă filă sau revino după ce anunțurile tale își schimbă statusul.",
-    "statusExpired": "Expirat"
+    "statusExpired": "Expirat",
+    "markAsSold": "Marchează ca vândut",
+    "markAsRented": "Marchează ca închiriat",
+    "confirm": {
+      "markAsSold": "Marchezi anunțul ca vândut? Vizitatorii vor vedea că nu mai este disponibil.",
+      "markAsRented": "Marchezi anunțul ca închiriat? Vizitatorii vor vedea că nu mai este disponibil.",
+      "deactivate": "Dezactivezi acest anunț?"
+    },
+    "confirmYes": {
+      "markAsSold": "Da, e vândut",
+      "markAsRented": "Da, e închiriat",
+      "deactivate": "Da, dezactivează"
+    },
+    "group": {
+      "active": "Active",
+      "unpublished": "Nepublicate",
+      "ended": "Încheiate"
+    },
+    "groupEmpty": {
+      "active": "Niciun anunț activ acum.",
+      "unpublished": "Nicio ciornă și nimic în verificare.",
+      "ended": "Niciun anunț încheiat."
+    },
+    "needsAttention": "Necesită atenția ta",
+    "moreActions": "Mai multe acțiuni",
+    "searchLabel": "Caută în anunțurile tale",
+    "searchPlaceholder": "Caută după titlu sau adresă",
+    "sortLabel": "Ordonează",
+    "sort": {
+      "recommended": "Recomandat",
+      "newest": "Cele mai noi",
+      "priceAsc": "Preț crescător",
+      "priceDesc": "Preț descrescător"
+    },
+    "searchEmpty": "Niciun anunț din această filă nu se potrivește cu „{query}”.",
+    "clearSearch": "Șterge căutarea"
   },
   "EditListingPage": {
     "title": "Editează anunțul",
@@ -977,6 +1032,9 @@
     "you": "Tu",
     "imagePreview": "📷 Imagine",
     "newTitle": "Scrie un mesaj",
+    "backToListing": "Înapoi la anunț",
+    "sendMessage": "Trimite mesajul",
+    "messageLabel": "Mesajul tău",
     "toPublisher": "Mesajul ajunge la {name}",
     "firstMessagePlaceholder": "Bună ziua! Mai este disponibil?",
     "safetyTip": "Nu trimite bani în avans și nu comunica date de card sau coduri primite prin SMS.",
@@ -1363,5 +1421,44 @@
       "resolved": "Anunțurile suspendate sau raportările respinse apar aici."
     },
     "contact": "Contact:"
+  },
+  "EndedListing": {
+    "title": "Acest anunț nu mai este disponibil",
+    "status": {
+      "Sold": "Vândut",
+      "Rented": "Închiriat",
+      "Expired": "Expirat",
+      "Archived": "Retras"
+    },
+    "reason": {
+      "Sold": "Proprietatea a fost vândută.",
+      "Rented": "Proprietatea a fost închiriată.",
+      "Expired": "Anunțul a expirat și nu a fost prelungit.",
+      "Archived": "Autorul a retras anunțul."
+    },
+    "lastPrice": "Ultimul preț:",
+    "searchSimilar": "Caută anunțuri similare în zonă",
+    "metaTitle": "{title} — nu mai este disponibil"
+  },
+  "OwnerListingBar": {
+    "title": "Anunțul tău",
+    "active": "Este public — activ până pe {date}.",
+    "activeRenew": "Expiră pe {date} — prelungește-l ca să rămână public.",
+    "activeNoDate": "Este public.",
+    "notPublic": {
+      "Draft": "Ciornă — nu este public încă. Trimite-l spre verificare când e gata.",
+      "PendingReview": "În verificare — devine public după ce îl aprobă un moderator.",
+      "Expired": "A expirat — nu mai este public. Activează-l ca să reapară.",
+      "Archived": "Dezactivat — nu este public. Îl poți activa oricând."
+    },
+    "ended": {
+      "Sold": "Marcat ca vândut — vizitatorii văd că nu mai este disponibil.",
+      "Rented": "Marcat ca închiriat — vizitatorii văd că nu mai este disponibil."
+    },
+    "blocked": {
+      "Rejected": "Respins de moderatori — nu este public. Corectează-l și retrimite-l.",
+      "Suspended": "Suspendat de moderatori — nu este public."
+    },
+    "reasonLabel": "Motiv:"
   }
 }

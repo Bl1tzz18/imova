@@ -10,20 +10,24 @@ import { cn } from "@/lib/utils/cn";
 
 type PendingImage = { key: string; previewUrl: string; blobName: string | null; failed: boolean };
 
-// Text (Enter sends, Shift+Enter is a new line) plus up to 5 images, each uploaded straight to blob
-// storage as soon as it's picked; the message carries their blob names.
+// Text plus up to 5 images, each uploaded straight to blob storage as soon as it's picked; the
+// message carries their blob names. Two looks: "chat" — a one-line pill for a thread's white panel
+// (Enter sends, Shift+Enter is a new line) — and "card" — a white writing box for a first message on
+// the page background, where Enter is a new line and Ctrl/Cmd+Enter or the labelled button sends.
 export function MessageComposer({
   onSend,
   onTyping,
   disabled = false,
   autoFocus = false,
   placeholder,
+  variant = "chat",
 }: {
   onSend: (body: string, attachmentBlobNames: string[]) => Promise<{ error?: string }>;
   onTyping?: () => void;
   disabled?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
+  variant?: "chat" | "card";
 }) {
   const t = useTranslations("Messages");
   const [body, setBody] = useState("");
@@ -34,7 +38,7 @@ export function MessageComposer({
   const textArea = useRef<HTMLTextAreaElement>(null);
   const lastTypingSent = useRef<number | null>(null);
 
-  // The pill grows with the text (up to max-h-36, then scrolls).
+  // The field grows with the text (up to its max height, then scrolls).
   useLayoutEffect(() => {
     const el = textArea.current;
     if (!el) return;
@@ -97,7 +101,9 @@ export function MessageComposer({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    const sends = variant === "card" ? e.ctrlKey || e.metaKey : !e.shiftKey;
+    if (sends) {
       e.preventDefault();
       void send();
     }
@@ -112,78 +118,132 @@ export function MessageComposer({
     }
   }
 
+  const imageList = images.length > 0 && (
+    <ul className={cn("flex flex-wrap gap-2", variant === "card" ? "px-4 pt-4" : "mb-2")}>
+      {images.map((image) => (
+        <li key={image.key} className="relative h-16 w-16 overflow-hidden rounded-[14px] border border-line">
+          {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
+          <img src={image.previewUrl} alt="" className={cn("h-full w-full object-cover", !image.blobName && "opacity-50")} />
+          {image.blobName === null && !image.failed && (
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-ink-700">
+              {t("uploading")}
+            </span>
+          )}
+          {image.failed && (
+            <span className="absolute inset-0 flex items-center justify-center bg-accent-100/80 text-[10px] font-medium text-accent-700">
+              {t("uploadFailed")}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => removeImage(image.key)}
+            aria-label={t("removeImage")}
+            className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink-950/70 text-xs text-white"
+          >
+            ×
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+
+  const attachButton = (
+    <>
+      <button
+        type="button"
+        onClick={() => fileInput.current?.click()}
+        disabled={disabled || images.length >= MAX_ATTACHMENTS}
+        aria-label={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
+        title={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
+        className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 disabled:opacity-40"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5" aria-hidden>
+          <path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {images.length}/{MAX_ATTACHMENTS}
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept={ATTACHMENT_ACCEPT}
+        multiple
+        hidden
+        onChange={(e) => {
+          void addFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+    </>
+  );
+
+  const textField = (
+    <textarea
+      ref={textArea}
+      value={body}
+      onChange={(e) => handleChange(e.target.value)}
+      onKeyDown={handleKeyDown}
+      maxLength={MAX_MESSAGE_LENGTH}
+      rows={variant === "card" ? 5 : 1}
+      disabled={disabled}
+      autoFocus={autoFocus}
+      placeholder={placeholder ?? t("composerPlaceholder")}
+      aria-label={placeholder ?? t("composerPlaceholder")}
+      className={cn(
+        "w-full resize-none bg-transparent text-ink-900 outline-none placeholder:text-ink-400",
+        variant === "card" ? "block max-h-72 min-h-32 px-4 py-3.5 text-base leading-6" : "max-h-36 text-sm leading-5",
+      )}
+    />
+  );
+
+  const sendIcon = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden>
+      <path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  const footer = (
+    <div className="mt-1 flex justify-between gap-3 px-1 text-xs">
+      {error ? <p className="text-accent-700">{error}</p> : <span />}
+      {body.length > MAX_MESSAGE_LENGTH - 200 && (
+        <span className="text-ink-500">
+          {body.length}/{MAX_MESSAGE_LENGTH}
+        </span>
+      )}
+    </div>
+  );
+
+  if (variant === "card") {
+    return (
+      <div>
+        <div className="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm transition focus-within:border-ink-400 focus-within:ring-4 focus-within:ring-ink-100">
+          {imageList}
+          {textField}
+          <div className="flex items-center justify-between gap-3 border-t border-ink-100 px-2 py-2">
+            {attachButton}
+            <button
+              type="button"
+              onClick={() => void send()}
+              disabled={!canSend}
+              className="flex h-11 shrink-0 items-center gap-2 rounded-full bg-accent-500 px-5 text-sm font-semibold text-white shadow-sm shadow-accent-500/30 transition-colors hover:bg-accent-600 disabled:opacity-40"
+            >
+              {sendIcon}
+              {sending ? t("sending") : t("sendMessage")}
+            </button>
+          </div>
+        </div>
+        {footer}
+      </div>
+    );
+  }
+
   return (
     <div>
-      {images.length > 0 && (
-        <ul className="mb-2 flex flex-wrap gap-2">
-          {images.map((image) => (
-            <li key={image.key} className="relative h-16 w-16 overflow-hidden rounded-[14px] border border-line">
-              {/* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */}
-              <img src={image.previewUrl} alt="" className={cn("h-full w-full object-cover", !image.blobName && "opacity-50")} />
-              {image.blobName === null && !image.failed && (
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-ink-700">
-                  {t("uploading")}
-                </span>
-              )}
-              {image.failed && (
-                <span className="absolute inset-0 flex items-center justify-center bg-accent-100/80 text-[10px] font-medium text-accent-700">
-                  {t("uploadFailed")}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => removeImage(image.key)}
-                aria-label={t("removeImage")}
-                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink-950/70 text-xs text-white"
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {imageList}
 
       <div className="flex items-end gap-2">
-        <button
-          type="button"
-          onClick={() => fileInput.current?.click()}
-          disabled={disabled || images.length >= MAX_ATTACHMENTS}
-          aria-label={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
-          title={t("attachImages", { count: images.length, max: MAX_ATTACHMENTS })}
-          className="flex h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-500 transition-colors hover:bg-bubble hover:text-ink-900 disabled:opacity-40"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5" aria-hidden>
-            <path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M15 9h.01" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          {images.length}/{MAX_ATTACHMENTS}
-        </button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept={ATTACHMENT_ACCEPT}
-          multiple
-          hidden
-          onChange={(e) => {
-            void addFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
+        {attachButton}
 
-        <div className="flex min-h-11 flex-1 items-center rounded-[22px] bg-bubble px-4 py-2.5">
-          <textarea
-            ref={textArea}
-            value={body}
-            onChange={(e) => handleChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            maxLength={MAX_MESSAGE_LENGTH}
-            rows={1}
-            disabled={disabled}
-            autoFocus={autoFocus}
-            placeholder={placeholder ?? t("composerPlaceholder")}
-            aria-label={placeholder ?? t("composerPlaceholder")}
-            className="max-h-36 w-full resize-none bg-transparent text-sm leading-5 text-ink-900 outline-none placeholder:text-ink-400"
-          />
-        </div>
+        <div className="flex min-h-11 flex-1 items-center rounded-[22px] bg-bubble px-4 py-2.5">{textField}</div>
 
         <button
           type="button"
@@ -193,20 +253,11 @@ export function MessageComposer({
           title={t("send")}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white shadow-sm shadow-accent-500/30 transition-colors hover:bg-accent-600 disabled:opacity-40"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden>
-            <path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {sendIcon}
         </button>
       </div>
 
-      <div className="mt-1 flex justify-between gap-3 px-1 text-xs">
-        {error ? <p className="text-accent-700">{error}</p> : <span />}
-        {body.length > MAX_MESSAGE_LENGTH - 200 && (
-          <span className="text-ink-500">
-            {body.length}/{MAX_MESSAGE_LENGTH}
-          </span>
-        )}
-      </div>
+      {footer}
     </div>
   );
 }

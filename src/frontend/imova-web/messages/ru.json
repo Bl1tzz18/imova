@@ -331,13 +331,22 @@
     "backHome": "На главную",
     "contact": "Контакты",
     "contactOwner": "Связаться с продавцом",
+    "roleAgent": "Агент по недвижимости",
+    "roleAgency": "Агентство недвижимости",
+    "roleIndividual": "Частное лицо",
+    "roleContactPerson": "Контактное лицо",
+    "showPhone": "Показать",
+    "showPhoneLabel": "Показать номер телефона",
+    "showingPhone": "Загрузка…",
+    "callNumber": "Позвонить {phone}",
+    "phoneRevealFailed": "Не удалось показать номер. Попробуйте ещё раз.",
+    "writeOn": "Написать в {app}",
+    "callHoursBetween": "Звонить с {from} до {to}",
     "email": "Эл. почта",
     "phone": "Телефон",
     "phoneNotProvided": "Телефон не указан",
     "phoneHidden": "Номер скрыт — напишите через сообщения на платформе.",
-    "availableOn": "Доступен в",
     "preferredContact": "Предпочитает",
-    "callHours": "Звонки",
     "openInGoogleMaps": "Открыть в Google Картах",
     "expandMap": "Развернуть карту",
     "closeMap": "Закрыть карту",
@@ -357,11 +366,33 @@
     "availableFrom": "Доступно с",
     "utilitiesIncluded": "Коммунальные включены",
     "approxEur": "≈ {price}",
+    "pricePerSquareMetre": "{price}/м²",
+    "pricePerAr": "{price}/сотка",
     "negotiable": "Торг уместен",
     "agency": "Агентство",
     "sendMessage": "Написать",
     "openConversation": "Открыть переписку",
-    "relayNotice": "Сообщения через платформу приходят вам, а не {name} — при необходимости передайте их сами."
+    "relayNotice": "Сообщения через платформу приходят вам, а не {name} — при необходимости передайте их сами.",
+    "propertyDetails": "Характеристики",
+    "propertyDetailsHint": "Всё, что указал владелец, по категориям.",
+    "locationTitle": "Расположение",
+    "similarListings": "Похожие объявления",
+    "keyFacts": {
+      "rooms": "{count, plural, one {комната} few {комнаты} many {комнат} other {комнаты}}",
+      "area": "площадь",
+      "landArea": "участок",
+      "floor": "этаж",
+      "houseFloors": "{count, plural, one {уровень} few {уровня} many {уровней} other {уровня}}",
+      "bathrooms": "{count, plural, one {санузел} few {санузла} many {санузлов} other {санузла}}",
+      "yearBuilt": "год постройки",
+      "plotType": "тип участка",
+      "spaceType": "тип помещения",
+      "parkingType": "тип парковки",
+      "bathroomType": "санузел",
+      "roommateCount": "{count, plural, one {сосед} few {соседа} many {соседей} other {соседа}}"
+    },
+    "contactDetails": "Контакты",
+    "closeContactDetails": "Закрыть контакты"
   },
   "DashboardPage": {
     "title": "Панель управления"
@@ -508,13 +539,6 @@
     "title": "Мои объявления",
     "subtitle": "Управляйте своими объявлениями в одном месте.",
     "addNewListing": "Добавить новое объявление",
-    "tabAll": "Все",
-    "tabPublished": "Активные",
-    "tabPendingReview": "На проверке",
-    "tabRejected": "Отклонённые",
-    "tabDraft": "Черновики",
-    "tabArchived": "Деактивированные",
-    "tabExpired": "Истекшие",
     "activeUntil": "Активно до {date}",
     "expiresSoon": "Истекает {date} — продлите, чтобы оно осталось активным",
     "renew": "Продлить",
@@ -533,16 +557,47 @@
     "publish": "Опубликовать",
     "submitForReview": "Отправить на проверку",
     "deactivate": "Деактивировать",
-    "deactivateConfirm": "Деактивировать это объявление?",
-    "deactivateConfirmYes": "Да, деактивировать",
     "deactivateConfirmCancel": "Отмена",
     "activate": "Активировать",
     "resultsCount": "{count, plural, one {# объявление} few {# объявления} many {# объявлений} other {# объявления}}",
     "emptyTitle": "У вас пока нет объявлений",
     "emptyBody": "Опубликуйте своё первое объявление, и оно появится здесь.",
-    "emptyTitleFiltered": "Нет объявлений в этой категории",
-    "emptyBodyFiltered": "Попробуйте другую вкладку или вернитесь позже.",
-    "statusExpired": "Истекло"
+    "statusExpired": "Истекло",
+    "markAsSold": "Отметить как проданное",
+    "markAsRented": "Отметить как сданное",
+    "confirm": {
+      "markAsSold": "Отметить объявление как проданное? Посетители увидят, что оно больше не доступно.",
+      "markAsRented": "Отметить объявление как сданное? Посетители увидят, что оно больше не доступно.",
+      "deactivate": "Деактивировать это объявление?"
+    },
+    "confirmYes": {
+      "markAsSold": "Да, продано",
+      "markAsRented": "Да, сдано",
+      "deactivate": "Да, деактивировать"
+    },
+    "group": {
+      "active": "Активные",
+      "unpublished": "Не опубликованы",
+      "ended": "Завершённые"
+    },
+    "groupEmpty": {
+      "active": "Сейчас нет активных объявлений.",
+      "unpublished": "Нет черновиков и ничего на проверке.",
+      "ended": "Нет завершённых объявлений."
+    },
+    "needsAttention": "Требует вашего внимания",
+    "moreActions": "Ещё действия",
+    "searchLabel": "Поиск по вашим объявлениям",
+    "searchPlaceholder": "Поиск по названию или адресу",
+    "sortLabel": "Сортировка",
+    "sort": {
+      "recommended": "Рекомендуемые",
+      "newest": "Сначала новые",
+      "priceAsc": "Цена по возрастанию",
+      "priceDesc": "Цена по убыванию"
+    },
+    "searchEmpty": "В этой вкладке ничего не найдено по запросу «{query}».",
+    "clearSearch": "Очистить поиск"
   },
   "EditListingPage": {
     "title": "Редактировать объявление",
@@ -977,6 +1032,9 @@
     "you": "Вы",
     "imagePreview": "📷 Изображение",
     "newTitle": "Написать сообщение",
+    "backToListing": "Назад к объявлению",
+    "sendMessage": "Отправить сообщение",
+    "messageLabel": "Ваше сообщение",
     "toPublisher": "Сообщение получит {name}",
     "firstMessagePlaceholder": "Здравствуйте! Ещё актуально?",
     "safetyTip": "Не платите заранее и не сообщайте данные карты или коды из SMS.",
@@ -1363,5 +1421,44 @@
       "resolved": "Здесь появятся приостановленные объявления и отклонённые жалобы."
     },
     "contact": "Контакт:"
+  },
+  "EndedListing": {
+    "title": "Это объявление больше не доступно",
+    "status": {
+      "Sold": "Продано",
+      "Rented": "Сдано",
+      "Expired": "Истекло",
+      "Archived": "Снято"
+    },
+    "reason": {
+      "Sold": "Недвижимость продана.",
+      "Rented": "Недвижимость сдана в аренду.",
+      "Expired": "Срок объявления истёк, и оно не было продлено.",
+      "Archived": "Автор снял объявление."
+    },
+    "lastPrice": "Последняя цена:",
+    "searchSimilar": "Искать похожие объявления в этом районе",
+    "metaTitle": "{title} — больше не доступно"
+  },
+  "OwnerListingBar": {
+    "title": "Ваше объявление",
+    "active": "Опубликовано — активно до {date}.",
+    "activeRenew": "Истекает {date} — продлите, чтобы оно осталось опубликованным.",
+    "activeNoDate": "Опубликовано.",
+    "notPublic": {
+      "Draft": "Черновик — ещё не опубликовано. Отправьте на проверку, когда будет готово.",
+      "PendingReview": "На проверке — будет опубликовано после одобрения модератором.",
+      "Expired": "Срок истёк — больше не опубликовано. Активируйте, чтобы вернуть.",
+      "Archived": "Деактивировано — не опубликовано. Его можно активировать в любой момент."
+    },
+    "ended": {
+      "Sold": "Отмечено как проданное — посетители видят, что оно больше не доступно.",
+      "Rented": "Отмечено как сданное — посетители видят, что оно больше не доступно."
+    },
+    "blocked": {
+      "Rejected": "Отклонено модераторами — не опубликовано. Исправьте и отправьте снова.",
+      "Suspended": "Приостановлено модераторами — не опубликовано."
+    },
+    "reasonLabel": "Причина:"
   }
 }

@@ -331,13 +331,22 @@
     "backHome": "Back to homepage",
     "contact": "Contact",
     "contactOwner": "Contact the lister",
+    "roleAgent": "Real estate agent",
+    "roleAgency": "Real estate agency",
+    "roleIndividual": "Private person",
+    "roleContactPerson": "Contact person",
+    "showPhone": "Show",
+    "showPhoneLabel": "Show the phone number",
+    "showingPhone": "Loading…",
+    "callNumber": "Call {phone}",
+    "phoneRevealFailed": "We couldn't show the number. Please try again.",
+    "writeOn": "Message on {app}",
+    "callHoursBetween": "Call between {from} and {to}",
     "email": "Email",
     "phone": "Phone",
     "phoneNotProvided": "Phone not provided",
     "phoneHidden": "The number is hidden — reach out through platform messages.",
-    "availableOn": "Available on",
     "preferredContact": "Prefers",
-    "callHours": "Calls",
     "openInGoogleMaps": "Open in Google Maps",
     "expandMap": "Expand map",
     "closeMap": "Close map",
@@ -357,11 +366,33 @@
     "availableFrom": "Available from",
     "utilitiesIncluded": "Utilities included",
     "approxEur": "≈ {price}",
+    "pricePerSquareMetre": "{price}/m²",
+    "pricePerAr": "{price}/are",
     "negotiable": "Negotiable",
     "agency": "Agency",
     "sendMessage": "Send message",
     "openConversation": "Open conversation",
-    "relayNotice": "Messages sent through the platform arrive in your inbox, not to {name} — pass them on if needed."
+    "relayNotice": "Messages sent through the platform arrive in your inbox, not to {name} — pass them on if needed.",
+    "propertyDetails": "Property details",
+    "propertyDetailsHint": "Everything the owner filled in, by category.",
+    "locationTitle": "Location",
+    "similarListings": "Similar listings",
+    "keyFacts": {
+      "rooms": "{count, plural, one {room} other {rooms}}",
+      "area": "area",
+      "landArea": "land",
+      "floor": "floor",
+      "houseFloors": "{count, plural, one {level} other {levels}}",
+      "bathrooms": "{count, plural, one {bathroom} other {bathrooms}}",
+      "yearBuilt": "year built",
+      "plotType": "plot type",
+      "spaceType": "space type",
+      "parkingType": "parking type",
+      "bathroomType": "bathroom",
+      "roommateCount": "{count, plural, one {roommate} other {roommates}}"
+    },
+    "contactDetails": "Contact details",
+    "closeContactDetails": "Close contact details"
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -508,13 +539,6 @@
     "title": "My listings",
     "subtitle": "Manage your published listings in one place.",
     "addNewListing": "Add a new listing",
-    "tabAll": "All",
-    "tabPublished": "Active",
-    "tabPendingReview": "Pending review",
-    "tabRejected": "Rejected",
-    "tabDraft": "Drafts",
-    "tabArchived": "Deactivated",
-    "tabExpired": "Expired",
     "activeUntil": "Live until {date}",
     "expiresSoon": "Expires on {date} — renew it to keep it live",
     "renew": "Renew",
@@ -533,16 +557,47 @@
     "publish": "Publish",
     "submitForReview": "Submit for review",
     "deactivate": "Deactivate",
-    "deactivateConfirm": "Deactivate this listing?",
-    "deactivateConfirmYes": "Yes, deactivate",
     "deactivateConfirmCancel": "Cancel",
     "activate": "Activate",
     "resultsCount": "{count, plural, one {# listing} other {# listings}}",
     "emptyTitle": "You haven't listed anything yet",
     "emptyBody": "Publish your first listing and it'll show up here.",
-    "emptyTitleFiltered": "No listings in this category",
-    "emptyBodyFiltered": "Try a different tab, or check back once your listings change status.",
-    "statusExpired": "Expired"
+    "statusExpired": "Expired",
+    "markAsSold": "Mark as sold",
+    "markAsRented": "Mark as rented",
+    "confirm": {
+      "markAsSold": "Mark this listing as sold? Visitors will see it's no longer available.",
+      "markAsRented": "Mark this listing as rented? Visitors will see it's no longer available.",
+      "deactivate": "Deactivate this listing?"
+    },
+    "confirmYes": {
+      "markAsSold": "Yes, it's sold",
+      "markAsRented": "Yes, it's rented",
+      "deactivate": "Yes, deactivate"
+    },
+    "group": {
+      "active": "Active",
+      "unpublished": "Not published",
+      "ended": "Ended"
+    },
+    "groupEmpty": {
+      "active": "No active listings right now.",
+      "unpublished": "No drafts and nothing in review.",
+      "ended": "No ended listings."
+    },
+    "needsAttention": "Needs your attention",
+    "moreActions": "More actions",
+    "searchLabel": "Search your listings",
+    "searchPlaceholder": "Search by title or address",
+    "sortLabel": "Sort by",
+    "sort": {
+      "recommended": "Recommended",
+      "newest": "Newest",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low"
+    },
+    "searchEmpty": "Nothing in this tab matches “{query}”.",
+    "clearSearch": "Clear search"
   },
   "EditListingPage": {
     "title": "Edit listing",
@@ -977,6 +1032,9 @@
     "you": "You",
     "imagePreview": "📷 Image",
     "newTitle": "Send a message",
+    "backToListing": "Back to the listing",
+    "sendMessage": "Send message",
+    "messageLabel": "Your message",
     "toPublisher": "Your message goes to {name}",
     "firstMessagePlaceholder": "Hello! Is this still available?",
     "safetyTip": "Never pay in advance or share card details or SMS codes.",
@@ -1363,5 +1421,44 @@
       "resolved": "Suspended listings and dismissed reports show up here."
     },
     "contact": "Contact:"
+  },
+  "EndedListing": {
+    "title": "This listing is no longer available",
+    "status": {
+      "Sold": "Sold",
+      "Rented": "Rented",
+      "Expired": "Expired",
+      "Archived": "Withdrawn"
+    },
+    "reason": {
+      "Sold": "The property has been sold.",
+      "Rented": "The property has been rented out.",
+      "Expired": "The listing expired and wasn't renewed.",
+      "Archived": "The author took the listing down."
+    },
+    "lastPrice": "Last price:",
+    "searchSimilar": "Search similar listings in the area",
+    "metaTitle": "{title} — no longer available"
+  },
+  "OwnerListingBar": {
+    "title": "Your listing",
+    "active": "It's public — active until {date}.",
+    "activeRenew": "Expires on {date} — renew it to keep it public.",
+    "activeNoDate": "It's public.",
+    "notPublic": {
+      "Draft": "Draft — not public yet. Submit it for review when it's ready.",
+      "PendingReview": "In review — it goes public once a moderator approves it.",
+      "Expired": "Expired — no longer public. Activate it to bring it back.",
+      "Archived": "Deactivated — not public. You can activate it any time."
+    },
+    "ended": {
+      "Sold": "Marked as sold — visitors see it's no longer available.",
+      "Rented": "Marked as rented — visitors see it's no longer available."
+    },
+    "blocked": {
+      "Rejected": "Rejected by the moderators — not public. Fix it and resubmit.",
+      "Suspended": "Suspended by the moderators — not public."
+    },
+    "reasonLabel": "Reason:"
   }
 }

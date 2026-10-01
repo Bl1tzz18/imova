@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/layout/BackLink";
 import { StartConversationForm } from "@/components/messaging/StartConversationForm";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
@@ -47,7 +48,9 @@ export default async function NewConversationPage({ searchParams }: { searchPara
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <h1 className="font-hero text-2xl font-extrabold text-ink-950">{t("newTitle")}</h1>
+      {/* Changed their mind: back to the listing (the browser's Back when they came from it). */}
+      <BackLink href={`/property/${listing.id}`} label={t("backToListing")} />
+      <h1 className="mt-4 font-hero text-2xl font-extrabold text-ink-950">{t("newTitle")}</h1>
 
       <Link
         href={`/property/${listing.id}`}
@@ -65,10 +68,17 @@ export default async function NewConversationPage({ searchParams }: { searchPara
         </div>
       </Link>
 
-      <div className="mt-5">
+      <p className="mt-8 text-sm font-semibold text-ink-900">{t("messageLabel")}</p>
+      <div className="mt-2">
         <StartConversationForm listingId={listing.id} />
       </div>
-      <p className="mt-3 text-xs text-ink-500">{t("safetyTip")}</p>
+      <p className="mt-4 flex items-start gap-2.5 rounded-xl bg-ink-100/60 px-4 py-3 text-xs leading-5 text-ink-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="mt-px h-4 w-4 shrink-0" aria-hidden>
+          <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z" strokeLinejoin="round" />
+          <path d="M12 8v4M12 15.5h.01" strokeLinecap="round" />
+        </svg>
+        {t("safetyTip")}
+      </p>
     </main>
   );
 }

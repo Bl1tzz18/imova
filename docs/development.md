@@ -59,6 +59,10 @@ The frontend is a Next.js Server Component that fetches from the backend server-
 not `localhost`. If running the frontend outside Docker, `API_URL` defaults to
 `http://localhost:8080`.
 
+`SITE_URL` (server-only, default `http://localhost:3000`) is the site's own public address: page
+metadata (canonical links, the `og:url` of link previews) and the listing page's JSON-LD use it. Set
+it to the real domain in every deployed environment, or shared links will point at localhost.
+
 Backend CORS is currently locked to `http://localhost:3000` (`Program.cs`); update the `"Frontend"`
 CORS policy if the frontend origin changes.
 

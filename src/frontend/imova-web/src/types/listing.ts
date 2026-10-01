@@ -51,6 +51,11 @@ export type ListingContact = {
   // "HH:mm", both or neither — e.g. 09:00 and 18:00.
   callHoursFrom: string | null;
   callHoursTo: string | null;
+  // The person's photo (Self: the publisher's profile picture, else the agency's logo); null for
+  // an "Other" person.
+  pictureUrl: string | null;
+  // Set when an agency publishes the listing — the contact works for it.
+  agencyName: string | null;
 };
 
 export type PublisherType = "Individual" | "Agency";
@@ -148,4 +153,23 @@ export type Listing = {
   isSaved: boolean;
   // Only on the detail view — null/absent on cards and search results.
   contact?: ListingContact | null;
+};
+
+// What may still be shown of a listing that has ended (GET /api/v1/listings/{id} → 410 Gone): no
+// photos, description, address or contact.
+export type EndedListingStatus = "Sold" | "Rented" | "Expired" | "Archived";
+
+export type EndedListing = {
+  id: string;
+  status: EndedListingStatus;
+  transactionType: "Sale" | "Rent";
+  propertyType: string;
+  title: string;
+  price: Listing["price"];
+  totalAreaM2: number;
+  raionId: string;
+  raionName: string;
+  localitateName: string | null;
+  chisinauSectorName: string | null;
+  endedAt: string;
 };

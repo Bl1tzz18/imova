@@ -22,7 +22,12 @@ async function getMyListings(token: string): Promise<Listing[]> {
   return res.json();
 }
 
-export default async function MyListingsPage() {
+export default async function MyListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; q?: string; sort?: string }>;
+}) {
+  const { tab, q, sort } = await searchParams;
   const token = await getSessionToken();
   if (!token) {
     redirect("/login?next=/my-listings");
@@ -43,7 +48,10 @@ export default async function MyListingsPage() {
               <h1 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("title")}</h1>
               <p className="mt-1 text-sm text-ink-500">{t("subtitle")}</p>
             </div>
-            <LinkButton href="/properties/new">{t("addNewListing")}</LinkButton>
+            {/* Phones already have "Adaugă anunț" in the header, right above. */}
+            <div className="hidden sm:block">
+              <LinkButton href="/properties/new">{t("addNewListing")}</LinkButton>
+            </div>
           </div>
 
           {profile && !profile.emailConfirmed && (
@@ -51,7 +59,7 @@ export default async function MyListingsPage() {
           )}
 
           <div className="mt-8">
-            <OwnerListingsList listings={listings} />
+            <OwnerListingsList listings={listings} initialTab={tab} initialQuery={q ?? ""} initialSort={sort} />
           </div>
         </div>
       </main>

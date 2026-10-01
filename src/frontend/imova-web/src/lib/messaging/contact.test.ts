@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { messageButtonEmphasis, messageButtonHref, showsRelayNotice } from "@/lib/messaging/contact";
+import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
 import type { ListingContact } from "@/types/listing";
 
 const contact = (extra: Partial<ListingContact> = {}): ListingContact => ({
@@ -12,6 +12,8 @@ const contact = (extra: Partial<ListingContact> = {}): ListingContact => ({
   hidePhoneNumber: false,
   callHoursFrom: null,
   callHoursTo: null,
+  pictureUrl: null,
+  agencyName: null,
   ...extra,
 });
 
@@ -49,5 +51,24 @@ describe("messageButtonHref", () => {
   it("opens an existing conversation, or the compose page", () => {
     expect(messageButtonHref("L1", true, "C9")).toBe("/messages/C9");
     expect(messageButtonHref("L1", true, null)).toBe("/messages/new?listing=L1");
+  });
+});
+
+describe("mobileContactBar", () => {
+  it("highlights the contact details when the number is public", () => {
+    expect(mobileContactBar(contact(), false)).toEqual({ contactDetails: true, primary: "contactDetails" });
+  });
+
+  it("highlights messages when the owner prefers them or hid the number", () => {
+    expect(mobileContactBar(contact({ preferredContactMethod: "PlatformMessages" }), false)).toEqual({ contactDetails: true, primary: "message" });
+    expect(mobileContactBar(contact({ hidePhoneNumber: true, phone: null }), false)).toEqual({ contactDetails: true, primary: "message" });
+  });
+
+  it("offers only messages for a listing without contact details", () => {
+    expect(mobileContactBar(null, false)).toEqual({ contactDetails: false, primary: "message" });
+  });
+
+  it("shows nothing to the owner", () => {
+    expect(mobileContactBar(contact(), true)).toBeNull();
   });
 });
