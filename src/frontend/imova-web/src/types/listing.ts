@@ -56,6 +56,11 @@ export type ListingContact = {
   pictureUrl: string | null;
   // Set when an agency publishes the listing — the contact works for it.
   agencyName: string | null;
+  // What the public may know of the number before asking for it (POST …/contact/phone): its first
+  // digits and how many follow. `phone` itself is only there for the owner or an admin. Both null
+  // without a number or when the owner hid it.
+  phonePrefix: string | null;
+  phoneHiddenDigits: number | null;
 };
 
 export type PublisherType = "Individual" | "Agency";
@@ -144,6 +149,12 @@ export type Listing = {
   createdAt: string;
   updatedAt: string;
   publishedAt: string | null;
+  // The short public number ("ID 100231").
+  number: number;
+  // Different people who opened it, each counted once a day — never the owner.
+  viewCount: number;
+  // Different people who asked for the phone number — the owner's and admins' only, else null.
+  phoneRevealCount: number | null;
   expiresAt: string | null;
   rejectionReason: string | null;
   suspensionReason: string | null;

@@ -337,7 +337,6 @@
     "roleContactPerson": "Persoană de contact",
     "showPhone": "Arată",
     "showPhoneLabel": "Arată numărul de telefon",
-    "showingPhone": "Se încarcă…",
     "callNumber": "Sună la {phone}",
     "phoneRevealFailed": "Nu am putut afișa numărul. Încearcă din nou.",
     "writeOn": "Scrie pe {app}",
@@ -398,7 +397,11 @@
     "share": "Distribuie",
     "copyLink": "Copiază linkul",
     "linkCopied": "Link copiat",
-    "copyLinkPrompt": "Copiază linkul anunțului:"
+    "copyLinkPrompt": "Copiază linkul anunțului:",
+    "listingNumber": "ID {number}",
+    "viewCount": "{count, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}}",
+    "phoneRevealTooMany": "Ai cerut multe numere într-un timp scurt. Încearcă din nou peste câteva minute.",
+    "phoneUnavailable": "Numărul nu mai este disponibil."
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -603,7 +606,8 @@
       "priceDesc": "Preț descrescător"
     },
     "searchEmpty": "Niciun anunț din această filă nu se potrivește cu „{query}”.",
-    "clearSearch": "Șterge căutarea"
+    "clearSearch": "Șterge căutarea",
+    "stats": "{views, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}} · {reveals, plural, one {# persoană a văzut numărul} few {# persoane au văzut numărul} other {# de persoane au văzut numărul}}"
   },
   "EditListingPage": {
     "title": "Editează anunțul",
@@ -1465,6 +1469,7 @@
       "Rejected": "Respins de moderatori — nu este public. Corectează-l și retrimite-l.",
       "Suspended": "Suspendat de moderatori — nu este public."
     },
-    "reasonLabel": "Motiv:"
+    "reasonLabel": "Motiv:",
+    "stats": "{views, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}} · {reveals, plural, one {# persoană a văzut numărul} few {# persoane au văzut numărul} other {# de persoane au văzut numărul}}"
   }
 }

@@ -63,6 +63,13 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
                 contact => contact == null ? null : JsonSerializer.Serialize(contact, DetailsJsonOptions),
                 json => json == null ? null : JsonSerializer.Deserialize<ListingContact>(json, DetailsJsonOptions));
 
+        // Handed out by the database (an identity column), from 100000 so it always reads as a real
+        // number; existing listings got theirs when the column was added.
+        builder.Property(l => l.Number).UseIdentityByDefaultColumn().HasIdentityOptions(startValue: 100_000);
+        builder.HasIndex(l => l.Number).IsUnique();
+        builder.Property(l => l.ViewCount).HasDefaultValue(0);
+        builder.Property(l => l.PhoneRevealCount).HasDefaultValue(0);
+
         builder.HasIndex(l => l.PropertyId);
         builder.HasIndex(l => l.PublisherId);
         builder.HasIndex(l => l.Status);

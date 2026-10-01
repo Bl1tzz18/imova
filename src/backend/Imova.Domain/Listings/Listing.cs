@@ -96,6 +96,17 @@ public sealed class Listing : AggregateRoot
     // Null unless Status is currently Suspended.
     public string? SuspensionReason { get; private set; }
 
+    // The listing's short public number ("ID 100231") — handed out by the database in creation order;
+    // the Guid stays the real key. 0 until the listing is first saved.
+    public long Number { get; private set; }
+
+    // How many different people opened the listing / asked for its phone number — each one counted at
+    // most once per 24 hours (ListingVisitorMark), never the owner. Only ever raised in the database
+    // (IListingCounters), never by this class, so saving a loaded listing can't overwrite them.
+    public int ViewCount { get; private set; }
+
+    public int PhoneRevealCount { get; private set; }
+
     public static Listing Create(
         Guid propertyId,
         Guid publisherId,

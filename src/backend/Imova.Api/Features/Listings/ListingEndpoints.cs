@@ -5,6 +5,7 @@ using Imova.Api.Features.Listings.GetListings;
 using Imova.Api.Features.Listings.GetMyListings;
 using Imova.Api.Features.Listings.GetPendingReviewListings;
 using Imova.Api.Features.Listings.GetSimilarListings;
+using Imova.Api.Features.Listings.ListingVisitors;
 using Imova.Api.Features.Listings.RejectListing;
 using Imova.Api.Features.Listings.ReportListing;
 using Imova.Api.Features.Listings.SearchListings;
@@ -22,6 +23,7 @@ public static class ListingEndpoints
         app.MapSearchListings();
         app.MapGetListingById();
         app.MapGetSimilarListings();
+        app.MapListingVisitorEndpoints();
         app.MapGetMyListings();
         app.MapCreateListing();
         app.MapUpdateListing();

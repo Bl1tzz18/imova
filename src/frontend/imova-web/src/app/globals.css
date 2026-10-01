@@ -52,6 +52,20 @@ html {
 }
 
 /* The "…is typing" bubble's three dots. */
+/* A revealed phone digit settling into place (ContactActions). */
+@keyframes digit-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.3em);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-3px); opacity: 1; }

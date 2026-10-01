@@ -33,6 +33,7 @@ using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Listings.GetListings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Listings.GetSimilarListings;
+using Imova.Application.Features.Listings.Visitors;
 using Imova.Application.Features.Messaging;
 using Imova.Application.Features.SavedSearches;
 using Imova.Infrastructure;
@@ -230,6 +231,7 @@ builder.Services.AddSingleton(
 builder.Services.AddScoped<MessageDelivery>();
 builder.Services.AddScoped<IListingSearch, ListingSearch>();
 builder.Services.AddScoped<ISimilarListingsFinder, SimilarListingsFinder>();
+builder.Services.AddScoped<IListingCounters, ListingCounters>();
 var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
 builder.Services.AddSingleton(emailOptions);
 if (string.IsNullOrWhiteSpace(emailOptions.Host))

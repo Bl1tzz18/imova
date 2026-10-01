@@ -257,6 +257,12 @@ function OwnerListingRow({ listing, now, showStatus }: { listing: Listing; now: 
 
           <p className="mt-1 sm:hidden">{price}</p>
 
+          {listing.publishedAt && (
+            <p className="mt-1 text-xs text-ink-500">
+              {t("stats", { views: listing.viewCount, reveals: listing.phoneRevealCount ?? 0 })}
+            </p>
+          )}
+
           {expiry.kind === "active" && (
             <p className={cn("mt-1 text-xs", expiry.renewable ? "font-medium text-accent-700" : "text-ink-400")}>
               {expiry.renewable

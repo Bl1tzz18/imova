@@ -102,6 +102,8 @@ public static class AuthRateLimiting
                         QueueLimit = 0,
                     })
                 : RateLimitPartition.GetNoLimiter("disabled"));
+
+            limiter.AddListingVisitorPolicies(configuration);
         });
 
         return services;

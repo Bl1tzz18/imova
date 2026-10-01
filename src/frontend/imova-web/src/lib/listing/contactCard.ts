@@ -6,8 +6,6 @@ import type { ListingContact } from "@/types/listing";
 
 const DEFAULT_COUNTRY = "MD";
 const MASK = "•";
-// Digits hidden until the visitor asks for the number: +373 687 •• •••.
-const HIDDEN_DIGITS = 5;
 
 // "+373 687 53 388" — the international format when the number parses, otherwise as entered.
 export function formatPhone(phone: string): string {
@@ -15,13 +13,33 @@ export function formatPhone(phone: string): string {
   return parsed?.isPossible() ? parsed.formatInternational() : phone.trim();
 }
 
-// The formatted number with its last digits replaced by dots — always at least 3 digits shown.
-export function maskPhone(phone: string): string {
-  const formatted = formatPhone(phone);
-  const totalDigits = formatted.replace(/\D/g, "").length;
-  const shown = Math.max(3, totalDigits - HIDDEN_DIGITS);
+// The number as the contact card draws it, one character at a time, so revealing it changes
+// nothing but the hidden digits: before, the public only knows its first digits (the API's
+// phonePrefix) and how many follow (phoneHiddenDigits) — formatted with stand-in digits, which gives
+// the real number's grouping, then those shown as dots; after, the real number in the same format,
+// the same digit positions marked `hidden` (the ones that fade in).
+export type PhoneGlyph = { char: string; hidden: boolean };
+
+export function maskedPhoneGlyphs(prefix: string, hiddenDigits: number): PhoneGlyph[] {
+  return glyphs(formatPhone(prefix + "0".repeat(hiddenDigits)), hiddenDigits, true);
+}
+
+export function revealedPhoneGlyphs(phone: string, hiddenDigits: number): PhoneGlyph[] {
+  return glyphs(formatPhone(phone), hiddenDigits, false);
+}
+
+function glyphs(text: string, hiddenDigits: number, mask: boolean): PhoneGlyph[] {
+  const total = text.replace(/\D/g, "").length;
   let seen = 0;
-  return formatted.replace(/\d/g, (digit) => (++seen <= shown ? digit : MASK));
+  return Array.from(text).map((char) => {
+    if (!/\d/.test(char)) return { char, hidden: false };
+    const hidden = seen++ >= total - hiddenDigits;
+    return { char: hidden && mask ? MASK : char, hidden };
+  });
+}
+
+export function glyphText(glyphs: PhoneGlyph[]): string {
+  return glyphs.map((g) => g.char).join("");
 }
 
 // Digits only, country code first, no "+" — what the apps' chat links take. A local number

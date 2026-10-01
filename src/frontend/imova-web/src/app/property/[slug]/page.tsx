@@ -15,6 +15,7 @@ import { SimilarListings } from "@/components/property/SimilarListings";
 import { EndedListingView } from "@/components/property/EndedListingView";
 import { OwnerListingBar } from "@/components/property/OwnerListingBar";
 import { ShareListingButton } from "@/components/property/ShareListingButton";
+import { ListingViewTracker } from "@/components/property/ListingViewTracker";
 import { shareText } from "@/lib/listing/share";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
@@ -23,7 +24,7 @@ import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
 import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
-import { contactRole, isMessagingApp, maskPhone } from "@/lib/listing/contactCard";
+import { contactRole, isMessagingApp } from "@/lib/listing/contactCard";
 import { convertFromEur, unitPrice } from "@/lib/listing/price";
 import { getExchangeRates } from "@/lib/api/exchangeRates";
 import { coverPhotoUrl, jsonLdScript, listingJsonLd, listingMetaDescription, listingPath } from "@/lib/listing/seo";
@@ -162,6 +163,9 @@ export default async function ProprietatePage({
       <ListingRentalTerms listing={listing} />
 
       <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
+        <p>
+          {t("listingNumber", { number: listing.number })} · {t("viewCount", { count: listing.viewCount })}
+        </p>
         <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
         {listing.updatedAt !== listing.createdAt && (
           <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
@@ -213,11 +217,12 @@ export default async function ProprietatePage({
       {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
       {!isOwner && messageEmphasis === "primary" && messageButton}
 
-      {contact.phone ? (
+      {contact.phone || contact.phonePrefix ? (
         <ContactActions
           listingId={listing.id}
-          maskedPhone={maskPhone(contact.phone)}
-          ownPhone={isOwner ? contact.phone : null}
+          phonePrefix={contact.phonePrefix ?? ""}
+          hiddenDigits={contact.phoneHiddenDigits ?? 0}
+          ownPhone={contact.phone}
           apps={apps}
           callHours={
             contact.callHoursFrom && contact.callHoursTo
@@ -274,6 +279,8 @@ export default async function ProprietatePage({
           />
 
           {isOwner && <OwnerListingBar listing={listing} />}
+          {/* Counts the visit (once a day per visitor) — never the owner's own. */}
+          {!isOwner && listing.status === "Active" && <ListingViewTracker listingId={listing.id} />}
 
           {/* Title and location above; then the photos (share and save on the main photo) with the
               price & contact beside them. */}

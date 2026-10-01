@@ -337,7 +337,6 @@
     "roleContactPerson": "Contact person",
     "showPhone": "Show",
     "showPhoneLabel": "Show the phone number",
-    "showingPhone": "Loading…",
     "callNumber": "Call {phone}",
     "phoneRevealFailed": "We couldn't show the number. Please try again.",
     "writeOn": "Message on {app}",
@@ -398,7 +397,11 @@
     "share": "Share",
     "copyLink": "Copy link",
     "linkCopied": "Link copied",
-    "copyLinkPrompt": "Copy the listing's link:"
+    "copyLinkPrompt": "Copy the listing's link:",
+    "listingNumber": "ID {number}",
+    "viewCount": "{count, plural, one {# view} other {# views}}",
+    "phoneRevealTooMany": "You asked for many numbers in a short time. Try again in a few minutes.",
+    "phoneUnavailable": "The number is no longer available."
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -603,7 +606,8 @@
       "priceDesc": "Price: high to low"
     },
     "searchEmpty": "Nothing in this tab matches “{query}”.",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "stats": "{views, plural, one {# view} other {# views}} · {reveals, plural, one {# person saw the number} other {# people saw the number}}"
   },
   "EditListingPage": {
     "title": "Edit listing",
@@ -1465,6 +1469,7 @@
       "Rejected": "Rejected by the moderators — not public. Fix it and resubmit.",
       "Suspended": "Suspended by the moderators — not public."
     },
-    "reasonLabel": "Reason:"
+    "reasonLabel": "Reason:",
+    "stats": "{views, plural, one {# view} other {# views}} · {reveals, plural, one {# person saw the number} other {# people saw the number}}"
   }
 }

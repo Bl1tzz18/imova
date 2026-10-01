@@ -33,7 +33,9 @@ public class GetListingByIdHandlerTests
         var dto = await GetAsync(listing.Id);
 
         Assert.NotNull(dto);
-        Assert.Equal("+373 69 123 456", dto!.Contact!.Phone);
+        // The public gets the number's shape; the number itself only on request (RevealListingPhone).
+        Assert.Null(dto!.Contact!.Phone);
+        Assert.Equal("+373691", dto.Contact.PhonePrefix);
         // The email is the owner's/admins' only — a visitor gets the phone, apps and messages.
         Assert.Null(dto.Contact.Email);
         Assert.Null(dto.Publisher.Phone);
