@@ -374,6 +374,7 @@
     "propertyDetails": "Property details",
     "propertyDetailsHint": "Everything the owner filled in, by category.",
     "locationTitle": "Location",
+    "similarListings": "Similar listings",
     "keyFacts": {
       "rooms": "{count, plural, one {room} other {rooms}}",
       "area": "area",

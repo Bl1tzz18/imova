@@ -10,6 +10,7 @@ import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { ReportListingButton } from "@/components/property/ReportListingButton";
 import { ContactSheet } from "@/components/property/ContactSheet";
 import { ContactActions } from "@/components/property/ContactActions";
+import { SimilarListings } from "@/components/property/SimilarListings";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
 import { formatDate, formatFullLocation, formatPrice } from "@/lib/utils/format";
@@ -41,13 +42,28 @@ async function getListing(id: string): Promise<Listing | null> {
   return res.json();
 }
 
+// "Anunțuri asemănătoare": an extra, not the page — any failure just leaves the section out.
+async function getSimilarListings(id: string): Promise<Listing[]> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/listings/${id}/similar`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      cache: "no-store",
+    });
+    return res.ok ? ((await res.json()) as Listing[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function ProprietatePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug: id } = await params;
-  const listing = await getListing(id);
+  const [listing, similarListings] = await Promise.all([getListing(id), getSimilarListings(id)]);
 
   if (!listing) {
     notFound();
@@ -295,6 +311,9 @@ export default async function ProprietatePage({
               )}
             </aside>
           </div>
+
+          {/* After everything about this listing — on a phone too, below the contact card. */}
+          <SimilarListings listings={similarListings} title={t("similarListings")} />
         </div>
       </main>
 

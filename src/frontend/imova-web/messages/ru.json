@@ -374,6 +374,7 @@
     "propertyDetails": "Характеристики",
     "propertyDetailsHint": "Всё, что указал владелец, по категориям.",
     "locationTitle": "Расположение",
+    "similarListings": "Похожие объявления",
     "keyFacts": {
       "rooms": "{count, plural, one {комната} few {комнаты} many {комнат} other {комнаты}}",
       "area": "площадь",

@@ -374,6 +374,7 @@
     "propertyDetails": "Detalii proprietate",
     "propertyDetailsHint": "Tot ce a completat proprietarul, pe categorii.",
     "locationTitle": "Locație",
+    "similarListings": "Anunțuri asemănătoare",
     "keyFacts": {
       "rooms": "{count, plural, one {cameră} few {camere} other {de camere}}",
       "area": "suprafață",
