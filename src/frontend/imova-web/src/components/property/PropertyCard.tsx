@@ -5,7 +5,7 @@ import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import { coverPhoto, numberAttribute } from "@/lib/listing/view";
+import { coverPhoto, numberAttribute, photoSrcSet } from "@/lib/listing/view";
 import type { Listing } from "@/types/listing";
 
 export function PropertyCard({
@@ -41,7 +41,9 @@ export function PropertyCard({
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={cover.url}
+            src={cover.cardUrl}
+            srcSet={photoSrcSet(cover, "card")}
+            sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
             alt={listing.title}
             loading="lazy"
             className={cn(

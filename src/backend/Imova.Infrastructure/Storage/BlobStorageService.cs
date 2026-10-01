@@ -188,9 +188,19 @@ public sealed class BlobStorageService : IBlobStorageService
     public async Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
     {
         var blobClient = _containerClient.GetBlobClient(blobName);
+
+        // Every name written here is new (a fresh Guid, or derived from one — see PhotoSizes) and
+        // never gets different content, so browsers may keep the file for a year.
         await blobClient.UploadAsync(
             content,
-            new BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = contentType } },
+            new BlobUploadOptions
+            {
+                HttpHeaders = new BlobHttpHeaders
+                {
+                    ContentType = contentType,
+                    CacheControl = "public, max-age=31536000, immutable",
+                },
+            },
             cancellationToken);
     }
 

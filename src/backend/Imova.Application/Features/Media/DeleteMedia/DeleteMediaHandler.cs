@@ -1,5 +1,6 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings;
+using Imova.Application.Features.Media.Sizes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,7 +51,10 @@ public class DeleteMediaHandler(IApplicationDbContext dbContext, IBlobStorageSer
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        await blobStorageService.DeleteAsync(photo.BlobName, cancellationToken);
+        foreach (var blobName in PhotoSizes.AllBlobNames(photo))
+        {
+            await blobStorageService.DeleteAsync(blobName, cancellationToken);
+        }
 
         return true;
     }

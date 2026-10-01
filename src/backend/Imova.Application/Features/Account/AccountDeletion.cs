@@ -1,5 +1,6 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings;
+using Imova.Application.Features.Media.Sizes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -64,7 +65,7 @@ public class AccountDeletion(
             .Where(p => !dbContext.Listings.Any(l => l.Id == p.ListingId))
             .ToListAsync(cancellationToken);
         dbContext.Photos.RemoveRange(strayPhotos);
-        publicBlobs.UnionWith(strayPhotos.Select(p => p.BlobName));
+        publicBlobs.UnionWith(strayPhotos.SelectMany(PhotoSizes.AllBlobNames));
 
         dbContext.Favorites.RemoveRange(await dbContext.Favorites.Where(f => f.UserId == userId).ToListAsync(cancellationToken));
         dbContext.SavedSearches.RemoveRange(await dbContext.SavedSearches.Where(s => s.UserId == userId).ToListAsync(cancellationToken));

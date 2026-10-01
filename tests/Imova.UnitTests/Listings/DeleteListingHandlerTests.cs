@@ -37,7 +37,7 @@ public class DeleteListingHandlerTests
         Assert.True(result);
         Assert.Empty(_dbContext.Listings);
         Assert.Empty(_dbContext.Photos);
-        Assert.Equal([$"{listing.Id}/a.jpg"], _blobs.DeletedBlobNames);
+        Assert.Equal([$"{listing.Id}/a.jpg", $"{listing.Id}/a_400.jpg", $"{listing.Id}/a_800.jpg", $"{listing.Id}/a_1600.jpg"], _blobs.DeletedBlobNames);
         Assert.Empty(_dbContext.Favorites);
         Assert.Empty(_dbContext.Properties);
         Assert.Empty(_dbContext.PropertyLocations);

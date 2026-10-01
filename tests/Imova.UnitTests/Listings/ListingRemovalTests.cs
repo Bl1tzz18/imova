@@ -41,6 +41,6 @@ public class ListingRemovalTests
         Assert.False(await db.Properties.AnyAsync());
         Assert.False(await db.PropertyLocations.AnyAsync());
         Assert.False(await db.Photos.AnyAsync());
-        Assert.Equal(["rental/1.jpg"], blobs);
+        Assert.Equal(["rental/1.jpg", "rental/1_400.jpg", "rental/1_800.jpg", "rental/1_1600.jpg"], blobs);
     }
 }

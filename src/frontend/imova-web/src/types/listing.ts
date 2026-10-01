@@ -78,10 +78,14 @@ export type Publisher = {
   bio: string | null;
 };
 
+// url is the large display size (≤1600px), cardUrl ≤800px, thumbnailUrl ≤400px — JPEGs made from the
+// upload. Until they exist (briefly, after an upload whose sizes failed) all three are the original.
 export type Photo = {
   id: string;
   listingId: string;
   url: string;
+  thumbnailUrl: string;
+  cardUrl: string;
   contentType: string;
   fileSizeBytes: number;
   moderationStatus: string;

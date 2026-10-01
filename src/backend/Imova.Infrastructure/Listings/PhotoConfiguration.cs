@@ -22,5 +22,9 @@ public class PhotoConfiguration : IEntityTypeConfiguration<Photo>
         builder.Property(p => p.ContentType).IsRequired().HasMaxLength(100);
         builder.Property(p => p.ModerationStatus).IsRequired();
         builder.Property(p => p.IsPrimary).IsRequired();
+
+        // What the photo-sizes backfill looks for (see PhotoSizeBackfill).
+        builder.Property(p => p.SizesVersion).IsRequired().HasDefaultValue(0);
+        builder.HasIndex(p => p.SizesVersion);
     }
 }

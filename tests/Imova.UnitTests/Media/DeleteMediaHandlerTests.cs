@@ -1,5 +1,6 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Features.Media.DeleteMedia;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
@@ -37,7 +38,7 @@ public class DeleteMediaHandlerTests
 
         Assert.True(result);
         Assert.Empty(dbContext.Photos);
-        Assert.Contains(photo.BlobName, blobStorage.DeletedBlobNames);
+        Assert.Equal(PhotoSizes.AllBlobNames(photo), blobStorage.DeletedBlobNames);
     }
 
     [Fact]

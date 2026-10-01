@@ -59,7 +59,7 @@ export default async function NewConversationPage({ searchParams }: { searchPara
         <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-ink-100">
           {photo && (
             // eslint-disable-next-line @next/next/no-img-element -- blob storage URL
-            <img src={photo.url} alt="" className="h-full w-full object-cover" />
+            <img src={photo.thumbnailUrl} alt="" className="h-full w-full object-cover" />
           )}
         </div>
         <div className="min-w-0">
