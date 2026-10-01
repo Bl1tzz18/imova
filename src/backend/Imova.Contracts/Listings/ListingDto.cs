@@ -29,7 +29,29 @@ public record ListingDto(
     int? ViewCount,
     int? PhoneRevealCount,
     // Only on a listing's detail view (null on cards/search results) — see ListingContactDto.
-    ListingContactDto? Contact = null);
+    ListingContactDto? Contact = null,
+    // "Preț redus": set while the price is down from what it was before its latest drop (see
+    // ListingPriceHistory for the rule) — on every view, so cards can show it.
+    PriceReductionDto? PriceReduction = null,
+    // The price changes since the listing was first published, oldest first (at most the latest
+    // ListingPriceHistory.MaxEntries) — only on the detail view, null elsewhere.
+    PriceHistoryDto? PriceHistory = null);
+
+// Percent: how much lower, rounded (from EUR values when the currency changed).
+public record PriceReductionDto(decimal PreviousAmount, string PreviousCurrency, int Percent, DateTimeOffset ReducedAt);
+
+// StartsAtPublication: Changes[0]'s old price is the price it was published at (false when older
+// changes were left out).
+public record PriceHistoryDto(bool StartsAtPublication, IReadOnlyList<PriceChangeDto> Changes);
+
+// ChangePercent is signed: negative = cheaper.
+public record PriceChangeDto(
+    decimal OldAmount,
+    string OldCurrency,
+    decimal NewAmount,
+    string NewCurrency,
+    int ChangePercent,
+    DateTimeOffset ChangedAt);
 
 public record PriceDto(decimal Amount, string Currency, decimal PriceEur, bool IsNegotiable);
 

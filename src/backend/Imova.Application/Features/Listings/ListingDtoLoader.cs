@@ -1,4 +1,5 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings.PriceHistory;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Imova.Application.Features.Listings;
 
 // Builds ListingDtos for an already-loaded set of listings: one batched query each for their
-// properties (+ amenities, proximities), locations, publishers, photos, and the caller's favorites, instead of
+// properties (+ amenities, proximities), locations, publishers, photos, price changes and the caller's favorites, instead of
 // every listing-returning handler repeating those joins. Output order matches the input order.
 public static class ListingDtoLoader
 {
@@ -73,6 +74,19 @@ public static class ListingDtoLoader
                 g => g.Key,
                 g => (IReadOnlyList<PhotoDto>)g.Select(p => p.ToDto(blobStorageService)).ToList());
 
+        // Price changes, for "Preț redus" (every view) and the price history (detail view only);
+        // only published listings can have public ones.
+        var publishedIds = listings.Where(l => l.PublishedAt != null).Select(l => l.Id).ToList();
+        var priceChangesByListingId = publishedIds.Count == 0
+            ? []
+            : (await dbContext.ListingPriceChanges
+                    .AsNoTracking()
+                    .Where(c => publishedIds.Contains(c.ListingId))
+                    .ToListAsync(cancellationToken))
+                .GroupBy(c => c.ListingId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        var now = DateTimeOffset.UtcNow;
+
         var savedListingIds = currentUserId is null
             ? []
             : await dbContext.Favorites
@@ -86,7 +100,9 @@ public static class ListingDtoLoader
             {
                 var property = propertiesById[listing.PropertyId];
                 var publisher = publishersById[listing.PublisherId];
-                return listing.ToDto(
+                var priceChanges = ListingPriceHistory.PublicChanges(
+                    priceChangesByListingId.GetValueOrDefault(listing.Id) ?? [], listing.PublishedAt);
+                var dto = listing.ToDto(
                     property,
                     locationsById.GetValueOrDefault(property.LocationId),
                     publisher,
@@ -97,6 +113,11 @@ public static class ListingDtoLoader
                     includeContactDetails,
                     canSeePrivateDetails: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId),
                     publisherPerson: peopleByUserId.GetValueOrDefault(publisher.UserId));
+                return dto with
+                {
+                    PriceReduction = ListingPriceHistory.Reduction(priceChanges, listing.Price, now),
+                    PriceHistory = includeContactDetails ? ListingPriceHistory.History(priceChanges) : null,
+                };
             })
             .ToList();
     }

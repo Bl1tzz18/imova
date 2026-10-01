@@ -4,6 +4,8 @@ const tones = {
   brand: "bg-brand-50 text-brand-800",
   accent: "bg-accent-100 text-accent-700",
   neutral: "bg-ink-100 text-ink-700",
+  // Good news for the reader (a lower price).
+  success: "bg-emerald-50 text-emerald-700",
 } as const;
 
 export function Badge({

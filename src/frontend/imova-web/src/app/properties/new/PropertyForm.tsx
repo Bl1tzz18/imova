@@ -11,7 +11,8 @@ import { StepPriceTerms } from "@/components/property/listing-form/StepPriceTerm
 import { StepContact } from "@/components/property/listing-form/StepContact";
 import { ListingTips } from "@/components/property/listing-form/ListingTips";
 import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
-import { updateListingDetails } from "@/lib/property/actions";
+import { ListingSavedDialog } from "@/components/property/listing-form/ListingSavedDialog";
+import { updateListingDetails, type UpdateListingState } from "@/lib/property/actions";
 import { createListing, type CreateListingState } from "./actions";
 import type { Listing, Publisher } from "@/types/listing";
 
@@ -230,10 +231,15 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
             </p>
           )}
 
-          {state.success && isEdit && (
-            <p className="mt-6 rounded-xl border border-brand-100 bg-brand-100/60 px-4 py-3 text-sm text-brand-700">
-              {wasRejected ? tEdit("savedAndResubmitted") : tEdit("saved")}
-            </p>
+          {/* Edit mode: every successful save opens a dialog saying what it did and where to go next. */}
+          {isEdit && (
+            <ListingSavedDialog
+              listingId={listing.id}
+              savedAt={(state as UpdateListingState).savedAt}
+              status={(state as UpdateListingState).status}
+              wasRejected={wasRejected}
+              priceReduction={(state as UpdateListingState).priceReduction}
+            />
           )}
 
           <div className="mt-8 flex items-center justify-between">
