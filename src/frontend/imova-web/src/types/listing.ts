@@ -78,6 +78,31 @@ export type Publisher = {
   bio: string | null;
 };
 
+// "Preț redus": the price is down `percent` from previousAmount since reducedAt (rule: the API's
+// ListingPriceHistory).
+export type PriceReduction = {
+  previousAmount: number;
+  previousCurrency: string;
+  percent: number;
+  reducedAt: string;
+};
+
+// changePercent is signed (negative = cheaper).
+export type PriceChange = {
+  oldAmount: number;
+  oldCurrency: string;
+  newAmount: number;
+  newCurrency: string;
+  changePercent: number;
+  changedAt: string;
+};
+
+// Oldest first; startsAtPublication: changes[0].oldAmount is the price it was published at.
+export type PriceHistory = {
+  startsAtPublication: boolean;
+  changes: PriceChange[];
+};
+
 // url is the large display size (≤1600px), cardUrl ≤800px, thumbnailUrl ≤400px — JPEGs made from the
 // upload. Until they exist (briefly, after an upload whose sizes failed) all three are the original.
 export type Photo = {
@@ -168,6 +193,10 @@ export type Listing = {
   isSaved: boolean;
   // Only on the detail view — null/absent on cards and search results.
   contact?: ListingContact | null;
+  // On every view while the price is down (cards show it too).
+  priceReduction?: PriceReduction | null;
+  // Only on the detail view; null when the price never changed since publication.
+  priceHistory?: PriceHistory | null;
 };
 
 // What may still be shown of a listing that has ended (GET /api/v1/listings/{id} → 410 Gone): no

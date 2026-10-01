@@ -65,7 +65,17 @@ public record ExportedPublisherDto(
     string? Bio,
     DateTimeOffset CreatedAt);
 
-public record ExportedListingDto(ListingDto Listing, IReadOnlyList<string> PhotoFiles);
+public record ExportedListingDto(ListingDto Listing, IReadOnlyList<string> PhotoFiles, IReadOnlyList<ExportedPriceChangeDto> PriceHistory);
+
+// Each edit that changed the asking price, oldest first; the EUR amounts are as converted then.
+public record ExportedPriceChangeDto(
+    decimal OldAmount,
+    string OldCurrency,
+    decimal OldPriceEur,
+    decimal NewAmount,
+    string NewCurrency,
+    decimal NewPriceEur,
+    DateTimeOffset ChangedAt);
 
 // Uploaded while filling in a listing that was never created.
 public record ExportedPhotoDto(Guid ListingId, string File, DateTimeOffset UploadedAt);

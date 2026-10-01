@@ -6,6 +6,7 @@ import { SaveListingButton } from "@/components/property/SaveListingButton";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import { coverPhoto, numberAttribute, photoSrcSet } from "@/lib/listing/view";
+import { formatPercentChange } from "@/lib/listing/priceHistory";
 import type { Listing } from "@/types/listing";
 
 export function PropertyCard({
@@ -24,8 +25,10 @@ export function PropertyCard({
   const tListing = useTranslations("ListingType");
   const tDetail = useTranslations("PropertyDetail");
   const tCard = useTranslations("PropertyCard");
+  const tPrice = useTranslations("PriceHistory");
   const location = formatLocation(listing.property.location);
   const isUnavailable = listing.status !== "Active";
+  const reduction = isUnavailable ? null : listing.priceReduction;
   // Rooms/floors live in the per-type attributes now — only some property types have them.
   const rooms = numberAttribute(listing, "rooms");
   const floor = numberAttribute(listing, "floor");
@@ -80,12 +83,24 @@ export function PropertyCard({
       </div>
 
       <div className={cn("flex flex-1 flex-col gap-2 p-4", isUnavailable && "opacity-60")}>
-        <p className="font-display text-xl font-medium text-ink-950">
-          {formatPrice(listing.price.amount, listing.price.currency)}
-          {listing.transactionType === "Rent" && !hidePerMonthSuffix && (
-            <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <p className="font-display text-xl font-medium text-ink-950">
+            {formatPrice(listing.price.amount, listing.price.currency)}
+            {listing.transactionType === "Rent" && !hidePerMonthSuffix && (
+              <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
+            )}
+          </p>
+          {/* "Preț redus": the old price struck through, and by how much. */}
+          {reduction && (
+            <p className="flex items-baseline gap-1.5 text-sm">
+              <span className="sr-only">{tPrice("previousPrice")}</span>
+              <s className="text-ink-400">{formatPrice(reduction.previousAmount, reduction.previousCurrency)}</s>
+              <Badge tone="success" className="px-2 py-0.5">
+                {formatPercentChange(-reduction.percent)}
+              </Badge>
+            </p>
           )}
-        </p>
+        </div>
 
         <h3 className="line-clamp-2 text-sm font-medium leading-snug text-ink-800">
           {listing.title}

@@ -71,10 +71,10 @@ public static class PersonalDataArchive
         RO
         Această arhivă conține toate datele pe care IMOVA le păstrează despre contul tău:
           {DataFileName}  datele contului, sesiunile de autentificare, profilurile de publicare,
-                          anunțurile (cu toate detaliile lor), favoritele, căutările salvate,
-                          conversațiile (mesajele trimise și primite), utilizatorii blocați și
-                          sesizările trimise — în format JSON, ce poate fi deschis sau importat
-                          în alte aplicații.
+                          anunțurile (cu toate detaliile lor și istoricul prețului),
+                          favoritele, căutările salvate, conversațiile (mesajele trimise și
+                          primite), utilizatorii blocați și sesizările trimise — în format
+                          JSON, ce poate fi deschis sau importat în alte aplicații.
           profile/        fotografia de profil
           listings/       fotografiile anunțurilor tale
           photos-not-in-a-listing/  fotografii încărcate pentru anunțuri nepublicate
@@ -85,9 +85,10 @@ public static class PersonalDataArchive
         EN
         This archive holds everything IMOVA stores about your account:
           {DataFileName}  account details, sign-in sessions, publisher profiles, listings (with
-                          all their details), favorites, saved searches, conversations (messages
-                          sent and received), blocked users and reports you filed — as JSON,
-                          readable by people and importable by other software.
+                          all their details and price history), favorites, saved searches,
+                          conversations (messages sent and received), blocked users and reports
+                          you filed — as JSON, readable by people and importable by other
+                          software.
           profile/        your profile picture
           listings/       your listings' photos
           photos-not-in-a-listing/  photos uploaded for listings that were never created

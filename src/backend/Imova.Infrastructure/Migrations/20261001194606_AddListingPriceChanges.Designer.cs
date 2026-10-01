@@ -3,6 +3,7 @@ using System;
 using Imova.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Imova.Infrastructure.Migrations
 {
     [DbContext(typeof(ImovaDbContext))]
-    partial class ImovaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261001194606_AddListingPriceChanges")]
+    partial class AddListingPriceChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -811,14 +814,6 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<int>("ModerationStatus")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("SizesFailedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("SizesVersion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
@@ -831,8 +826,6 @@ namespace Imova.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("ListingId");
-
-                    b.HasIndex("SizesVersion");
 
                     b.ToTable("Photos", (string)null);
                 });
