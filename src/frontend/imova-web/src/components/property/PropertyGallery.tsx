@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { swipeDirection } from "@/lib/listing/swipe";
@@ -23,10 +23,14 @@ export function PropertyGallery({
   media,
   title,
   propertyType,
+  actions,
 }: {
   media: Photo[];
   title: string;
   propertyType: string;
+  // Round buttons in the main photo's top-right corner (share, save) — beside the photo's own
+  // button, not inside it, so tapping them never opens the gallery.
+  actions?: ReactNode;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const t = useTranslations("PropertyDetail");
@@ -75,38 +79,44 @@ export function PropertyGallery({
     };
   }, [openIndex, close, showPrev, showNext]);
 
+  const corner = actions && <div className="absolute right-3 top-3 z-10 flex gap-2">{actions}</div>;
+
   if (media.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600">
-        <div className="flex aspect-[4/3] items-center justify-center sm:aspect-[16/9]">
+      <div className="relative">
+        <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600 sm:aspect-[16/9]">
           <PropertyIcon type={propertyType} className="h-20 w-20 text-white/25 sm:h-28 sm:w-28" />
         </div>
+        {corner}
       </div>
     );
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={(e) => open(0, e.currentTarget)}
-        aria-label={t("openGallery", { count: media.length })}
-        className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
-      >
-        <div className="relative aspect-[4/3] sm:aspect-[16/9]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={media[0].url}
-            alt={title}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-          {media.length > 1 && (
-            <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-              {t("photoCount", { count: media.length })}
-            </span>
-          )}
-        </div>
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={(e) => open(0, e.currentTarget)}
+          aria-label={t("openGallery", { count: media.length })}
+          className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
+        >
+          <div className="relative aspect-[4/3] sm:aspect-[16/9]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={media[0].url}
+              alt={title}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
+            {media.length > 1 && (
+              <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+                {t("photoCount", { count: media.length })}
+              </span>
+            )}
+          </div>
+        </button>
+        {corner}
+      </div>
 
       {media.length > 1 && (
         <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-6">

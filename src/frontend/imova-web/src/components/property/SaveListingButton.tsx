@@ -21,16 +21,17 @@ function HeartIcon({ filled, className }: { filled: boolean; className?: string 
   );
 }
 
-// Icon-only (listing cards) or icon+label (listing detail page) — same toggle logic either way.
+// The heart over a listing's photo — on its card ("md") and on the listing page's main photo ("lg",
+// beside "Distribuie").
 export function SaveListingButton({
   listingId,
   initialSaved,
-  variant = "icon",
+  size = "md",
   className,
 }: {
   listingId: string;
   initialSaved: boolean;
-  variant?: "icon" | "labeled";
+  size?: "md" | "lg";
   className?: string;
 }) {
   const t = useTranslations("PropertyCard");
@@ -54,29 +55,6 @@ export function SaveListingButton({
     });
   }
 
-  if (variant === "labeled") {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={pending}
-        aria-pressed={saved}
-        aria-label={saved ? t("savedListing") : t("saveListing")}
-        // A round icon on a phone (beside "Distribuie", on the badges' row); with its words from sm up.
-        className={cn(
-          "inline-flex h-[42px] w-[42px] items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors disabled:opacity-60 sm:w-auto sm:px-4",
-          saved
-            ? "border-accent-200 bg-accent-50 text-accent-700 hover:bg-accent-100"
-            : "border-ink-200 bg-white text-ink-700 hover:bg-ink-50",
-          className,
-        )}
-      >
-        <HeartIcon filled={saved} className="h-4 w-4" />
-        <span className="hidden sm:inline">{saved ? t("savedListing") : t("saveListing")}</span>
-      </button>
-    );
-  }
-
   return (
     <button
       type="button"
@@ -85,7 +63,8 @@ export function SaveListingButton({
       aria-pressed={saved}
       aria-label={saved ? t("savedListing") : t("saveListing")}
       className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-colors hover:bg-white disabled:opacity-70",
+        "flex items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition-colors hover:bg-white disabled:opacity-70",
+        size === "lg" ? "h-10 w-10" : "h-9 w-9",
         saved ? "text-accent-600" : "text-ink-600",
         className,
       )}

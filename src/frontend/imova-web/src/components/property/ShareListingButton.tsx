@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { siFacebook, siTelegram, siViber, siWhatsapp, type SimpleIcon } from "simple-icons";
 import { DropdownMenu } from "@/components/ui/DropdownMenu";
 import { shareHref, type ShareTarget } from "@/lib/listing/share";
-import { cn } from "@/lib/utils/cn";
 
 const TARGETS: { id: ShareTarget; label: string; icon: SimpleIcon }[] = [
   { id: "whatsapp", label: "WhatsApp", icon: siWhatsapp },
@@ -22,7 +21,7 @@ function BrandIcon({ icon }: { icon: SimpleIcon }) {
   );
 }
 
-// "Distribuie" beside "Salvează anunțul". Where the device has its own share sheet (phones, some
+// "Distribuie" — a round icon on the listing's main photo, beside the heart. Where the device has its own share sheet (phones, some
 // desktops) that opens, with every app and contact the person has; elsewhere a menu: copy the link,
 // WhatsApp, Viber, Telegram, Facebook. `url` is the listing's canonical address.
 export function ShareListingButton({ url, title, text }: { url: string; title: string; text: string }) {
@@ -51,23 +50,16 @@ export function ShareListingButton({ url, title, text }: { url: string; title: s
     }
   }
 
-  const triggerClass = cn(
-    "inline-flex h-[42px] items-center justify-center gap-2 rounded-full border border-ink-200 bg-white text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600",
-    "w-[42px] sm:w-auto sm:px-4",
-  );
-  const content = (
-    <>
-      {copied ? (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-brand-700" aria-hidden>
-          <path d="m5 12 5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
-          <path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-      <span className="hidden sm:inline">{copied ? t("linkCopied") : t("share")}</span>
-    </>
+  const triggerClass =
+    "flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink-700 shadow-sm backdrop-blur transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600";
+  const content = copied ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-[18px] w-[18px] text-brand-700" aria-hidden>
+      <path d="m5 12 5 5L20 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[18px] w-[18px]" aria-hidden>
+      <path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 
   return (

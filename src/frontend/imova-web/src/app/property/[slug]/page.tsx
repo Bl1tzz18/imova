@@ -275,28 +275,14 @@ export default async function ProprietatePage({
 
           {isOwner && <OwnerListingBar listing={listing} />}
 
-          {/* Title, location and save above; then the photos with the price & contact beside them. */}
+          {/* Title and location above; then the photos (share and save on the main photo) with the
+              price & contact beside them. */}
           <div className="mt-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
-                  {tListing(listing.transactionType)}
-                </Badge>
-                <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShareListingButton
-                  url={`${siteUrl()}${listingPath(listing.id)}`}
-                  title={listing.title}
-                  text={shareText([
-                    listing.title,
-                    formatPrice(listing.price.amount, listing.price.currency) +
-                      (listing.transactionType === "Rent" ? ` ${tCard("perMonth")}` : ""),
-                    formatLocation(listing.property.location),
-                  ])}
-                />
-                <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
+                {tListing(listing.transactionType)}
+              </Badge>
+              <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
             </div>
 
             <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">
@@ -316,7 +302,26 @@ export default async function ProprietatePage({
 
           <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
-              <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
+              <PropertyGallery
+                media={listing.photos}
+                title={listing.title}
+                propertyType={listing.property.propertyType}
+                actions={
+                  <>
+                    <ShareListingButton
+                      url={`${siteUrl()}${listingPath(listing.id)}`}
+                      title={listing.title}
+                      text={shareText([
+                        listing.title,
+                        formatPrice(listing.price.amount, listing.price.currency) +
+                          (listing.transactionType === "Rent" ? ` ${tCard("perMonth")}` : ""),
+                        formatLocation(listing.property.location),
+                      ])}
+                    />
+                    <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} size="lg" />
+                  </>
+                }
+              />
 
               <div className="mt-5 lg:hidden">{priceCard}</div>
 
