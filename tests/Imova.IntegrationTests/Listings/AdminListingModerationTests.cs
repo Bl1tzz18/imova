@@ -50,6 +50,14 @@ public class AdminListingModerationTests(WebApplicationFactory<Program> factory)
         Assert.Equal(0, row.PhoneRevealCount);
         Assert.True(row.Number >= 100_000);
 
+        // Support hears the short ID on the phone: it finds the listing, with or without "ID".
+        foreach (var q in new[] { row.Number.ToString(), $"ID {row.Number}" })
+        {
+            var found = await admin.GetFromJsonAsync<PagedResult<ListingDto>>(
+                $"/api/v1/admin/listings?status=PendingReview&q={Uri.EscapeDataString(q)}");
+            Assert.Equal(listing.Id, Assert.Single(found!.Items).Id);
+        }
+
         await owner.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }
 

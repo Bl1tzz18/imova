@@ -29,6 +29,10 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
             {
                 query = query.Where(l => l.Id == listingId);
             }
+            else if (ListingNumberIn(term) is { } number)
+            {
+                query = query.Where(l => l.Number == number);
+            }
             else
             {
                 var lower = term.ToLower();
@@ -62,6 +66,14 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
     }
 
     // "https://imova.md/property/<id>", "<id>" — the admin usually has the listing's link at hand.
+    // The listing's short public number, as a visitor would quote it: "100015" or "ID 100015".
+    private static long? ListingNumberIn(string term)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            term, @"^(?:id\s*)?(\d{6,18})$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success && long.TryParse(match.Groups[1].Value, out var number) ? number : null;
+    }
+
     private static Guid? ListingIdIn(string term)
     {
         var match = System.Text.RegularExpressions.Regex.Match(
