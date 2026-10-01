@@ -42,6 +42,7 @@ public class UpdateListingHandler(
             ListingWriteSupport.AmenityIds(request),
             ListingWriteSupport.ProximityIds(request));
 
+        var oldPrice = listing.Price;
         listing.UpdateDetails(
             request.TransactionType,
             request.Title,
@@ -51,6 +52,12 @@ public class UpdateListingHandler(
             request.TransactionType == TransactionType.Sale ? listing.SaleDetails : null,
             ListingWriteSupport.RentalDetails(request),
             request.Contact);
+
+        // Price history (see ListingPriceChange): only when the asking price itself changed.
+        if (ListingPriceChange.Between(listing.Id, oldPrice, listing.Price, listing.UpdatedAt) is { } priceChange)
+        {
+            dbContext.ListingPriceChanges.Add(priceChange);
+        }
 
         // Saving edits to a Rejected listing is the owner's way of addressing whatever an admin
         // flagged — resubmit it in the same step instead of making them press a separate button.

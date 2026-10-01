@@ -86,6 +86,25 @@ public class PersonalDataExportTests
         Assert.Contains(export.Files, f => f.Path == $"listings/{_f.Listing.Id}/photo-01.jpg" && f.BlobName == first.BlobName);
         Assert.Contains(export.Files, f => f.Path == $"listings/{_f.Listing.Id}/photo-02.jpg" && f.BlobName == second.BlobName);
         Assert.Contains(export.Files, f => f.Path == "profile/picture.png" && f.Source == ExportFileSource.Public);
+        Assert.Empty(listing.PriceHistory);
+    }
+
+    [Fact]
+    public async Task Export_HoldsEachListingsPriceHistory_OldestFirst()
+    {
+        var mdl = Price.Create(1_000_000m, Currency.MDL, false, eurRate: 0.05m);
+        _f.Db.ListingPriceChanges.Add(ListingPriceChange.Between(_f.Listing.Id, ListingTestData.Eur(52_000m), mdl, _f.Clock.Now)!);
+        _f.Db.ListingPriceChanges.Add(ListingPriceChange.Between(_f.Listing.Id, ListingTestData.Eur(55_000m), ListingTestData.Eur(52_000m), _f.Clock.Now.AddDays(-3))!);
+        await _f.Db.SaveChangesAsync();
+
+        var history = Assert.Single((await ExportAsync(_f.Seller.Id)).Data.Listings).PriceHistory;
+
+        Assert.Equal(
+            [
+                new ExportedPriceChangeDto(55_000m, "EUR", 55_000m, 52_000m, "EUR", 52_000m, _f.Clock.Now.AddDays(-3)),
+                new ExportedPriceChangeDto(52_000m, "EUR", 52_000m, 1_000_000m, "MDL", 50_000m, _f.Clock.Now),
+            ],
+            history);
     }
 
     [Fact]

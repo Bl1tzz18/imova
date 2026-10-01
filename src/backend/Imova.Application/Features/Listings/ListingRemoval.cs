@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Imova.Application.Features.Listings;
 
 // Everything a listing takes with it when it's deleted — by its owner (DeleteListing) or with the
-// whole account (AccountDeletion): the favorites on it, its photo rows, the reports filed on it, and the physical Property
+// whole account (AccountDeletion): the favorites on it, its photo rows, the reports filed on it, its price history, and the physical Property
 // (+ location) unless another listing still uses it. Marks the rows for removal without saving;
 // the caller saves, then deletes the returned photo blobs (originals and their sizes) (files after rows, so a failure can only
 // leave an unreferenced file behind, never a row pointing at a missing one).
@@ -34,6 +34,8 @@ public static class ListingRemoval
         // database (no cascades for untracked rows) behaves the same.
         dbContext.ListingReports.RemoveRange(
             await dbContext.ListingReports.Where(r => listingIds.Contains(r.ListingId)).ToListAsync(cancellationToken));
+        dbContext.ListingPriceChanges.RemoveRange(
+            await dbContext.ListingPriceChanges.Where(c => listingIds.Contains(c.ListingId)).ToListAsync(cancellationToken));
 
         dbContext.Listings.RemoveRange(listings);
 
