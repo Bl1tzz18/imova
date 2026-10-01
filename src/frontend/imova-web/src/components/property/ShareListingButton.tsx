@@ -21,17 +21,21 @@ function BrandIcon({ icon }: { icon: SimpleIcon }) {
   );
 }
 
-// "Distribuie" — a round icon on the listing's main photo, beside the heart. Where the device has its own share sheet (phones, some
-// desktops) that opens, with every app and contact the person has; elsewhere a menu: copy the link,
-// WhatsApp, Viber, Telegram, Facebook. `url` is the listing's canonical address.
+// "Distribuie" — a round icon on the listing's main photo, beside the heart. On a phone or tablet
+// the device's own share sheet opens, with every app and contact the person has; on a computer a
+// menu: copy the link, WhatsApp, Viber, Telegram, Facebook. `url` is the listing's canonical address.
 export function ShareListingButton({ url, title, text }: { url: string; title: string; text: string }) {
   const t = useTranslations("PropertyDetail");
   const [native, setNative] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Only known in the browser — the server renders the menu version first.
+  // Only known in the browser — the server renders the menu version first. The device's own sheet
+  // only on a touch device (phone, tablet), where it lists the person's apps and contacts; a computer
+  // has one too (Windows, macOS), but it lacks Viber, Telegram and "copy link", so it gets our menu.
   useEffect(() => {
-    setNative(typeof navigator !== "undefined" && typeof navigator.share === "function");
+    setNative(
+      typeof navigator.share === "function" && window.matchMedia("(pointer: coarse) and (hover: none)").matches,
+    );
   }, []);
 
   useEffect(() => {
