@@ -115,6 +115,17 @@ public class ExportPersonalDataHandler(
                 .ToListAsync(cancellationToken))
             .GroupBy(p => p.ListingId)
             .ToDictionary(g => g.Key, g => g.ToList());
+        var priceHistoryByListing = (await dbContext.ListingPriceChanges.AsNoTracking()
+                .Where(c => listingIds.Contains(c.ListingId))
+                .OrderBy(c => c.ChangedAt)
+                .ToListAsync(cancellationToken))
+            .GroupBy(c => c.ListingId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<ExportedPriceChangeDto>)g
+                    .Select(c => new ExportedPriceChangeDto(
+                        c.OldAmount, c.OldCurrency.ToString(), c.OldPriceEur, c.NewAmount, c.NewCurrency.ToString(), c.NewPriceEur, c.ChangedAt))
+                    .ToList());
 
         var exported = new List<ExportedListingDto>();
         foreach (var dto in dtos)
@@ -128,7 +139,7 @@ public class ExportPersonalDataHandler(
                 photoFiles.Add(path);
             }
 
-            exported.Add(new ExportedListingDto(dto, photoFiles));
+            exported.Add(new ExportedListingDto(dto, photoFiles, priceHistoryByListing.GetValueOrDefault(dto.Id, [])));
         }
 
         return exported;

@@ -66,6 +66,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<ListingReport> ListingReports => Set<ListingReport>();
 
+    public DbSet<ListingPriceChange> ListingPriceChanges => Set<ListingPriceChange>();
+
     public DbSet<ListingVisitorMark> ListingVisitorMarks => Set<ListingVisitorMark>();
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

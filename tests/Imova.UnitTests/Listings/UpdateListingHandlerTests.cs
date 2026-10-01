@@ -58,7 +58,10 @@ public class UpdateListingHandlerTests
         Guid? chisinauSectorId = null,
         string? streetAddress = "Strada Ismail",
         string? buildingNumber = null,
-        ListingContact? contact = null) =>
+        ListingContact? contact = null,
+        decimal price = 600m,
+        Currency currency = Currency.USD,
+        bool isNegotiable = false) =>
         new(
             id ?? _listing.Id,
             requestingUserId ?? _ownerId,
@@ -79,9 +82,9 @@ public class UpdateListingHandlerTests
             transactionType,
             "Titlu nou",
             "Descriere nouă",
-            600m,
-            Currency.USD,
-            false,
+            price,
+            currency,
+            isNegotiable,
             rentalDetails,
             contact ?? TestContacts.Self);
 
@@ -97,6 +100,40 @@ public class UpdateListingHandlerTests
         Assert.Equal("Titlu nou", result!.Title);
         Assert.Equal(600m, result.Price.Amount);
         Assert.Equal(540m, result.Price.PriceEur);
+    }
+
+    [Fact]
+    public async Task Handle_WhenThePriceChanges_RecordsTheOldAndNewPrice()
+    {
+        // The listing starts at 550 EUR; the edit asks 600 USD (540 EUR at the fake rate).
+        await Handler().Handle(Command(), CancellationToken.None);
+
+        var change = await _dbContext.ListingPriceChanges.SingleAsync();
+        Assert.Equal(_listing.Id, change.ListingId);
+        Assert.Equal((550m, Currency.EUR, 550m), (change.OldAmount, change.OldCurrency, change.OldPriceEur));
+        Assert.Equal((600m, Currency.USD, 540m), (change.NewAmount, change.NewCurrency, change.NewPriceEur));
+        Assert.Equal(_listing.UpdatedAt, change.ChangedAt);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOnlyOtherDetailsOrNegotiableChange_RecordsNoPriceChange()
+    {
+        await Handler().Handle(Command(price: 550m, currency: Currency.EUR, isNegotiable: true), CancellationToken.None);
+
+        Assert.Empty(_dbContext.ListingPriceChanges);
+    }
+
+    [Fact]
+    public async Task Handle_EachPriceEdit_AddsToTheHistory()
+    {
+        await Handler().Handle(Command(price: 500m, currency: Currency.EUR), CancellationToken.None);
+        await Handler().Handle(Command(price: 480m, currency: Currency.EUR), CancellationToken.None);
+
+        var history = await _dbContext.ListingPriceChanges.OrderBy(c => c.ChangedAt).ThenBy(c => c.OldAmount)
+            .Select(c => new { c.OldAmount, c.NewAmount }).ToListAsync();
+        Assert.Equal(2, history.Count);
+        Assert.Contains(history, c => c.OldAmount == 550m && c.NewAmount == 500m);
+        Assert.Contains(history, c => c.OldAmount == 500m && c.NewAmount == 480m);
     }
 
     [Fact]
