@@ -337,7 +337,6 @@
     "roleContactPerson": "Persoană de contact",
     "showPhone": "Arată",
     "showPhoneLabel": "Arată numărul de telefon",
-    "showingPhone": "Se încarcă…",
     "callNumber": "Sună la {phone}",
     "phoneRevealFailed": "Nu am putut afișa numărul. Încearcă din nou.",
     "writeOn": "Scrie pe {app}",
@@ -392,7 +391,16 @@
       "roommateCount": "{count, plural, one {coleg de apartament} few {colegi de apartament} other {de colegi de apartament}}"
     },
     "contactDetails": "Date de contact",
-    "closeContactDetails": "Închide datele de contact"
+    "closeContactDetails": "Închide datele de contact",
+    "openGallery": "Deschide galeria ({count} fotografii)",
+    "photoNumber": "Fotografia {number} din {total}",
+    "share": "Distribuie",
+    "copyLink": "Copiază linkul",
+    "linkCopied": "Link copiat",
+    "copyLinkPrompt": "Copiază linkul anunțului:",
+    "listingNumber": "ID {number}",
+    "phoneRevealTooMany": "Ai cerut multe numere într-un timp scurt. Încearcă din nou peste câteva minute.",
+    "phoneUnavailable": "Numărul nu mai este disponibil."
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -1460,5 +1468,12 @@
       "Suspended": "Suspendat de moderatori — nu este public."
     },
     "reasonLabel": "Motiv:"
+  },
+  "ListingStats": {
+    "number": "ID {number}",
+    "views": "{count, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}}",
+    "phoneReveals": "{count, plural, one {# persoană a văzut numărul} few {# persoane au văzut numărul} other {# de persoane au văzut numărul}}",
+    "adminTitle": "Admin",
+    "openInModeration": "Deschide în moderare"
   }
 }

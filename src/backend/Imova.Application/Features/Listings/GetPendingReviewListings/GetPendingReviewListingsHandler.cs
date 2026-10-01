@@ -29,6 +29,10 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
             {
                 query = query.Where(l => l.Id == listingId);
             }
+            else if (ListingNumberIn(term) is { } number)
+            {
+                query = query.Where(l => l.Number == number);
+            }
             else
             {
                 var lower = term.ToLower();
@@ -54,11 +58,22 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        var items = await ListingDtoLoader.LoadAsync(dbContext, blobStorageService, listings, currentUserId: null, cancellationToken);
+        var items = await ListingDtoLoader.LoadAsync(
+            dbContext, blobStorageService, listings, currentUserId: null, cancellationToken,
+            // Admin-only route (RequireAdmin): the rows show each listing's views and phone reveals.
+            viewerIsAdmin: true);
         return new PagedResult<ListingDto>(items, request.Page, request.PageSize, totalCount);
     }
 
     // "https://imova.md/property/<id>", "<id>" — the admin usually has the listing's link at hand.
+    // The listing's short public number, as a visitor would quote it: "100015" or "ID 100015".
+    private static long? ListingNumberIn(string term)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            term, @"^(?:id\s*)?(\d{6,18})$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        return match.Success && long.TryParse(match.Groups[1].Value, out var number) ? number : null;
+    }
+
     private static Guid? ListingIdIn(string term)
     {
         var match = System.Text.RegularExpressions.Regex.Match(

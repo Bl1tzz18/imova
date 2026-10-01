@@ -14,6 +14,8 @@ const contact = (extra: Partial<ListingContact> = {}): ListingContact => ({
   callHoursTo: null,
   pictureUrl: null,
   agencyName: null,
+  phonePrefix: null,
+  phoneHiddenDigits: null,
   ...extra,
 });
 
@@ -70,5 +72,14 @@ describe("mobileContactBar", () => {
 
   it("shows nothing to the owner", () => {
     expect(mobileContactBar(contact(), true)).toBeNull();
+  });
+});
+
+describe("hasPhone", () => {
+  const base = { phone: null, phonePrefix: null } as unknown as Parameters<typeof messageButtonEmphasis>[0];
+
+  it("counts the number's shape the public gets as a number to call", () => {
+    expect(messageButtonEmphasis({ ...base!, hidePhoneNumber: false, phonePrefix: "+373691", phoneHiddenDigits: 5 })).toBe("secondary");
+    expect(messageButtonEmphasis({ ...base!, hidePhoneNumber: false })).toBe("primary");
   });
 });

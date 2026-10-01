@@ -3,9 +3,11 @@ import {
   contactRole,
   formatPhone,
   internationalDigits,
-  maskPhone,
+  glyphText,
+  maskedPhoneGlyphs,
   messagingAppHref,
   opensInNewTab,
+  revealedPhoneGlyphs,
 } from "./contactCard";
 
 describe("formatPhone", () => {
@@ -20,13 +22,24 @@ describe("formatPhone", () => {
   });
 });
 
-describe("maskPhone", () => {
-  it("hides the last five digits and keeps the spacing", () => {
-    expect(maskPhone("+37368753388")).toBe("+373 687 •• •••");
+describe("phone glyphs", () => {
+  it("draws the masked number in the real number's format, its last digits as dots", () => {
+    expect(glyphText(maskedPhoneGlyphs("+373687", 5))).toBe("+373 687 •• •••");
+    expect(glyphText(maskedPhoneGlyphs("+373225", 5))).toBe("+373 22 5•• •••");
   });
 
-  it("never shows fewer than three digits", () => {
-    expect(maskPhone("1234567")).toBe("123••••");
+  it("reveals the same digits in the same places, so only they change", () => {
+    const masked = maskedPhoneGlyphs("+373687", 5);
+    const revealed = revealedPhoneGlyphs("+37368753388", 5);
+
+    expect(glyphText(revealed)).toBe("+373 687 53 388");
+    expect(revealed.length).toBe(masked.length);
+    expect(revealed.map((g) => g.hidden)).toEqual(masked.map((g) => g.hidden));
+    expect(revealed.filter((g) => g.hidden).map((g) => g.char).join("")).toBe("53388");
+  });
+
+  it("never hides more digits than there are", () => {
+    expect(glyphText(maskedPhoneGlyphs("123", 0))).toBe("123");
   });
 });
 

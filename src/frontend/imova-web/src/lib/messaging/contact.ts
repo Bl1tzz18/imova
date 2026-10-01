@@ -4,7 +4,12 @@ import type { ListingContact } from "@/types/listing";
 // hidden (visitors can't call or use WhatsApp/Viber/Telegram then), otherwise a secondary one next
 // to the phone.
 export function messageButtonEmphasis(contact: ListingContact | null | undefined): "primary" | "secondary" {
-  return contact?.hidePhoneNumber || !contact?.phone ? "primary" : "secondary";
+  return contact?.hidePhoneNumber || !hasPhone(contact) ? "primary" : "secondary";
+}
+
+// Whether there is a number to call: its shape for the public, the number itself for the owner.
+export function hasPhone(contact: ListingContact | null | undefined): boolean {
+  return Boolean(contact?.phone || contact?.phonePrefix);
 }
 
 // Platform messages always reach the listing's publisher — never the "Other" contact person,
@@ -31,6 +36,6 @@ export type MobileContactBar = { contactDetails: boolean; primary: "contactDetai
 export function mobileContactBar(contact: ListingContact | null | undefined, viewerIsOwner: boolean): MobileContactBar | null {
   if (viewerIsOwner) return null;
   if (!contact) return { contactDetails: false, primary: "message" };
-  const prefersMessages = contact.preferredContactMethod === "PlatformMessages" || contact.hidePhoneNumber || !contact.phone;
+  const prefersMessages = contact.preferredContactMethod === "PlatformMessages" || contact.hidePhoneNumber || !hasPhone(contact);
   return { contactDetails: true, primary: prefersMessages ? "message" : "contactDetails" };
 }

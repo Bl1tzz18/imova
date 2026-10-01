@@ -38,6 +38,8 @@ internal static class ListingApi
             // its own tests (AccountEndpointsTests) that turn it back on.
             builder.UseSetting("RateLimiting:Auth:Enabled", "false");
             builder.UseSetting("RateLimiting:Account:Enabled", "false");
+            builder.UseSetting("RateLimiting:ListingView:Enabled", "false");
+            builder.UseSetting("RateLimiting:PhoneReveal:Enabled", "false");
 
             // Integration tests must never hit the real Nominatim API.
             builder.ConfigureServices(services =>

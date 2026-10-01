@@ -337,7 +337,6 @@
     "roleContactPerson": "Контактное лицо",
     "showPhone": "Показать",
     "showPhoneLabel": "Показать номер телефона",
-    "showingPhone": "Загрузка…",
     "callNumber": "Позвонить {phone}",
     "phoneRevealFailed": "Не удалось показать номер. Попробуйте ещё раз.",
     "writeOn": "Написать в {app}",
@@ -392,7 +391,16 @@
       "roommateCount": "{count, plural, one {сосед} few {соседа} many {соседей} other {соседа}}"
     },
     "contactDetails": "Контакты",
-    "closeContactDetails": "Закрыть контакты"
+    "closeContactDetails": "Закрыть контакты",
+    "openGallery": "Открыть галерею ({count} фото)",
+    "photoNumber": "Фото {number} из {total}",
+    "share": "Поделиться",
+    "copyLink": "Скопировать ссылку",
+    "linkCopied": "Ссылка скопирована",
+    "copyLinkPrompt": "Скопируйте ссылку на объявление:",
+    "listingNumber": "ID {number}",
+    "phoneRevealTooMany": "Вы запросили много номеров за короткое время. Попробуйте снова через несколько минут.",
+    "phoneUnavailable": "Номер больше не доступен."
   },
   "DashboardPage": {
     "title": "Панель управления"
@@ -1460,5 +1468,12 @@
       "Suspended": "Приостановлено модераторами — не опубликовано."
     },
     "reasonLabel": "Причина:"
+  },
+  "ListingStats": {
+    "number": "ID {number}",
+    "views": "{count, plural, one {# просмотр} few {# просмотра} many {# просмотров} other {# просмотра}}",
+    "phoneReveals": "{count, plural, one {# человек посмотрел номер} few {# человека посмотрели номер} many {# человек посмотрели номер} other {# человека посмотрели номер}}",
+    "adminTitle": "Админ",
+    "openInModeration": "Открыть в модерации"
   }
 }

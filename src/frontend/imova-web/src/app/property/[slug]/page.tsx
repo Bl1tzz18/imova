@@ -14,6 +14,10 @@ import { ContactActions } from "@/components/property/ContactActions";
 import { SimilarListings } from "@/components/property/SimilarListings";
 import { EndedListingView } from "@/components/property/EndedListingView";
 import { OwnerListingBar } from "@/components/property/OwnerListingBar";
+import { AdminListingBar } from "@/components/property/AdminListingBar";
+import { ShareListingButton } from "@/components/property/ShareListingButton";
+import { ListingViewTracker } from "@/components/property/ListingViewTracker";
+import { shareText } from "@/lib/listing/share";
 import { Avatar } from "@/components/ui/Avatar";
 import { BackLink } from "@/components/layout/BackLink";
 import { formatDate, formatFullLocation, formatLocation, formatPrice } from "@/lib/utils/format";
@@ -21,7 +25,7 @@ import { getSessionToken } from "@/lib/auth/session";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getConversationIdForListing } from "@/lib/messaging/api";
 import { messageButtonEmphasis, messageButtonHref, mobileContactBar, showsRelayNotice } from "@/lib/messaging/contact";
-import { contactRole, isMessagingApp, maskPhone } from "@/lib/listing/contactCard";
+import { contactRole, isMessagingApp } from "@/lib/listing/contactCard";
 import { convertFromEur, unitPrice } from "@/lib/listing/price";
 import { getExchangeRates } from "@/lib/api/exchangeRates";
 import { coverPhotoUrl, jsonLdScript, listingJsonLd, listingMetaDescription, listingPath } from "@/lib/listing/seo";
@@ -111,6 +115,7 @@ export default async function ProprietatePage({
   // "Scrie mesaj" always reaches the publisher's own inbox (never the listing's "Other" contact).
   const profile = await getCurrentUserProfile();
   const isOwner = profile?.id === publisher.userId;
+  const isAdmin = profile?.roles.includes("Admin") ?? false;
   const existingConversationId = profile && !isOwner ? await getConversationIdForListing(listing.id) : null;
   const messageHref = messageButtonHref(listing.id, profile !== null, existingConversationId);
   const messageEmphasis = messageButtonEmphasis(contact);
@@ -160,6 +165,7 @@ export default async function ProprietatePage({
       <ListingRentalTerms listing={listing} />
 
       <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
+        <p>{t("listingNumber", { number: listing.number })}</p>
         <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
         {listing.updatedAt !== listing.createdAt && (
           <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
@@ -211,11 +217,12 @@ export default async function ProprietatePage({
       {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
       {!isOwner && messageEmphasis === "primary" && messageButton}
 
-      {contact.phone ? (
+      {contact.phone || contact.phonePrefix ? (
         <ContactActions
           listingId={listing.id}
-          maskedPhone={maskPhone(contact.phone)}
-          ownPhone={isOwner ? contact.phone : null}
+          phonePrefix={contact.phonePrefix ?? ""}
+          hiddenDigits={contact.phoneHiddenDigits ?? 0}
+          ownPhone={contact.phone}
           apps={apps}
           callHours={
             contact.callHoursFrom && contact.callHoursTo
@@ -272,17 +279,18 @@ export default async function ProprietatePage({
           />
 
           {isOwner && <OwnerListingBar listing={listing} />}
+          {isAdmin && !isOwner && <AdminListingBar listing={listing} />}
+          {/* Counts the visit (once a day per visitor) — never the owner's own. */}
+          {!isOwner && listing.status === "Active" && <ListingViewTracker listingId={listing.id} />}
 
-          {/* Title, location and save above; then the photos with the price & contact beside them. */}
+          {/* Title and location above; then the photos (share and save on the main photo) with the
+              price & contact beside them. */}
           <div className="mt-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
-                  {tListing(listing.transactionType)}
-                </Badge>
-                <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
-              </div>
-              <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} variant="labeled" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={listing.transactionType === "Rent" ? "accent" : "brand"}>
+                {tListing(listing.transactionType)}
+              </Badge>
+              <Badge tone="neutral">{tType(listing.property.propertyType)}</Badge>
             </div>
 
             <h1 className="mt-3 text-balance font-display text-3xl font-medium text-ink-950 sm:text-4xl">
@@ -302,7 +310,26 @@ export default async function ProprietatePage({
 
           <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-start">
             <div className="min-w-0 flex-1">
-              <PropertyGallery media={listing.photos} title={listing.title} propertyType={listing.property.propertyType} />
+              <PropertyGallery
+                media={listing.photos}
+                title={listing.title}
+                propertyType={listing.property.propertyType}
+                actions={
+                  <>
+                    <ShareListingButton
+                      url={`${siteUrl()}${listingPath(listing.id)}`}
+                      title={listing.title}
+                      text={shareText([
+                        listing.title,
+                        formatPrice(listing.price.amount, listing.price.currency) +
+                          (listing.transactionType === "Rent" ? ` ${tCard("perMonth")}` : ""),
+                        formatLocation(listing.property.location),
+                      ])}
+                    />
+                    <SaveListingButton listingId={listing.id} initialSaved={listing.isSaved} size="lg" />
+                  </>
+                }
+              />
 
               <div className="mt-5 lg:hidden">{priceCard}</div>
 

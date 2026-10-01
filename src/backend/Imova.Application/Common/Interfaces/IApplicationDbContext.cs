@@ -52,6 +52,8 @@ public interface IApplicationDbContext
 
     DbSet<ListingReport> ListingReports { get; }
 
+    DbSet<ListingVisitorMark> ListingVisitorMarks { get; }
+
     DbSet<ApplicationUser> Users { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }

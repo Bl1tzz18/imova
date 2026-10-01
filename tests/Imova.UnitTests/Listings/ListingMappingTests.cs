@@ -213,4 +213,42 @@ public class ListingMappingTests
             Assert.Equal(canSeePrivateDetails, email is not null);
         }
     }
+
+    [Fact]
+    public void Contact_ThePublicGetsTheNumbersShape_NotTheNumber()
+    {
+        var contact = DetailFor(TestContacts.Self).Contact!;
+
+        Assert.Null(contact.Phone);
+        Assert.Equal("+373691", contact.PhonePrefix);
+        Assert.Equal(5, contact.PhoneHiddenDigits);
+    }
+
+    [Fact]
+    public void Contact_AHiddenNumber_HasNoShapeEither()
+    {
+        var contact = DetailFor(TestContacts.HiddenPhone).Contact!;
+
+        Assert.Null(contact.Phone);
+        Assert.Null(contact.PhonePrefix);
+        Assert.Null(contact.PhoneHiddenDigits);
+    }
+
+    [Fact]
+    public void Contact_TheOwnerOrAnAdmin_GetsTheNumberItself()
+    {
+        Assert.Equal("+373 69 111 222", DetailFor(TestContacts.Self, canSeePrivateDetails: true).Contact!.Phone);
+    }
+
+    [Fact]
+    public void ViewsAndPhoneReveals_AreTheOwnersAndAdminsOnly()
+    {
+        var publicView = DetailFor(TestContacts.Self);
+        var ownerView = DetailFor(TestContacts.Self, canSeePrivateDetails: true);
+
+        Assert.Null(publicView.ViewCount);
+        Assert.Null(publicView.PhoneRevealCount);
+        Assert.Equal(0, ownerView.ViewCount);
+        Assert.Equal(0, ownerView.PhoneRevealCount);
+    }
 }

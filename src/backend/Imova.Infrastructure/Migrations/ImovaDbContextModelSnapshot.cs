@@ -588,6 +588,18 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("ExpiryReminderSentAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<long>("Number")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Number"));
+                    NpgsqlPropertyBuilderExtensions.HasIdentityOptions(b.Property<long>("Number"), 100000L, null, null, null, null, null);
+
+                    b.Property<int>("PhoneRevealCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uuid");
 
@@ -625,7 +637,15 @@ namespace Imova.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("ViewCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Number")
+                        .IsUnique();
 
                     b.HasIndex("PropertyId");
 
@@ -692,6 +712,28 @@ namespace Imova.Infrastructure.Migrations
                     b.HasIndex("ReporterUserId", "CreatedAt");
 
                     b.ToTable("ListingReports");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.ListingVisitorMark", b =>
+                {
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Counter")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VisitorHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("CountedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("ListingId", "Counter", "VisitorHash");
+
+                    b.HasIndex("CountedAt");
+
+                    b.ToTable("ListingVisitorMarks");
                 });
 
             modelBuilder.Entity("Imova.Domain.Listings.Photo", b =>
@@ -1582,6 +1624,15 @@ namespace Imova.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Imova.Domain.Listings.ListingReport", b =>
+                {
+                    b.HasOne("Imova.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.ListingVisitorMark", b =>
                 {
                     b.HasOne("Imova.Domain.Listings.Listing", null)
                         .WithMany()

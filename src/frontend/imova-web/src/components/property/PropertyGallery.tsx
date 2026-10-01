@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { swipeDirection } from "@/lib/listing/swipe";
 import type { Photo } from "@/types/listing";
 
 function ChevronIcon({ direction, className }: { direction: "left" | "right"; className?: string }) {
@@ -14,21 +15,37 @@ function ChevronIcon({ direction, className }: { direction: "left" | "right"; cl
 }
 
 // Hero image + thumbnail strip on the property detail page, backed by a full-screen lightbox
-// for stepping through every photo at full size. Client-only because it needs click/keyboard
-// state — the page itself stays a Server Component and just passes the fetched media down.
+// for stepping through every photo at full size — arrows, keyboard (← → Esc) and, on a phone,
+// swiping. Opening it moves focus into it (the close button) and closing returns focus to the photo
+// that opened it; the photos either side of the current one are preloaded. Client-only because it
+// needs click/keyboard state — the page itself stays a Server Component and passes the media down.
 export function PropertyGallery({
   media,
   title,
   propertyType,
+  actions,
 }: {
   media: Photo[];
   title: string;
   propertyType: string;
+  // Round buttons in the main photo's top-right corner (share, save) — beside the photo's own
+  // button, not inside it, so tapping them never opens the gallery.
+  actions?: ReactNode;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const t = useTranslations("PropertyDetail");
+  const opener = useRef<HTMLElement | null>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
-  const close = useCallback(() => setOpenIndex(null), []);
+  const open = useCallback((index: number, from: HTMLElement) => {
+    opener.current = from;
+    setOpenIndex(index);
+  }, []);
+  const close = useCallback(() => {
+    setOpenIndex(null);
+    opener.current?.focus();
+  }, []);
   const showPrev = useCallback(
     () => setOpenIndex((i) => (i === null ? null : (i - 1 + media.length) % media.length)),
     [media.length]
@@ -37,6 +54,11 @@ export function PropertyGallery({
     () => setOpenIndex((i) => (i === null ? null : (i + 1) % media.length)),
     [media.length]
   );
+
+  const isOpen = openIndex !== null;
+  useEffect(() => {
+    if (isOpen) closeButton.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     if (openIndex === null) return;
@@ -57,37 +79,44 @@ export function PropertyGallery({
     };
   }, [openIndex, close, showPrev, showNext]);
 
+  const corner = actions && <div className="absolute right-3 top-3 z-10 flex gap-2">{actions}</div>;
+
   if (media.length === 0) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600">
-        <div className="flex aspect-[4/3] items-center justify-center sm:aspect-[16/9]">
+      <div className="relative">
+        <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600 sm:aspect-[16/9]">
           <PropertyIcon type={propertyType} className="h-20 w-20 text-white/25 sm:h-28 sm:w-28" />
         </div>
+        {corner}
       </div>
     );
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpenIndex(0)}
-        className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
-      >
-        <div className="relative aspect-[4/3] sm:aspect-[16/9]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={media[0].url}
-            alt={title}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-          {media.length > 1 && (
-            <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-              {t("photoCount", { count: media.length })}
-            </span>
-          )}
-        </div>
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={(e) => open(0, e.currentTarget)}
+          aria-label={t("openGallery", { count: media.length })}
+          className="group block w-full cursor-zoom-in overflow-hidden rounded-2xl border border-ink-100 bg-gradient-to-br from-brand-800 to-brand-600"
+        >
+          <div className="relative aspect-[4/3] sm:aspect-[16/9]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={media[0].url}
+              alt={title}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
+            {media.length > 1 && (
+              <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+                {t("photoCount", { count: media.length })}
+              </span>
+            )}
+          </div>
+        </button>
+        {corner}
+      </div>
 
       {media.length > 1 && (
         <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-6">
@@ -95,13 +124,14 @@ export function PropertyGallery({
             <button
               key={item.id}
               type="button"
-              onClick={() => setOpenIndex(i + 1)}
+              onClick={(e) => open(i + 1, e.currentTarget)}
+              aria-label={t("photoNumber", { number: i + 2, total: media.length })}
               className="aspect-square cursor-zoom-in overflow-hidden rounded-xl border border-ink-100"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.url}
-                alt={title}
+                alt=""
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform hover:scale-105"
               />
@@ -117,10 +147,24 @@ export function PropertyGallery({
           aria-modal="true"
           aria-label={title}
           onClick={close}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+          }}
+          onTouchEnd={(e) => {
+            const start = touchStart.current;
+            const touch = e.changedTouches[0];
+            touchStart.current = null;
+            if (!start || !touch || media.length < 2) return;
+            const direction = swipeDirection(touch.clientX - start.x, touch.clientY - start.y);
+            if (direction === "next") showNext();
+            if (direction === "previous") showPrev();
+          }}
         >
           <div className="flex shrink-0 items-center justify-between px-2 text-sm text-white/70">
             <span>{t("photoCounter", { current: openIndex + 1, total: media.length })}</span>
             <button
+              ref={closeButton}
               type="button"
               onClick={close}
               aria-label={t("closeGallery")}
@@ -151,9 +195,16 @@ export function PropertyGallery({
             <img
               src={media[openIndex].url}
               alt={title}
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full select-none object-contain"
+              draggable={false}
               onClick={(e) => e.stopPropagation()}
             />
+            {/* The neighbours, loaded ahead so the next swipe shows its photo at once. */}
+            {media.length > 1 &&
+              [media[(openIndex + 1) % media.length], media[(openIndex - 1 + media.length) % media.length]].map((p) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={p.id} src={p.url} alt="" aria-hidden className="hidden" />
+              ))}
 
             {media.length > 1 && (
               <button
@@ -180,6 +231,8 @@ export function PropertyGallery({
                     e.stopPropagation();
                     setOpenIndex(i);
                   }}
+                  aria-label={t("photoNumber", { number: i + 1, total: media.length })}
+                  aria-current={i === openIndex ? "true" : undefined}
                   className={`h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-opacity ${
                     i === openIndex ? "border-white opacity-100" : "border-transparent opacity-50 hover:opacity-80"
                   }`}

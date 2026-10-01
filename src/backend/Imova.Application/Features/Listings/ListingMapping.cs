@@ -23,7 +23,10 @@ public static class ListingMapping
         PublisherDto publisher,
         IReadOnlyList<PhotoDto> photos,
         bool isSaved,
-        ListingContactDto? contact = null) =>
+        ListingContactDto? contact = null,
+        // The owner or an admin — the only ones who see how many people opened the listing and asked
+        // for its phone number.
+        bool canSeeStats = false) =>
         new(
             listing.Id,
             listing.Status.ToString(),
@@ -43,6 +46,9 @@ public static class ListingMapping
             publisher,
             photos,
             isSaved,
+            listing.Number,
+            canSeeStats ? listing.ViewCount : null,
+            canSeeStats ? listing.PhoneRevealCount : null,
             contact);
 
     public static ListingDto ToDto(
@@ -67,7 +73,8 @@ public static class ListingMapping
             publisher.ToDto(includeContactDetails: false),
             photos,
             isSaved,
-            includeContactDetails ? listing.ContactDto(publisher, canSeePrivateDetails, publisherPerson) : null);
+            includeContactDetails ? listing.ContactDto(publisher, canSeePrivateDetails, publisherPerson) : null,
+            canSeeStats: canSeePrivateDetails);
 
     // Resolves a Self contact's name/email/photo from the publisher, and treats a listing from before
     // contact details existed as "Self, the publisher's own phone". The email is never public — the
@@ -84,20 +91,25 @@ public static class ListingMapping
             : publisher.DisplayName;
         var selfPicture = publisherPerson?.PictureUrl ?? publisher.LogoUrl;
 
+        // The number itself only for the owner/an admin; the public gets its shape (first digits, how
+        // many follow) and asks for the rest one request at a time (RevealListingPhone) — unless the
+        // owner hid it, then not even the shape.
+        var (phone, hidden) = listing.ContactPhone(publisher);
+        var shape = hidden ? null : PhoneShape.For(phone);
+
         var contact = listing.Contact;
         if (contact is null)
         {
             return new ListingContactDto(
-                nameof(ContactPersonType.Self), selfName, publisher.Phone, canSeePrivateDetails ? publisher.Email : null, [],
-                nameof(PreferredContactMethod.Any), false, null, null, selfPicture, agencyName);
+                nameof(ContactPersonType.Self), selfName, canSeePrivateDetails ? phone : null, canSeePrivateDetails ? publisher.Email : null, [],
+                nameof(PreferredContactMethod.Any), false, null, null, selfPicture, agencyName, shape?.Prefix, shape?.HiddenDigits);
         }
 
         var isSelf = contact.PersonType == ContactPersonType.Self;
-        var phoneHidden = contact.HidePhoneNumber && !canSeePrivateDetails;
         return new ListingContactDto(
             contact.PersonType.ToString(),
             isSelf ? selfName : contact.Name,
-            phoneHidden ? null : contact.Phone,
+            canSeePrivateDetails ? phone : null,
             !canSeePrivateDetails ? null : isSelf ? publisher.Email : contact.Email,
             (contact.MessagingApps ?? []).Select(a => a.ToString()).ToList(),
             contact.PreferredContactMethod.ToString(),
@@ -105,8 +117,16 @@ public static class ListingMapping
             contact.CallHoursFrom,
             contact.CallHoursTo,
             isSelf ? selfPicture : null,
-            agencyName);
+            agencyName,
+            shape?.Prefix,
+            shape?.HiddenDigits);
     }
+
+    // The number to call about a listing and whether its owner hid it from the public: the
+    // listing's own contact number, or — for a listing from before the Contact step — the
+    // publisher's, never hidden.
+    public static (string? Phone, bool Hidden) ContactPhone(this Listing listing, Publisher publisher) =>
+        listing.Contact is { } contact ? (contact.Phone, contact.HidePhoneNumber) : (publisher.Phone, false);
 
     public static PriceDto ToDto(this Price price) =>
         new(price.Amount, price.Currency.ToString(), price.PriceEur, price.IsNegotiable);

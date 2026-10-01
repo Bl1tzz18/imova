@@ -337,7 +337,6 @@
     "roleContactPerson": "Contact person",
     "showPhone": "Show",
     "showPhoneLabel": "Show the phone number",
-    "showingPhone": "Loading…",
     "callNumber": "Call {phone}",
     "phoneRevealFailed": "We couldn't show the number. Please try again.",
     "writeOn": "Message on {app}",
@@ -392,7 +391,16 @@
       "roommateCount": "{count, plural, one {roommate} other {roommates}}"
     },
     "contactDetails": "Contact details",
-    "closeContactDetails": "Close contact details"
+    "closeContactDetails": "Close contact details",
+    "openGallery": "Open the gallery ({count} photos)",
+    "photoNumber": "Photo {number} of {total}",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied",
+    "copyLinkPrompt": "Copy the listing's link:",
+    "listingNumber": "ID {number}",
+    "phoneRevealTooMany": "You asked for many numbers in a short time. Try again in a few minutes.",
+    "phoneUnavailable": "The number is no longer available."
   },
   "DashboardPage": {
     "title": "Dashboard"
@@ -1460,5 +1468,12 @@
       "Suspended": "Suspended by the moderators — not public."
     },
     "reasonLabel": "Reason:"
+  },
+  "ListingStats": {
+    "number": "ID {number}",
+    "views": "{count, plural, one {# view} other {# views}}",
+    "phoneReveals": "{count, plural, one {# person saw the number} other {# people saw the number}}",
+    "adminTitle": "Admin",
+    "openInModeration": "Open in moderation"
   }
 }
