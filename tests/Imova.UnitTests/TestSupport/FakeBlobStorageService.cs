@@ -59,9 +59,12 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
         return Task.CompletedTask;
     }
 
+    // Every public blob opens, stored or not — for tests about what's done with the content.
+    public bool OpenAnyBlob { get; set; }
+
     // The bytes are the blob name, so a test can tell which file landed where.
     public Task<Stream?> OpenAsync(string blobName, CancellationToken cancellationToken) =>
-        Task.FromResult<Stream?>(StoredBlobNames.Contains(blobName) ? new MemoryStream(System.Text.Encoding.UTF8.GetBytes(blobName)) : null);
+        Task.FromResult<Stream?>(OpenAnyBlob || StoredBlobNames.Contains(blobName) ? new MemoryStream(System.Text.Encoding.UTF8.GetBytes(blobName)) : null);
 
     public Task<IReadOnlyList<string>> ListBlobNamesAsync(string prefix, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<string>>(StoredBlobNames.Where(n => n.StartsWith(prefix, StringComparison.Ordinal)).ToList());
@@ -76,11 +79,18 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
     public Task<UploadedBlobInfo?> TryGetUploadedBlobInfoAsync(string blobName, CancellationToken cancellationToken) =>
         Task.FromResult(BlobInfoByName.GetValueOrDefault(blobName) ?? BlobInfoToReturn);
 
+    // Every upload's bytes by blob name (an uploaded blob also becomes openable).
+    public Dictionary<string, byte[]> UploadedContent { get; } = [];
+
     public Task UploadAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
     {
         UploadCalled = true;
         UploadedBlobName = blobName;
         UploadedContentType = contentType;
+        using var copy = new MemoryStream();
+        content.CopyTo(copy);
+        UploadedContent[blobName] = copy.ToArray();
+        StoredBlobNames.Add(blobName);
         return Task.CompletedTask;
     }
 

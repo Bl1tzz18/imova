@@ -64,7 +64,7 @@ export function PropertyMapExplorer({ listings, totalCount, listHref }: { listin
               <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-800">
                 {coverPhoto(listing) ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={coverPhoto(listing)!.url} alt="" className="h-full w-full object-cover" />
+                  <img src={coverPhoto(listing)!.thumbnailUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <PropertyIcon type={listing.property.propertyType} className="h-6 w-6 text-white/50" />
                 )}

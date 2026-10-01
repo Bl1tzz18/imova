@@ -61,7 +61,7 @@ export function ImageUploader({
       initialPhotos?.map((photo) => ({
         id: photo.id,
         mediaId: photo.id,
-        previewUrl: photo.url,
+        previewUrl: photo.thumbnailUrl,
         status: "done" as const,
       })) ?? [],
   );

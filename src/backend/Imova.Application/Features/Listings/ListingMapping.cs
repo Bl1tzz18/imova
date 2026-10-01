@@ -1,6 +1,7 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Amenities;
 using Imova.Application.Features.Listings.Attributes;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.Proximities;
 using Imova.Application.Features.Publishers;
 using Imova.Contracts.Listings;
@@ -186,7 +187,9 @@ public static class ListingMapping
         new(
             photo.Id,
             photo.ListingId,
-            blobStorageService.GetPublicUrl(photo.BlobName),
+            PhotoSizes.Url(photo, PhotoSize.Large, blobStorageService),
+            PhotoSizes.Url(photo, PhotoSize.Thumbnail, blobStorageService),
+            PhotoSizes.Url(photo, PhotoSize.Card, blobStorageService),
             photo.ContentType,
             photo.FileSizeBytes,
             photo.ModerationStatus.ToString(),

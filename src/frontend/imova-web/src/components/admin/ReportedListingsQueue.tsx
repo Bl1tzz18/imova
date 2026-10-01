@@ -75,7 +75,7 @@ function ReportCase({ reported, view, now }: { reported: ReportedListing; view: 
         >
           {cover ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={cover.url} alt={listing.title} className="h-full w-full object-cover" />
+            <img src={cover.thumbnailUrl} alt={listing.title} className="h-full w-full object-cover" />
           ) : (
             <PropertyIcon type={listing.property.propertyType} className="h-7 w-7 text-white/40" />
           )}

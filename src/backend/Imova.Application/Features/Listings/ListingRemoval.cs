@@ -1,4 +1,5 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Media.Sizes;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +8,7 @@ namespace Imova.Application.Features.Listings;
 // Everything a listing takes with it when it's deleted — by its owner (DeleteListing) or with the
 // whole account (AccountDeletion): the favorites on it, its photo rows, the reports filed on it, and the physical Property
 // (+ location) unless another listing still uses it. Marks the rows for removal without saving;
-// the caller saves, then deletes the returned photo blobs (files after rows, so a failure can only
+// the caller saves, then deletes the returned photo blobs (originals and their sizes) (files after rows, so a failure can only
 // leave an unreferenced file behind, never a row pointing at a missing one).
 public static class ListingRemoval
 {
@@ -56,6 +57,6 @@ public static class ListingRemoval
         dbContext.Properties.RemoveRange(properties);
         dbContext.PropertyLocations.RemoveRange(locations);
 
-        return photos.Select(p => p.BlobName).ToList();
+        return photos.SelectMany(PhotoSizes.AllBlobNames).ToList();
     }
 }

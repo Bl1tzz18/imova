@@ -1,4 +1,5 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Media.Sizes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -6,8 +7,8 @@ namespace Imova.Application.Features.Media.Cleanup;
 
 // One run of the photo-cleanup job (the Worker runs it periodically). The add-listing form uploads
 // photos under a client-generated listing id before the listing exists (see Photo); when the form
-// is abandoned, those photos never get a listing. After AbandonedAfter they're deleted — the file
-// first, then the row, so a failed file delete is simply retried on the next run. Photos of saved
+// is abandoned, those photos never get a listing. After AbandonedAfter they're deleted — the files
+// (original and sizes) first, then the row, so a failed file delete is simply retried on the next run. Photos of saved
 // drafts are untouched: a Draft is a real listing row.
 public class AbandonedPhotoCleanup(
     IApplicationDbContext dbContext,
@@ -36,7 +37,10 @@ public class AbandonedPhotoCleanup(
         {
             try
             {
-                await blobStorageService.DeleteAsync(photo.BlobName, cancellationToken);
+                foreach (var blobName in PhotoSizes.AllBlobNames(photo))
+                {
+                    await blobStorageService.DeleteAsync(blobName, cancellationToken);
+                }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

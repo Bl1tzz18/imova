@@ -168,8 +168,9 @@ simply retries a failed run on its next tick.
 | `SavedSearchAlerts` | `SavedSearchAlerts:IntervalSeconds` (300) | emails new matches for saved searches |
 | `ListingExpiry` | `ListingExpiry:IntervalSeconds` (3600) | Active listings live 6 months (`Listing.ActiveMonths`); reminder email 7 days before, then Expired + email |
 | `AbandonedPhotoCleanup` | `PhotoCleanup:IntervalSeconds` (21600) | deletes photos (blob + row) whose listing was never created, after 7 days |
+| `PhotoSizeBackfill` | `PhotoSizes:IntervalSeconds` (300) | makes the display sizes of photos that lack the current `PhotoSizes.CurrentVersion` (100 per run, newest first) |
 
-Compose sets all three to 60 seconds so they're quick to try; emails land in Mailpit. To see
+Compose sets these to 60 seconds so they're quick to try; emails land in Mailpit. To see
 expiry locally, move a listing's `ExpiresAt` in the database (e.g. `now() + interval '3 days'` for
 the reminder, `now() - interval '1 minute'` to expire it) and wait a minute.
 
@@ -179,3 +180,18 @@ the reminder, `now() - interval '1 minute'` to expire it) and wait a minute.
   `docker compose up -d --build backend worker`.
 - Run it outside Docker with `dotnet run --project src/backend/Imova.Worker` and a
   `ConnectionStrings:Default` pointing at the compose Postgres.
+
+## Photo sizes
+
+Every listing photo is shown from JPEG copies made from the upload, never from the original:
+`{guid}_400.jpg` (thumbnails), `_800.jpg` (cards, alert emails) and `_1600.jpg` (listing page,
+viewer, `og:image`), next to the original in the same container (`PhotoSizes` in
+Application/Features/Media/Sizes). They're made with ImageMagick (Magick.NET, `MagickPhotoResizer`)
+when an upload is confirmed — upright (EXIF orientation), sRGB, metadata (GPS!) stripped, never
+enlarged; HEIC/HEIF uploads become visible in every browser this way. A file ImageMagick can't
+read is refused (`upload.notAnImage`); a storage hiccup only leaves the sizes to the Worker's
+`PhotoSizeBackfill`, and until then the DTO's three URLs are the original. To remake every photo's
+sizes (new sizes, other quality), bump `PhotoSizes.CurrentVersion`. Server-written blobs are
+served with `Cache-Control: public, max-age=31536000, immutable` (their names never get new
+content). The Docker images publish for `linux-x64` only, which keeps the other platforms' native
+ImageMagick builds (~240 MB) out of them.

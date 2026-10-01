@@ -75,6 +75,15 @@ public sealed class Photo : Entity
 
     public DateTimeOffset? ModeratedAt { get; private set; }
 
+    // Which generation of the smaller display copies (thumbnail/card/large JPEGs next to the
+    // original, see PhotoSizes in Application) exists for this photo; 0 = none yet, and until
+    // then the original is shown. Set when the photo is confirmed, or by the Worker's backfill.
+    public int SizesVersion { get; private set; }
+
+    // When making the copies failed for good (the original is gone, or can't be read as an
+    // image) — the backfill doesn't try again.
+    public DateTimeOffset? SizesFailedAt { get; private set; }
+
     public static Photo Create(
         Guid listingId,
         string blobName,
@@ -113,6 +122,19 @@ public sealed class Photo : Entity
     }
 
     public void MarkAsPrimary() => IsPrimary = true;
+
+    public void MarkSizesGenerated(int version)
+    {
+        if (version <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(version), "A sizes version starts at 1.");
+        }
+
+        SizesVersion = version;
+        SizesFailedAt = null;
+    }
+
+    public void MarkSizesFailed(DateTimeOffset at) => SizesFailedAt = at;
 
     // TODO: no moderation pipeline yet (manual review queue or an automated image-safety check).
     // These just flip the status once one exists; nothing currently calls them.

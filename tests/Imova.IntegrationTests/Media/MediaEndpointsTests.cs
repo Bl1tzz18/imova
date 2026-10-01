@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using ImageMagick;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Media;
 using Imova.IntegrationTests.TestSupport;
@@ -11,8 +12,8 @@ namespace Imova.IntegrationTests.Media;
 // Photo upload endpoints (sign-in + ownership, see MediaAccess) and the API's CORS policy.
 public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    // Enough of a PNG for the magic-byte check in ConfirmMediaUpload.
-    private static readonly byte[] Png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 0x49, 0x48, 0x44, 0x52];
+    // A real image: confirm makes its display sizes, so a bare PNG signature isn't enough anymore.
+    private static readonly byte[] Png = new MagickImage(MagickColors.SteelBlue, 40, 30).ToByteArray(MagickFormat.Png);
 
     private readonly WebApplicationFactory<Program> _factory;
 
@@ -25,14 +26,14 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         client.PostAsJsonAsync($"/api/v1/listings/{listingId}/media/upload-url", new { fileExtension = ".png" });
 
     // upload-url → PUT to storage (Azurite) → confirm, as the web app does.
-    private static async Task<HttpResponseMessage> UploadPhotoAsync(HttpClient client, Guid listingId)
+    private static async Task<HttpResponseMessage> UploadPhotoAsync(HttpClient client, Guid listingId, byte[]? content = null)
     {
         var urlResponse = await RequestUploadUrlAsync(client, listingId);
         urlResponse.EnsureSuccessStatusCode();
         var upload = (await urlResponse.Content.ReadFromJsonAsync<UploadUrlDto>())!;
 
         using var storage = new HttpClient();
-        var put = new HttpRequestMessage(HttpMethod.Put, upload.UploadUrl) { Content = new ByteArrayContent(Png) };
+        var put = new HttpRequestMessage(HttpMethod.Put, upload.UploadUrl) { Content = new ByteArrayContent(content ?? Png) };
         put.Headers.Add("x-ms-blob-type", "BlockBlob");
         put.Content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         (await storage.SendAsync(put)).EnsureSuccessStatusCode();
@@ -92,6 +93,40 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         var listing = await CreateListingAsync(owner, pendingId);
         Assert.Single(listing.Photos);
+    }
+
+    [Fact]
+    public async Task Upload_MakesSmallJpegSizes_ThatBrowsersMayCacheForAYear()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var photo = new MagickImage(MagickColors.OrangeRed, 2400, 1800).ToByteArray(MagickFormat.Jpeg);
+
+        var response = await UploadPhotoAsync(owner, Guid.NewGuid(), photo);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var dto = (await response.Content.ReadFromJsonAsync<PhotoDto>())!;
+
+        using var storage = new HttpClient();
+        foreach (var (url, width, height) in new[] { (dto.ThumbnailUrl, 400u, 300u), (dto.CardUrl, 800u, 600u), (dto.Url, 1600u, 1200u) })
+        {
+            var file = await storage.GetAsync(url);
+            file.EnsureSuccessStatusCode();
+            Assert.Equal("image/jpeg", file.Content.Headers.ContentType?.MediaType);
+            Assert.Contains("immutable", file.Headers.CacheControl?.ToString());
+            using var image = new MagickImage(await file.Content.ReadAsByteArrayAsync());
+            Assert.Equal((width, height), (image.Width, image.Height));
+        }
+    }
+
+    [Fact]
+    public async Task Upload_OfAFileThatOnlyStartsLikeAnImage_IsRefused()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        byte[] fake = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0x0D, 0x49, 0x48, 0x44, 0x52];
+
+        var response = await UploadPhotoAsync(owner, Guid.NewGuid(), fake);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("upload.notAnImage", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
