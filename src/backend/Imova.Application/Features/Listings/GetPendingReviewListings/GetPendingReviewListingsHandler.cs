@@ -54,7 +54,10 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        var items = await ListingDtoLoader.LoadAsync(dbContext, blobStorageService, listings, currentUserId: null, cancellationToken);
+        var items = await ListingDtoLoader.LoadAsync(
+            dbContext, blobStorageService, listings, currentUserId: null, cancellationToken,
+            // Admin-only route (RequireAdmin): the rows show each listing's views and phone reveals.
+            viewerIsAdmin: true);
         return new PagedResult<ListingDto>(items, request.Page, request.PageSize, totalCount);
     }
 

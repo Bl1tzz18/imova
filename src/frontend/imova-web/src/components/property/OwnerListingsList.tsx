@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { ListingStats } from "@/components/property/ListingStats";
 import { OwnerListingActions } from "@/components/property/OwnerListingActions";
 import { ownerActions } from "@/lib/listing/ownerActions";
 import { inputClass } from "@/components/ui/Field";
@@ -257,11 +258,7 @@ function OwnerListingRow({ listing, now, showStatus }: { listing: Listing; now: 
 
           <p className="mt-1 sm:hidden">{price}</p>
 
-          {listing.publishedAt && (
-            <p className="mt-1 text-xs text-ink-500">
-              {t("stats", { views: listing.viewCount, reveals: listing.phoneRevealCount ?? 0 })}
-            </p>
-          )}
+          {listing.publishedAt && <ListingStats listing={listing} className="mt-1" />}
 
           {expiry.kind === "active" && (
             <p className={cn("mt-1 text-xs", expiry.renewable ? "font-medium text-accent-700" : "text-ink-400")}>

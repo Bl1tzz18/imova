@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { ListingStats } from "@/components/property/ListingStats";
 import { approveListing, reinstateListing, rejectListing, suspendListing } from "@/lib/admin/actions";
 import type { ListingTab } from "@/lib/admin/moderationTabs";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
@@ -100,6 +101,7 @@ export function ModerationQueue({ listings, tab = "pending" }: { listings: Listi
                 <p className="mt-0.5 truncate text-xs text-ink-500">
                   {[listing.publisher.displayName, location].filter(Boolean).join(" · ")}
                 </p>
+                <ListingStats listing={listing} showNumber className="mt-0.5" />
               </div>
 
               <p className="font-display text-base font-semibold text-ink-950 sm:whitespace-nowrap">

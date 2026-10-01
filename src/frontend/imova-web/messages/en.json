@@ -399,7 +399,6 @@
     "linkCopied": "Link copied",
     "copyLinkPrompt": "Copy the listing's link:",
     "listingNumber": "ID {number}",
-    "viewCount": "{count, plural, one {# view} other {# views}}",
     "phoneRevealTooMany": "You asked for many numbers in a short time. Try again in a few minutes.",
     "phoneUnavailable": "The number is no longer available."
   },
@@ -606,8 +605,7 @@
       "priceDesc": "Price: high to low"
     },
     "searchEmpty": "Nothing in this tab matches “{query}”.",
-    "clearSearch": "Clear search",
-    "stats": "{views, plural, one {# view} other {# views}} · {reveals, plural, one {# person saw the number} other {# people saw the number}}"
+    "clearSearch": "Clear search"
   },
   "EditListingPage": {
     "title": "Edit listing",
@@ -1469,7 +1467,13 @@
       "Rejected": "Rejected by the moderators — not public. Fix it and resubmit.",
       "Suspended": "Suspended by the moderators — not public."
     },
-    "reasonLabel": "Reason:",
-    "stats": "{views, plural, one {# view} other {# views}} · {reveals, plural, one {# person saw the number} other {# people saw the number}}"
+    "reasonLabel": "Reason:"
+  },
+  "ListingStats": {
+    "number": "ID {number}",
+    "views": "{count, plural, one {# view} other {# views}}",
+    "phoneReveals": "{count, plural, one {# person saw the number} other {# people saw the number}}",
+    "adminTitle": "Admin",
+    "openInModeration": "Open in moderation"
   }
 }

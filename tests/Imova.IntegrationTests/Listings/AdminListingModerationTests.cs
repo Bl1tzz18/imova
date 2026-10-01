@@ -38,6 +38,22 @@ public class AdminListingModerationTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task ModerationRows_CarryTheListingsViewsAndPhoneReveals()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        using var admin = await ListingApi.RegisterAdminAsync(_factory);
+        var listing = (await (await owner.PostAsJsonAsync("/api/v1/listings", await ListingApi.ValidBodyAsync(owner))).Content.ReadFromJsonAsync<ListingDto>())!;
+
+        var pending = await admin.GetFromJsonAsync<PagedResult<ListingDto>>("/api/v1/admin/listings?status=PendingReview&pageSize=100");
+        var row = Assert.Single(pending!.Items, l => l.Id == listing.Id);
+        Assert.Equal(0, row.ViewCount);
+        Assert.Equal(0, row.PhoneRevealCount);
+        Assert.True(row.Number >= 100_000);
+
+        await owner.DeleteAsync($"/api/v1/listings/{listing.Id}");
+    }
+
+    [Fact]
     public async Task TheLists_AreAdminOnly_AndOnlyForModerationStatuses()
     {
         var (user, _) = await ListingApi.RegisterAsync(_factory);

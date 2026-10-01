@@ -241,13 +241,14 @@ public class ListingMappingTests
     }
 
     [Fact]
-    public void PhoneRevealCount_IsTheOwnersAndAdminsOnly_ViewsArePublic()
+    public void ViewsAndPhoneReveals_AreTheOwnersAndAdminsOnly()
     {
         var publicView = DetailFor(TestContacts.Self);
         var ownerView = DetailFor(TestContacts.Self, canSeePrivateDetails: true);
 
+        Assert.Null(publicView.ViewCount);
         Assert.Null(publicView.PhoneRevealCount);
+        Assert.Equal(0, ownerView.ViewCount);
         Assert.Equal(0, ownerView.PhoneRevealCount);
-        Assert.Equal(0, publicView.ViewCount);
     }
 }

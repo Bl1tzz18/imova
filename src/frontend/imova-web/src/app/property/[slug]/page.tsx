@@ -14,6 +14,7 @@ import { ContactActions } from "@/components/property/ContactActions";
 import { SimilarListings } from "@/components/property/SimilarListings";
 import { EndedListingView } from "@/components/property/EndedListingView";
 import { OwnerListingBar } from "@/components/property/OwnerListingBar";
+import { AdminListingBar } from "@/components/property/AdminListingBar";
 import { ShareListingButton } from "@/components/property/ShareListingButton";
 import { ListingViewTracker } from "@/components/property/ListingViewTracker";
 import { shareText } from "@/lib/listing/share";
@@ -114,6 +115,7 @@ export default async function ProprietatePage({
   // "Scrie mesaj" always reaches the publisher's own inbox (never the listing's "Other" contact).
   const profile = await getCurrentUserProfile();
   const isOwner = profile?.id === publisher.userId;
+  const isAdmin = profile?.roles.includes("Admin") ?? false;
   const existingConversationId = profile && !isOwner ? await getConversationIdForListing(listing.id) : null;
   const messageHref = messageButtonHref(listing.id, profile !== null, existingConversationId);
   const messageEmphasis = messageButtonEmphasis(contact);
@@ -163,9 +165,7 @@ export default async function ProprietatePage({
       <ListingRentalTerms listing={listing} />
 
       <div className="mt-4 space-y-1 border-t border-ink-100 pt-4 text-xs text-ink-400">
-        <p>
-          {t("listingNumber", { number: listing.number })} · {t("viewCount", { count: listing.viewCount })}
-        </p>
+        <p>{t("listingNumber", { number: listing.number })}</p>
         <p>{t("listedOn", { date: formatDate(listing.publishedAt ?? listing.createdAt, locale) })}</p>
         {listing.updatedAt !== listing.createdAt && (
           <p>{t("updatedOn", { date: formatDate(listing.updatedAt, locale) })}</p>
@@ -279,6 +279,7 @@ export default async function ProprietatePage({
           />
 
           {isOwner && <OwnerListingBar listing={listing} />}
+          {isAdmin && !isOwner && <AdminListingBar listing={listing} />}
           {/* Counts the visit (once a day per visitor) — never the owner's own. */}
           {!isOwner && listing.status === "Active" && <ListingViewTracker listingId={listing.id} />}
 

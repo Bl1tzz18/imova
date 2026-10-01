@@ -24,7 +24,8 @@ public static class ListingMapping
         IReadOnlyList<PhotoDto> photos,
         bool isSaved,
         ListingContactDto? contact = null,
-        // The owner or an admin — they also see how many people asked for the phone number.
+        // The owner or an admin — the only ones who see how many people opened the listing and asked
+        // for its phone number.
         bool canSeeStats = false) =>
         new(
             listing.Id,
@@ -46,7 +47,7 @@ public static class ListingMapping
             photos,
             isSaved,
             listing.Number,
-            listing.ViewCount,
+            canSeeStats ? listing.ViewCount : null,
             canSeeStats ? listing.PhoneRevealCount : null,
             contact);
 

@@ -151,9 +151,9 @@ export type Listing = {
   publishedAt: string | null;
   // The short public number ("ID 100231").
   number: number;
-  // Different people who opened it, each counted once a day — never the owner.
-  viewCount: number;
-  // Different people who asked for the phone number — the owner's and admins' only, else null.
+  // Different people who opened it / asked for its phone number, each counted once a day — never
+  // the owner. The owner's and admins' only, else null.
+  viewCount: number | null;
   phoneRevealCount: number | null;
   expiresAt: string | null;
   rejectionReason: string | null;

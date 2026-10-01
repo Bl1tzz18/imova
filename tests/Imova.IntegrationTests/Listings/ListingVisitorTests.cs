@@ -54,7 +54,7 @@ public class ListingVisitorTests(WebApplicationFactory<Program> factory) : IClas
     }
 
     [Fact]
-    public async Task Views_CountOncePerVisitor_NeverTheOwner_AndPhoneRevealsAreTheOwnersToSee()
+    public async Task Views_CountOncePerVisitor_NeverTheOwner_AndBothCountsAreTheOwnersToSee()
     {
         var (owner, listing) = await ActiveListingAsync();
         var anonymous = _factory.CreateClient();
@@ -69,8 +69,9 @@ public class ListingVisitorTests(WebApplicationFactory<Program> factory) : IClas
 
         var publicView = (await anonymous.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
         var ownerView = (await owner.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
-        Assert.Equal(2, publicView.ViewCount);
+        Assert.Null(publicView.ViewCount);
         Assert.Null(publicView.PhoneRevealCount);
+        Assert.Equal(2, ownerView.ViewCount);
         Assert.Equal(1, ownerView.PhoneRevealCount);
 
         await owner.DeleteAsync($"/api/v1/listings/{listing.Id}");

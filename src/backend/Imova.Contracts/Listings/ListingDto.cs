@@ -24,9 +24,9 @@ public record ListingDto(
     bool IsSaved,
     // The short public number ("ID 100231").
     long Number,
-    // Different people who opened it (each counted once per 24 hours, never the owner).
-    int ViewCount,
-    // Different people who asked for its phone number — the owner's and admins' only, else null.
+    // Different people who opened it / asked for its phone number (each counted once per 24 hours,
+    // never the owner) — the owner's and admins' only, else null.
+    int? ViewCount,
     int? PhoneRevealCount,
     // Only on a listing's detail view (null on cards/search results) — see ListingContactDto.
     ListingContactDto? Contact = null);

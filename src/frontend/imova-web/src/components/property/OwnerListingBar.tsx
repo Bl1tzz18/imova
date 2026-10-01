@@ -1,4 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import { ListingStats } from "@/components/property/ListingStats";
 import { OwnerListingActions } from "@/components/property/OwnerListingActions";
 import { ownerActions, ownerNotice } from "@/lib/listing/ownerActions";
 import { formatDate } from "@/lib/utils/format";
@@ -35,11 +36,7 @@ export async function OwnerListingBar({ listing }: { listing: Listing }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{t("title")}</p>
           <p className="mt-0.5 text-sm font-medium text-ink-900">{message}</p>
           {/* How it's doing — once it has been public. */}
-          {listing.publishedAt && (
-            <p className="mt-0.5 text-xs text-ink-500">
-              {t("stats", { views: listing.viewCount, reveals: listing.phoneRevealCount ?? 0 })}
-            </p>
-          )}
+          {listing.publishedAt && <ListingStats listing={listing} className="mt-0.5" />}
           {notice.kind === "blocked" && notice.reason && (
             <p className="mt-1 text-sm text-ink-700">
               <span className="font-medium">{t("reasonLabel")}</span> {notice.reason}

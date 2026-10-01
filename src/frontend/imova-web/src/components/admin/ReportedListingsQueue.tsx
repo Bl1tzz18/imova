@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
+import { ListingStats } from "@/components/property/ListingStats";
 import { dismissListingReports, suspendListing } from "@/lib/admin/actions";
 import { moderationHref, type ReportView } from "@/lib/admin/moderationTabs";
 import { REPORT_TEXT_MAX, reporterSignal, topReason, waitingFor } from "@/lib/listing/reports";
@@ -102,6 +103,7 @@ function ReportCase({ reported, view, now }: { reported: ReportedListing; view: 
             {formatPrice(listing.price.amount, listing.price.currency)}
             {location && ` · ${location}`}
           </p>
+          <ListingStats listing={listing} showNumber className="mt-0.5" />
           <p className="mt-1.5 text-xs text-ink-600">
             <span className="text-ink-400">{t("publishedBy")} </span>
             <span className="font-medium text-ink-800">{listing.publisher.displayName}</span>
