@@ -6,6 +6,7 @@ using FluentValidation;
 using Imova.Api.Common;
 using Imova.Api.Features.Account;
 using Imova.Api.Features.Admins;
+using Imova.Api.Features.Agencies;
 using Imova.Api.Features.Amenities;
 using Imova.Api.Features.Auth;
 using Imova.Api.Features.Favorites;
@@ -28,6 +29,7 @@ using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
 using Imova.Application.Features.Account;
 using Imova.Application.Features.Admins;
+using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Listings.GetListings;
@@ -231,6 +233,9 @@ builder.Services.AddSingleton(
     builder.Configuration.GetSection(MessagingOptions.SectionName).Get<MessagingOptions>() ?? new MessagingOptions());
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(ListingReportOptions.SectionName).Get<ListingReportOptions>() ?? new ListingReportOptions());
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(AgencyOptions.SectionName).Get<AgencyOptions>() ?? new AgencyOptions());
+builder.Services.AddSingleton<IDatabaseErrors, PostgresDatabaseErrors>();
 builder.Services.AddScoped<MessageDelivery>();
 builder.Services.AddScoped<IListingSearch, ListingSearch>();
 builder.Services.AddScoped<ISimilarListingsFinder, SimilarListingsFinder>();
@@ -388,6 +393,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapListingEndpoints();
 app.MapListingReportEndpoints();
 app.MapPublisherEndpoints();
+app.MapAgencyEndpoints();
 app.MapAmenityEndpoints();
 app.MapProximityEndpoints();
 app.MapExchangeRateEndpoints();

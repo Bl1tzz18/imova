@@ -1,4 +1,5 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Agencies.Logos;
 using Imova.Application.Features.Listings;
 using Imova.Application.Features.Media.Sizes;
 using Microsoft.EntityFrameworkCore;
@@ -57,7 +58,7 @@ public class AccountDeletion(
         var soleMemberAgencies = await dbContext.Agencies
             .Where(a => a.Members.Any(m => m.UserId == userId) && a.Members.All(m => m.UserId == userId))
             .ToListAsync(cancellationToken);
-        publicBlobs.UnionWith(soleMemberAgencies.Select(a => a.LogoBlobName).OfType<string>());
+        publicBlobs.UnionWith(soleMemberAgencies.Select(a => a.LogoBlobName).OfType<string>().SelectMany(AgencyLogo.AllBlobNames));
         dbContext.Agencies.RemoveRange(soleMemberAgencies);
         dbContext.AgencyMembers.RemoveRange(await dbContext.AgencyMembers.Where(m => m.UserId == userId).ToListAsync(cancellationToken));
 

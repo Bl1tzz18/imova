@@ -104,6 +104,71 @@ public sealed class Agency : AggregateRoot
 
     public bool IsMember(Guid userId) => RoleOf(userId) is not null;
 
+    // Replaces the editable details. `slug` is the one the (possibly new) name should have — the
+    // caller picks a free one only when the name changed; returns the slug it replaced, if any, so
+    // the caller can keep it in the slug history.
+    public string? UpdateProfile(AgencyProfile profile, string slug, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(slug) || slug.Length > AgencySlug.MaxLength)
+        {
+            throw new ArgumentException("A slug is required.", nameof(slug));
+        }
+
+        Apply(profile);
+        UpdatedAt = now;
+
+        if (slug == Slug)
+        {
+            return null;
+        }
+
+        var replaced = Slug;
+        Slug = slug;
+        return replaced;
+    }
+
+    // Returns the logo it replaced, if any (its files are the caller's to delete).
+    public string? SetLogo(string blobName, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(blobName))
+        {
+            throw new ArgumentException("A logo needs its blob name.", nameof(blobName));
+        }
+
+        var previous = LogoBlobName;
+        LogoBlobName = blobName;
+        UpdatedAt = now;
+        return previous;
+    }
+
+    // Returns the logo it removed, if any.
+    public string? RemoveLogo(DateTimeOffset now)
+    {
+        var previous = LogoBlobName;
+        if (previous is not null)
+        {
+            LogoBlobName = null;
+            UpdatedAt = now;
+        }
+
+        return previous;
+    }
+
+    public void AddMember(Guid userId, AgencyRole role, DateTimeOffset now)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException("UserId is required.", nameof(userId));
+        }
+
+        if (IsMember(userId))
+        {
+            throw new InvalidOperationException("That user is already a member of this agency.");
+        }
+
+        _members.Add(AgencyMember.Create(Id, userId, role, now));
+    }
+
     private void Apply(AgencyProfile profile)
     {
         Name = Required(profile.Name, MaxNameLength, nameof(profile.Name));

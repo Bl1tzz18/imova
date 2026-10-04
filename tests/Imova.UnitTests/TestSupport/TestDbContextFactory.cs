@@ -1,5 +1,6 @@
 using Imova.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Imova.UnitTests.TestSupport;
 
@@ -11,10 +12,11 @@ internal static class TestDbContextFactory
 
     // Same name = same underlying store — lets a test save through one context and read back
     // through a fresh one (no change-tracker cache), to check what actually round-trips.
-    public static ImovaDbContext Create(string databaseName)
+    public static ImovaDbContext Create(string databaseName, params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<ImovaDbContext>()
             .UseInMemoryDatabase(databaseName)
+            .AddInterceptors(interceptors)
             .Options;
 
         return new ImovaDbContext(options);

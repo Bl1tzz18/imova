@@ -39,6 +39,36 @@ public class MagickPhotoResizerTests
     }
 
     [Fact]
+    public async Task ALogo_BecomesExactSquares_CentredOnWhite()
+    {
+        // A wide transparent logo: fitted to the width, white bands above and below.
+        using var logo = new MagickImage(MagickColors.Transparent, 300, 100);
+        logo.Draw(new ImageMagick.Drawing.Drawables().FillColor(MagickColors.Red).Rectangle(0, 0, 299, 99));
+        var source = logo.ToByteArray(MagickFormat.Png);
+
+        var result = await Resizer.ResizeToSquareJpegAsync(new MemoryStream(source), [512, 128], CancellationToken.None);
+
+        Assert.NotNull(result);
+        using var large = new MagickImage(result[0]);
+        using var small = new MagickImage(result[1]);
+        Assert.Equal(MagickFormat.Jpeg, large.Format);
+        Assert.Equal((512u, 512u), (large.Width, large.Height));
+        Assert.Equal((128u, 128u), (small.Width, small.Height));
+
+        using var pixels = large.GetPixels();
+        var corner = pixels.GetPixel(5, 5).ToColor()!;
+        var centre = pixels.GetPixel(256, 256).ToColor()!;
+        Assert.True(corner.R > 250 && corner.G > 250 && corner.B > 250, "the padding is white");
+        Assert.True(centre.R > 200 && centre.G < 60, "the logo is in the middle");
+    }
+
+    [Fact]
+    public async Task ALogoThatIsNotAnImage_IsNull()
+    {
+        Assert.Null(await Resizer.ResizeToSquareJpegAsync(new MemoryStream("nope"u8.ToArray()), [512], CancellationToken.None));
+    }
+
+    [Fact]
     public async Task NeverEnlargesASmallPhoto()
     {
         var source = new MagickImage(MagickColors.Teal, 300, 200).ToByteArray(MagickFormat.Png);

@@ -78,5 +78,11 @@ public static class ErrorCodes
     // --- Saved searches ---
     public const string SavedSearchLimit = "savedSearch.limitReached";
 
-    // --- Publishers ---
+    // --- Agencies ---
+    public const string AgencyWebsiteInvalid = "agency.websiteInvalid";
+    public const string AgencyRaionUnknown = "agency.raionUnknown";
+    public const string AgencyLogoType = "agency.logoType";
+    public const string AgencyLogoTooSmall = "agency.logoTooSmall";
+    public const string AgencyLimitReached = "agency.limitReached";
+    public const string AgencyEmailNotConfirmed = "agency.emailNotConfirmed";
 }

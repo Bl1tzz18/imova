@@ -1222,6 +1222,14 @@
       "savedSearch": {
         "limitReached": "You can save at most {max} searches. Delete one to save another."
       },
+      "agency": {
+        "websiteInvalid": "Enter the website's full address, for example https://agency.md.",
+        "raionUnknown": "Choose the city or district from the list.",
+        "logoType": "The logo must be a JPEG, PNG or WebP image.",
+        "logoTooSmall": "The logo must be at least {min}×{min} pixels. Upload a larger image.",
+        "limitReached": "You can own at most {max} agencies.",
+        "emailNotConfirmed": "Confirm your email address before creating an agency. Check the email we sent when you registered, or ask for a new link on your account page."
+      },
       "account": {
         "passwordRequired": "Enter your password to delete the account.",
         "wrongPassword": "The password is incorrect.",

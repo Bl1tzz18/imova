@@ -105,6 +105,65 @@ public class AgencyTests
     }
 
     [Fact]
+    public void UpdateProfile_WithANewSlug_ReturnsTheOneItReplaced()
+    {
+        var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);
+        var later = Now.AddDays(1);
+
+        var replaced = agency.UpdateProfile(Profile(name: "Casa Noastră", bio: "Din 2005."), "casa-noastra", later);
+
+        Assert.Equal("casa-ta", replaced);
+        Assert.Equal("casa-noastra", agency.Slug);
+        Assert.Equal("Casa Noastră", agency.Name);
+        Assert.Equal("Din 2005.", agency.Bio);
+        Assert.Equal(later, agency.UpdatedAt);
+    }
+
+    [Fact]
+    public void UpdateProfile_KeepingTheSlug_ReplacesNothing()
+    {
+        var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);
+
+        Assert.Null(agency.UpdateProfile(Profile(phone: "+373 69 000 111"), "casa-ta", Now));
+        Assert.Equal("+373 69 000 111", agency.Phone);
+    }
+
+    [Fact]
+    public void UpdateProfile_WithAnInvalidProfile_Throws()
+    {
+        var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);
+
+        Assert.Throws<ArgumentException>(() => agency.UpdateProfile(Profile(email: " "), "casa-ta", Now));
+    }
+
+    [Fact]
+    public void SetLogo_ReturnsThePreviousOne_AndRemoveLogoClearsIt()
+    {
+        var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);
+
+        Assert.Null(agency.SetLogo("first.jpg", Now));
+        Assert.Equal("first.jpg", agency.SetLogo("second.jpg", Now));
+        Assert.Equal("second.jpg", agency.LogoBlobName);
+
+        Assert.Equal("second.jpg", agency.RemoveLogo(Now));
+        Assert.Null(agency.LogoBlobName);
+        Assert.Null(agency.RemoveLogo(Now));
+    }
+
+    [Fact]
+    public void AddMember_AddsThemWithTheirRole_ButNeverTwice()
+    {
+        var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);
+        var agentId = Guid.NewGuid();
+
+        agency.AddMember(agentId, AgencyRole.Agent, Now);
+
+        Assert.Equal(AgencyRole.Agent, agency.RoleOf(agentId));
+        Assert.Throws<InvalidOperationException>(() => agency.AddMember(agentId, AgencyRole.Admin, Now));
+        Assert.Throws<InvalidOperationException>(() => agency.AddMember(OwnerId, AgencyRole.Agent, Now));
+    }
+
+    [Fact]
     public void RoleOf_IsTheMembersRole_OrNullForSomeoneElse()
     {
         var agency = Agency.Create(Profile(), "casa-ta", OwnerId, Now);

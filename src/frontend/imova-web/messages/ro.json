@@ -1222,6 +1222,14 @@
       "savedSearch": {
         "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
       },
+      "agency": {
+        "websiteInvalid": "Introdu adresa completă a site-ului, de exemplu https://agentia.md.",
+        "raionUnknown": "Alege orașul sau raionul din listă.",
+        "logoType": "Logoul trebuie să fie o imagine JPEG, PNG sau WebP.",
+        "logoTooSmall": "Logoul trebuie să aibă cel puțin {min}×{min} pixeli. Încarcă o imagine mai mare.",
+        "limitReached": "Poți deține cel mult {max} agenții.",
+        "emailNotConfirmed": "Confirmă-ți adresa de email înainte să creezi o agenție. Verifică emailul primit la înregistrare sau cere un link nou din pagina contului."
+      },
       "account": {
         "passwordRequired": "Introdu parola pentru a șterge contul.",
         "wrongPassword": "Parola este greșită.",
