@@ -184,6 +184,8 @@ export type Listing = {
   // the owner. The owner's and admins' only, else null.
   viewCount: number | null;
   phoneRevealCount: number | null;
+  // How many people saved it to their favorites — also the owner's and admins' only.
+  favoriteCount?: number | null;
   expiresAt: string | null;
   rejectionReason: string | null;
   suspensionReason: string | null;

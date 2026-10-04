@@ -21,4 +21,8 @@ public sealed class ApplicationUser : IdentityUser<Guid>
 
     // Set by an admin (see SetMessagingBanHandler in Features/Messaging/Admin): the user can no longer send messages.
     public bool IsBannedFromMessaging { get; set; }
+
+    // "Email me when a listing I saved changes price or is no longer available" (FavoriteAlerts) —
+    // on by default; off from the account settings or the link in any of those emails.
+    public bool EmailFavoriteUpdates { get; set; } = true;
 }

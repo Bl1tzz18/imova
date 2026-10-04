@@ -1,4 +1,5 @@
 using Imova.Application.Common;
+using Imova.Application.Common.Emails;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.SearchListings;
@@ -96,7 +97,7 @@ public class SavedSearchAlerts(
         {
             var photo = l.Photos.FirstOrDefault(p => p.IsPrimary) ?? l.Photos.OrderBy(p => p.SortOrder).FirstOrDefault();
             var location = l.Property.Location is { } loc
-                ? string.Join(", ", new[] { loc.ChisinauSectorName ?? loc.LocalitateName, loc.RaionName }.Where(n => !string.IsNullOrWhiteSpace(n)))
+                ? ListingEmailText.Location(loc.RaionName, loc.LocalitateName, loc.ChisinauSectorName)
                 : null;
             return new AlertListing(
                 l.Id,
@@ -106,7 +107,7 @@ public class SavedSearchAlerts(
                 l.TransactionType,
                 l.Property.PropertyType,
                 l.Property.TotalAreaM2,
-                string.IsNullOrWhiteSpace(location) ? null : location,
+                location,
                 photo?.CardUrl,
                 appOptions.WebUrl($"/property/{l.Id}"));
         }).ToList();

@@ -36,6 +36,7 @@ using Imova.Application.Features.Listings.GetSimilarListings;
 using Imova.Application.Features.Listings.Visitors;
 using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.Messaging;
+using Imova.Application.Features.Favorites.Alerts;
 using Imova.Application.Features.SavedSearches;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
@@ -119,6 +120,7 @@ builder.Services.AddSingleton(
     builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
 builder.Services.AddScoped<AuthSessions>();
 builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
+builder.Services.AddScoped<FavoriteAlertUnsubscribeTokens>();
 builder.Services.AddSingleton<AuthEmailThrottle>();
 builder.Services.AddAuthRateLimiting(builder.Configuration);
 
@@ -393,6 +395,7 @@ app.MapMediaEndpoints();
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapAccountEndpoints();
+app.MapEmailPreferencesEndpoints();
 app.MapAdminEndpoints();
 app.MapFavoriteEndpoints();
 app.MapLocationsEndpoints();

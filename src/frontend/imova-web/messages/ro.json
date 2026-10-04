@@ -534,7 +534,15 @@
     "accountDeletedTitle": "Contul tău a fost șters",
     "accountDeletedBody": "Toate datele contului tău au fost șterse. Îți mulțumim că ai folosit IMOVA — poți reveni oricând cu un cont nou.",
     "accountDeletedHome": "Mergi la pagina principală",
-    "privacyRights": "Aceste drepturi — de acces la date, de portabilitate, de rectificare și de ștergere — îți sunt garantate de legislația Republicii Moldova privind protecția datelor cu caracter personal și, dacă locuiești în Uniunea Europeană, de Regulamentul general privind protecția datelor (GDPR)."
+    "privacyRights": "Aceste drepturi — de acces la date, de portabilitate, de rectificare și de ștergere — îți sunt garantate de legislația Republicii Moldova privind protecția datelor cu caracter personal și, dacă locuiești în Uniunea Europeană, de Regulamentul general privind protecția datelor (GDPR).",
+    "notificationsTab": "Notificări",
+    "notificationsTitle": "Notificări pe email",
+    "notificationsBody": "Alege ce emailuri opționale primești. Emailurile despre cont (confirmare, resetarea parolei) se trimit mereu.",
+    "favoriteUpdatesLabel": "Anunțurile salvate",
+    "favoriteUpdatesHint": "Un email când un anunț salvat la favorite își schimbă prețul (cel mult unul pe zi pentru fiecare anunț) sau nu mai este disponibil.",
+    "notificationsSaved": "Salvat.",
+    "notificationsUnavailable": "Nu am putut încărca setările notificărilor. Încearcă din nou mai târziu.",
+    "savedSearchAlertsHint": "Alertele pentru căutările salvate se setează separat, pentru fiecare căutare, în <link>Căutări salvate</link>."
   },
   "SavedListingsPage": {
     "title": "Anunțuri salvate",
@@ -1490,7 +1498,8 @@
     "views": "{count, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}}",
     "phoneReveals": "{count, plural, one {# persoană a văzut numărul} few {# persoane au văzut numărul} other {# de persoane au văzut numărul}}",
     "adminTitle": "Admin",
-    "openInModeration": "Deschide în moderare"
+    "openInModeration": "Deschide în moderare",
+    "favorites": "{count, plural, one {salvat de # persoană} few {salvat de # persoane} other {salvat de # de persoane}}"
   },
   "PriceHistory": {
     "badge": "Preț redus {percent}",
@@ -1502,5 +1511,14 @@
     "earlier": "Anterior",
     "showAll": "Arată tot istoricul ({count})",
     "showLess": "Arată mai puțin"
+  },
+  "FavoriteAlerts": {
+    "unsubscribedTitle": "Gata, nu mai primești aceste emailuri",
+    "unsubscribedBody": "Nu-ți mai trimitem emailuri despre anunțurile salvate. Favoritele rămân salvate; poți reporni emailurile oricând din setările contului.",
+    "unsubscribeGoneTitle": "Contul nu mai există",
+    "unsubscribeGoneBody": "Acest cont a fost șters, așa că nu mai primește niciun email.",
+    "unsubscribeInvalidTitle": "Link invalid",
+    "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri aceste emailuri din setările contului, la Notificări.",
+    "manage": "Setările notificărilor"
   }
 }

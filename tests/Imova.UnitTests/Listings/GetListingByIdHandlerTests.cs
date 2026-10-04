@@ -118,6 +118,29 @@ public class GetListingByIdHandlerTests
     }
 
     [Fact]
+    public async Task Handle_FavoriteCount_OnlyForTheOwnerAndAdmins()
+    {
+        var listing = ListingTestData.AddListing(_dbContext, _publisherId).MoveTo(ListingStatus.Active);
+        _dbContext.Favorites.Add(Favorite.Create(Guid.NewGuid(), listing.Id));
+        _dbContext.Favorites.Add(Favorite.Create(Guid.NewGuid(), listing.Id));
+        var someoneElsesListing = ListingTestData.AddListing(_dbContext, _publisherId).MoveTo(ListingStatus.Active);
+        _dbContext.Favorites.Add(Favorite.Create(Guid.NewGuid(), someoneElsesListing.Id));
+
+        Assert.Equal(2, (await GetAsync(listing.Id, currentUserId: _ownerId))!.FavoriteCount);
+        Assert.Equal(2, (await GetAsync(listing.Id, currentUserId: Guid.NewGuid(), isAdmin: true))!.FavoriteCount);
+        Assert.Null((await GetAsync(listing.Id, currentUserId: Guid.NewGuid()))!.FavoriteCount);
+        Assert.Null((await GetAsync(listing.Id))!.FavoriteCount);
+    }
+
+    [Fact]
+    public async Task Handle_FavoriteCount_IsZeroNotNull_ForTheOwnerOfAnUnsavedListing()
+    {
+        var listing = ListingTestData.AddListing(_dbContext, _publisherId).MoveTo(ListingStatus.Active);
+
+        Assert.Equal(0, (await GetAsync(listing.Id, currentUserId: _ownerId))!.FavoriteCount);
+    }
+
+    [Fact]
     public async Task Handle_ReturnsPhotosInSortOrderWithUrls()
     {
         var listing = ListingTestData.AddListing(_dbContext, _publisherId).MoveTo(ListingStatus.Active);

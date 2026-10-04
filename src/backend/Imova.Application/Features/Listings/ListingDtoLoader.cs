@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Imova.Application.Features.Listings;
 
 // Builds ListingDtos for an already-loaded set of listings: one batched query each for their
-// properties (+ amenities, proximities), locations, publishers, photos, price changes and the caller's favorites, instead of
+// properties (+ amenities, proximities), locations, publishers, photos, price changes, the caller's favorites and (for the owner/admins) favorite counts, instead of
 // every listing-returning handler repeating those joins. Output order matches the input order.
 public static class ListingDtoLoader
 {
@@ -95,6 +95,20 @@ public static class ListingDtoLoader
                 .Select(f => f.ListingId)
                 .ToHashSetAsync(cancellationToken);
 
+        // The owner's and admins' statistics (see ListingMapping's canSeeStats): how many people saved it.
+        var statsListingIds = listings
+            .Where(l => viewerIsAdmin || (currentUserId is not null && publishersById[l.PublisherId].UserId == currentUserId))
+            .Select(l => l.Id)
+            .ToHashSet();
+        var favoriteCounts = statsListingIds.Count == 0
+            ? []
+            : await dbContext.Favorites
+                .AsNoTracking()
+                .Where(f => statsListingIds.Contains(f.ListingId))
+                .GroupBy(f => f.ListingId)
+                .Select(g => new { ListingId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.ListingId, g => g.Count, cancellationToken);
+
         return listings
             .Select(listing =>
             {
@@ -117,6 +131,7 @@ public static class ListingDtoLoader
                 {
                     PriceReduction = ListingPriceHistory.Reduction(priceChanges, listing.Price, now),
                     PriceHistory = includeContactDetails ? ListingPriceHistory.History(priceChanges) : null,
+                    FavoriteCount = statsListingIds.Contains(listing.Id) ? favoriteCounts.GetValueOrDefault(listing.Id) : null,
                 };
             })
             .ToList();

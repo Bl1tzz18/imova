@@ -45,7 +45,9 @@ public record ExportedAccountDto(
     // External sign-in providers linked to the account ("Google").
     IReadOnlyList<string> SignInProviders,
     IReadOnlyList<string> Roles,
-    bool IsBannedFromMessaging);
+    bool IsBannedFromMessaging,
+    // Emails about saved listings (price changes, no longer available) — on unless turned off.
+    bool EmailFavoriteUpdates);
 
 // One login session (a device/browser). EndedAt: signed out or revoked.
 public record ExportedSessionDto(
@@ -81,7 +83,13 @@ public record ExportedPriceChangeDto(
 public record ExportedPhotoDto(Guid ListingId, string File, DateTimeOffset UploadedAt);
 
 // ListingTitle is null when the listing no longer exists.
-public record ExportedFavoriteDto(Guid ListingId, string? ListingTitle, DateTimeOffset SavedAt);
+// PriceAlertSentAt / EndedAlertSentAt: the latest "price changed" email, the "no longer available" one.
+public record ExportedFavoriteDto(
+    Guid ListingId,
+    string? ListingTitle,
+    DateTimeOffset SavedAt,
+    DateTimeOffset? PriceAlertSentAt = null,
+    DateTimeOffset? EndedAlertSentAt = null);
 
 public record ExportedSavedSearchDto(
     string Name,

@@ -35,7 +35,10 @@ public record ListingDto(
     PriceReductionDto? PriceReduction = null,
     // The price changes since the listing was first published, oldest first (at most the latest
     // ListingPriceHistory.MaxEntries) — only on the detail view, null elsewhere.
-    PriceHistoryDto? PriceHistory = null);
+    PriceHistoryDto? PriceHistory = null,
+    // How many people saved it to their favorites — like ViewCount, the owner's and admins' only
+    // (null for everyone else, on every view).
+    int? FavoriteCount = null);
 
 // Percent: how much lower, rounded (from EUR values when the currency changed).
 public record PriceReductionDto(decimal PreviousAmount, string PreviousCurrency, int Percent, DateTimeOffset ReducedAt);

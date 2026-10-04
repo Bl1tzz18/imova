@@ -77,7 +77,8 @@ public class ExportPersonalDataHandler(
             await userManager.HasPasswordAsync(user),
             providers,
             (await userManager.GetRolesAsync(user)).ToList(),
-            user.IsBannedFromMessaging);
+            user.IsBannedFromMessaging,
+            user.EmailFavoriteUpdates);
     }
 
     // A session is a chain of refresh tokens sharing a SessionId (see RefreshToken) — only its
@@ -169,7 +170,7 @@ public class ExportPersonalDataHandler(
                join l in dbContext.Listings.AsNoTracking() on f.ListingId equals l.Id into found
                from l in found.DefaultIfEmpty()
                orderby f.CreatedAt
-               select new ExportedFavoriteDto(f.ListingId, l == null ? null : l.Title, f.CreatedAt))
+               select new ExportedFavoriteDto(f.ListingId, l == null ? null : l.Title, f.CreatedAt, f.PriceAlertSentAt, f.EndedAlertSentAt))
             .ToListAsync(cancellationToken);
 
     private async Task<List<ExportedSavedSearchDto>> SavedSearchesAsync(Guid userId, CancellationToken cancellationToken)
