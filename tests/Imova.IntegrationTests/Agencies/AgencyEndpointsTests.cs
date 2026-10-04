@@ -185,16 +185,19 @@ public class AgencyEndpointsTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
-    public async Task Logo_UnderTwoHundredPixels_Is400WithItsCode()
+    public async Task Logo_WithItsLongerSideUnderTwoHundredPixels_Is400_ButAWideTextLogoIsFine()
     {
         var (owner, _) = await ListingApi.RegisterAsync(_factory);
         var created = await CreateAsync(owner, $"Agenția Mică {Guid.NewGuid():N}");
-        var small = new MagickImage(MagickColors.SteelBlue, 600, 150).ToByteArray(MagickFormat.Png);
+        var small = new MagickImage(MagickColors.SteelBlue, 190, 120).ToByteArray(MagickFormat.Png);
+        var wide = new MagickImage(MagickColors.SteelBlue, 600, 150).ToByteArray(MagickFormat.Png);
 
-        var response = await UploadLogoAsync(owner, created.Id, small);
+        var refused = await UploadLogoAsync(owner, created.Id, small);
+        var accepted = await UploadLogoAsync(owner, created.Id, wide);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("agency.logoTooSmall", await response.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        Assert.Contains("agency.logoTooSmall", await refused.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
     }
 
     [Fact]

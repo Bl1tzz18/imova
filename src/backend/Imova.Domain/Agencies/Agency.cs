@@ -154,6 +154,40 @@ public sealed class Agency : AggregateRoot
         return previous;
     }
 
+    public int OwnerCount => _members.Count(m => m.Role == AgencyRole.Owner);
+
+    // Who may ask for this is the caller's business (AgencyAccess); the agency only guards its own
+    // rule: the last Owner can't stop being one (LastOwnerException).
+    public void ChangeRole(Guid userId, AgencyRole role, DateTimeOffset now)
+    {
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw new InvalidOperationException("That user is not a member of this agency.");
+
+        if (member.Role == AgencyRole.Owner && role != AgencyRole.Owner && OwnerCount == 1)
+        {
+            throw new LastOwnerException();
+        }
+
+        member.SetRole(role);
+        UpdatedAt = now;
+    }
+
+    // Leaving or being removed. The member's listings under the agency are the caller's to hand to
+    // someone who stays.
+    public void RemoveMember(Guid userId, DateTimeOffset now)
+    {
+        var member = _members.FirstOrDefault(m => m.UserId == userId)
+            ?? throw new InvalidOperationException("That user is not a member of this agency.");
+
+        if (member.Role == AgencyRole.Owner && OwnerCount == 1)
+        {
+            throw new LastOwnerException();
+        }
+
+        _members.Remove(member);
+        UpdatedAt = now;
+    }
+
     public void AddMember(Guid userId, AgencyRole role, DateTimeOffset now)
     {
         if (userId == Guid.Empty)

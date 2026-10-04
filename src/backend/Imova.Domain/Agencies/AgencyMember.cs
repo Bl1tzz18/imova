@@ -22,4 +22,6 @@ public sealed class AgencyMember
 
     internal static AgencyMember Create(Guid agencyId, Guid userId, AgencyRole role, DateTimeOffset joinedAt) =>
         new(agencyId, userId, role, joinedAt);
+
+    internal void SetRole(AgencyRole role) => Role = role;
 }

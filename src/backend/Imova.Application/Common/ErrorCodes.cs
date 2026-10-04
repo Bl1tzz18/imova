@@ -85,4 +85,14 @@ public static class ErrorCodes
     public const string AgencyLogoTooSmall = "agency.logoTooSmall";
     public const string AgencyLimitReached = "agency.limitReached";
     public const string AgencyEmailNotConfirmed = "agency.emailNotConfirmed";
+    public const string AgencyLastOwner = "agency.lastOwner";
+    public const string AgencyReassignInvalid = "agency.reassignInvalid";
+    public const string AgencyAlreadyMember = "agency.alreadyMember";
+    public const string AgencyTooManyInvitations = "agency.tooManyInvitations";
+    public const string AgencyInvitationRateLimit = "agency.invitationRateLimit";
+    public const string AgencyInvitationResendTooSoon = "agency.invitationResendTooSoon";
+    public const string AgencyInvitationExpired = "agency.invitationExpired";
+    public const string AgencyInvitationClosed = "agency.invitationClosed";
+    public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
+    public const string AccountLastAgencyOwner = "account.lastAgencyOwner";
 }

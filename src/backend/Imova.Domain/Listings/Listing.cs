@@ -160,6 +160,23 @@ public sealed class Listing : AggregateRoot
             agencyId);
     }
 
+    // Hands an agency's listing to another author (a member who stays, when its author leaves the
+    // agency). Nothing else changes: not its status, dates or counters.
+    public void ChangeAuthor(Guid publisherId)
+    {
+        if (publisherId == Guid.Empty)
+        {
+            throw new ArgumentException("PublisherId is required.", nameof(publisherId));
+        }
+
+        if (AgencyId is null)
+        {
+            throw new InvalidOperationException("Only an agency's listing changes author.");
+        }
+
+        PublisherId = publisherId;
+    }
+
     // Never touches Status/PublisherId/PropertyId — editing an offer's content is not a lifecycle
     // transition (resubmitting a Rejected listing is the caller's separate SubmitForReview() call).
     public void UpdateDetails(

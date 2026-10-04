@@ -13,7 +13,8 @@ public static class AgencyLogo
     public const int Size = 512;
     public const int ThumbnailSize = 128;
 
-    // Smaller than this on either side and the logo would be blown up into a blur.
+    // A logo whose longer side is under this would be blown up into a blur. Only the longer side
+    // counts: a wide text logo (600×150) is fine — it's fitted to the width and padded.
     public const int MinSide = 200;
 
     // Logos are small; anything bigger is a mistake.

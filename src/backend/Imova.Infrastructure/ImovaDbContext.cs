@@ -49,6 +49,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<AgencyFormerSlug> AgencyFormerSlugs => Set<AgencyFormerSlug>();
 
+    public DbSet<AgencyInvitation> AgencyInvitations => Set<AgencyInvitation>();
+
     public DbSet<Photo> Photos => Set<Photo>();
 
     public DbSet<PropertyLocation> PropertyLocations => Set<PropertyLocation>();

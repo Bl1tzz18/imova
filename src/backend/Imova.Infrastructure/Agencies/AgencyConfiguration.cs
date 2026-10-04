@@ -50,6 +50,30 @@ public class AgencyMemberConfiguration : IEntityTypeConfiguration<AgencyMember>
     }
 }
 
+public class AgencyInvitationConfiguration : IEntityTypeConfiguration<AgencyInvitation>
+{
+    public void Configure(EntityTypeBuilder<AgencyInvitation> builder)
+    {
+        builder.HasKey(i => i.Id);
+        builder.Property(i => i.Email).IsRequired().HasMaxLength(Agency.MaxEmailLength);
+        builder.Property(i => i.Role).IsRequired();
+        builder.Property(i => i.TokenHash).IsRequired().HasMaxLength(64);
+        builder.HasIndex(i => i.TokenHash).IsUnique();
+
+        builder.HasOne<Agency>().WithMany().HasForeignKey(i => i.AgencyId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(i => i.InvitedByUserId).OnDelete(DeleteBehavior.SetNull);
+
+        // One open invitation per address and agency — inviting again resends it.
+        builder.HasIndex(i => new { i.AgencyId, i.Email })
+            .IsUnique()
+            .HasFilter("\"AcceptedAt\" IS NULL AND \"DeclinedAt\" IS NULL AND \"RevokedAt\" IS NULL");
+
+        // "Invitations waiting for me" (by the account's email) and the per-agency hourly count.
+        builder.HasIndex(i => i.Email);
+        builder.HasIndex(i => new { i.AgencyId, i.LastSentAt });
+    }
+}
+
 public class AgencyFormerSlugConfiguration : IEntityTypeConfiguration<AgencyFormerSlug>
 {
     public void Configure(EntityTypeBuilder<AgencyFormerSlug> builder)

@@ -22,6 +22,40 @@ public static class AgencyAccess
     public static bool CanManageMembers(Agency agency, Guid userId, bool isAdmin) =>
         isAdmin || agency.RoleOf(userId) is AgencyRole.Owner or AgencyRole.Admin;
 
+    // Owners can do anything to anyone; Admins only to Agents (only Owners add, remove, promote or
+    // demote Owners and Admins). Anyone may step down themselves. The last-Owner rule is the
+    // agency's own (Agency.ChangeRole).
+    public static bool CanChangeRole(Agency agency, Guid actorId, bool isAdmin, Guid targetId, AgencyRole newRole)
+    {
+        if (isAdmin || agency.RoleOf(actorId) is AgencyRole.Owner)
+        {
+            return true;
+        }
+
+        var actorRole = agency.RoleOf(actorId);
+        var targetRole = agency.RoleOf(targetId);
+        if (actorId == targetId && actorRole is { } own && newRole >= own)
+        {
+            // Stepping down (roles are ordered Owner < Admin < Agent).
+            return true;
+        }
+
+        return actorRole is AgencyRole.Admin && targetRole is AgencyRole.Agent && newRole is AgencyRole.Agent;
+    }
+
+    // Leaving is always allowed (bar the last Owner); removing someone else follows CanChangeRole's rule.
+    public static bool CanRemoveMember(Agency agency, Guid actorId, bool isAdmin, Guid targetId) =>
+        actorId == targetId
+        || isAdmin
+        || agency.RoleOf(actorId) is AgencyRole.Owner
+        || (agency.RoleOf(actorId) is AgencyRole.Admin && agency.RoleOf(targetId) is AgencyRole.Agent);
+
+    // Admins may invite Agents; only Owners invite Admins.
+    public static bool CanInvite(Agency agency, Guid actorId, bool isAdmin, AgencyRole role) =>
+        isAdmin
+        || agency.RoleOf(actorId) is AgencyRole.Owner
+        || (agency.RoleOf(actorId) is AgencyRole.Admin && role is AgencyRole.Agent);
+
     public static bool CanDelete(Agency agency, Guid userId, bool isAdmin) =>
         isAdmin || agency.RoleOf(userId) is AgencyRole.Owner;
 

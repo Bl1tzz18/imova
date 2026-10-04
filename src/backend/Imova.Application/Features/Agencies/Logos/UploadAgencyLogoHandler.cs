@@ -33,7 +33,7 @@ public class UploadAgencyLogoHandler(
         }
 
         var size = photoResizer.ReadSize(request.Content) ?? throw NotAnImage();
-        if (size.Width < AgencyLogo.MinSide || size.Height < AgencyLogo.MinSide)
+        if (Math.Max(size.Width, size.Height) < AgencyLogo.MinSide)
         {
             throw new ValidationException(
             [

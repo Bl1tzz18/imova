@@ -385,9 +385,10 @@ public class AgencyHandlerTests : IAsyncDisposable
     }
 
     [Theory]
-    [InlineData(199, 800)]
-    [InlineData(800, 199)]
-    public async Task UploadLogo_SmallerThan200OnEitherSide_IsRefused(int width, int height)
+    [InlineData(199, 199)]
+    [InlineData(199, 120)]
+    [InlineData(150, 199)]
+    public async Task UploadLogo_WithItsLongerSideUnder200_IsRefused(int width, int height)
     {
         var created = await CreateAsync();
         _resizer.Size = (width, height);
@@ -398,11 +399,14 @@ public class AgencyHandlerTests : IAsyncDisposable
         Assert.Empty(_blobs.UploadedContent);
     }
 
-    [Fact]
-    public async Task UploadLogo_OfExactly200By200_IsAccepted()
+    [Theory]
+    [InlineData(200, 200)]
+    [InlineData(600, 150)]
+    [InlineData(120, 200)]
+    public async Task UploadLogo_WithItsLongerSideAtLeast200_IsAccepted_EvenAWideTextLogo(int width, int height)
     {
         var created = await CreateAsync();
-        _resizer.Size = (200, 200);
+        _resizer.Size = (width, height);
 
         Assert.NotNull((await UploadLogoAsync(created.Id, _ownerId, Png))!.LogoUrl);
     }

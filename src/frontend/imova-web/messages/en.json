@@ -1228,12 +1228,22 @@
         "logoType": "The logo must be a JPEG, PNG or WebP image.",
         "logoTooSmall": "The logo must be at least {min}×{min} pixels. Upload a larger image.",
         "limitReached": "You can own at most {max} agencies.",
-        "emailNotConfirmed": "Confirm your email address before creating an agency. Check the email we sent when you registered, or ask for a new link on your account page."
+        "emailNotConfirmed": "Confirm your email address before creating an agency. Check the email we sent when you registered, or ask for a new link on your account page.",
+        "lastOwner": "An agency must keep at least one owner. Make another member an owner first.",
+        "reassignInvalid": "Their listings must go to an owner or administrator who stays in the agency.",
+        "alreadyMember": "This person is already a member of the agency.",
+        "tooManyInvitations": "An agency can have at most {max} invitations waiting.",
+        "invitationRateLimit": "Too many invitations sent. An agency can send at most {max} invitations an hour.",
+        "invitationResendTooSoon": "This invitation was just sent. You can resend it in {minutes} minutes.",
+        "invitationExpired": "This invitation has expired. Ask the agency to send it again.",
+        "invitationClosed": "This invitation is no longer valid.",
+        "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it."
       },
       "account": {
         "passwordRequired": "Enter your password to delete the account.",
         "wrongPassword": "The password is incorrect.",
-        "noPassword": "Your account has no password — confirm the deletion through the emailed link."
+        "noPassword": "Your account has no password — confirm the deletion through the emailed link.",
+        "lastAgencyOwner": "You are the only owner of {agencies}. Make another member an owner before deleting your account."
       },
       "admin": {
         "userNotFound": "There is no account with this email.",
@@ -1525,5 +1535,30 @@
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn these emails off in your account settings, under Notifications.",
     "manage": "Notification settings"
+  },
+  "Invitation": {
+    "title": "Agency invitation",
+    "verified": "Verified agency",
+    "roleAdmin": "an administrator",
+    "roleAgent": "an agent",
+    "invitedBy": "{name} invited you to join {agency} as {role}.",
+    "invited": "You were invited to join {agency} as {role}.",
+    "adminMeans": "As an administrator you can edit the agency's profile, invite agents and manage all its listings.",
+    "agentMeans": "As an agent you can publish listings on behalf of the agency.",
+    "notFound": "This invitation link isn't valid. It may have been resent — use the newest email you received.",
+    "expired": "This invitation has expired. Ask the agency to send it again.",
+    "closed": "This invitation is no longer valid: it was already accepted, declined or withdrawn.",
+    "signInFirst": "The invitation was sent to {email}. Sign in with that address, or create an account with it, to accept.",
+    "signIn": "Sign in",
+    "register": "Create an account",
+    "wrongAccount": "The invitation was sent to {email}, but you're signed in as {current}.",
+    "switchAccount": "Switch account",
+    "accept": "Accept the invitation",
+    "decline": "Decline",
+    "accepted": "You joined {agency}.",
+    "declined": "You declined the invitation.",
+    "goToAccount": "Go to your account",
+    "goHome": "Go to the home page",
+    "agencyInactive": "This agency is currently inactive: its profile and listings aren't public. You can still join, and its listings will show again once it's reactivated."
   }
 }

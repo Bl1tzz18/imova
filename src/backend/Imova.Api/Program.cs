@@ -30,6 +30,7 @@ using Imova.Application.Common.Validation;
 using Imova.Application.Features.Account;
 using Imova.Application.Features.Admins;
 using Imova.Application.Features.Agencies;
+using Imova.Application.Features.Agencies.Invitations;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Listings.GetListings;
@@ -118,6 +119,7 @@ builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddScoped<AccountDeletion>();
 builder.Services.AddScoped<AccountDeletionEmails>();
 builder.Services.AddScoped<AdminEmails>();
+builder.Services.AddScoped<AgencyInvitationEmail>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
 builder.Services.AddScoped<AuthSessions>();
@@ -369,6 +371,7 @@ app.UseExceptionHandler(handler =>
         {
             AuthenticationFailedException e => (StatusCodes.Status401Unauthorized, e.Message, e.Code, null),
             ForbiddenAccessException e => (StatusCodes.Status403Forbidden, e.Message, e.Code, null),
+            ConflictException e => (StatusCodes.Status409Conflict, e.Message, e.Code, null),
             TooManyRequestsException e => (StatusCodes.Status429TooManyRequests, e.Message, e.Code, e.Params),
             // A query string that doesn't bind (e.g. an unknown enum value) is the caller's mistake:
             // 400, not the 500 an unhandled exception would otherwise become.
@@ -394,6 +397,7 @@ app.MapListingEndpoints();
 app.MapListingReportEndpoints();
 app.MapPublisherEndpoints();
 app.MapAgencyEndpoints();
+app.MapAgencyMemberEndpoints();
 app.MapAmenityEndpoints();
 app.MapProximityEndpoints();
 app.MapExchangeRateEndpoints();

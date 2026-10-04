@@ -35,6 +35,8 @@ public interface IApplicationDbContext
 
     DbSet<AgencyFormerSlug> AgencyFormerSlugs { get; }
 
+    DbSet<AgencyInvitation> AgencyInvitations { get; }
+
     DbSet<Photo> Photos { get; }
 
     DbSet<PropertyLocation> PropertyLocations { get; }

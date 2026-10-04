@@ -1228,12 +1228,22 @@
         "logoType": "Logoul trebuie să fie o imagine JPEG, PNG sau WebP.",
         "logoTooSmall": "Logoul trebuie să aibă cel puțin {min}×{min} pixeli. Încarcă o imagine mai mare.",
         "limitReached": "Poți deține cel mult {max} agenții.",
-        "emailNotConfirmed": "Confirmă-ți adresa de email înainte să creezi o agenție. Verifică emailul primit la înregistrare sau cere un link nou din pagina contului."
+        "emailNotConfirmed": "Confirmă-ți adresa de email înainte să creezi o agenție. Verifică emailul primit la înregistrare sau cere un link nou din pagina contului.",
+        "lastOwner": "Agenția trebuie să aibă cel puțin un proprietar. Fă alt membru proprietar mai întâi.",
+        "reassignInvalid": "Anunțurile lui trebuie să treacă la un proprietar sau administrator care rămâne în agenție.",
+        "alreadyMember": "Această persoană este deja membru al agenției.",
+        "tooManyInvitations": "O agenție poate avea cel mult {max} invitații în așteptare.",
+        "invitationRateLimit": "Ai trimis prea multe invitații. O agenție poate trimite cel mult {max} invitații pe oră.",
+        "invitationResendTooSoon": "Invitația a fost trimisă de curând. Poți s-o retrimiți peste {minutes} minute.",
+        "invitationExpired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
+        "invitationClosed": "Invitația nu mai este valabilă.",
+        "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți."
       },
       "account": {
         "passwordRequired": "Introdu parola pentru a șterge contul.",
         "wrongPassword": "Parola este greșită.",
-        "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email."
+        "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email.",
+        "lastAgencyOwner": "Ești singurul proprietar al agenției {agencies}. Fă alt membru proprietar înainte să îți ștergi contul."
       },
       "admin": {
         "userNotFound": "Nu există niciun cont cu acest email.",
@@ -1525,5 +1535,30 @@
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri aceste emailuri din setările contului, la Notificări.",
     "manage": "Setările notificărilor"
+  },
+  "Invitation": {
+    "title": "Invitație într-o agenție",
+    "verified": "Agenție verificată",
+    "roleAdmin": "administrator",
+    "roleAgent": "agent",
+    "invitedBy": "{name} te-a invitat să te alături agenției {agency} ca {role}.",
+    "invited": "Ai fost invitat să te alături agenției {agency} ca {role}.",
+    "adminMeans": "Ca administrator vei putea edita profilul agenției, invita agenți și gestiona toate anunțurile ei.",
+    "agentMeans": "Ca agent vei putea publica anunțuri în numele agenției.",
+    "notFound": "Linkul invitației nu este valid. Poate a fost retrimisă — folosește cel mai nou email primit.",
+    "expired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
+    "closed": "Invitația nu mai este valabilă: a fost deja acceptată, refuzată sau retrasă.",
+    "signInFirst": "Invitația a fost trimisă pe {email}. Intră în contul cu această adresă sau creează unul ca s-o accepți.",
+    "signIn": "Intră în cont",
+    "register": "Creează cont",
+    "wrongAccount": "Invitația a fost trimisă pe {email}, dar acum ești în contul {current}.",
+    "switchAccount": "Schimbă contul",
+    "accept": "Acceptă invitația",
+    "decline": "Refuză",
+    "accepted": "Te-ai alăturat agenției {agency}.",
+    "declined": "Ai refuzat invitația.",
+    "goToAccount": "Mergi la contul tău",
+    "goHome": "Mergi la pagina principală",
+    "agencyInactive": "Agenția este inactivă momentan: profilul și anunțurile ei nu se văd public. Te poți alătura totuși, iar anunțurile vor apărea când agenția este reactivată."
   }
 }
