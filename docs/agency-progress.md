@@ -14,8 +14,10 @@ Branch `feat/agencies` (from `main` at `593b393`), not pushed yet. Last updated 
 | — | `aea2f0c` | The spec committed, with a note that this file takes precedence. |
 | — | `90a2190` | Not part of the agency work: content-filter rules run `NonBacktracking` and are warmed up at API start-up (the cold first match of the SMS/card rule took 71 ms idle and passed 200 ms under load — the cause of both load-sensitive test failures). Slowest rule now ~0.16 ms on a 2,000-character message; first match after warm-up ≤ 0.6 ms; timeout unchanged at 200 ms. Full suite green 3 runs in a row. |
 | 4 | `4f4a4f5` | `agencyId` replaces `publisherId` on create (author = the caller; member of an active agency only — `listing.notAgencyMember` 403, `listing.agencyInactive`/`agencyUnknown` 400). On edit `agencyId` is **required** (null = private; missing → 400) and only the author changes it (`listing.agencyChangeAuthorOnly`). `ListingAccess`: an agency's Owners/Admins manage all its listings (and see their stats), Agents only their own. `ListingDto.Agency` (id, name, slug, 128 px logo, verified — no phone). `GET /api/v1/users/me/agencies`. Web: "Publică în numele" picker in step 5 (remembered per browser, `?agencyId=` on `/properties/new`, hidden field keeps the agency when the picker isn't shown), edit page open to the agency's Owners/Admins. Conversations show "Agent · Agency". |
+| 4 | `9580c66` | Follow-up: taking a listing **out of** an agency (to private, or to another agency) needs an Owner or Admin of the agency it leaves (`listing.agencyLeaveManagerOnly`, 403) — an Agent can't take agency listings with them before leaving; putting one **into** an agency stays with its author, a member of that active agency (`listing.agencyChangeAuthorOnly`). The edit form's picker follows: on an agency listing only its Owners/Admins see it (other agencies offered only to the author); on a private listing only the author. |
 
-Tests at the end of step 4: backend 1,250 unit + 253 integration + 5 architecture, frontend 385
+Tests at the end of step 4 (with the follow-up): backend 1,253 unit + 254 integration + 5
+architecture, frontend 386 Vitest; `tsc` clean. Before the follow-up: 1,250 unit + 253 integration, 385
 Vitest; `tsc` clean. Checked in a browser at 390 px and 1280 px: the invitation page (step 3), the
 picker on the create form (shown for an agency member, choice remembered across a reload) and on
 the edit form of an agency listing (starts on the agency; the submitted form carries it). The picker
@@ -35,6 +37,9 @@ was checked by un-hiding step 5 with a script rather than filling steps 1–4.
   (`account.lastAgencyOwner`, also checked before a deletion link is emailed); if they are the only
   member, the agency and its listings are deleted with the account.
 - A listing's agency can be changed on edit (private ↔ an agency the author belongs to) — step 4.
+  Taking it OUT of an agency (to private or another agency) requires an Owner or Admin of that
+  agency, not just the author — so an Agent can't take agency listings with them before leaving.
+  Putting a private listing INTO an agency stays with the author, who must be a member.
 - Conversations show "Agent name · Agency name" for agency listings, like the listing page — step 4.
 
 **Agencies**
@@ -90,8 +95,10 @@ was checked by un-hiding step 5 with a script rather than filling steps 1–4.
 - One commit per step; fixes to a step are folded into that step's commit while it's unpushed.
 - Stop after each step with build + tests green and a short summary.
 - Never work around hooks: if a hook blocks something, stop and report what it blocked and why the
-  action is needed; the product owner decides. Edit files with Edit/Write (not Bash) so the hook's
-  first-touch check applies.
+  action is needed; the product owner decides.
+- **Never use sed, awk or any other shell command to edit files — not even one line. Edit/Write
+  only** (so every change goes through the hook's checks and shows up as a reviewable edit). Shell
+  commands may read files, build, test, and run git — never change file contents.
 - No Claude attribution in commits or PRs.
 
 ## Open items for later steps
@@ -145,13 +152,28 @@ was checked by un-hiding step 5 with a script rather than filling steps 1–4.
 - The compose containers were rebuilt at step 4 (all migrations applied); rebuild `backend`,
   `worker` and `frontend` again after the next code change, before a browser check.
 
-## Exact next step
+## Exact next steps (in this order)
 
-Step 5 of PR 1: public pages. Start with `GET /api/v1/agencies/by-slug/{slug}` (an old slug answers
-with the current one, for a 301), the directory `GET /api/v1/agencies` (`?q=&raionId=&verified=&page=`,
-verified first, then by active listing count) and a rate-limited agency phone reveal; add the
-`agencyId` filter to `SearchQueryString`/`ListingSearch`; then the pages `/agencies` and
-`/agencies/[slug]` (SEO metadata and JSON-LD, no sitemap), the contact-card link with "Vezi toate
-anunțurile agenției (N)", and the header/footer link — with unit, integration and Vitest tests and a
-browser check at 390/360 px and 1280 px; then stop with build + tests green, commit, update this
-file and summarize.
+**a) A real end-to-end browser check of step 4**, as Elena (`elena.ciobanu@demo.imova.md`, Owner of
+Casa Ta Imobiliare; password in CLAUDE.md "Dev database"). Rebuild the containers first.
+- Fill in the listing form normally, all five steps — no un-hiding steps by script — choose "Casa Ta
+  Imobiliare" under "Publică în numele" and publish.
+- Check the listing page shows the agency (contact card: agent + agency). It goes to review first:
+  approve it as an admin (grant the Admin role in SQL temporarily, remove it after) so it's public.
+- Message it as another user (`ion.popescu@demo.imova.md`) and check "Agent · Agency" — Elena
+  Ciobanu · Casa Ta Imobiliare — in Ion's inbox and thread; check Elena's inbox shows Ion.
+- At 390 px and 1280 px. Report anything that doesn't match; clean up the demo data afterwards
+  (delete the test listing and conversation) or say what was left.
+
+**b) Step 5 of PR 1: public pages.** Start with `GET /api/v1/agencies/by-slug/{slug}` (an old slug
+answers with the current one, for a 301), the directory `GET /api/v1/agencies`
+(`?q=&raionId=&verified=&page=`, verified first, then by active listing count) and a rate-limited
+agency phone reveal; add the `agencyId` filter to `SearchQueryString`/`ListingSearch`; then the pages
+`/agencies` and `/agencies/[slug]` (SEO metadata and JSON-LD, no sitemap), the contact-card link with
+"Vezi toate anunțurile agenției (N)", and the header/footer link — with unit, integration and Vitest
+tests and a browser check at 390/360 px and 1280 px; then stop with build + tests green, commit,
+update this file and summarize.
+
+**c) The PR 1 description**, written into `docs/pr-1-description.md` (not pushed, no PR opened):
+every endpoint, migration and screen of steps 1–5, the decisions above, how it was tested, and the
+known issues. No Claude attribution.
