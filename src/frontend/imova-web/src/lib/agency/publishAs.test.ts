@@ -54,17 +54,26 @@ describe("listingEditRights", () => {
   const base = { userId: "me", isSiteAdmin: false, authorUserId: "me", listingAgencyId: null as string | null, agencies: [] as MyAgency[] };
   const role = (r: MyAgency["role"]): MyAgency => ({ ...agency("a"), role: r });
 
-  it("lets the author edit and move it", () => {
-    expect(listingEditRights(base)).toEqual({ canEdit: true, canChangeAgency: true });
+  it("lets the author of a private listing edit it and put it under an agency", () => {
+    expect(listingEditRights(base)).toEqual({ canEdit: true, canChangeAgency: true, isAuthor: true });
   });
 
-  it("lets the agency's Owner or Admin edit an agent's listing, but not move it", () => {
+  it("lets the agency's Owner or Admin edit an agent's listing and take it out of the agency (only private offered)", () => {
     for (const r of ["Owner", "Admin"] as const) {
       expect(listingEditRights({ ...base, authorUserId: "agent", listingAgencyId: "a", agencies: [role(r)] })).toEqual({
         canEdit: true,
-        canChangeAgency: false,
+        canChangeAgency: true,
+        isAuthor: false,
       });
     }
+  });
+
+  it("doesn't let an Agent take their own agency listing out of the agency", () => {
+    expect(listingEditRights({ ...base, listingAgencyId: "a", agencies: [role("Agent")] })).toEqual({
+      canEdit: true,
+      canChangeAgency: false,
+      isAuthor: true,
+    });
   });
 
   it("doesn't let another agent of the agency edit it", () => {

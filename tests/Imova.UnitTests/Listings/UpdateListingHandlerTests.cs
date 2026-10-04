@@ -181,17 +181,40 @@ public class UpdateListingHandlerTests
     }
 
     [Fact]
-    public async Task OnlyTheAuthor_MovesAListingOutOfItsAgency()
+    public async Task AnAgent_CantTakeTheirOwnListingOutOfTheAgency()
     {
-        var (listing, agencyId, owner, _, agent, _) = await AgencyListingAsync();
+        var (listing, agencyId, _, _, agent, _) = await AgencyListingAsync();
 
         var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
-            Handler().Handle(Command(requestingUserId: owner, id: listing.Id, agencyId: null), CancellationToken.None));
-        Assert.Equal(ErrorCodes.ListingAgencyChangeAuthorOnly, ex.Code);
-        Assert.Equal(agencyId, listing.AgencyId);
+            Handler().Handle(Command(requestingUserId: agent, id: listing.Id, agencyId: null), CancellationToken.None));
 
-        await Handler().Handle(Command(requestingUserId: agent, id: listing.Id, agencyId: null), CancellationToken.None);
+        Assert.Equal(ErrorCodes.ListingAgencyLeaveManagerOnly, ex.Code);
+        Assert.Equal(agencyId, listing.AgencyId);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TheAgencysOwnerOrAdmin_TakesAListingOutOfIt(bool byOwner)
+    {
+        var (listing, _, owner, admin, _, _) = await AgencyListingAsync();
+
+        await Handler().Handle(Command(requestingUserId: byOwner ? owner : admin, id: listing.Id, agencyId: null), CancellationToken.None);
+
         Assert.Null(listing.AgencyId);
+    }
+
+    [Fact]
+    public async Task AnAgencysOwner_CantPutAnotherAuthorsListingUnderAnAgency()
+    {
+        var (listing, _, owner, _, _, _) = await AgencyListingAsync();
+        var otherAgency = ListingTestData.AddAgency(_dbContext, owner, "Alta");
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(requestingUserId: owner, id: listing.Id, agencyId: otherAgency.Id), CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ListingAgencyChangeAuthorOnly, ex.Code);
     }
 
     [Fact]

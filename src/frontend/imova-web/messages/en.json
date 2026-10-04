@@ -1193,7 +1193,8 @@
         "agencyUnknown": "The chosen agency doesn't exist. Reload the page and choose again.",
         "notAgencyMember": "You can only publish on behalf of agencies you belong to.",
         "agencyInactive": "This agency is deactivated: nothing can be published on its behalf for now.",
-        "agencyChangeAuthorOnly": "Only the listing's author can move it between private and an agency."
+        "agencyChangeAuthorOnly": "Only the listing's author can publish it on behalf of an agency.",
+        "agencyLeaveManagerOnly": "Only the agency's owners and administrators can take a listing out of the agency."
       },
       "contact": {
         "nameRequired": "Enter the contact person's name.",

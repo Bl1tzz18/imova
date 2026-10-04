@@ -24,19 +24,28 @@ public class UpdateListingHandler(
 
         await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
 
-        // Moving it between private and an agency is its author's decision alone (an agency's Owner
-        // editing an agent's listing can't take it out of the agency, nor an admin).
+        // Moving it between private and an agency (or between agencies):
+        // - out of an agency: only that agency's Owners/Admins — the agency keeps its inventory, so an
+        //   Agent can't take its listings with them before leaving;
+        // - into an agency: only its author, and only an agency they're an active member of.
         if (request.AgencyId != listing.AgencyId)
         {
-            if (!await ListingAccess.IsAuthorAsync(dbContext, listing, request.RequestingUserId, cancellationToken))
+            if (listing.AgencyId is { } leaving
+                && !await ListingAccess.ManagesAgencyAsync(dbContext, leaving, request.RequestingUserId, cancellationToken))
             {
                 throw new ForbiddenAccessException(
-                    "Only the listing's author can move it between private and an agency.", ErrorCodes.ListingAgencyChangeAuthorOnly);
+                    "Only the agency's owners and administrators can take a listing out of it.", ErrorCodes.ListingAgencyLeaveManagerOnly);
             }
 
-            if (request.AgencyId is { } agencyId)
+            if (request.AgencyId is { } joining)
             {
-                await ListingAgencyRules.EnsureCanPublishAsAsync(dbContext, agencyId, request.RequestingUserId, cancellationToken);
+                if (!await ListingAccess.IsAuthorAsync(dbContext, listing, request.RequestingUserId, cancellationToken))
+                {
+                    throw new ForbiddenAccessException(
+                        "Only the listing's author can publish it under an agency.", ErrorCodes.ListingAgencyChangeAuthorOnly);
+                }
+
+                await ListingAgencyRules.EnsureCanPublishAsAsync(dbContext, joining, request.RequestingUserId, cancellationToken);
             }
 
             listing.ChangeAgency(request.AgencyId);

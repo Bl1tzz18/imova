@@ -116,6 +116,26 @@ public class AgencyListingEndpointsTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
+    public async Task AnAgent_CantTakeAnAgencyListingPrivate_ButTheOwnerCan()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var (agent, agentUser) = await ListingApi.RegisterAsync(_factory);
+        var agency = await CreateAgencyAsync(owner);
+        await AddMemberAsync(agency.Id, agentUser.Id, AgencyRole.Agent);
+        var listing = (await (await PublishAsync(agent, agency.Id)).Content.ReadFromJsonAsync<ListingDto>())!;
+        var body = await ListingApi.ValidBodyAsync(agent);
+        body["agencyId"] = null;
+
+        var byAgent = await agent.PutAsJsonAsync($"/api/v1/listings/{listing.Id}", body);
+        var byOwner = await owner.PutAsJsonAsync($"/api/v1/listings/{listing.Id}", body);
+
+        Assert.Equal(HttpStatusCode.Forbidden, byAgent.StatusCode);
+        Assert.Contains("listing.agencyLeaveManagerOnly", await byAgent.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, byOwner.StatusCode);
+        Assert.Null((await byOwner.Content.ReadFromJsonAsync<ListingDto>())!.Agency);
+    }
+
+    [Fact]
     public async Task AVisitorWritingAboutAnAgencyListing_SeesTheAgentAndTheAgency()
     {
         var (owner, _) = await ListingApi.RegisterAsync(_factory);

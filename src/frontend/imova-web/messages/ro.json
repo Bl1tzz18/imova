@@ -1193,7 +1193,8 @@
         "agencyUnknown": "Agenția aleasă nu există. Reîncarcă pagina și alege din nou.",
         "notAgencyMember": "Poți publica doar în numele agențiilor din care faci parte.",
         "agencyInactive": "Agenția este dezactivată: momentan nu se pot publica anunțuri în numele ei.",
-        "agencyChangeAuthorOnly": "Doar autorul anunțului îl poate muta între persoană fizică și o agenție."
+        "agencyChangeAuthorOnly": "Doar autorul anunțului îl poate publica în numele unei agenții.",
+        "agencyLeaveManagerOnly": "Doar proprietarii și administratorii agenției pot scoate un anunț din agenție."
       },
       "contact": {
         "nameRequired": "Introdu numele persoanei de contact.",

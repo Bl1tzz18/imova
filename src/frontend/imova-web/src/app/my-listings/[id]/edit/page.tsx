@@ -49,8 +49,9 @@ export default async function EditListingPage({
     notFound();
   }
 
-  // Its author, a site admin, or an Owner/Admin of its agency — only the author moves it between
-  // private and an agency.
+  // Its author, a site admin, or an Owner/Admin of its agency. Taking it out of its agency is for that
+  // agency's Owners/Admins; putting it under another agency only for its author (so only the author
+  // is offered their agencies).
   const rights = profile
     ? listingEditRights({
         userId: profile.id,
@@ -59,7 +60,7 @@ export default async function EditListingPage({
         listingAgencyId: listing.agency?.id ?? null,
         agencies,
       })
-    : { canEdit: false, canChangeAgency: false };
+    : { canEdit: false, canChangeAgency: false, isAuthor: false };
   const isOwner = rights.canEdit;
 
   return (
@@ -76,7 +77,11 @@ export default async function EditListingPage({
             <>
               <p className="mt-2 text-sm text-ink-500">{t("subtitle")}</p>
               <div className="mt-8">
-                <PropertyForm listing={listing} agencies={agencies} canChangeAgency={rights.canChangeAgency} />
+                <PropertyForm
+                  listing={listing}
+                  agencies={rights.isAuthor ? agencies : []}
+                  canChangeAgency={rights.canChangeAgency}
+                />
               </div>
             </>
           ) : (

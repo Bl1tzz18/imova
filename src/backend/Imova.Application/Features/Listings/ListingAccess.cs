@@ -24,12 +24,16 @@ public static class ListingAccess
             return true;
         }
 
-        return listing.AgencyId is { } agencyId && await dbContext.AgencyMembers.AnyAsync(
-            m => m.AgencyId == agencyId && m.UserId == id && (m.Role == AgencyRole.Owner || m.Role == AgencyRole.Admin),
-            cancellationToken);
+        return listing.AgencyId is { } agencyId && await ManagesAgencyAsync(dbContext, agencyId, id, cancellationToken);
     }
 
-    // The account behind the listing's Publisher — the only one who may move it between private and an agency.
+    // An Owner or Admin of the agency — who may take one of its listings out of it.
+    public static Task<bool> ManagesAgencyAsync(IApplicationDbContext dbContext, Guid agencyId, Guid userId, CancellationToken cancellationToken) =>
+        dbContext.AgencyMembers.AnyAsync(
+            m => m.AgencyId == agencyId && m.UserId == userId && (m.Role == AgencyRole.Owner || m.Role == AgencyRole.Admin),
+            cancellationToken);
+
+    // The account behind the listing's Publisher — the only one who may put it under an agency.
     public static Task<bool> IsAuthorAsync(IApplicationDbContext dbContext, Listing listing, Guid userId, CancellationToken cancellationToken) =>
         dbContext.Publishers.AnyAsync(p => p.Id == listing.PublisherId && p.UserId == userId, cancellationToken);
 

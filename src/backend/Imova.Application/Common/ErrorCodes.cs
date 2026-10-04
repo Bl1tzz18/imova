@@ -51,6 +51,7 @@ public static class ErrorCodes
     public const string ListingNotAgencyMember = "listing.notAgencyMember";
     public const string ListingAgencyInactive = "listing.agencyInactive";
     public const string ListingAgencyChangeAuthorOnly = "listing.agencyChangeAuthorOnly";
+    public const string ListingAgencyLeaveManagerOnly = "listing.agencyLeaveManagerOnly";
     public const string ContactNameRequired = "contact.nameRequired";
     public const string ContactEmailRequired = "contact.emailRequired";
     public const string HiddenPhoneNeedsMessages = "contact.hiddenPhoneNeedsMessages";

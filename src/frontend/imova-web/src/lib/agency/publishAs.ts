@@ -40,7 +40,10 @@ export function initialPublishAs({
 }
 
 // Who may edit a listing, as the API decides it (ListingAccess): its author, a site admin, or an
-// Owner/Admin of the agency it's under. Only the author may move it between private and an agency.
+// Owner/Admin of the agency it's under. Moving it (UpdateListingHandler): out of an agency only that
+// agency's Owners/Admins; into an agency only its author. So the picker shows, on an agency listing,
+// only for its Owners/Admins; on a private one only for the author — and other agencies are offered
+// only to the author (isAuthor).
 export function listingEditRights({
   userId,
   isSiteAdmin,
@@ -53,11 +56,15 @@ export function listingEditRights({
   authorUserId: string;
   listingAgencyId: string | null;
   agencies: MyAgency[];
-}): { canEdit: boolean; canChangeAgency: boolean } {
+}): { canEdit: boolean; canChangeAgency: boolean; isAuthor: boolean } {
   const isAuthor = userId === authorUserId;
   const managesAgency =
     listingAgencyId !== null && agencies.some((a) => a.id === listingAgencyId && (a.role === "Owner" || a.role === "Admin"));
-  return { canEdit: isAuthor || isSiteAdmin || managesAgency, canChangeAgency: isAuthor };
+  return {
+    canEdit: isAuthor || isSiteAdmin || managesAgency,
+    canChangeAgency: listingAgencyId !== null ? managesAgency : isAuthor,
+    isAuthor,
+  };
 }
 
 // localStorage can be missing or throw (private windows, blocked storage): never fatal.
