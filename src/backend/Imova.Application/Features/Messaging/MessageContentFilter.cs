@@ -17,8 +17,15 @@ public static class MessageContentFilter
         ("External link", Pattern(@"https?://|www\.|\b\w+\.(ru|xyz|top|click|link)\b")),
     ];
 
+    // A message a rule couldn't finish checking in time (e.g. the server was starved for CPU) is
+    // still delivered, flagged with this reason so admins look at it — never a failed send.
+    public const string TimeoutReason = "Filter timeout";
+
     // The first matching rule's reason, or null for a clean message.
-    public static string? Check(string? body)
+    public static string? Check(string? body) => Check(body, Rules);
+
+    // The same, with the given rules (tests use it to force a timeout).
+    public static string? Check(string? body, IReadOnlyList<(string Reason, Regex Pattern)> rules)
     {
         if (string.IsNullOrWhiteSpace(body))
         {
@@ -26,11 +33,18 @@ public static class MessageContentFilter
         }
 
         var folded = Fold(body);
-        foreach (var (reason, pattern) in Rules)
+        foreach (var (reason, pattern) in rules)
         {
-            if (pattern.IsMatch(folded))
+            try
             {
-                return reason;
+                if (pattern.IsMatch(folded))
+                {
+                    return reason;
+                }
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return TimeoutReason;
             }
         }
 
