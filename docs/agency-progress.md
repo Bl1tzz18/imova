@@ -1,7 +1,7 @@
 # Agency publishers — progress
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
-Branch `feat/agencies` (from `main` at `593b393`), not pushed yet. Last updated 2026-10-05.
+Branch `feat/agencies` (from `main` at `593b393`), not pushed yet. Last updated 2026-10-05 (after step 4).
 
 ## Steps done (PR 1 = steps 1–5)
 
@@ -11,9 +11,15 @@ Branch `feat/agencies` (from `main` at `593b393`), not pushed yet. Last updated 
 | 2 | `46a9e2d` | `POST/GET/PUT /api/v1/agencies[/{id}]`, `POST/DELETE /api/v1/agencies/{id}/logo`. `AgencyAccess` (who may do what; 404 for a hidden agency before any 403). Slugs: numbered on a clash, move on rename (old one kept as a redirect target), reclaimed when renamed back; a slug taken at the same moment is retried once (`IDatabaseErrors`). Logo: checked by its bytes, JPEG/PNG/WebP, max 5 MB, made into 512 and 128 px square JPEGs on white (Magick). Confirmed email required to create; at most `Agencies:MaxOwnedPerUser` (3) owned agencies. |
 | 3 | `e701985` | Members: list, change role, remove/leave with the leaver's agency listings handed to an Owner/Admin who stays; last-Owner rule. Invitations: by email (7-day link, only the SHA-256 of the token stored), resend/revoke, accept/decline by link or from "my invitations", failed email recorded (`EmailFailedAt`). Page `/invitations/[token]`. Account deletion follows the authorship rule. Migrations `AddAgencyInvitations`, `AddAgencyInvitationEmailFailedAt`. |
 | — | `2386dcc` | Not part of the agency work: a content-filter regex timeout now delivers the message flagged "Filter timeout" instead of failing the send with a 500. |
+| — | `aea2f0c` | The spec committed, with a note that this file takes precedence. |
+| — | `90a2190` | Not part of the agency work: content-filter rules run `NonBacktracking` and are warmed up at API start-up (the cold first match of the SMS/card rule took 71 ms idle and passed 200 ms under load — the cause of both load-sensitive test failures). Slowest rule now ~0.16 ms on a 2,000-character message; first match after warm-up ≤ 0.6 ms; timeout unchanged at 200 ms. Full suite green 3 runs in a row. |
+| 4 | `4f4a4f5` | `agencyId` replaces `publisherId` on create (author = the caller; member of an active agency only — `listing.notAgencyMember` 403, `listing.agencyInactive`/`agencyUnknown` 400). On edit `agencyId` is **required** (null = private; missing → 400) and only the author changes it (`listing.agencyChangeAuthorOnly`). `ListingAccess`: an agency's Owners/Admins manage all its listings (and see their stats), Agents only their own. `ListingDto.Agency` (id, name, slug, 128 px logo, verified — no phone). `GET /api/v1/users/me/agencies`. Web: "Publică în numele" picker in step 5 (remembered per browser, `?agencyId=` on `/properties/new`, hidden field keeps the agency when the picker isn't shown), edit page open to the agency's Owners/Admins. Conversations show "Agent · Agency". |
 
-Tests at the end of step 3: backend 1,245 unit + 248 integration + 5 architecture, frontend 371
-Vitest; `tsc` clean. The invitation page was checked in a browser at 390 px and 1280 px.
+Tests at the end of step 4: backend 1,250 unit + 253 integration + 5 architecture, frontend 385
+Vitest; `tsc` clean. Checked in a browser at 390 px and 1280 px: the invitation page (step 3), the
+picker on the create form (shown for an agency member, choice remembered across a reload) and on
+the edit form of an agency listing (starts on the agency; the submitted form carries it). The picker
+was checked by un-hiding step 5 with a script rather than filling steps 1–4.
 
 ## Decisions (made by the product owner in this session)
 
@@ -90,21 +96,7 @@ Vitest; `tsc` clean. The invitation page was checked in a browser at 390 px and 
 
 ## Open items for later steps
 
-**Step 4 — listing `agencyId` (next)**
-- `CreateListingCommand`/`UpdateListingCommand` take `AgencyId?` instead of `PublisherId`; validate with
-  `AgencyAccess.CanPublishAs` (member, agency active). Changing the agency on edit: private ↔ an agency
-  the author belongs to.
-- `ListingAccess` becomes agency-aware: Owners/Admins of the listing's agency can manage it; Agents
-  only their own.
-- Listing DTO agency block (`id, name, slug, logoUrl, isVerified` — no phone); `ListingContactDto`
-  `AgencyName` already comes from the agency.
-- `GET /api/v1/users/me/agencies` (`MyAgencyDto` already exists in Contracts) for the picker.
-- Web: restore the "Publică ca" picker in `StepContact.tsx` (private / each active agency with logo),
-  default = last choice in localStorage or `?agencyId=`; hidden for users without an agency.
-  `app/properties/new/actions.ts` still sends `publisherId` — replace it.
-- Conversations: "Agent · Agency" (`ConversationSummaries.cs`, web inbox/thread).
-
-**Step 5 — public pages**
+**Step 5 — public pages (next)**
 - `GET /api/v1/agencies/by-slug/{slug}` (old slug → current slug for a 301), directory
   `GET /api/v1/agencies`, agency phone reveal endpoint (rate-limited like the listing one).
 - `agencyId` filter in `SearchQueryString`/`ListingSearch`.
@@ -133,11 +125,16 @@ Vitest; `tsc` clean. The invitation page was checked in a browser at 390 px and 
 
 ## Known issues and notes
 
-- Load-sensitive tests, failing only in full parallel runs and passing alone:
-  `MessageContentFilterTests.SuspiciousMessages_AreFlaggedWithAReason` (the SMS-code message; its
-  rule's 200 ms timeout is hit — it now returns "Filter timeout" instead of throwing; left unchanged
-  as asked) and `MessagingEndpointsTests.BlockedVisitor_Gets403_AndAReportReachesAdmins`.
-  `RequestUploadUrlHandlerTests` was made timing-independent in step 2.
+- The two load-sensitive tests (`MessageContentFilterTests.SuspiciousMessages_AreFlaggedWithAReason`,
+  `MessagingEndpointsTests.BlockedVisitor_Gets403_AndAReportReachesAdmins`) shared one cause — a cold
+  content-filter regex passing its 200 ms timeout — fixed in `90a2190`; the full suite then passed 3
+  runs in a row. (The second test's exact failing status wasn't captured: the cause is inferred from
+  its two `Created` assertions both going through the filter, which threw on a timeout before
+  `2386dcc`.) `RequestUploadUrlHandlerTests` was made timing-independent in step 2.
+- `POST /api/v1/listings` ignores a stray `publisherId` (no longer part of the API); the author is
+  always the caller — `ListingEndpointsTests.CreateListing_IsAlwaysTheCallersOwn_WhateverPublisherTheBodyNames`.
+- `GET /api/v1/publishers/mine` and `lib/api/publishers.ts` still exist (the create form uses the
+  caller's publisher for the contact step's phone default).
 - A rename that races another agency for the same new slug is not retried (create is); it would 500.
 - The per-agency hourly invitation count can't see repeated resends of one invitation; the 10-minute
   cooldown covers that (at most ~6 emails an hour to one address).
@@ -145,13 +142,16 @@ Vitest; `tsc` clean. The invitation page was checked in a browser at 390 px and 
 - Dev database: one accepted invitation row for `ion.popescu@demo.imova.md` → Casa Ta Imobiliare is
   left as history (Ion was removed from the agency again). A dump taken before the `AddAgencies`
   migration was saved in the session scratchpad and may not survive.
-- The compose containers were rebuilt at step 3 (before the `EmailFailedAt` migration); rebuild
-  `backend`, `worker` and `frontend` before the next browser check.
+- The compose containers were rebuilt at step 4 (all migrations applied); rebuild `backend`,
+  `worker` and `frontend` again after the next code change, before a browser check.
 
 ## Exact next step
 
-Step 4 of PR 1: listing `agencyId` support. Start with `GET /api/v1/users/me/agencies`, then
-`AgencyId` on create/update (replacing `PublisherId`) with `CanPublishAs`, agency-aware
-`ListingAccess`, the agency block on `ListingDto`, the "Publică ca" picker (localStorage), and
-"Agent · Agency" in conversations — with unit and integration tests, then stop with build + tests
-green and a short summary.
+Step 5 of PR 1: public pages. Start with `GET /api/v1/agencies/by-slug/{slug}` (an old slug answers
+with the current one, for a 301), the directory `GET /api/v1/agencies` (`?q=&raionId=&verified=&page=`,
+verified first, then by active listing count) and a rate-limited agency phone reveal; add the
+`agencyId` filter to `SearchQueryString`/`ListingSearch`; then the pages `/agencies` and
+`/agencies/[slug]` (SEO metadata and JSON-LD, no sitemap), the contact-card link with "Vezi toate
+anunțurile agenției (N)", and the header/footer link — with unit, integration and Vitest tests and a
+browser check at 390/360 px and 1280 px; then stop with build + tests green, commit, update this
+file and summarize.
