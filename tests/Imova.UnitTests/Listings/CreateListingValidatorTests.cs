@@ -81,13 +81,13 @@ public class CreateListingValidatorTests
         Guid? raionId = null,
         Guid? localitateId = null,
         Guid? chisinauSectorId = null,
-        Guid? publisherId = null,
+        Guid? agencyId = null,
         ListingContact? contact = null,
         bool omitContact = false) =>
         new(
             null,
             Guid.NewGuid(),
-            publisherId,
+            agencyId,
             propertyType,
             totalAreaM2,
             yearBuilt,
@@ -460,9 +460,9 @@ public class CreateListingValidatorTests
     }
 
     [Fact]
-    public async Task Validate_WithEmptyPublisherId_HasError()
+    public async Task Validate_WithEmptyAgencyId_HasError()
     {
-        Assert.Contains("PublisherId", await ErrorPropertiesAsync(ValidCommand(publisherId: Guid.Empty)));
+        Assert.Contains("AgencyId", await ErrorPropertiesAsync(ValidCommand(agencyId: Guid.Empty)));
     }
 
     // --- Location (unchanged rules, carried over from the old CreatePropertyValidator) ---

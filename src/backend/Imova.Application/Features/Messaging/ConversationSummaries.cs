@@ -26,8 +26,15 @@ public static class ConversationSummaries
 
         var listings = await dbContext.Listings.AsNoTracking()
             .Where(l => listingIds.Contains(l.Id))
-            .Select(l => new { l.Id, l.Title, l.PublisherId })
+            .Select(l => new { l.Id, l.Title, l.PublisherId, l.AgencyId })
             .ToDictionaryAsync(l => l.Id, cancellationToken);
+
+        var agencyIds = listings.Values.Select(l => l.AgencyId).OfType<Guid>().Distinct().ToList();
+        var agencyNames = agencyIds.Count == 0
+            ? []
+            : await dbContext.Agencies.AsNoTracking()
+                .Where(a => agencyIds.Contains(a.Id))
+                .ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
 
         var photos = (await dbContext.Photos.AsNoTracking()
                 .Where(p => listingIds.Contains(p.ListingId) && p.IsPrimary)
@@ -76,7 +83,11 @@ public static class ConversationSummaries
             var other = otherUser is null
                 ? new ConversationParticipantDto(otherUserId, string.Empty, null, IsDeleted: true)
                 : isInitiator && publisher is not null
-                    ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, otherUser.ProfilePictureUrl)
+                    ? new ConversationParticipantDto(
+                        otherUserId,
+                        publisher.DisplayName,
+                        otherUser.ProfilePictureUrl,
+                        AgencyName: listing!.AgencyId is { } agencyId ? agencyNames.GetValueOrDefault(agencyId) : null)
                     : new ConversationParticipantDto(
                         otherUserId, otherUser.DisplayName ?? otherUser.Email ?? "—", otherUser.ProfilePictureUrl);
 

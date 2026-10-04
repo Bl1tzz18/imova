@@ -47,6 +47,10 @@ public static class ErrorCodes
     public const string EmailNotConfirmed = "listing.emailNotConfirmed";
     public const string InvalidTransition = "listing.invalidTransition";
     public const string StreetRequired = "listing.streetRequired";
+    public const string ListingAgencyUnknown = "listing.agencyUnknown";
+    public const string ListingNotAgencyMember = "listing.notAgencyMember";
+    public const string ListingAgencyInactive = "listing.agencyInactive";
+    public const string ListingAgencyChangeAuthorOnly = "listing.agencyChangeAuthorOnly";
     public const string ContactNameRequired = "contact.nameRequired";
     public const string ContactEmailRequired = "contact.emailRequired";
     public const string HiddenPhoneNeedsMessages = "contact.hiddenPhoneNeedsMessages";

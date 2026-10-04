@@ -1,3 +1,5 @@
+using Imova.Application.Common;
+using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
@@ -21,6 +23,24 @@ public class UpdateListingHandler(
         }
 
         await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
+
+        // Moving it between private and an agency is its author's decision alone (an agency's Owner
+        // editing an agent's listing can't take it out of the agency, nor an admin).
+        if (request.AgencyId != listing.AgencyId)
+        {
+            if (!await ListingAccess.IsAuthorAsync(dbContext, listing, request.RequestingUserId, cancellationToken))
+            {
+                throw new ForbiddenAccessException(
+                    "Only the listing's author can move it between private and an agency.", ErrorCodes.ListingAgencyChangeAuthorOnly);
+            }
+
+            if (request.AgencyId is { } agencyId)
+            {
+                await ListingAgencyRules.EnsureCanPublishAsAsync(dbContext, agencyId, request.RequestingUserId, cancellationToken);
+            }
+
+            listing.ChangeAgency(request.AgencyId);
+        }
 
         var property = await dbContext.Properties
             .Include(p => p.Amenities)

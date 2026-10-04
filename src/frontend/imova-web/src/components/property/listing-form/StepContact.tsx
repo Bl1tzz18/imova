@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Avatar } from "@/components/ui/Avatar";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { PhoneInput } from "@/components/ui/PhoneInput";
@@ -17,23 +18,62 @@ import {
   type ContactMethod,
   type ContactPersonType,
 } from "@/lib/property/contact";
+import {
+  initialPublishAs,
+  publishAsOptions,
+  readRememberedPublishAs,
+  rememberPublishAs,
+} from "@/lib/agency/publishAs";
 import { cn } from "@/lib/utils/cn";
+import type { MyAgency } from "@/types/agency";
 import type { Listing, Publisher } from "@/types/listing";
 import { DealTypeTabs } from "./DealTypeTabs";
 
 // Step 5: who visitors should contact and how. "Eu" (Self) is the listing's publisher — their
 // name/email come from the account, only the phone is asked (it may differ from the account's);
 // "Altă persoană" (Other) asks for someone else's name, phone and optional email.
+//
+// It starts with "Publică ca": private or one of the user's agencies (field `agencyId`, "" for
+// private) — only for someone with an active agency, and when editing only for the listing's author.
+// When it isn't shown, a hidden field keeps the listing where it is.
 export function StepContact({
   listing,
   publishers,
+  agencies = [],
+  canChangeAgency = true,
+  requestedAgencyId,
 }: {
   listing?: Listing;
   // Only passed in create mode — a listing's publisher can't be changed afterwards.
   publishers: Publisher[];
+  agencies?: MyAgency[];
+  canChangeAgency?: boolean;
+  // ?agencyId= on the create page ("Adaugă anunț" from an agency).
+  requestedAgencyId?: string | null;
 }) {
   const t = useTranslations("PropertyForm");
   const tMethod = useTranslations("ContactMethod");
+
+  const editing = listing !== undefined;
+  const currentAgency = listing?.agency
+    ? { id: listing.agency.id, name: listing.agency.name, logoUrl: listing.agency.logoUrl, isVerified: listing.agency.isVerified }
+    : null;
+  const agencyOptions = publishAsOptions(agencies, currentAgency);
+  const [publishAs, setPublishAs] = useState(() =>
+    initialPublishAs({
+      options: agencyOptions,
+      editingAgencyId: editing ? (listing.agency?.id ?? null) : undefined,
+      requested: requestedAgencyId,
+    }),
+  );
+  // The choice remembered in this browser, once mounted (localStorage doesn't exist on the server).
+  // Only on mount: later changes are the user's own.
+  useEffect(() => {
+    if (editing || requestedAgencyId) return;
+    const remembered = readRememberedPublishAs();
+    if (remembered !== null) setPublishAs(initialPublishAs({ options: agencyOptions, remembered }));
+  }, []);
+  const showPicker = canChangeAgency && agencyOptions.length > 0;
 
   const publisher = publishers[0];
   const defaults = contactDefaults(listing, publisher);
@@ -50,6 +90,44 @@ export function StepContact({
   return (
     <div>
       <h2 className="font-hero text-xl font-bold text-ink-950">{t("step5Heading")}</h2>
+
+      {showPicker ? (
+        <fieldset className="mt-5">
+          <legend className="font-hero text-base font-bold text-ink-950">{t("publishAsLabel")}</legend>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[{ id: "", name: t("publisherIndividual"), logoUrl: null, isVerified: false }, ...agencyOptions].map((option) => (
+              <label
+                key={option.id || "private"}
+                className={cn(
+                  "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-ink-200 px-4 py-3 text-sm",
+                  "has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500",
+                )}
+              >
+                <input
+                  type="radio"
+                  name="agencyId"
+                  value={option.id}
+                  checked={publishAs === option.id}
+                  onChange={() => {
+                    setPublishAs(option.id);
+                    if (!editing) rememberPublishAs(option.id);
+                  }}
+                  className="shrink-0"
+                />
+                {option.id && (
+                  <Avatar userId={option.id} displayName={option.name} pictureUrl={option.logoUrl} size={32} className="shrink-0" />
+                )}
+                <span className="min-w-0">
+                  <span className="block font-medium text-ink-900 [overflow-wrap:anywhere]">{option.name}</span>
+                  {option.id && <span className="block text-xs text-ink-500">{t("publisherAgency")}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : (
+        <input type="hidden" name="agencyId" value={publishAs} />
+      )}
 
       <div className="mt-5">
         <FieldLabel>{t("contactPersonLabel")}</FieldLabel>

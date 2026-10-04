@@ -424,17 +424,21 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
 
 
     [Fact]
-    public async Task CreateListing_UnderAnotherUsersPublisher_Returns403()
+    public async Task CreateListing_IsAlwaysTheCallersOwn_WhateverPublisherTheBodyNames()
     {
-        var (victim, _) = await ListingApi.RegisterAsync(_factory);
+        var (victim, victimUser) = await ListingApi.RegisterAsync(_factory);
         var victimPublisher = (await victim.GetFromJsonAsync<List<PublisherDto>>("/api/v1/publishers/mine"))!.Single();
-        var (attacker, _) = await ListingApi.RegisterAsync(_factory);
+        var (attacker, attackerUser) = await ListingApi.RegisterAsync(_factory);
         var body = await ListingApi.ValidBodyAsync(attacker);
+        // No longer part of the API (the author is the caller; an agency is chosen with agencyId) — ignored.
         body["publisherId"] = victimPublisher.Id;
 
         var response = await attacker.PostAsJsonAsync("/api/v1/listings", body);
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Equal(attackerUser.Id, listing.Publisher.UserId);
+        Assert.NotEqual(victimUser.Id, listing.Publisher.UserId);
     }
 
     [Fact]

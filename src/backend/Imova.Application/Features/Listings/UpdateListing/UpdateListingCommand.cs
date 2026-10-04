@@ -15,6 +15,9 @@ public record UpdateListingCommand(
     Guid Id,
     Guid RequestingUserId,
     bool IsAdmin,
+    // The agency it's published under after this edit (null: private). Changing it is the author's
+    // alone, and only to an agency they're an active member of.
+    Guid? AgencyId,
     PropertyType PropertyType,
     decimal TotalAreaM2,
     int? YearBuilt,

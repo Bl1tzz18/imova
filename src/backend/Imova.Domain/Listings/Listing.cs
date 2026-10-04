@@ -160,6 +160,18 @@ public sealed class Listing : AggregateRoot
             agencyId);
     }
 
+    // Moves it between private (null) and an agency. Whether its author may publish under that agency
+    // is the caller's check (they must be a member and the agency active).
+    public void ChangeAgency(Guid? agencyId)
+    {
+        if (agencyId == Guid.Empty)
+        {
+            throw new ArgumentException("An agency id can't be empty; use null for a private listing.", nameof(agencyId));
+        }
+
+        AgencyId = agencyId;
+    }
+
     // Hands an agency's listing to another author (a member who stays, when its author leaves the
     // agency). Nothing else changes: not its status, dates or counters.
     public void ChangeAuthor(Guid publisherId)

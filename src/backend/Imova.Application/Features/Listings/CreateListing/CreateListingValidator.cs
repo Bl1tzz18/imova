@@ -10,6 +10,6 @@ public class CreateListingValidator : ListingWriteValidator<CreateListingCommand
     {
         RuleFor(c => c.Id).NotEqual(Guid.Empty).When(c => c.Id.HasValue);
         RuleFor(c => c.RequestingUserId).NotEmpty();
-        RuleFor(c => c.PublisherId).NotEqual(Guid.Empty).When(c => c.PublisherId.HasValue);
+        RuleFor(c => c.AgencyId).NotEqual(Guid.Empty).When(c => c.AgencyId.HasValue);
     }
 }

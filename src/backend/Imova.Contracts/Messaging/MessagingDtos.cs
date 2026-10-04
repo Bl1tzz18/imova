@@ -14,7 +14,9 @@ public record MessageDto(
 
 // IsDeleted: that person deleted their account — their messages stay readable, but the
 // conversation can't be continued (DisplayName is then empty; the web app shows "deleted account").
-public record ConversationParticipantDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsDeleted = false);
+// AgencyName: when the visitor wrote about an agency's listing, the agency the other side (its author)
+// works for — shown as "Agent · Agency", like the listing's contact card.
+public record ConversationParticipantDto(Guid UserId, string DisplayName, string? AvatarUrl, bool IsDeleted = false, string? AgencyName = null);
 
 // Title is null when the listing has since been deleted (the conversation stays).
 public record ConversationListingDto(Guid Id, string? Title, string? PhotoUrl);

@@ -37,6 +37,9 @@ export function buildListingPayload(formData: FormData) {
   const transactionType = formData.get("transactionType");
 
   return {
+    // "Publică ca" (step 5): an agency's id, or null for a private listing. Always sent — editing
+    // requires it, so a missing field can never move a listing out of its agency.
+    agencyId: optionalString(formData.get("agencyId")),
     // Property (the physical asset)
     propertyType,
     totalAreaM2: Number(formData.get("totalAreaM2")),

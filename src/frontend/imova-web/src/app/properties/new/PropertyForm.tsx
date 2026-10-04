@@ -14,6 +14,7 @@ import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
 import { ListingSavedDialog } from "@/components/property/listing-form/ListingSavedDialog";
 import { updateListingDetails, type UpdateListingState } from "@/lib/property/actions";
 import { createListing, type CreateListingState } from "./actions";
+import type { MyAgency } from "@/types/agency";
 import type { Listing, Publisher } from "@/types/listing";
 
 const initialState: CreateListingState = {};
@@ -26,7 +27,21 @@ const STEP_COUNT = 5;
 // Listing offer. Only the parts that genuinely differ between create and edit — which id/action
 // is used, the publisher picker, the final button's label, and what happens after a successful
 // submit — branch on whether `listing` is present.
-export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; publishers?: Publisher[] }) {
+export function PropertyForm({
+  listing,
+  publishers = [],
+  agencies = [],
+  canChangeAgency = true,
+  requestedAgencyId,
+}: {
+  listing?: Listing;
+  publishers?: Publisher[];
+  // The user's agencies, for "Publică ca" (step 5). canChangeAgency: false when editing someone
+  // else's listing (an agency's Owner/Admin) — only its author moves it.
+  agencies?: MyAgency[];
+  canChangeAgency?: boolean;
+  requestedAgencyId?: string | null;
+}) {
   const isEdit = listing != null;
   const boundUpdateAction = isEdit ? updateListingDetails.bind(null, listing.id) : null;
   const [state, formAction, pending] = useActionState(
@@ -222,7 +237,13 @@ export function PropertyForm({ listing, publishers = [] }: { listing?: Listing; 
             }}
             className={step === 5 ? "" : "hidden"}
           >
-            <StepContact listing={listing} publishers={isEdit ? [] : publishers} />
+            <StepContact
+              listing={listing}
+              publishers={isEdit ? [] : publishers}
+              agencies={agencies}
+              canChangeAgency={canChangeAgency}
+              requestedAgencyId={requestedAgencyId}
+            />
           </div>
 
           {state.error && (

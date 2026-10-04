@@ -1189,7 +1189,11 @@
       "listing": {
         "emailNotConfirmed": "Confirm your email address before sending the listing for review.",
         "invalidTransition": "This action isn't possible for the listing's current status.",
-        "streetRequired": "Enter the street."
+        "streetRequired": "Enter the street.",
+        "agencyUnknown": "The chosen agency doesn't exist. Reload the page and choose again.",
+        "notAgencyMember": "You can only publish on behalf of agencies you belong to.",
+        "agencyInactive": "This agency is deactivated: nothing can be published on its behalf for now.",
+        "agencyChangeAuthorOnly": "Only the listing's author can move it between private and an agency."
       },
       "contact": {
         "nameRequired": "Enter the contact person's name.",

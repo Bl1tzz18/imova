@@ -2,20 +2,25 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { getSessionToken } from "@/lib/auth/session";
+import { getMyAgencies } from "@/lib/api/agencies";
 import { getMyPublishers } from "@/lib/api/publishers";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { EmailConfirmationBanner } from "@/components/auth/EmailConfirmationBanner";
 import { PropertyForm } from "./PropertyForm";
 
-export default async function NewPropertyPage() {
+// ?agencyId= starts "Publică ca" on that agency (when it's one of the user's).
+export default async function NewPropertyPage({ searchParams }: { searchParams: Promise<{ agencyId?: string }> }) {
+  const { agencyId } = await searchParams;
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/properties/new");
+    const back = agencyId ? `/properties/new?agencyId=${encodeURIComponent(agencyId)}` : "/properties/new";
+    redirect(`/login?next=${encodeURIComponent(back)}`);
   }
 
-  const [t, publishers, profile] = await Promise.all([
+  const [t, publishers, agencies, profile] = await Promise.all([
     getTranslations("NewPropertyPage"),
     getMyPublishers(token),
+    getMyAgencies(token),
     getCurrentUserProfile(),
   ]);
 
@@ -30,7 +35,7 @@ export default async function NewPropertyPage() {
           {profile && !profile.emailConfirmed && <EmailConfirmationBanner email={profile.email} className="mt-6" />}
 
           <div className="mt-9">
-            <PropertyForm publishers={publishers} />
+            <PropertyForm publishers={publishers} agencies={agencies} requestedAgencyId={agencyId ?? null} />
           </div>
         </div>
       </main>

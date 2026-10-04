@@ -30,6 +30,7 @@ public class UpdateListingValidatorTests
             id,
             Guid.NewGuid(),
             false,
+            null,
             propertyType,
             54m,
             null,

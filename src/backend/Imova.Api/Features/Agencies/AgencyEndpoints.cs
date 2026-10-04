@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Imova.Api.Common;
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.CreateAgency;
 using Imova.Application.Features.Agencies.GetAgency;
 using Imova.Application.Features.Agencies.Logos;
@@ -35,6 +36,10 @@ public static class AgencyEndpoints
                 cancellationToken);
             return Results.Created($"/api/v1/agencies/{agency.Id}", agency);
         }).RequireAuthorization();
+
+        app.MapGet("/api/v1/users/me/agencies", async (ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
+            Results.Ok(await sender.Send(new GetMyAgenciesQuery(user.GetUserId()), cancellationToken)))
+            .RequireAuthorization();
 
         app.MapGet("/api/v1/agencies/{id:guid}", async (
             Guid id,

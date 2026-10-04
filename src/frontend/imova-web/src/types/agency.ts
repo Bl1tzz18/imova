@@ -2,6 +2,17 @@ export type AgencyRole = "Owner" | "Admin" | "Agent";
 
 export type InvitationStatus = "Pending" | "Accepted" | "Declined" | "Revoked" | "Expired";
 
+// An agency the signed-in user belongs to (GET /api/v1/users/me/agencies). logoThumbnailUrl: 128 px.
+export type MyAgency = {
+  id: string;
+  name: string;
+  slug: string;
+  logoThumbnailUrl: string | null;
+  isVerified: boolean;
+  status: "Active" | "Deactivated";
+  role: AgencyRole;
+};
+
 // An invitation as its recipient sees it (GET /api/v1/invitations/{token}).
 export type Invitation = {
   id: string;

@@ -1189,7 +1189,11 @@
       "listing": {
         "emailNotConfirmed": "Confirmă adresa de email înainte de a trimite anunțul spre verificare.",
         "invalidTransition": "Această acțiune nu este posibilă pentru statusul actual al anunțului.",
-        "streetRequired": "Introdu strada."
+        "streetRequired": "Introdu strada.",
+        "agencyUnknown": "Agenția aleasă nu există. Reîncarcă pagina și alege din nou.",
+        "notAgencyMember": "Poți publica doar în numele agențiilor din care faci parte.",
+        "agencyInactive": "Agenția este dezactivată: momentan nu se pot publica anunțuri în numele ei.",
+        "agencyChangeAuthorOnly": "Doar autorul anunțului îl poate muta între persoană fizică și o agenție."
       },
       "contact": {
         "nameRequired": "Introdu numele persoanei de contact.",

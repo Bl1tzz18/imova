@@ -8,7 +8,7 @@ namespace Imova.Api.Features.Listings.CreateListing;
 // their JWT (see CreateListingEndpoint), never from the request body.
 public record CreateListingRequest(
     Guid? Id,
-    Guid? PublisherId,
+    Guid? AgencyId,
     PropertyType PropertyType,
     decimal TotalAreaM2,
     int? YearBuilt,

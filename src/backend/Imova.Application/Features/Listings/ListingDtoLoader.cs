@@ -1,6 +1,8 @@
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Agencies.Logos;
 using Imova.Application.Features.Listings.PriceHistory;
 using Imova.Contracts.Listings;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,18 +61,39 @@ public static class ListingDtoLoader
                 .ToDictionaryAsync(u => u.Id, u => new PublisherPerson(u.DisplayName, u.ProfilePictureUrl), cancellationToken)
             : [];
 
-        // The agency each listing is published under, as its contact details show it.
+        // The agency each listing is published under (ListingDto.Agency, on every view; also named in
+        // its contact details), with its small logo.
         var agencyIds = listings.Select(l => l.AgencyId).OfType<Guid>().Distinct().ToList();
-        var agenciesById = includeContactDetails && agencyIds.Count > 0
-            ? (await dbContext.Agencies
+        var agenciesById = agencyIds.Count == 0
+            ? []
+            : (await dbContext.Agencies
                     .AsNoTracking()
                     .Where(a => agencyIds.Contains(a.Id))
-                    .Select(a => new { a.Id, a.Name, a.LogoBlobName })
+                    .Select(a => new { a.Id, a.Name, a.Slug, a.LogoBlobName, a.IsVerified })
                     .ToListAsync(cancellationToken))
                 .ToDictionary(
                     a => a.Id,
-                    a => new ListingAgency(a.Name, a.LogoBlobName is null ? null : blobStorageService.GetPublicUrl(a.LogoBlobName)))
+                    a => new ListingAgencyDto(
+                        a.Id,
+                        a.Name,
+                        a.Slug,
+                        a.LogoBlobName is null ? null : blobStorageService.GetPublicUrl(AgencyLogo.ThumbnailBlobName(a.LogoBlobName)),
+                        a.IsVerified));
+
+        // Agencies whose listings the caller manages as an Owner or Admin (see ListingAccess): they see
+        // those listings' private details and statistics, like the author.
+        var managedAgencyIds = currentUserId is { } viewerId && agencyIds.Count > 0
+            ? await dbContext.AgencyMembers
+                .AsNoTracking()
+                .Where(m => m.UserId == viewerId && agencyIds.Contains(m.AgencyId)
+                    && (m.Role == AgencyRole.Owner || m.Role == AgencyRole.Admin))
+                .Select(m => m.AgencyId)
+                .ToHashSetAsync(cancellationToken)
             : [];
+        bool Manages(Listing listing) =>
+            viewerIsAdmin
+            || (currentUserId is not null && publishersById[listing.PublisherId].UserId == currentUserId)
+            || (listing.AgencyId is { } agencyId && managedAgencyIds.Contains(agencyId));
 
         // Small seeded reference tables — cheaper to load whole than to collect ids first.
         var amenitiesById = await dbContext.Amenities.AsNoTracking().ToDictionaryAsync(a => a.Id, cancellationToken);
@@ -110,7 +133,7 @@ public static class ListingDtoLoader
 
         // The owner's and admins' statistics (see ListingMapping's canSeeStats): how many people saved it.
         var statsListingIds = listings
-            .Where(l => viewerIsAdmin || (currentUserId is not null && publishersById[l.PublisherId].UserId == currentUserId))
+            .Where(Manages)
             .Select(l => l.Id)
             .ToHashSet();
         var favoriteCounts = statsListingIds.Count == 0
@@ -127,6 +150,7 @@ public static class ListingDtoLoader
             {
                 var property = propertiesById[listing.PropertyId];
                 var publisher = publishersById[listing.PublisherId];
+                var agency = listing.AgencyId is { } agencyId ? agenciesById.GetValueOrDefault(agencyId) : null;
                 var priceChanges = ListingPriceHistory.PublicChanges(
                     priceChangesByListingId.GetValueOrDefault(listing.Id) ?? [], listing.PublishedAt);
                 var dto = listing.ToDto(
@@ -138,11 +162,12 @@ public static class ListingDtoLoader
                     photosByListingId.GetValueOrDefault(listing.Id) ?? [],
                     savedListingIds.Contains(listing.Id),
                     includeContactDetails,
-                    canSeePrivateDetails: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId),
+                    canSeePrivateDetails: Manages(listing),
                     publisherPerson: peopleByUserId.GetValueOrDefault(publisher.UserId),
-                    agency: listing.AgencyId is { } agencyId ? agenciesById.GetValueOrDefault(agencyId) : null);
+                    agency: agency is null ? null : new ListingAgency(agency.Name, agency.LogoUrl));
                 return dto with
                 {
+                    Agency = agency,
                     PriceReduction = ListingPriceHistory.Reduction(priceChanges, listing.Price, now),
                     PriceHistory = includeContactDetails ? ListingPriceHistory.History(priceChanges) : null,
                     FavoriteCount = statsListingIds.Contains(listing.Id) ? favoriteCounts.GetValueOrDefault(listing.Id) : null,

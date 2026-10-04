@@ -63,6 +63,15 @@ export type ListingContact = {
   phoneHiddenDigits: number | null;
 };
 
+// The agency a listing is published under (never its phone). logoUrl: its 128 px square logo.
+export type ListingAgency = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  isVerified: boolean;
+};
+
 // A listing's author (always a person — an agency listing also names its agency). phone/email are
 // null wherever contact details aren't exposed — only the author's own "my publishers" list carries them.
 export type Publisher = {
@@ -181,6 +190,8 @@ export type Listing = {
   phoneRevealCount: number | null;
   // How many people saved it to their favorites — also the owner's and admins' only.
   favoriteCount?: number | null;
+  // Null for a private listing.
+  agency?: ListingAgency | null;
   expiresAt: string | null;
   rejectionReason: string | null;
   suspensionReason: string | null;
