@@ -13,8 +13,9 @@ namespace Imova.Application.Features.Account;
 // What goes, in one SaveChanges (so either all of it or none of it):
 // - the account row itself, and with it (database cascade) its roles, external logins, refresh
 //   tokens, favorites and saved searches — removed explicitly too, for providers without cascades;
-// - its publishers and every listing published under them, with the listings' photos, favorites
+// - its publisher and every listing published under it, with the listings' photos, favorites
 //   and (when nothing else uses it) the property and its location — see ListingRemoval;
+// - agencies it is the only member of (their listings are its own, so they're gone already);
 // - photos uploaded for a listing that was never created, and blocks in either direction;
 // - conversations whose other participant is already gone too (nobody can read them any more).
 // Then, best-effort, the files: listing photos, profile pictures, agency logos, message images
@@ -51,12 +52,14 @@ public class AccountDeletion(
         var publisherIds = publishers.Select(p => p.Id).ToList();
         var listings = await dbContext.Listings.Where(l => publisherIds.Contains(l.PublisherId)).ToListAsync(cancellationToken);
         publicBlobs.UnionWith(await ListingRemoval.RemoveAsync(dbContext, listings, cancellationToken));
-        foreach (var logoUrl in publishers.Select(p => p.LogoUrl).OfType<string>())
-        {
-            AddOwnBlob(publicBlobs, logoUrl);
-        }
-
         dbContext.Publishers.RemoveRange(publishers);
+
+        var soleMemberAgencies = await dbContext.Agencies
+            .Where(a => a.Members.Any(m => m.UserId == userId) && a.Members.All(m => m.UserId == userId))
+            .ToListAsync(cancellationToken);
+        publicBlobs.UnionWith(soleMemberAgencies.Select(a => a.LogoBlobName).OfType<string>());
+        dbContext.Agencies.RemoveRange(soleMemberAgencies);
+        dbContext.AgencyMembers.RemoveRange(await dbContext.AgencyMembers.Where(m => m.UserId == userId).ToListAsync(cancellationToken));
 
         // Photos uploaded under a listing id that never became a listing (see Photo / MediaAccess).
         var listingIds = listings.Select(l => l.Id).ToList();

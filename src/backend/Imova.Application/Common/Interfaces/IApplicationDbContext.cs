@@ -6,6 +6,7 @@ using Imova.Domain.Locations;
 using Imova.Domain.Messaging;
 using Imova.Domain.Properties;
 using Imova.Domain.Proximities;
+using Imova.Domain.Agencies;
 using Imova.Domain.Publishers;
 using Imova.Domain.SavedSearches;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,12 @@ public interface IApplicationDbContext
     DbSet<Listing> Listings { get; }
 
     DbSet<Publisher> Publishers { get; }
+
+    DbSet<Agency> Agencies { get; }
+
+    DbSet<AgencyMember> AgencyMembers { get; }
+
+    DbSet<AgencyFormerSlug> AgencyFormerSlugs { get; }
 
     DbSet<Photo> Photos { get; }
 

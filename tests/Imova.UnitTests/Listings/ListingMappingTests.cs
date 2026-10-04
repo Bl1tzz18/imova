@@ -44,7 +44,6 @@ public class ListingMappingTests
         Assert.Equal("Rent", dto.TransactionType);
         Assert.Equal("Draft", dto.Status);
         Assert.Equal("EUR", dto.Price.Currency);
-        Assert.Equal("Individual", dto.Publisher.PublisherType);
         // The publisher's own phone/email never ride along — the listing's Contact is what's shown.
         Assert.Null(dto.Publisher.Email);
         Assert.Null(dto.Publisher.Phone);
@@ -82,15 +81,15 @@ public class ListingMappingTests
 
     // --- Contact ---
 
-    private static readonly Publisher Agency = Publisher.CreateAgency(
-        Guid.NewGuid(), "Casa Ta Imobiliare", "+373 22 000 111", "office@casata.md", "https://blob/logo.png", null);
+    private static readonly ListingAgency Agency = new("Casa Ta Imobiliare", "https://blob/logo.png");
 
     private static ListingDto DetailFor(
         ListingContact? contact,
         bool canSeePrivateDetails = false,
         bool includeContactDetails = true,
         Publisher? publisher = null,
-        PublisherPerson? person = null)
+        PublisherPerson? person = null,
+        ListingAgency? agency = null)
     {
         publisher ??= Publisher;
         var location = Location();
@@ -98,7 +97,7 @@ public class ListingMappingTests
         var listing = ListingTestData.NewListing(property.Id, publisher.Id, contact: contact);
         return listing.ToDto(
             property, location, publisher, new Dictionary<Guid, Amenity>(), new Dictionary<Guid, Proximity>(), [], false,
-            includeContactDetails, canSeePrivateDetails, person);
+            includeContactDetails, canSeePrivateDetails, person, agency);
     }
 
     [Fact]
@@ -176,7 +175,7 @@ public class ListingMappingTests
     [Fact]
     public void Contact_SelfAgency_IsTheAgentByName_WithTheAgencyBesideThem()
     {
-        var contact = DetailFor(TestContacts.Self, publisher: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
+        var contact = DetailFor(TestContacts.Self, agency: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
 
         Assert.Equal("Elena Ciobanu", contact.Name);
         Assert.Equal("Casa Ta Imobiliare", contact.AgencyName);
@@ -184,18 +183,18 @@ public class ListingMappingTests
     }
 
     [Fact]
-    public void Contact_SelfAgency_WithoutTheAgentsNameOrPhoto_FallsBackToTheAgencysNameAndLogo()
+    public void Contact_SelfAgency_WithoutTheAgentsNameOrPhoto_FallsBackToTheirPublisherNameAndTheAgencysLogo()
     {
-        var contact = DetailFor(TestContacts.Self, publisher: Agency, person: new PublisherPerson(" ", null)).Contact!;
+        var contact = DetailFor(TestContacts.Self, agency: Agency, person: new PublisherPerson(" ", null)).Contact!;
 
-        Assert.Equal("Casa Ta Imobiliare", contact.Name);
+        Assert.Equal("Ion", contact.Name);
         Assert.Equal("https://blob/logo.png", contact.PictureUrl);
     }
 
     [Fact]
     public void Contact_Other_HasNoPictureButStillNamesTheAgency()
     {
-        var contact = DetailFor(TestContacts.Other, publisher: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
+        var contact = DetailFor(TestContacts.Other, agency: Agency, person: new PublisherPerson("Elena Ciobanu", "https://blob/elena.jpg")).Contact!;
 
         Assert.Equal("Maria Popescu", contact.Name);
         Assert.Null(contact.PictureUrl);

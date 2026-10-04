@@ -9,10 +9,7 @@ public static class PublisherMapping
         new(
             publisher.Id,
             publisher.UserId,
-            publisher.PublisherType.ToString(),
             publisher.DisplayName,
             includeContactDetails ? publisher.Phone : null,
-            includeContactDetails ? publisher.Email : null,
-            publisher.LogoUrl,
-            publisher.Bio);
+            includeContactDetails ? publisher.Email : null);
 }

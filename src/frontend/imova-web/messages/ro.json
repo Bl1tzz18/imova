@@ -1219,9 +1219,6 @@
       "report": {
         "detailsRequired": "Descrie problema."
       },
-      "publisher": {
-        "agencyExists": "Contul tău are deja o agenție."
-      },
       "savedSearch": {
         "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
       },

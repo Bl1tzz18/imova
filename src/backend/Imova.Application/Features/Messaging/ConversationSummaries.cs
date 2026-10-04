@@ -39,7 +39,7 @@ public static class ConversationSummaries
         var publisherIds = listings.Values.Select(l => l.PublisherId).Distinct().ToList();
         var publishers = await dbContext.Publishers.AsNoTracking()
             .Where(p => publisherIds.Contains(p.Id))
-            .Select(p => new { p.Id, p.DisplayName, p.LogoUrl })
+            .Select(p => new { p.Id, p.DisplayName })
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
         var userIds = conversations.SelectMany(c => new[] { c.InitiatorUserId, c.PublisherUserId }).Distinct().ToList();
@@ -70,13 +70,13 @@ public static class ConversationSummaries
             var otherUserId = c.OtherParticipant(viewerUserId);
             var otherUser = users.GetValueOrDefault(otherUserId);
 
-            // The visitor sees who they wrote to as the listing's publisher (e.g. the agency);
-            // the publisher sees the visitor's own account name.
+            // The visitor sees who they wrote to by the name the listing shows (its author's public
+            // name, also on an agency's listing); the author sees the visitor's own account name.
             var publisher = listing is null ? null : publishers.GetValueOrDefault(listing.PublisherId);
             var other = otherUser is null
                 ? new ConversationParticipantDto(otherUserId, string.Empty, null, IsDeleted: true)
                 : isInitiator && publisher is not null
-                    ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, publisher.LogoUrl ?? otherUser.ProfilePictureUrl)
+                    ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, otherUser.ProfilePictureUrl)
                     : new ConversationParticipantDto(
                         otherUserId, otherUser.DisplayName ?? otherUser.Email ?? "—", otherUser.ProfilePictureUrl);
 

@@ -77,7 +77,8 @@ public class PersonalDataExportTests
         Assert.Equal("profile/picture.png", data.Account.ProfilePictureFile);
         Assert.False(data.Account.HasPassword);
 
-        Assert.Equal("Individual", Assert.Single(data.Publishers).Type);
+        Assert.Equal(_f.Listing.PublisherId, Assert.Single(data.Publishers).Id);
+        Assert.Empty(data.Agencies);
         var listing = Assert.Single(data.Listings);
         Assert.Equal(_f.Listing.Id, listing.Listing.Id);
         Assert.Equal(
@@ -262,7 +263,7 @@ public class PersonalDataExportTests
     [Fact]
     public async Task Summary_CountsWhatTheAccountHolds()
     {
-        ListingTestData.AddAgencyPublisher(_f.Db, _f.Seller.Id);
+        ListingTestData.AddAgency(_f.Db, _f.Seller.Id);
         var draft = ListingTestData.AddListing(_f.Db, _f.Listing.PublisherId);
         _f.Db.Favorites.Add(Favorite.Create(_f.Seller.Id, draft.Id));
         await _f.Db.SaveChangesAsync();

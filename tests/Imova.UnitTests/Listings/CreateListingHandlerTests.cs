@@ -152,7 +152,6 @@ public class CreateListingHandlerTests
 
         var publisher = Assert.Single(_dbContext.Publishers);
         Assert.Equal(_user.Id, publisher.UserId);
-        Assert.Equal(PublisherType.Individual, publisher.PublisherType);
         Assert.Equal(publisher.Id, result.Publisher.Id);
         Assert.Equal("Ion", result.Publisher.DisplayName);
     }
@@ -169,23 +168,11 @@ public class CreateListingHandlerTests
         Assert.Single(_dbContext.Publishers);
     }
 
-    [Fact]
-    public async Task Handle_WithTheUsersAgencyPublisherId_PublishesUnderTheAgency()
-    {
-        ListingTestData.AddIndividualPublisher(_dbContext, _user.Id);
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, _user.Id);
-        await _dbContext.SaveChangesAsync(CancellationToken.None);
-
-        var result = await Handler().Handle(Command(publisherId: agency.Id), CancellationToken.None);
-
-        Assert.Equal(agency.Id, Assert.Single(_dbContext.Listings).PublisherId);
-        Assert.Equal("Agency", result.Publisher.PublisherType);
-    }
 
     [Fact]
     public async Task Handle_WithSomeoneElsesPublisherId_ThrowsForbiddenAndCreatesNothing()
     {
-        var foreign = ListingTestData.AddAgencyPublisher(_dbContext, Guid.NewGuid());
+        var foreign = ListingTestData.AddIndividualPublisher(_dbContext, Guid.NewGuid());
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() =>

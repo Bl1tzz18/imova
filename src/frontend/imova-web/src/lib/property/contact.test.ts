@@ -22,12 +22,9 @@ function form(values: Record<string, string | string[]>) {
 const publisher: Publisher = {
   id: "p1",
   userId: "u1",
-  publisherType: "Individual",
   displayName: "Ion Popescu",
   phone: "+37369123456",
   email: "ion@example.com",
-  logoUrl: null,
-  bio: null,
 };
 
 describe("isValidPhone", () => {

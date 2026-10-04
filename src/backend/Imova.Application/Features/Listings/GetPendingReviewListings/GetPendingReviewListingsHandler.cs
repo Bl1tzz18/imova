@@ -42,6 +42,8 @@ public class GetPendingReviewListingsHandler(IApplicationDbContext dbContext, IB
                     where l.Title.ToLower().Contains(lower)
                         || p.DisplayName.ToLower().Contains(lower)
                         || p.Email.ToLower().Contains(lower)
+                        || dbContext.Agencies.Any(a => a.Id == l.AgencyId
+                            && (a.Name.ToLower().Contains(lower) || a.Email.ToLower().Contains(lower)))
                     select l;
             }
         }

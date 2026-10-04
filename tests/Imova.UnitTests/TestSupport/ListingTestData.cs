@@ -1,4 +1,5 @@
 using Imova.Application.Common.Identity;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -36,11 +37,13 @@ internal static class ListingTestData
         return publisher;
     }
 
-    public static Publisher AddAgencyPublisher(ImovaDbContext dbContext, Guid userId)
+    // An agency with ownerUserId as its only member (its Owner).
+    public static Agency AddAgency(ImovaDbContext dbContext, Guid ownerUserId, string name = "Imobil Grup")
     {
-        var publisher = Publisher.CreateAgency(userId, "Imobil Grup", "+373 22 000 000", "office@imobil.md", null, null);
-        dbContext.Publishers.Add(publisher);
-        return publisher;
+        var agency = Agency.Create(
+            new AgencyProfile(name, "+373 22 000 000", "office@imobil.md"), AgencySlug.FromName(name), ownerUserId, DateTimeOffset.UtcNow);
+        dbContext.Agencies.Add(agency);
+        return agency;
     }
 
     public static Property AddProperty(
@@ -74,10 +77,11 @@ internal static class ListingTestData
         Price? price = null,
         Guid? propertyId = null,
         PropertyType propertyType = PropertyType.Apartment,
-        ListingContact? contact = null)
+        ListingContact? contact = null,
+        Guid? agencyId = null)
     {
         var listing = NewListing(
-            propertyId ?? AddProperty(dbContext, propertyType).Id, publisherId, transactionType, price, contact);
+            propertyId ?? AddProperty(dbContext, propertyType).Id, publisherId, transactionType, price, contact, agencyId);
         dbContext.Listings.Add(listing);
         return listing;
     }
@@ -87,7 +91,8 @@ internal static class ListingTestData
         Guid? publisherId = null,
         TransactionType transactionType = TransactionType.Rent,
         Price? price = null,
-        ListingContact? contact = null) =>
+        ListingContact? contact = null,
+        Guid? agencyId = null) =>
         Listing.Create(
             propertyId ?? Guid.NewGuid(),
             publisherId ?? Guid.NewGuid(),
@@ -96,7 +101,8 @@ internal static class ListingTestData
             "Apartament luminos, aproape de centru.",
             price ?? Eur(550m),
             rentalDetails: transactionType == TransactionType.Rent ? new RentalDetails() : null,
-            contact: contact);
+            contact: contact,
+            agencyId: agencyId);
 
     // Walks a Draft listing through the real lifecycle methods to reach `target`, so tests never
     // depend on a status that couldn't actually be reached.

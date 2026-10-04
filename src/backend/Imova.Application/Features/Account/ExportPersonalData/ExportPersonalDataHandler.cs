@@ -18,7 +18,7 @@ public class ExportPersonalDataHandler(
     TimeProvider timeProvider) : IRequestHandler<ExportPersonalDataQuery, PersonalDataExport>
 {
     // Bumped whenever the shape of imova-data.json changes in a way a reader would notice.
-    public const string Format = "imova.personal-data.v1";
+    public const string Format = "imova.personal-data.v2";
 
     public async Task<PersonalDataExport> Handle(ExportPersonalDataQuery request, CancellationToken cancellationToken)
     {
@@ -39,8 +39,8 @@ public class ExportPersonalDataHandler(
             timeProvider.GetUtcNow(),
             account,
             await SessionsAsync(userId, cancellationToken),
-            publishers.Select(p => new ExportedPublisherDto(
-                p.Id, p.PublisherType.ToString(), p.DisplayName, p.Phone, p.Email, p.LogoUrl, p.Bio, p.CreatedAt)).ToList(),
+            publishers.Select(p => new ExportedPublisherDto(p.Id, p.DisplayName, p.Phone, p.Email, p.CreatedAt)).ToList(),
+            await AgenciesAsync(userId, cancellationToken),
             await ListingsAsync(userId, publisherIds, files, cancellationToken),
             await StrayPhotosAsync(userId, files, cancellationToken),
             await FavoritesAsync(userId, cancellationToken),
@@ -53,6 +53,17 @@ public class ExportPersonalDataHandler(
 
         return new PersonalDataExport(data, files);
     }
+
+    private async Task<List<ExportedAgencyMembershipDto>> AgenciesAsync(Guid userId, CancellationToken cancellationToken) =>
+        (await (
+                from m in dbContext.AgencyMembers.AsNoTracking()
+                join a in dbContext.Agencies.AsNoTracking() on m.AgencyId equals a.Id
+                where m.UserId == userId
+                orderby m.JoinedAt
+                select new { a.Id, a.Name, m.Role, m.JoinedAt })
+            .ToListAsync(cancellationToken))
+        .Select(x => new ExportedAgencyMembershipDto(x.Id, x.Name, x.Role.ToString(), x.JoinedAt))
+        .ToList();
 
     private async Task<ExportedAccountDto> AccountAsync(ApplicationUser user, List<ExportFile> files)
     {

@@ -42,7 +42,6 @@ public class ListingOwnershipTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
         Assert.Equal(user.Id, listing.Publisher.UserId);
-        Assert.Equal("Individual", listing.Publisher.PublisherType);
 
         await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }

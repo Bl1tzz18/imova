@@ -63,19 +63,14 @@ export type ListingContact = {
   phoneHiddenDigits: number | null;
 };
 
-export type PublisherType = "Individual" | "Agency";
-
-// phone/email are null wherever contact details aren't exposed (cards/search results) — only a
-// listing's detail view and the "my publishers" list carry them.
+// A listing's author (always a person — an agency listing also names its agency). phone/email are
+// null wherever contact details aren't exposed — only the author's own "my publishers" list carries them.
 export type Publisher = {
   id: string;
   userId: string;
-  publisherType: PublisherType;
   displayName: string;
   phone: string | null;
   email: string | null;
-  logoUrl: string | null;
-  bio: string | null;
 };
 
 // "Preț redus": the price is down `percent` from previousAmount since reducedAt (rule: the API's

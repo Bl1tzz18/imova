@@ -35,9 +35,7 @@ export function StepContact({
   const t = useTranslations("PropertyForm");
   const tMethod = useTranslations("ContactMethod");
 
-  const defaultPublisher = publishers.find((p) => p.publisherType === "Individual") ?? publishers[0];
-  const [publisherId, setPublisherId] = useState(defaultPublisher?.id ?? "");
-  const publisher = publishers.find((p) => p.id === publisherId) ?? defaultPublisher;
+  const publisher = publishers[0];
   const defaults = contactDefaults(listing, publisher);
 
   const [personType, setPersonType] = useState<ContactPersonType>(defaults.personType);
@@ -52,40 +50,6 @@ export function StepContact({
   return (
     <div>
       <h2 className="font-hero text-xl font-bold text-ink-950">{t("step5Heading")}</h2>
-
-      {/* Only offered when there's an actual choice: an Individual publisher always exists, and
-          omitting publisherId publishes under it, so a user without an agency sees nothing here. */}
-      {publishers.length > 1 && (
-        <fieldset className="mt-5">
-          <legend className="font-hero text-base font-bold text-ink-950">{t("publishAsLabel")}</legend>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {publishers.map((p) => (
-              <label
-                key={p.id}
-                className={cn(
-                  "flex cursor-pointer items-start gap-3 rounded-xl border border-ink-200 px-4 py-3 text-sm",
-                  "has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50",
-                )}
-              >
-                <input
-                  type="radio"
-                  name="publisherId"
-                  value={p.id}
-                  checked={p.id === publisherId}
-                  onChange={() => setPublisherId(p.id)}
-                  className="mt-0.5"
-                />
-                <span>
-                  <span className="block font-medium text-ink-900">{p.displayName}</span>
-                  <span className="block text-xs text-ink-500">
-                    {p.publisherType === "Agency" ? t("publisherAgency") : t("publisherIndividual")}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      )}
 
       <div className="mt-5">
         <FieldLabel>{t("contactPersonLabel")}</FieldLabel>

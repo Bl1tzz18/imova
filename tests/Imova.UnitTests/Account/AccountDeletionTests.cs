@@ -53,8 +53,8 @@ public class AccountDeletionTests
     public async Task DeleteAsync_RemovesTheAccountAndEverythingItOwns()
     {
         var seller = _f.Seller;
-        var agency = ListingTestData.AddAgencyPublisher(_f.Db, seller.Id);
-        var agencyListing = ListingTestData.AddListing(_f.Db, agency.Id);
+        var agency = ListingTestData.AddAgency(_f.Db, seller.Id);
+        var agencyListing = ListingTestData.AddListing(_f.Db, _f.Listing.PublisherId, agencyId: agency.Id);
         var photo = AddPhoto(_f.Listing.Id, seller.Id);
         var property = _f.Listing.PropertyId;
         _f.Db.Favorites.Add(Favorite.Create(_f.Visitor.Id, _f.Listing.Id));
@@ -71,6 +71,9 @@ public class AccountDeletionTests
         Assert.False(await _f.Db.Publishers.AnyAsync(p => p.UserId == seller.Id));
         Assert.False(await _f.Db.Listings.AnyAsync(l => l.Id == _f.Listing.Id || l.Id == agencyListing.Id));
         Assert.False(await _f.Db.Properties.AnyAsync(p => p.Id == property));
+        // They were its only member: the agency goes too.
+        Assert.False(await _f.Db.Agencies.AnyAsync());
+        Assert.False(await _f.Db.AgencyMembers.AnyAsync());
         Assert.False(await _f.Db.Photos.AnyAsync());
         Assert.False(await _f.Db.Favorites.AnyAsync());
         Assert.False(await _f.Db.SavedSearches.AnyAsync());

@@ -24,6 +24,7 @@ public record PersonalDataExportDto(
     ExportedAccountDto Account,
     IReadOnlyList<ExportedSessionDto> Sessions,
     IReadOnlyList<ExportedPublisherDto> Publishers,
+    IReadOnlyList<ExportedAgencyMembershipDto> Agencies,
     IReadOnlyList<ExportedListingDto> Listings,
     IReadOnlyList<ExportedPhotoDto> PhotosNotInAListing,
     IReadOnlyList<ExportedFavoriteDto> Favorites,
@@ -59,13 +60,13 @@ public record ExportedSessionDto(
 
 public record ExportedPublisherDto(
     Guid Id,
-    string Type,
     string DisplayName,
     string? Phone,
     string Email,
-    string? LogoUrl,
-    string? Bio,
     DateTimeOffset CreatedAt);
+
+// An agency the user is a member of, and their role in it (Owner | Admin | Agent).
+public record ExportedAgencyMembershipDto(Guid AgencyId, string AgencyName, string Role, DateTimeOffset JoinedAt);
 
 public record ExportedListingDto(ListingDto Listing, IReadOnlyList<string> PhotoFiles, IReadOnlyList<ExportedPriceChangeDto> PriceHistory);
 

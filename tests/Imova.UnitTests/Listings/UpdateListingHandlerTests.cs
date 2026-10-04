@@ -137,11 +137,12 @@ public class UpdateListingHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ByOwnerViaAgencyPublisher_Succeeds()
+    public async Task Handle_ByTheAuthorOfAnAgencyListing_Succeeds()
     {
         var agencyOwner = Guid.NewGuid();
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, agencyOwner);
-        var listing = ListingTestData.AddListing(_dbContext, agency.Id);
+        var agency = ListingTestData.AddAgency(_dbContext, agencyOwner);
+        var author = ListingTestData.AddIndividualPublisher(_dbContext, agencyOwner);
+        var listing = ListingTestData.AddListing(_dbContext, author.Id, agencyId: agency.Id);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
         var result = await Handler().Handle(Command(requestingUserId: agencyOwner, id: listing.Id), CancellationToken.None);

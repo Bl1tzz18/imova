@@ -99,8 +99,9 @@ public class GetListingByIdHandlerTests
     public async Task Handle_ForNonActiveAgencyListing_IsVisibleToTheAgencysOwner()
     {
         var agencyOwner = Guid.NewGuid();
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, agencyOwner);
-        var listing = ListingTestData.AddListing(_dbContext, agency.Id).MoveTo(ListingStatus.PendingReview);
+        var agency = ListingTestData.AddAgency(_dbContext, agencyOwner);
+        var author = ListingTestData.AddIndividualPublisher(_dbContext, agencyOwner);
+        var listing = ListingTestData.AddListing(_dbContext, author.Id, agencyId: agency.Id).MoveTo(ListingStatus.PendingReview);
 
         Assert.NotNull(await GetAsync(listing.Id, currentUserId: agencyOwner));
     }

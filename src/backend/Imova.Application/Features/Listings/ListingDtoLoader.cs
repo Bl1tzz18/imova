@@ -59,6 +59,19 @@ public static class ListingDtoLoader
                 .ToDictionaryAsync(u => u.Id, u => new PublisherPerson(u.DisplayName, u.ProfilePictureUrl), cancellationToken)
             : [];
 
+        // The agency each listing is published under, as its contact details show it.
+        var agencyIds = listings.Select(l => l.AgencyId).OfType<Guid>().Distinct().ToList();
+        var agenciesById = includeContactDetails && agencyIds.Count > 0
+            ? (await dbContext.Agencies
+                    .AsNoTracking()
+                    .Where(a => agencyIds.Contains(a.Id))
+                    .Select(a => new { a.Id, a.Name, a.LogoBlobName })
+                    .ToListAsync(cancellationToken))
+                .ToDictionary(
+                    a => a.Id,
+                    a => new ListingAgency(a.Name, a.LogoBlobName is null ? null : blobStorageService.GetPublicUrl(a.LogoBlobName)))
+            : [];
+
         // Small seeded reference tables — cheaper to load whole than to collect ids first.
         var amenitiesById = await dbContext.Amenities.AsNoTracking().ToDictionaryAsync(a => a.Id, cancellationToken);
         var proximitiesById = await dbContext.Proximities.AsNoTracking().ToDictionaryAsync(p => p.Id, cancellationToken);
@@ -126,7 +139,8 @@ public static class ListingDtoLoader
                     savedListingIds.Contains(listing.Id),
                     includeContactDetails,
                     canSeePrivateDetails: viewerIsAdmin || (currentUserId is not null && publisher.UserId == currentUserId),
-                    publisherPerson: peopleByUserId.GetValueOrDefault(publisher.UserId));
+                    publisherPerson: peopleByUserId.GetValueOrDefault(publisher.UserId),
+                    agency: listing.AgencyId is { } agencyId ? agenciesById.GetValueOrDefault(agencyId) : null);
                 return dto with
                 {
                     PriceReduction = ListingPriceHistory.Reduction(priceChanges, listing.Price, now),

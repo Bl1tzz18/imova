@@ -35,9 +35,9 @@ public class ConfirmEmailHandlerTests
     {
         var user = _store.SeedUser("ana@example.com", emailConfirmed: false);
         var individual = ListingTestData.AddIndividualPublisher(_dbContext, user.Id);
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, user.Id);
+        var agency = ListingTestData.AddAgency(_dbContext, user.Id);
         var draft = ListingTestData.AddListing(_dbContext, individual.Id);
-        var agencyDraft = ListingTestData.AddListing(_dbContext, agency.Id);
+        var agencyDraft = ListingTestData.AddListing(_dbContext, individual.Id, agencyId: agency.Id);
         var rejected = ListingTestData.AddListing(_dbContext, individual.Id).MoveTo(ListingStatus.Rejected);
         var someoneElsesDraft = ListingTestData.AddListing(_dbContext, ListingTestData.AddIndividualPublisher(_dbContext).Id);
         await _dbContext.SaveChangesAsync();

@@ -229,9 +229,6 @@ export default async function ProprietatePage({
           {role.kind === "agent" && <p className="text-sm font-medium leading-5 text-ink-800">{role.agencyName}</p>}
         </div>
       </div>
-      {contact.personType === "Self" && publisher.bio && (
-        <p className="mt-3 line-clamp-3 text-xs leading-5 text-ink-500">{publisher.bio}</p>
-      )}
 
       {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
       {!isOwner && messageEmphasis === "primary" && messageButton}

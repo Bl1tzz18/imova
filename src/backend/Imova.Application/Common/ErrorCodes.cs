@@ -79,5 +79,4 @@ public static class ErrorCodes
     public const string SavedSearchLimit = "savedSearch.limitReached";
 
     // --- Publishers ---
-    public const string AgencyExists = "publisher.agencyExists";
 }

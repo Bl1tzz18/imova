@@ -44,7 +44,6 @@ public class GoogleLoginHandlerTests
 
         var publisher = Assert.Single(dbContext.Publishers);
         Assert.Equal(Assert.Single(store.Users).Id, publisher.UserId);
-        Assert.Equal(PublisherType.Individual, publisher.PublisherType);
         Assert.Equal("New User", publisher.DisplayName);
         Assert.Equal("new.user@example.com", publisher.Email);
         // Google accounts have no phone number until the user completes their profile.
