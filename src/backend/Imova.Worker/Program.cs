@@ -2,6 +2,7 @@ using Imova.Application.Features.Listings.Visitors;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Auth.Sessions;
+using Imova.Application.Features.Favorites.Alerts;
 using Imova.Application.Features.Listings.Expiry;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Application.Features.Media.Cleanup;
@@ -16,7 +17,7 @@ using Imova.Worker;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
-// Background jobs, separate from the API: saved-search alert emails, listing expiry (with the
+// Background jobs, separate from the API: saved-search alert emails, saved-listing (favorite) alert emails, listing expiry (with the
 // reminder emails), the display sizes of older photos (PhotoSizeBackfill), and the cleanup of photos from abandoned add-listing forms and of ended
 // sessions. Uses the same database, email and data-protection setup as the API (the key ring is
 // shared so unsubscribe links made here verify in the API). Never runs migrations — the API does that on startup.
@@ -56,9 +57,11 @@ builder.Services.AddDataProtection()
 builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
+builder.Services.AddScoped<FavoriteAlertUnsubscribeTokens>();
 
 // Each job on its own timer; "<Section>:IntervalSeconds" overrides the default.
 builder.Services.AddScheduledJob<SavedSearchAlerts>(builder.Configuration, "SavedSearchAlerts", defaultIntervalSeconds: 300);
+builder.Services.AddScheduledJob<FavoriteAlerts>(builder.Configuration, "FavoriteAlerts", defaultIntervalSeconds: 3600);
 builder.Services.AddScheduledJob<ListingExpiry>(builder.Configuration, "ListingExpiry", defaultIntervalSeconds: 3600);
 builder.Services.AddScheduledJob<PhotoSizeBackfill>(builder.Configuration, "PhotoSizes", defaultIntervalSeconds: 300);
 builder.Services.AddScheduledJob<AbandonedPhotoCleanup>(builder.Configuration, "PhotoCleanup", defaultIntervalSeconds: 6 * 3600);

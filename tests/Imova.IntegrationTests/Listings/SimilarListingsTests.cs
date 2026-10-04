@@ -37,8 +37,15 @@ public class SimilarListingsTests : IClassFixture<WebApplicationFactory<Program>
         // Not the first raioane: other tests' listings default to those.
         var raioane = (await _anonymous.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane"))!
             .Where(r => r.LocalityLabel == "Localitate").Skip(2).ToList();
-        _raion = raioane[Random.Shared.Next(raioane.Count)].Id;
-        var localitati = (await _anonymous.GetFromJsonAsync<List<LocalitateDto>>($"/api/v1/locations/raioane/{_raion}/localitati"))!;
+        // A random one with at least two localities (a few have only one).
+        List<LocalitateDto> localitati;
+        do
+        {
+            _raion = raioane[Random.Shared.Next(raioane.Count)].Id;
+            localitati = (await _anonymous.GetFromJsonAsync<List<LocalitateDto>>($"/api/v1/locations/raioane/{_raion}/localitati"))!;
+        }
+        while (localitati.Count < 2);
+
         (_localitate, _otherLocalitate) = (localitati[0].Id, localitati[1].Id);
     }
 

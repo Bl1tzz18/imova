@@ -166,6 +166,7 @@ simply retries a failed run on its next tick.
 | Job | Interval setting (default) | What it does |
 | --- | --- | --- |
 | `SavedSearchAlerts` | `SavedSearchAlerts:IntervalSeconds` (300) | emails new matches for saved searches |
+| `FavoriteAlerts` | `FavoriteAlerts:IntervalSeconds` (3600) | emails people who saved a listing when its price changes (≤1 a day per listing) or it ends |
 | `ListingExpiry` | `ListingExpiry:IntervalSeconds` (3600) | Active listings live 6 months (`Listing.ActiveMonths`); reminder email 7 days before, then Expired + email |
 | `AbandonedPhotoCleanup` | `PhotoCleanup:IntervalSeconds` (21600) | deletes photos (blob + row) whose listing was never created, after 7 days |
 | `PhotoSizeBackfill` | `PhotoSizes:IntervalSeconds` (300) | makes the display sizes of photos that lack the current `PhotoSizes.CurrentVersion` (100 per run, newest first) |

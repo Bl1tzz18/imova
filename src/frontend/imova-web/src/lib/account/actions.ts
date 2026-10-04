@@ -5,6 +5,7 @@ import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { clearSessionCookies, getSessionToken } from "@/lib/auth/session";
+import type { EmailPreferences } from "@/lib/account/emailPreferences";
 
 export type AccountDeletionState = { error?: string; linkSent?: boolean };
 
@@ -75,4 +76,27 @@ export async function confirmAccountDeletion(_prevState: AccountDeletionState, f
   }
 
   redirect("/account-deleted");
+}
+
+// The Notifications tab's switches: saves right away, returns what the API stored.
+export async function updateEmailPreferences(
+  preferences: EmailPreferences,
+): Promise<{ preferences: EmailPreferences } | { error: string }> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login?next=/account?tab=notifications");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/email-preferences`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(preferences),
+  });
+
+  if (!res.ok) {
+    return { error: await apiErrorMessage(res) };
+  }
+
+  return { preferences: (await res.json()) as EmailPreferences };
 }

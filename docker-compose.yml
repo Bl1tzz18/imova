@@ -104,6 +104,7 @@ services:
       Storage__PublicBlobEndpoint: "http://localhost:10000"
       # Every minute locally, so "instant" alerts are quick to try out (default: every 5 minutes).
       SavedSearchAlerts__IntervalSeconds: "60"
+      FavoriteAlerts__IntervalSeconds: "60"
       # Also every minute locally (defaults: expiry hourly, photo cleanup every 6 hours).
       ListingExpiry__IntervalSeconds: "60"
       PhotoCleanup__IntervalSeconds: "60"

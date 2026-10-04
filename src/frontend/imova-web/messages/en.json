@@ -534,7 +534,15 @@
     "accountDeletedTitle": "Your account has been deleted",
     "accountDeletedBody": "All of your account's data has been deleted. Thank you for using IMOVA — you're welcome back any time with a new account.",
     "accountDeletedHome": "Go to the home page",
-    "privacyRights": "These rights — to access your data, to take it with you, to correct it and to have it erased — are guaranteed by the personal data protection law of the Republic of Moldova and, if you live in the European Union, by the General Data Protection Regulation (GDPR)."
+    "privacyRights": "These rights — to access your data, to take it with you, to correct it and to have it erased — are guaranteed by the personal data protection law of the Republic of Moldova and, if you live in the European Union, by the General Data Protection Regulation (GDPR).",
+    "notificationsTab": "Notifications",
+    "notificationsTitle": "Email notifications",
+    "notificationsBody": "Choose which optional emails you get. Account emails (confirmation, password reset) are always sent.",
+    "favoriteUpdatesLabel": "Saved listings",
+    "favoriteUpdatesHint": "An email when a listing in your favorites changes price (at most one a day per listing) or is no longer available.",
+    "notificationsSaved": "Saved.",
+    "notificationsUnavailable": "We couldn't load your notification settings. Please try again later.",
+    "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>."
   },
   "SavedListingsPage": {
     "title": "Saved listings",
@@ -1490,7 +1498,8 @@
     "views": "{count, plural, one {# view} other {# views}}",
     "phoneReveals": "{count, plural, one {# person saw the number} other {# people saw the number}}",
     "adminTitle": "Admin",
-    "openInModeration": "Open in moderation"
+    "openInModeration": "Open in moderation",
+    "favorites": "{count, plural, one {saved by # person} other {saved by # people}}"
   },
   "PriceHistory": {
     "badge": "Price cut {percent}",
@@ -1502,5 +1511,14 @@
     "earlier": "Earlier",
     "showAll": "Show full history ({count})",
     "showLess": "Show less"
+  },
+  "FavoriteAlerts": {
+    "unsubscribedTitle": "Done, you won't get these emails anymore",
+    "unsubscribedBody": "We'll stop emailing you about your saved listings. Your favorites stay saved; you can turn the emails back on anytime in your account settings.",
+    "unsubscribeGoneTitle": "This account no longer exists",
+    "unsubscribeGoneBody": "This account was deleted, so it doesn't get any emails.",
+    "unsubscribeInvalidTitle": "Invalid link",
+    "unsubscribeInvalidBody": "This link isn't valid. You can turn these emails off in your account settings, under Notifications.",
+    "manage": "Notification settings"
   }
 }
