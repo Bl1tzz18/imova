@@ -320,6 +320,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<GetListingsQuery>();
 
 var app = builder.Build();
 
+// Builds the message content filter's patterns in the background, so no message send pays for it.
+_ = Task.Run(MessageContentFilter.WarmUp);
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ImovaDbContext>();
