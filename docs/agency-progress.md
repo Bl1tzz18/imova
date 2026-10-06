@@ -1,8 +1,8 @@
 # Agency publishers — progress
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
-Branch `feat/agencies` (from `main` at `593b393`), pushed to GitHub (no PR yet). Last updated 2026-10-06
-(after the step 4 browser check).
+Branch `feat/agencies` (from `main` at `593b393`), pushed to GitHub up to `231ffab` (no PR yet; the
+commits from `0dc2330` on are local only). Last updated 2026-10-06 (after step 5 — PR 1 is complete).
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -18,6 +18,10 @@ Branch `feat/agencies` (from `main` at `593b393`), pushed to GitHub (no PR yet).
 | — | `90a2190` | Not part of the agency work: content-filter rules run `NonBacktracking` and are warmed up at API start-up (the cold first match of the SMS/card rule took 71 ms idle and passed 200 ms under load — the cause of both load-sensitive test failures). Slowest rule now ~0.16 ms on a 2,000-character message; first match after warm-up ≤ 0.6 ms; timeout unchanged at 200 ms. Full suite green 3 runs in a row. |
 | 4 | `4f4a4f5` | `agencyId` replaces `publisherId` on create (author = the caller; member of an active agency only — `listing.notAgencyMember` 403, `listing.agencyInactive`/`agencyUnknown` 400). On edit `agencyId` is **required** (null = private; missing → 400) and only the author changes it (`listing.agencyChangeAuthorOnly`). `ListingAccess`: an agency's Owners/Admins manage all its listings (and see their stats), Agents only their own. `ListingDto.Agency` (id, name, slug, 128 px logo, verified — no phone). `GET /api/v1/users/me/agencies`. Web: "Publică în numele" picker in step 5 (remembered per browser, `?agencyId=` on `/properties/new`, hidden field keeps the agency when the picker isn't shown), edit page open to the agency's Owners/Admins. Conversations show "Agent · Agency". |
 | 4 | `9580c66` | Follow-up: taking a listing **out of** an agency (to private, or to another agency) needs an Owner or Admin of the agency it leaves (`listing.agencyLeaveManagerOnly`, 403) — an Agent can't take agency listings with them before leaving; putting one **into** an agency stays with its author, a member of that active agency (`listing.agencyChangeAuthorOnly`). The edit form's picker follows: on an agency listing only its Owners/Admins see it (other agencies offered only to the author); on a private listing only the author. |
+| — | `0dc2330` | Docs: the step 4 end-to-end browser check. |
+| 5 | `404262e` | Public pages. API: `GET /api/v1/agencies/by-slug/{slug}` (current slug → `AgencyDto`; a former slug → **301** + `Location` + `{slug}`; unknown, or deactivated for a non-member → 404; slugs matched lower-cased), the directory `GET /api/v1/agencies` (`?q=&raionId=&verified=&page=&pageSize=` ≤ 50 → `PagedResult<AgencyCardDto>`; Active agencies only; verified first, then most Active listings, then name; `q` matches the name case-insensitively **or**, spelled like a slug (`AgencySlug.SearchKey`), the slug — so "agentia", "Ușor"/"usor" and Cyrillic all find it), `POST /api/v1/agencies/{id}/contact/phone` (`{phone}`; shares the listing phone-reveal rate limit `RateLimiting:PhoneReveal`; not counted — stats are PR 3). Search: `agencyId` (`SearchQueryString` → `SearchListingsQuery.AgencyId` → `ListingSearch`). `ListingAgencyDto.ActiveListingCount` on the listing detail view only (null on cards). Web: `/agencies` (GET form: name, city select, "Doar verificate"; select/checkbox submit by themselves; cards with logo or initials, badge, city, "N anunțuri active"; pagination; filtered/later pages `noindex`), `/agencies/[slug]` (logo or initials, verified badge with tooltip, city · "Pe IMOVA din {lună an}", N active listings, bio folded after ~4 lines, phone reveal via the shared `ContactActions`, email, website; listings: Toate/Vânzare/Chirie tabs + type + sort + pagination through search `agencyId`; empty states; former slug → Next `permanentRedirect` (308) keeping the filters; title "{Name} — agenție imobiliară în {City} \| IMOVA", description from the bio, Open Graph with the logo, canonical, JSON-LD `RealEstateAgent` without a phone; deactivated → notice + noindex for members). Listing contact card: agency box (logo, name, badge, "Vezi toate anunțurile agenției (N)") linking to the page. Header nav (desktop) + footer link. Moderation rows and the first-message page say "Agent · Agency" (`authorLabel` in `lib/listing/contactCard.ts`). `Avatar` gained `shape="square"`; new `components/agency/` (VerifiedBadge, AutoSubmitForm, ExpandableText, LinkPagination); `lib/agency/publicPage.ts` (Vitest). |
+| — | `0638f38` | Not part of the agency work: the header fits one row on phones down to 360 px (logo never shrinks, compact language select and a person icon for "Autentificare" below 640 px, "Adaugă anunț" on one line; Russian uses the short "Разместить" there). |
+| 5 | `76f352b` | Follow-up: Russian "На IMOVA: {date}" (the month comes in its standalone form, which reads wrong after "с"). |
 
 Tests at the end of step 4 (with the follow-up): backend 1,253 unit + 254 integration + 5
 architecture, frontend 386 Vitest; `tsc` clean. Before the follow-up: 1,250 unit + 253 integration, 385
@@ -35,12 +39,28 @@ imobiliar · Casa Ta Imobiliare". Ion wrote from "Scrie mesaj": his inbox and th
 "Elena Ciobanu · Casa Ta Imobiliare"; Elena's inbox and thread (390 px) show "Ion Popescu" with the
 unread badge. All as specified. Cleaned up: the listing deleted through the API as Elena (204, photo
 blobs with it), the conversation and its message deleted in SQL (deleting a listing keeps its
-conversations), Ion has no Admin role. Noticed, not fixed:
-- The moderation row shows only the author ("Elena Ciobanu · Chișinău, Ciocana"), not the agency.
-- The first-message page says "Mesajul ajunge la Elena Ciobanu" without the agency.
-- At 390 px the header is already cramped (logo squeezed, "Adaugă anunț" on two lines) — not from
-  this branch (`Header.tsx` unchanged), but step 5's "Agenții" nav link must not make it worse.
-- An Active listing can't be deleted from "Anunțurile mele" (only marked sold / deactivated) — existing.
+conversations), Ion has no Admin role. Noticed then, and what became of it:
+- The moderation row showed only the author, not the agency → fixed in step 5 ("Agent · Agency").
+- The first-message page said "Mesajul ajunge la Elena Ciobanu" → fixed in step 5 ("… · Casa Ta Imobiliare").
+- The header was cramped at 390 px (existing, not from this branch) → fixed in `0638f38`.
+- An Active listing can't be deleted from "Anunțurile mele" (only marked sold / deactivated) — existing
+  behaviour, kept on purpose; see "Product decisions for later".
+
+Tests at the end of step 5: backend 1,279 unit + 262 integration + 5 architecture, frontend 401
+Vitest; `tsc` clean (new: `AgencyPublicPageTests` 20, `AgencySlugTests.SearchKey` 4, 2 in
+`SearchQueryStringTests`, `AgencyPublicEndpointsTests` 8, `publicPage.test.ts` 13, `authorLabel` 2).
+
+**Step 5 browser check (2026-10-06, rebuilt containers):** `/agencies` at 1280, 390 and 360 px (search
+"casa" + "Doar verificate", count "1 agenție", reset link; no horizontal scroll); `/agencies/casa-ta-imobiliare`
+at 1280, 390 and 360 px signed out and as Elena (a member sees the full number at once; the public
+reveals it with "Arată"); the type select submits itself (5 apartments), "Chirie" tab (2); verified badge
+and city checked by setting them in SQL for a moment and setting them back; a former slug inserted in
+SQL answered `308 → /agencies/casa-ta-imobiliare?transactionType=Rent` (removed after); the listing
+page's contact card shows the agency box "Vezi toate anunțurile agenției (10)"; as Ion with a
+temporary Admin role (removed after): `/admin/moderation?tab=active` rows read "Elena Ciobanu · Casa Ta
+Imobiliare · Chișinău, Botanica" and `/messages/new` reads "Mesajul ajunge la Elena Ciobanu · Casa Ta
+Imobiliare". Header at 360/390 px in ro/en/ru, signed out and in (button ends 16 px from the edge),
+and 1280 px (unchanged); the phone language select switches language. Dev data left as it was.
 
 ## Decisions (made by the product owner in this session)
 
@@ -120,15 +140,14 @@ conversations), Ion has no Admin role. Noticed, not fixed:
   commands may read files, build, test, and run git — never change file contents.
 - No Claude attribution in commits or PRs.
 
-## Open items for later steps
+## Product decisions for later
 
-**Step 5 — public pages (next)**
-- `GET /api/v1/agencies/by-slug/{slug}` (old slug → current slug for a 301), directory
-  `GET /api/v1/agencies`, agency phone reveal endpoint (rate-limited like the listing one).
-- `agencyId` filter in `SearchQueryString`/`ListingSearch`.
-- Pages `/agencies` and `/agencies/[slug]` (SEO: title, description, Open Graph, canonical, JSON-LD
-  `RealEstateAgent`); contact-card link and "Vezi toate anunțurile agenției (N)"; header/footer link.
-  No sitemap (see decisions).
+- **Deleting an Active listing.** "Anunțurile mele" offers an Active listing only "Marchează ca
+  vândut/închiriat" and "Dezactivează" — no delete (the API's `DELETE /api/v1/listings/{id}` exists).
+  Kept as it is on purpose (2026-10-06); whether owners should be able to delete a live listing
+  outright (and what happens to its conversations, favorites and reports) is to be decided later.
+
+## Open items for later steps
 
 **Step 6 — management UI (PR 2)**
 - `/account` "Agențiile mele" tab (`?tab=agencies`): my agencies, create button, my pending invitations
@@ -168,22 +187,31 @@ conversations), Ion has no Admin role. Noticed, not fixed:
 - Dev database: one accepted invitation row for `ion.popescu@demo.imova.md` → Casa Ta Imobiliare is
   left as history (Ion was removed from the agency again). A dump taken before the `AddAgencies`
   migration was saved in the session scratchpad and may not survive.
-- The compose containers were rebuilt at step 4 (all migrations applied); rebuild `backend`,
-  `worker` and `frontend` again after the next code change, before a browser check.
+- The compose containers were rebuilt at step 5 (all migrations applied; step 5 added none); rebuild
+  `backend`, `worker` and `frontend` again after the next code change, before a browser check. A
+  frontend build once failed in `next/font` (fetching Google Fonts) and passed on a plain retry.
+- Until step 7, a deactivated agency's listings still appear in search, on the map and through
+  `?agencyId=` — only its page, directory card and phone reveal are hidden.
+- The directory's `q` is a substring match (on the name, case-insensitive, and on the slug, which
+  covers diacritics and Cyrillic) — words typed in another order ("imobiliare casa") don't match.
+- Agency phone reveals are rate-limited but not counted (agency statistics are PR 3).
+- The agency page's sort form submits `sort=Newest` explicitly when changed (harmless; links built by
+  the page leave it out).
+- Dev database: 36 agencies named "Imobil Grup" (`imobil-grup`, `-2` … `-36`) and one "Maria Imobil",
+  all without listings — left over from the agency publishers that old test runs wrote into the dev
+  database before 2026-09-29. They fill the directory after Casa Ta; delete them when convenient.
 
 ## Exact next steps (in this order)
 
 **a) ~~End-to-end browser check of step 4~~** — done 2026-10-06, see "Steps done" above.
 
-**b) Step 5 of PR 1: public pages.** Start with `GET /api/v1/agencies/by-slug/{slug}` (an old slug
-answers with the current one, for a 301), the directory `GET /api/v1/agencies`
-(`?q=&raionId=&verified=&page=`, verified first, then by active listing count) and a rate-limited
-agency phone reveal; add the `agencyId` filter to `SearchQueryString`/`ListingSearch`; then the pages
-`/agencies` and `/agencies/[slug]` (SEO metadata and JSON-LD, no sitemap), the contact-card link with
-"Vezi toate anunțurile agenției (N)", and the header/footer link — with unit, integration and Vitest
-tests and a browser check at 390/360 px and 1280 px; then stop with build + tests green, commit,
-update this file and summarize.
+**b) ~~Step 5 of PR 1: public pages~~** — done 2026-10-06 (`404262e`, `76f352b`; header `0638f38`).
 
-**c) The PR 1 description**, written into `docs/pr-1-description.md` (not pushed, no PR opened):
-every endpoint, migration and screen of steps 1–5, the decisions above, how it was tested, and the
-known issues. No Claude attribution.
+**c) ~~The PR 1 description~~** — written into `docs/pr-1-description.md` (not pushed, no PR opened).
+
+**d) Next:** the product owner pushes the branch and opens PR 1 (title and body from
+`docs/pr-1-description.md`). Then **step 6 (PR 2): the management UI** — see "Open items" above:
+the `/account` "Agențiile mele" tab with my agencies and my pending invitations, then
+`/account/agencies/new` and `/account/agencies/[id]` (Profil with logo upload, Membri, Anunțuri,
+Setări), each with tests and a browser check at 360/390/1280 px; stop after it with build + tests
+green, commit, update this file.
