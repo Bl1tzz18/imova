@@ -1,6 +1,7 @@
 {
   "Common": {
     "addListing": "Добавить объявление",
+    "addListingShort": "Разместить",
     "selectLanguage": "Выбрать язык",
     "previous": "Назад",
     "next": "Вперёд"
