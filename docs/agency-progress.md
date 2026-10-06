@@ -1,8 +1,9 @@
 # Agency publishers — progress
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
-Branch `feat/agencies` (from `main` at `593b393`), pushed to GitHub up to `231ffab` (no PR yet; the
-commits from `0dc2330` on are local only). Last updated 2026-10-06 (after step 5 — PR 1 is complete).
+Branch `feat/agencies` (from `main` at `593b393`), pushed. **PR 1 (steps 1–5) is open:
+https://github.com/Bl1tzz18/imova/pull/32** (not merged). Last updated 2026-10-06. Next: PR 2, starting
+with step 6.
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -197,9 +198,9 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 - Agency phone reveals are rate-limited but not counted (agency statistics are PR 3).
 - The agency page's sort form submits `sort=Newest` explicitly when changed (harmless; links built by
   the page leave it out).
-- Dev database: 36 agencies named "Imobil Grup" (`imobil-grup`, `-2` … `-36`) and one "Maria Imobil",
-  all without listings — left over from the agency publishers that old test runs wrote into the dev
-  database before 2026-09-29. They fill the directory after Casa Ta; delete them when convenient.
+- Dev database: the 36 empty "Imobil Grup" agencies (`imobil-grup`, `-2` … `-36`) and "Maria Imobil"
+  — leftovers of old test runs, no listings, invitations or logo, only their creator as member — were
+  deleted on 2026-10-06 (37 agencies with their member rows). Casa Ta Imobiliare is the only agency left.
 
 ## Exact next steps (in this order)
 
@@ -207,10 +208,12 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 
 **b) ~~Step 5 of PR 1: public pages~~** — done 2026-10-06 (`404262e`, `76f352b`; header `0638f38`).
 
-**c) ~~The PR 1 description~~** — written into `docs/pr-1-description.md` (not pushed, no PR opened).
+**c) ~~The PR 1 description~~** — `docs/pr-1-description.md` (also mentions the header fix and the
+home page's "Anunțuri moderate", `06be883`).
 
-**d) Next:** the product owner pushes the branch and opens PR 1 (title and body from
-`docs/pr-1-description.md`). Then **step 6 (PR 2): the management UI** — see "Open items" above:
+**d) ~~Open PR 1~~** — https://github.com/Bl1tzz18/imova/pull/32, against `main`, not merged.
+
+**e) Next — PR 2, starting with step 6: the management UI** — see "Open items" above:
 the `/account` "Agențiile mele" tab with my agencies and my pending invitations, then
 `/account/agencies/new` and `/account/agencies/[id]` (Profil with logo upload, Membri, Anunțuri,
 Setări), each with tests and a browser check at 360/390/1280 px; stop after it with build + tests
