@@ -51,7 +51,7 @@
     "pageTitle": "{name} — агентство недвижимости в {city} | IMOVA",
     "pageTitleNoCity": "{name} — агентство недвижимости | IMOVA",
     "metaFallback": "{name} — агентство недвижимости на IMOVA. Активные объявления агентства и контакты.",
-    "onImovaSince": "На IMOVA с {date}",
+    "onImovaSince": "На IMOVA: {date}",
     "readMore": "Читать дальше",
     "readLess": "Свернуть",
     "contactHeading": "Контакты",
