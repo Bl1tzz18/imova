@@ -1,7 +1,10 @@
 # Agency publishers — progress
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
-Branch `feat/agencies` (from `main` at `593b393`), not pushed yet. Last updated 2026-10-05 (after step 4).
+Branch `feat/agencies` (from `main` at `593b393`), pushed to GitHub (no PR yet). Last updated 2026-10-06
+(after the step 4 browser check).
+
+**Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
 ## Steps done (PR 1 = steps 1–5)
 
@@ -22,6 +25,22 @@ Vitest; `tsc` clean. Checked in a browser at 390 px and 1280 px: the invitation 
 picker on the create form (shown for an agency member, choice remembered across a reload) and on
 the edit form of an agency listing (starts on the agency; the submitted form carries it). The picker
 was checked by un-hiding step 5 with a script rather than filling steps 1–4.
+
+**Step 4 end-to-end browser check (2026-10-06, rebuilt containers, no scripts):** as Elena, filled all
+five steps of the form by hand (Garage for sale, Chișinău/Ciocana, one photo, 9,500 €), chose "Casa Ta
+Imobiliare" under "Publică în numele" → saved PendingReview with `AgencyId` = Casa Ta. Approved in
+`/admin/moderation` by Ion with a temporary Admin role (removed right after, Ion signed out and in
+again). Listing page (1280 and 390 px, no horizontal scroll): contact card "Elena Ciobanu · Agent
+imobiliar · Casa Ta Imobiliare". Ion wrote from "Scrie mesaj": his inbox and thread header say
+"Elena Ciobanu · Casa Ta Imobiliare"; Elena's inbox and thread (390 px) show "Ion Popescu" with the
+unread badge. All as specified. Cleaned up: the listing deleted through the API as Elena (204, photo
+blobs with it), the conversation and its message deleted in SQL (deleting a listing keeps its
+conversations), Ion has no Admin role. Noticed, not fixed:
+- The moderation row shows only the author ("Elena Ciobanu · Chișinău, Ciocana"), not the agency.
+- The first-message page says "Mesajul ajunge la Elena Ciobanu" without the agency.
+- At 390 px the header is already cramped (logo squeezed, "Adaugă anunț" on two lines) — not from
+  this branch (`Header.tsx` unchanged), but step 5's "Agenții" nav link must not make it worse.
+- An Active listing can't be deleted from "Anunțurile mele" (only marked sold / deactivated) — existing.
 
 ## Decisions (made by the product owner in this session)
 
@@ -154,16 +173,7 @@ was checked by un-hiding step 5 with a script rather than filling steps 1–4.
 
 ## Exact next steps (in this order)
 
-**a) A real end-to-end browser check of step 4**, as Elena (`elena.ciobanu@demo.imova.md`, Owner of
-Casa Ta Imobiliare; password in CLAUDE.md "Dev database"). Rebuild the containers first.
-- Fill in the listing form normally, all five steps — no un-hiding steps by script — choose "Casa Ta
-  Imobiliare" under "Publică în numele" and publish.
-- Check the listing page shows the agency (contact card: agent + agency). It goes to review first:
-  approve it as an admin (grant the Admin role in SQL temporarily, remove it after) so it's public.
-- Message it as another user (`ion.popescu@demo.imova.md`) and check "Agent · Agency" — Elena
-  Ciobanu · Casa Ta Imobiliare — in Ion's inbox and thread; check Elena's inbox shows Ion.
-- At 390 px and 1280 px. Report anything that doesn't match; clean up the demo data afterwards
-  (delete the test listing and conversation) or say what was left.
+**a) ~~End-to-end browser check of step 4~~** — done 2026-10-06, see "Steps done" above.
 
 **b) Step 5 of PR 1: public pages.** Start with `GET /api/v1/agencies/by-slug/{slug}` (an old slug
 answers with the current one, for a 301), the directory `GET /api/v1/agencies`
