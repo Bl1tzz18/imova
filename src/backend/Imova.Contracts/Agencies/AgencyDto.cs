@@ -27,3 +27,19 @@ public record AgencyDto(
     int MemberCount,
     int ActiveListingCount,
     string? MyRole);
+
+// An agency in the public directory (GET /api/v1/agencies). LogoThumbnailUrl: the 128 px square.
+public record AgencyCardDto(
+    Guid Id,
+    string Slug,
+    string Name,
+    string? LogoThumbnailUrl,
+    bool IsVerified,
+    string? RaionName,
+    int ActiveListingCount);
+
+// GET /api/v1/agencies/by-slug/{slug} for a slug the agency used before a rename (with a 301).
+public record AgencySlugRedirectDto(string Slug);
+
+// An agency's full phone number, asked for one at a time (POST /api/v1/agencies/{id}/contact/phone).
+public record AgencyPhoneDto(string Phone);

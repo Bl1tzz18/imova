@@ -11,6 +11,7 @@ import { approveListing, reinstateListing, rejectListing, suspendListing } from 
 import type { ListingTab } from "@/lib/admin/moderationTabs";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
+import { authorLabel } from "@/lib/listing/contactCard";
 import type { Listing } from "@/types/listing";
 
 // One list for every moderation tab: the review queue (approve / reject with a reason), Active
@@ -99,7 +100,7 @@ export function ModerationQueue({ listings, tab = "pending" }: { listings: Listi
                   {listing.title}
                 </Link>
                 <p className="mt-0.5 truncate text-xs text-ink-500">
-                  {[listing.publisher.displayName, location].filter(Boolean).join(" · ")}
+                  {[authorLabel(listing), location].filter(Boolean).join(" · ")}
                 </p>
                 <ListingStats listing={listing} showNumber className="mt-0.5" />
               </div>

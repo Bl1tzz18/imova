@@ -32,6 +32,23 @@ public class SearchQueryStringTests
     }
 
     [Fact]
+    public void Parse_ReadsTheAgency()
+    {
+        var agency = Guid.NewGuid();
+
+        Assert.Equal(agency, SearchQueryString.Parse($"agencyId={agency}").AgencyId);
+        Assert.Null(SearchQueryString.Parse("").AgencyId);
+    }
+
+    [Fact]
+    public void Parse_AnAgencyThatIsNotAnId_IsAValidationError()
+    {
+        var ex = Assert.Throws<ValidationException>(() => SearchQueryString.Parse("agencyId=casa-ta"));
+
+        Assert.Equal("agencyId", Assert.Single(ex.Errors).PropertyName);
+    }
+
+    [Fact]
     public void Parse_DefaultsSortAndPaging()
     {
         var query = SearchQueryString.Parse("");

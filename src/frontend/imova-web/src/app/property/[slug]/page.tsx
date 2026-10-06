@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { VerifiedBadge } from "@/components/agency/VerifiedBadge";
+import { agencyPath } from "@/lib/agency/publicPage";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Badge } from "@/components/ui/Badge";
@@ -101,7 +104,7 @@ export default async function ProprietatePage({
 
   const listing = result.listing;
 
-  const [locale, t, tType, tListing, tCard, tMethod, tPrice] = await Promise.all([
+  const [locale, t, tType, tListing, tCard, tMethod, tPrice, tAgencies] = await Promise.all([
     getLocale(),
     getTranslations("PropertyDetail"),
     getTranslations("PropertyType"),
@@ -109,6 +112,7 @@ export default async function ProprietatePage({
     getTranslations("PropertyCard"),
     getTranslations("ContactMethod"),
     getTranslations("PriceHistory"),
+    getTranslations("Agencies"),
   ]);
 
   const location = formatFullLocation(listing.property.location);
@@ -225,17 +229,51 @@ export default async function ProprietatePage({
                     : "roleContactPerson",
             )}
           </p>
-          {/* The agency on its own line, so a long name wraps instead of being cut off. */}
-          {role.kind === "agent" && <p className="text-sm font-medium leading-5 text-ink-800">{role.agencyName}</p>}
+          {/* The agency on its own line, so a long name wraps instead of being cut off (when there's
+              no agency box below to name it). */}
+          {role.kind === "agent" && !listing.agency && (
+            <p className="text-sm font-medium leading-5 text-ink-800">{role.agencyName}</p>
+          )}
         </div>
       </div>
+
+      {/* The agency it's published under: its page, and how many listings it has there. */}
+      {listing.agency && (
+        <Link
+          href={agencyPath(listing.agency.slug)}
+          className="group mt-4 flex items-center gap-3 rounded-xl border border-ink-100 px-3 py-2.5 transition-colors hover:border-ink-200 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+        >
+          <Avatar
+            userId={listing.agency.id}
+            displayName={listing.agency.name}
+            pictureUrl={listing.agency.logoUrl}
+            size={40}
+            shape="square"
+            className="shrink-0 border border-ink-100"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5">
+              <span className="truncate text-sm font-semibold text-ink-950">{listing.agency.name}</span>
+              {listing.agency.isVerified && <VerifiedBadge />}
+            </span>
+            <span className="block text-sm text-accent-700 group-hover:underline">
+              {listing.agency.activeListingCount != null
+                ? tAgencies("seeAllListingsCount", { count: listing.agency.activeListingCount })
+                : tAgencies("seeAllListings")}
+            </span>
+          </span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 shrink-0 text-ink-400" aria-hidden>
+            <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+      )}
 
       {/* With the phone hidden, messaging is the main way to reach them — shown first. */}
       {!isOwner && messageEmphasis === "primary" && messageButton}
 
       {contact.phone || contact.phonePrefix ? (
         <ContactActions
-          listingId={listing.id}
+          phoneOf={{ listingId: listing.id }}
           phonePrefix={contact.phonePrefix ?? ""}
           hiddenDigits={contact.phoneHiddenDigits ?? 0}
           ownPhone={contact.phone}

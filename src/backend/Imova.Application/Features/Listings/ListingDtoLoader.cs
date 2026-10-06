@@ -62,14 +62,24 @@ public static class ListingDtoLoader
             : [];
 
         // The agency each listing is published under (ListingDto.Agency, on every view; also named in
-        // its contact details), with its small logo.
+        // its contact details), with its small logo — and, on the detail view, its active listing count.
         var agencyIds = listings.Select(l => l.AgencyId).OfType<Guid>().Distinct().ToList();
         var agenciesById = agencyIds.Count == 0
             ? []
             : (await dbContext.Agencies
                     .AsNoTracking()
                     .Where(a => agencyIds.Contains(a.Id))
-                    .Select(a => new { a.Id, a.Name, a.Slug, a.LogoBlobName, a.IsVerified })
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.Name,
+                        a.Slug,
+                        a.LogoBlobName,
+                        a.IsVerified,
+                        ActiveListings = includeContactDetails
+                            ? dbContext.Listings.Count(l => l.AgencyId == a.Id && l.Status == ListingStatus.Active)
+                            : (int?)null,
+                    })
                     .ToListAsync(cancellationToken))
                 .ToDictionary(
                     a => a.Id,
@@ -78,7 +88,8 @@ public static class ListingDtoLoader
                         a.Name,
                         a.Slug,
                         a.LogoBlobName is null ? null : blobStorageService.GetPublicUrl(AgencyLogo.ThumbnailBlobName(a.LogoBlobName)),
-                        a.IsVerified));
+                        a.IsVerified,
+                        a.ActiveListings));
 
         // Agencies whose listings the caller manages as an Owner or Admin (see ListingAccess): they see
         // those listings' private details and statistics, like the author.

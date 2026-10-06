@@ -1,5 +1,11 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js";
-import type { ListingContact } from "@/types/listing";
+import type { Listing, ListingContact } from "@/types/listing";
+
+// Who wrote a listing, as one line: "Elena Ciobanu · Casa Ta Imobiliare" for an agency's listing
+// (like messaging's participantName and the contact card), else just the person.
+export function authorLabel(listing: Pick<Listing, "publisher" | "agency">): string {
+  return listing.agency ? `${listing.publisher.displayName} · ${listing.agency.name}` : listing.publisher.displayName;
+}
 
 // The listing page's contact card — pure rules (Vitest-covered): how the number is shown and
 // half-hidden, the chat links for the messaging apps, and the line under the person's name.

@@ -3,9 +3,11 @@ using Imova.Api.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.CreateAgency;
+using Imova.Application.Features.Agencies.Directory;
 using Imova.Application.Features.Agencies.GetAgency;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Application.Features.Agencies.UpdateAgency;
+using Imova.Contracts.Agencies;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -53,6 +55,62 @@ public static class AgencyEndpoints
                 cancellationToken);
             return agency is null ? Results.NotFound() : Results.Ok(agency);
         });
+
+        // The public directory: active agencies, verified first. pageSize at most 50.
+        app.MapGet("/api/v1/agencies", async (
+            string? q,
+            Guid? raionId,
+            bool? verified,
+            int? page,
+            int? pageSize,
+            ISender sender,
+            CancellationToken cancellationToken) =>
+            Results.Ok(await sender.Send(
+                new GetAgencyDirectoryQuery(
+                    q,
+                    raionId,
+                    verified == true,
+                    page ?? 1,
+                    pageSize ?? GetAgencyDirectoryQuery.DefaultPageSize),
+                cancellationToken)));
+
+        // The public page's agency. A former slug (the agency was renamed) answers 301 with the current
+        // slug — in Location and in the body, for a caller that doesn't follow redirects.
+        app.MapGet("/api/v1/agencies/by-slug/{slug}", async (
+            string slug,
+            HttpContext httpContext,
+            ClaimsPrincipal user,
+            ISender sender,
+            CancellationToken cancellationToken) =>
+        {
+            var signedIn = user.Identity?.IsAuthenticated == true;
+            var result = await sender.Send(
+                new GetAgencyBySlugQuery(slug, signedIn ? user.GetUserId() : null, signedIn && user.IsInRole(Roles.Admin)),
+                cancellationToken);
+
+            if (result?.CurrentSlug is { } currentSlug)
+            {
+                httpContext.Response.Headers.Location = $"/api/v1/agencies/by-slug/{Uri.EscapeDataString(currentSlug)}";
+                return Results.Json(new AgencySlugRedirectDto(currentSlug), statusCode: StatusCodes.Status301MovedPermanently);
+            }
+
+            return result?.Agency is { } agency ? Results.Ok(agency) : Results.NotFound();
+        });
+
+        // The agency's full phone number (the page only has its shape) — rate-limited per IP together
+        // with listings' numbers.
+        app.MapPost("/api/v1/agencies/{id:guid}/contact/phone", async (
+            Guid id,
+            ClaimsPrincipal user,
+            ISender sender,
+            CancellationToken cancellationToken) =>
+        {
+            var signedIn = user.Identity?.IsAuthenticated == true;
+            var phone = await sender.Send(
+                new RevealAgencyPhoneQuery(id, signedIn ? user.GetUserId() : null, signedIn && user.IsInRole(Roles.Admin)),
+                cancellationToken);
+            return phone is null ? Results.NotFound() : Results.Ok(phone);
+        }).RequireRateLimiting(ListingVisitorRateLimiting.PhoneRevealPolicy);
 
         app.MapPut("/api/v1/agencies/{id:guid}", async (
             Guid id,

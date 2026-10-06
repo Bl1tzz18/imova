@@ -43,7 +43,9 @@ public record ListingDto(
     ListingAgencyDto? Agency = null);
 
 // The agency a listing is published under. LogoUrl: its 128 px square logo. Never its phone — see AgencyDto.
-public record ListingAgencyDto(Guid Id, string Name, string Slug, string? LogoUrl, bool IsVerified);
+// ActiveListingCount: how many Active listings the agency has ("Vezi toate anunțurile agenției (N)") —
+// only on the listing's detail view, null on cards and search results.
+public record ListingAgencyDto(Guid Id, string Name, string Slug, string? LogoUrl, bool IsVerified, int? ActiveListingCount = null);
 
 // Percent: how much lower, rounded (from EUR values when the currency changed).
 public record PriceReductionDto(decimal PreviousAmount, string PreviousCurrency, int Percent, DateTimeOffset ReducedAt);

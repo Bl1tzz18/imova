@@ -33,6 +33,7 @@ public static class SearchQueryString
             RaionId = reader.Guid("raionId"),
             LocalitateId = reader.Guid("localitateId"),
             ChisinauSectorId = reader.Guid("chisinauSectorId"),
+            AgencyId = reader.Guid("agencyId"),
             MinAreaM2 = reader.Decimal("minAreaM2"),
             MaxAreaM2 = reader.Decimal("maxAreaM2"),
             AmenityIds = reader.Guids("amenityIds"),

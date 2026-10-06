@@ -29,6 +29,9 @@ export async function Header() {
           <Link href={searchHref({ transactionType: ["Rent"] })} className="transition-colors hover:text-ink-950">
             {t("rent")}
           </Link>
+          <Link href="/agencies" className="transition-colors hover:text-ink-950">
+            {t("agencies")}
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">

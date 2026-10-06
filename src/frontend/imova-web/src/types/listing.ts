@@ -70,6 +70,8 @@ export type ListingAgency = {
   slug: string;
   logoUrl: string | null;
   isVerified: boolean;
+  // How many Active listings the agency has — only on the listing's own page, null on cards.
+  activeListingCount?: number | null;
 };
 
 // A listing's author (always a person — an agency listing also names its agency). phone/email are

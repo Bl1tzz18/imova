@@ -6,6 +6,7 @@ import { StartConversationForm } from "@/components/messaging/StartConversationF
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
 import { getConversationIdForListing } from "@/lib/messaging/api";
+import { authorLabel } from "@/lib/listing/contactCard";
 import type { Listing } from "@/types/listing";
 
 async function getListing(id: string): Promise<Listing | null> {
@@ -64,7 +65,7 @@ export default async function NewConversationPage({ searchParams }: { searchPara
         </div>
         <div className="min-w-0">
           <p className="truncate font-semibold text-ink-950">{listing.title}</p>
-          <p className="text-sm text-ink-500">{t("toPublisher", { name: listing.publisher.displayName })}</p>
+          <p className="text-sm text-ink-500">{t("toPublisher", { name: authorLabel(listing) })}</p>
         </div>
       </Link>
 

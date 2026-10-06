@@ -72,4 +72,14 @@ public class AgencySlugTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => AgencySlug.WithNumber("x", 1));
     }
+
+    [Theory]
+    [InlineData("Agenția Ușor", "agentia-usor")]
+    [InlineData("дом", "dom")]
+    [InlineData("admin", "admin")]
+    [InlineData("!!!", "")]
+    public void SearchKey_SpellsTextLikeASlug_WithoutFallbackOrNumbering(string text, string expected)
+    {
+        Assert.Equal(expected, AgencySlug.SearchKey(text));
+    }
 }

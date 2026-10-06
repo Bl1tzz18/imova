@@ -46,6 +46,11 @@ public static class AgencySlug
         return Reserved.Contains(slug) ? WithNumber(slug, 2) : slug;
     }
 
+    // Search text spelled the way slugs are ("Agenția Ușor" → "agentia-usor"), so the directory can
+    // match a name typed without diacritics, or in Cyrillic, against the slugs. Empty when the text
+    // has no letters or digits.
+    public static string SearchKey(string text) => Clean(text);
+
     // "{slug}-{number}", shortening the slug so the result still fits MaxLength.
     public static string WithNumber(string slug, int number)
     {

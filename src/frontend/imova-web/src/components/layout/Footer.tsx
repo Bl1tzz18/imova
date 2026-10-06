@@ -10,9 +10,12 @@ export function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-10 text-center sm:px-6">
         <Image src="/logo.png" alt="IMOVA" width={460} height={271} className="h-11 w-auto" />
         <p className="max-w-sm text-sm text-ink-500">{t("tagline")}</p>
-        <div className="flex gap-6 pt-2 text-sm text-ink-600">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pt-2 text-sm text-ink-600">
           <Link href="/search" className="hover:text-ink-950">
             {t("searchListings")}
+          </Link>
+          <Link href="/agencies" className="hover:text-ink-950">
+            {t("agencies")}
           </Link>
           <Link href="/properties/new" className="hover:text-ink-950">
             {t("publishListing")}

@@ -163,6 +163,11 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
 
         listings = listings.Where(l => l.Status == ListingStatus.Active);
 
+        if (q.AgencyId is { } agencyId)
+        {
+            listings = listings.Where(l => l.AgencyId == agencyId);
+        }
+
         if (q.PublishedAfter is { } after)
         {
             listings = listings.Where(l => l.PublishedAt > after);
