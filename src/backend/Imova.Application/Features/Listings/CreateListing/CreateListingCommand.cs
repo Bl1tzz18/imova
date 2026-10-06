@@ -10,16 +10,16 @@ namespace Imova.Application.Features.Listings.CreateListing;
 // attributes, amenities, proximities, address) and the Listing offer on top of it. Both are created together,
 // atomically — see CreateListingHandler.
 //
-// RequestingUserId always comes from the caller's JWT (see CreateListingEndpoint), never the body.
-// PublisherId picks which of the caller's publishers (Individual/Agency) this is published under;
-// omitted means their Individual publisher.
+// RequestingUserId always comes from the caller's JWT (see CreateListingEndpoint), never the body;
+// the caller is the author (their own Publisher). AgencyId publishes it under one of the caller's
+// agencies (see ListingAgencyRules); omitted means a private listing.
 //
 // Id is client-supplied and optional: the form generates one up front so it can attach uploaded
 // photos (ConfirmMediaUpload) to that listing id before the listing row exists.
 public record CreateListingCommand(
     Guid? Id,
     Guid RequestingUserId,
-    Guid? PublisherId,
+    Guid? AgencyId,
     PropertyType PropertyType,
     decimal TotalAreaM2,
     int? YearBuilt,

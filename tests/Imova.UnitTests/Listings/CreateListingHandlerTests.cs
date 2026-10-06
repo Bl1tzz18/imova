@@ -1,7 +1,9 @@
 using System.Text.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Listings.CreateListing;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
 using Imova.Domain.Properties;
@@ -44,7 +46,7 @@ public class CreateListingHandlerTests
 
     private CreateListingCommand Command(
         Guid? id = null,
-        Guid? publisherId = null,
+        Guid? agencyId = null,
         TransactionType transactionType = TransactionType.Rent,
         decimal price = 550m,
         Currency currency = Currency.EUR,
@@ -59,7 +61,7 @@ public class CreateListingHandlerTests
         new(
             id,
             _user.Id,
-            publisherId,
+            agencyId,
             PropertyType.Apartment,
             54m,
             1985,
@@ -152,7 +154,6 @@ public class CreateListingHandlerTests
 
         var publisher = Assert.Single(_dbContext.Publishers);
         Assert.Equal(_user.Id, publisher.UserId);
-        Assert.Equal(PublisherType.Individual, publisher.PublisherType);
         Assert.Equal(publisher.Id, result.Publisher.Id);
         Assert.Equal("Ion", result.Publisher.DisplayName);
     }
@@ -169,37 +170,60 @@ public class CreateListingHandlerTests
         Assert.Single(_dbContext.Publishers);
     }
 
+
     [Fact]
-    public async Task Handle_WithTheUsersAgencyPublisherId_PublishesUnderTheAgency()
+    public async Task Handle_UnderAnAgencyTheyBelongTo_PublishesItThere_WithThemAsTheAuthor()
     {
-        ListingTestData.AddIndividualPublisher(_dbContext, _user.Id);
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, _user.Id);
+        var agency = ListingTestData.AddAgency(_dbContext, Guid.NewGuid(), "Casa Ta");
+        agency.AddMember(_user.Id, AgencyRole.Agent, DateTimeOffset.UtcNow);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var result = await Handler().Handle(Command(publisherId: agency.Id), CancellationToken.None);
+        var result = await Handler().Handle(Command(agencyId: agency.Id), CancellationToken.None);
 
-        Assert.Equal(agency.Id, Assert.Single(_dbContext.Listings).PublisherId);
-        Assert.Equal("Agency", result.Publisher.PublisherType);
+        var listing = Assert.Single(_dbContext.Listings);
+        Assert.Equal(agency.Id, listing.AgencyId);
+        Assert.Equal(_user.Id, result.Publisher.UserId);
+        Assert.Equal("Casa Ta", result.Agency!.Name);
+        Assert.Equal("casa-ta", result.Agency.Slug);
     }
 
     [Fact]
-    public async Task Handle_WithSomeoneElsesPublisherId_ThrowsForbiddenAndCreatesNothing()
+    public async Task Handle_UnderAnAgencyTheyDontBelongTo_IsForbidden_AndCreatesNothing()
     {
-        var foreign = ListingTestData.AddAgencyPublisher(_dbContext, Guid.NewGuid());
+        var agency = ListingTestData.AddAgency(_dbContext, Guid.NewGuid());
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
-            Handler().Handle(Command(publisherId: foreign.Id), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(agencyId: agency.Id), CancellationToken.None));
 
+        Assert.Equal(ErrorCodes.ListingNotAgencyMember, ex.Code);
         Assert.Empty(_dbContext.Listings);
         Assert.Empty(_dbContext.Properties);
     }
 
     [Fact]
-    public async Task Handle_WithUnknownPublisherId_ThrowsValidationException()
+    public async Task Handle_UnderAnUnknownAgency_IsAValidationError()
     {
-        await Assert.ThrowsAsync<FluentValidation.ValidationException>(() =>
-            Handler().Handle(Command(publisherId: Guid.NewGuid()), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<FluentValidation.ValidationException>(() =>
+            Handler().Handle(Command(agencyId: Guid.NewGuid()), CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ListingAgencyUnknown, Assert.Single(ex.Errors).ErrorCode);
+    }
+
+    [Fact]
+    public async Task Handle_UnderADeactivatedAgency_IsRefused_EvenForAMember()
+    {
+        var agency = ListingTestData.AddAgency(_dbContext, _user.Id);
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+        // No deactivate action yet (step 7): set the status the way the database would hold it.
+        _dbContext.Entry(agency).Property(a => a.Status).CurrentValue = AgencyStatus.Deactivated;
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<FluentValidation.ValidationException>(() =>
+            Handler().Handle(Command(agencyId: agency.Id), CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ListingAgencyInactive, Assert.Single(ex.Errors).ErrorCode);
+        Assert.Empty(_dbContext.Listings);
     }
 
     [Fact]

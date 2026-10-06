@@ -26,8 +26,15 @@ public static class ConversationSummaries
 
         var listings = await dbContext.Listings.AsNoTracking()
             .Where(l => listingIds.Contains(l.Id))
-            .Select(l => new { l.Id, l.Title, l.PublisherId })
+            .Select(l => new { l.Id, l.Title, l.PublisherId, l.AgencyId })
             .ToDictionaryAsync(l => l.Id, cancellationToken);
+
+        var agencyIds = listings.Values.Select(l => l.AgencyId).OfType<Guid>().Distinct().ToList();
+        var agencyNames = agencyIds.Count == 0
+            ? []
+            : await dbContext.Agencies.AsNoTracking()
+                .Where(a => agencyIds.Contains(a.Id))
+                .ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
 
         var photos = (await dbContext.Photos.AsNoTracking()
                 .Where(p => listingIds.Contains(p.ListingId) && p.IsPrimary)
@@ -39,7 +46,7 @@ public static class ConversationSummaries
         var publisherIds = listings.Values.Select(l => l.PublisherId).Distinct().ToList();
         var publishers = await dbContext.Publishers.AsNoTracking()
             .Where(p => publisherIds.Contains(p.Id))
-            .Select(p => new { p.Id, p.DisplayName, p.LogoUrl })
+            .Select(p => new { p.Id, p.DisplayName })
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
         var userIds = conversations.SelectMany(c => new[] { c.InitiatorUserId, c.PublisherUserId }).Distinct().ToList();
@@ -70,13 +77,17 @@ public static class ConversationSummaries
             var otherUserId = c.OtherParticipant(viewerUserId);
             var otherUser = users.GetValueOrDefault(otherUserId);
 
-            // The visitor sees who they wrote to as the listing's publisher (e.g. the agency);
-            // the publisher sees the visitor's own account name.
+            // The visitor sees who they wrote to by the name the listing shows (its author's public
+            // name, also on an agency's listing); the author sees the visitor's own account name.
             var publisher = listing is null ? null : publishers.GetValueOrDefault(listing.PublisherId);
             var other = otherUser is null
                 ? new ConversationParticipantDto(otherUserId, string.Empty, null, IsDeleted: true)
                 : isInitiator && publisher is not null
-                    ? new ConversationParticipantDto(otherUserId, publisher.DisplayName, publisher.LogoUrl ?? otherUser.ProfilePictureUrl)
+                    ? new ConversationParticipantDto(
+                        otherUserId,
+                        publisher.DisplayName,
+                        otherUser.ProfilePictureUrl,
+                        AgencyName: listing!.AgencyId is { } agencyId ? agencyNames.GetValueOrDefault(agencyId) : null)
                     : new ConversationParticipantDto(
                         otherUserId, otherUser.DisplayName ?? otherUser.Email ?? "—", otherUser.ProfilePictureUrl);
 

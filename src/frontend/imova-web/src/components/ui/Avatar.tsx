@@ -27,6 +27,7 @@ export function Avatar({
   email,
   pictureUrl,
   size = 36,
+  shape = "circle",
   className,
 }: {
   userId: string;
@@ -34,8 +35,11 @@ export function Avatar({
   email?: string | null;
   pictureUrl?: string | null;
   size?: number;
+  // "square": a rounded square — for agency logos, which are square images on white.
+  shape?: "circle" | "square";
   className?: string;
 }) {
+  const rounded = shape === "square" ? "rounded-xl" : "rounded-full";
   if (pictureUrl) {
     return (
       // Blob-storage URL, not a static asset — same reason PropertyCard uses a plain <img>
@@ -47,7 +51,7 @@ export function Avatar({
         width={size}
         height={size}
         style={{ width: size, height: size }}
-        className={cn("rounded-full object-cover", className)}
+        className={cn(rounded, "object-cover", className)}
       />
     );
   }
@@ -56,7 +60,7 @@ export function Avatar({
     <span
       aria-hidden="true"
       style={{ width: size, height: size, backgroundColor: PALETTE[hashToIndex(userId, PALETTE.length)], fontSize: size * 0.4 }}
-      className={cn("flex flex-shrink-0 items-center justify-center rounded-full font-medium text-white", className)}
+      className={cn("flex flex-shrink-0 items-center justify-center font-medium text-white", rounded, className)}
     >
       {initialsFor(displayName, email)}
     </span>

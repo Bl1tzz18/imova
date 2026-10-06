@@ -18,7 +18,7 @@ public static class CreateListingEndpoint
             var command = new CreateListingCommand(
                 request.Id,
                 user.GetUserId(),
-                request.PublisherId,
+                request.AgencyId,
                 request.PropertyType,
                 request.TotalAreaM2,
                 request.YearBuilt,

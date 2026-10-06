@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Features.Listings.UpdateListing;
 using Imova.Domain.Amenities;
@@ -49,6 +50,7 @@ public class UpdateListingHandlerTests
         Guid? requestingUserId = null,
         bool isAdmin = false,
         Guid? id = null,
+        Guid? agencyId = null,
         PropertyType propertyType = PropertyType.Apartment,
         string attributesJson = """{"rooms":3,"floor":4,"totalFloors":10}""",
         IReadOnlyList<Guid>? amenityIds = null,
@@ -66,6 +68,7 @@ public class UpdateListingHandlerTests
             id ?? _listing.Id,
             requestingUserId ?? _ownerId,
             isAdmin,
+            agencyId,
             propertyType,
             72m,
             2010,
@@ -137,16 +140,97 @@ public class UpdateListingHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ByOwnerViaAgencyPublisher_Succeeds()
+    public async Task Handle_ByTheAuthorOfAnAgencyListing_Succeeds()
     {
         var agencyOwner = Guid.NewGuid();
-        var agency = ListingTestData.AddAgencyPublisher(_dbContext, agencyOwner);
-        var listing = ListingTestData.AddListing(_dbContext, agency.Id);
+        var agency = ListingTestData.AddAgency(_dbContext, agencyOwner);
+        var author = ListingTestData.AddIndividualPublisher(_dbContext, agencyOwner);
+        var listing = ListingTestData.AddListing(_dbContext, author.Id, agencyId: agency.Id);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-        var result = await Handler().Handle(Command(requestingUserId: agencyOwner, id: listing.Id), CancellationToken.None);
+        var result = await Handler().Handle(Command(requestingUserId: agencyOwner, id: listing.Id, agencyId: agency.Id), CancellationToken.None);
 
         Assert.NotNull(result);
+        Assert.Equal(agency.Id, listing.AgencyId);
+    }
+
+    // An agency listing written by an Agent, with the agency's Owner, an Admin and another Agent.
+    private async Task<(Listing Listing, Guid AgencyId, Guid Owner, Guid Admin, Guid Agent, Guid OtherAgent)> AgencyListingAsync()
+    {
+        var owner = Guid.NewGuid();
+        var admin = Guid.NewGuid();
+        var agent = Guid.NewGuid();
+        var otherAgent = Guid.NewGuid();
+        var agency = ListingTestData.AddAgency(_dbContext, owner);
+        agency.AddMember(admin, Imova.Domain.Agencies.AgencyRole.Admin, DateTimeOffset.UtcNow);
+        agency.AddMember(agent, Imova.Domain.Agencies.AgencyRole.Agent, DateTimeOffset.UtcNow);
+        agency.AddMember(otherAgent, Imova.Domain.Agencies.AgencyRole.Agent, DateTimeOffset.UtcNow);
+        var listing = ListingTestData.AddListing(_dbContext, ListingTestData.AddIndividualPublisher(_dbContext, agent).Id, agencyId: agency.Id);
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+        return (listing, agency.Id, owner, admin, agent, otherAgent);
+    }
+
+    [Fact]
+    public async Task AnAgencysAdmin_CanEditAnAgentsListing_ButAnotherAgentCant()
+    {
+        var (listing, agencyId, _, admin, _, otherAgent) = await AgencyListingAsync();
+
+        Assert.NotNull(await Handler().Handle(Command(requestingUserId: admin, id: listing.Id, agencyId: agencyId), CancellationToken.None));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(requestingUserId: otherAgent, id: listing.Id, agencyId: agencyId), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task AnAgent_CantTakeTheirOwnListingOutOfTheAgency()
+    {
+        var (listing, agencyId, _, _, agent, _) = await AgencyListingAsync();
+
+        var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(requestingUserId: agent, id: listing.Id, agencyId: null), CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ListingAgencyLeaveManagerOnly, ex.Code);
+        Assert.Equal(agencyId, listing.AgencyId);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TheAgencysOwnerOrAdmin_TakesAListingOutOfIt(bool byOwner)
+    {
+        var (listing, _, owner, admin, _, _) = await AgencyListingAsync();
+
+        await Handler().Handle(Command(requestingUserId: byOwner ? owner : admin, id: listing.Id, agencyId: null), CancellationToken.None);
+
+        Assert.Null(listing.AgencyId);
+    }
+
+    [Fact]
+    public async Task AnAgencysOwner_CantPutAnotherAuthorsListingUnderAnAgency()
+    {
+        var (listing, _, owner, _, _, _) = await AgencyListingAsync();
+        var otherAgency = ListingTestData.AddAgency(_dbContext, owner, "Alta");
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(requestingUserId: owner, id: listing.Id, agencyId: otherAgency.Id), CancellationToken.None));
+
+        Assert.Equal(ErrorCodes.ListingAgencyChangeAuthorOnly, ex.Code);
+    }
+
+    [Fact]
+    public async Task TheAuthor_MovesAPrivateListingIntoTheirAgency_ButNotIntoAnotherOne()
+    {
+        var mine = ListingTestData.AddAgency(_dbContext, _ownerId, "A mea");
+        var theirs = ListingTestData.AddAgency(_dbContext, Guid.NewGuid(), "A lor");
+        await _dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var ex = await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            Handler().Handle(Command(agencyId: theirs.Id), CancellationToken.None));
+        Assert.Equal(ErrorCodes.ListingNotAgencyMember, ex.Code);
+
+        var result = await Handler().Handle(Command(agencyId: mine.Id), CancellationToken.None);
+        Assert.Equal(mine.Id, _listing.AgencyId);
+        Assert.Equal("A mea", result!.Agency!.Name);
     }
 
     [Fact]

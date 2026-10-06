@@ -1,6 +1,7 @@
 {
   "Common": {
     "addListing": "Add listing",
+    "addListingShort": "Add listing",
     "selectLanguage": "Select language",
     "previous": "Previous",
     "next": "Next"
@@ -18,13 +19,59 @@
     "messages": "Messages",
     "messagingReports": "Reported messages",
     "savedSearches": "Saved searches",
-    "administrators": "Administrators"
+    "administrators": "Administrators",
+    "agencies": "Agencies"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
     "searchListings": "Search listings",
     "publishListing": "Publish a listing",
+    "agencies": "Real estate agencies",
     "inDevelopment": "Project in development."
+  },
+  "Agencies": {
+    "verified": "Verified",
+    "verifiedTooltip": "Agency verified by IMOVA",
+    "directoryTitle": "Real estate agencies",
+    "directoryIntro": "The agencies publishing on IMOVA, with their active listings. Agencies verified by our team come first.",
+    "directoryMetaTitle": "Real estate agencies in Moldova — IMOVA",
+    "directoryMetaDescription": "Find a real estate agency in Moldova: the agencies on IMOVA, with their active listings and contact details.",
+    "searchLabel": "Search for an agency",
+    "searchPlaceholder": "Agency name",
+    "cityLabel": "City / district",
+    "allCities": "All",
+    "verifiedOnly": "Verified only",
+    "search": "Search",
+    "resetFilters": "Reset filters",
+    "agencyCount": "{count, plural, one {# agency} other {# agencies}}",
+    "activeListings": "{count, plural, =0 {No active listings} one {# active listing} other {# active listings}}",
+    "directoryEmpty": "No agency matches your search.",
+    "directoryEmptyHint": "Try another name or another city.",
+    "directoryError": "The agencies couldn't be loaded. Please try again.",
+    "pageTitle": "{name} — real estate agency in {city} | IMOVA",
+    "pageTitleNoCity": "{name} — real estate agency | IMOVA",
+    "metaFallback": "{name} — real estate agency on IMOVA. The agency's active listings and contact details.",
+    "onImovaSince": "On IMOVA since {date}",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "contactHeading": "Contact",
+    "writeEmail": "Send an email",
+    "website": "the agency's website",
+    "logoAlt": "{name} logo",
+    "inactiveNotice": "This agency is deactivated: its page and listings are only visible to its members and administrators.",
+    "backToDirectory": "All agencies",
+    "listingsHeading": "The agency's listings",
+    "transactionFilter": "Sale or rent",
+    "filterAll": "All",
+    "propertyTypeLabel": "Property type",
+    "allPropertyTypes": "All types",
+    "apply": "Apply",
+    "noListings": "This agency has no active listings at the moment.",
+    "noMatchingListings": "None of the agency's listings match these filters.",
+    "showAllListings": "See all the agency's listings",
+    "listingsError": "The agency's listings couldn't be loaded.",
+    "seeAllListings": "See all the agency's listings",
+    "seeAllListingsCount": "See all the agency's listings ({count})"
   },
   "PropertyType": {
     "Apartment": "Apartment",
@@ -50,7 +97,7 @@
   "Hero": {
     "eyebrow": "Moldova's real estate market, in one place",
     "title": "Find a home, not just a listing.",
-    "subtitle": "Verified listings, updated daily, and filters that actually work — so you stop wasting time on what doesn't fit.",
+    "subtitle": "Moderated listings, updated daily, and filters that actually work — so you stop wasting time on what doesn't fit.",
     "stats": {
       "houses": "Houses",
       "apartments": "Apartments",
@@ -1189,7 +1236,12 @@
       "listing": {
         "emailNotConfirmed": "Confirm your email address before sending the listing for review.",
         "invalidTransition": "This action isn't possible for the listing's current status.",
-        "streetRequired": "Enter the street."
+        "streetRequired": "Enter the street.",
+        "agencyUnknown": "The chosen agency doesn't exist. Reload the page and choose again.",
+        "notAgencyMember": "You can only publish on behalf of agencies you belong to.",
+        "agencyInactive": "This agency is deactivated: nothing can be published on its behalf for now.",
+        "agencyChangeAuthorOnly": "Only the listing's author can publish it on behalf of an agency.",
+        "agencyLeaveManagerOnly": "Only the agency's owners and administrators can take a listing out of the agency."
       },
       "contact": {
         "nameRequired": "Enter the contact person's name.",
@@ -1219,16 +1271,31 @@
       "report": {
         "detailsRequired": "Describe the problem."
       },
-      "publisher": {
-        "agencyExists": "Your account already has an agency."
-      },
       "savedSearch": {
         "limitReached": "You can save at most {max} searches. Delete one to save another."
+      },
+      "agency": {
+        "websiteInvalid": "Enter the website's full address, for example https://agency.md.",
+        "raionUnknown": "Choose the city or district from the list.",
+        "logoType": "The logo must be a JPEG, PNG or WebP image.",
+        "logoTooSmall": "The logo must be at least {min}×{min} pixels. Upload a larger image.",
+        "limitReached": "You can own at most {max} agencies.",
+        "emailNotConfirmed": "Confirm your email address before creating an agency. Check the email we sent when you registered, or ask for a new link on your account page.",
+        "lastOwner": "An agency must keep at least one owner. Make another member an owner first.",
+        "reassignInvalid": "Their listings must go to an owner or administrator who stays in the agency.",
+        "alreadyMember": "This person is already a member of the agency.",
+        "tooManyInvitations": "An agency can have at most {max} invitations waiting.",
+        "invitationRateLimit": "Too many invitations sent. An agency can send at most {max} invitations an hour.",
+        "invitationResendTooSoon": "This invitation was just sent. You can resend it in {minutes} minutes.",
+        "invitationExpired": "This invitation has expired. Ask the agency to send it again.",
+        "invitationClosed": "This invitation is no longer valid.",
+        "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it."
       },
       "account": {
         "passwordRequired": "Enter your password to delete the account.",
         "wrongPassword": "The password is incorrect.",
-        "noPassword": "Your account has no password — confirm the deletion through the emailed link."
+        "noPassword": "Your account has no password — confirm the deletion through the emailed link.",
+        "lastAgencyOwner": "You are the only owner of {agencies}. Make another member an owner before deleting your account."
       },
       "admin": {
         "userNotFound": "There is no account with this email.",
@@ -1520,5 +1587,30 @@
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn these emails off in your account settings, under Notifications.",
     "manage": "Notification settings"
+  },
+  "Invitation": {
+    "title": "Agency invitation",
+    "verified": "Verified agency",
+    "roleAdmin": "an administrator",
+    "roleAgent": "an agent",
+    "invitedBy": "{name} invited you to join {agency} as {role}.",
+    "invited": "You were invited to join {agency} as {role}.",
+    "adminMeans": "As an administrator you can edit the agency's profile, invite agents and manage all its listings.",
+    "agentMeans": "As an agent you can publish listings on behalf of the agency.",
+    "notFound": "This invitation link isn't valid. It may have been resent — use the newest email you received.",
+    "expired": "This invitation has expired. Ask the agency to send it again.",
+    "closed": "This invitation is no longer valid: it was already accepted, declined or withdrawn.",
+    "signInFirst": "The invitation was sent to {email}. Sign in with that address, or create an account with it, to accept.",
+    "signIn": "Sign in",
+    "register": "Create an account",
+    "wrongAccount": "The invitation was sent to {email}, but you're signed in as {current}.",
+    "switchAccount": "Switch account",
+    "accept": "Accept the invitation",
+    "decline": "Decline",
+    "accepted": "You joined {agency}.",
+    "declined": "You declined the invitation.",
+    "goToAccount": "Go to your account",
+    "goHome": "Go to the home page",
+    "agencyInactive": "This agency is currently inactive: its profile and listings aren't public. You can still join, and its listings will show again once it's reactivated."
   }
 }

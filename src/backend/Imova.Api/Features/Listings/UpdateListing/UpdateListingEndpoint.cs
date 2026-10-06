@@ -21,6 +21,7 @@ public static class UpdateListingEndpoint
                 id,
                 user.GetUserId(),
                 user.IsInRole(Roles.Admin),
+                request.AgencyId,
                 request.PropertyType,
                 request.TotalAreaM2,
                 request.YearBuilt,

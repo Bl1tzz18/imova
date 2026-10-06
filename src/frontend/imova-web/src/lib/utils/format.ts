@@ -15,6 +15,11 @@ export function formatDate(isoDate: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { dateStyle: "long", timeZone: "Europe/Chisinau" }).format(new Date(isoDate));
 }
 
+// "octombrie 2026" — "Pe IMOVA din …". Moldova's month, like formatDate.
+export function formatMonthYear(isoDate: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "Europe/Chisinau" }).format(new Date(isoDate));
+}
+
 // "1 oct. 2026, 14:05" — for moderation, where the time of day matters too. Always Moldova's time
 // (like the emails), so the server render and the browser agree whatever their own time zones.
 export function formatDateTime(isoDate: string, locale: string) {

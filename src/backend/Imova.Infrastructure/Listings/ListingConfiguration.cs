@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Imova.Domain.Properties;
 using Imova.Domain.Publishers;
@@ -23,6 +24,15 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
 
         builder.Property(l => l.PublisherId).IsRequired();
         builder.HasOne<Publisher>().WithMany().HasForeignKey(l => l.PublisherId).OnDelete(DeleteBehavior.Restrict);
+
+        // Deleting an agency turns its listings into their authors' private listings.
+        builder.HasOne<Agency>().WithMany().HasForeignKey(l => l.AgencyId).OnDelete(DeleteBehavior.SetNull);
+        builder.Property(l => l.ExternalRef).HasMaxLength(100);
+
+        // Re-importing an agency's CSV finds the listing by its reference.
+        builder.HasIndex(l => new { l.AgencyId, l.ExternalRef })
+            .IsUnique()
+            .HasFilter("\"ExternalRef\" IS NOT NULL");
 
         builder.Property(l => l.TransactionType).IsRequired();
         builder.Property(l => l.Status).IsRequired();
@@ -72,6 +82,7 @@ public class ListingConfiguration : IEntityTypeConfiguration<Listing>
 
         builder.HasIndex(l => l.PropertyId);
         builder.HasIndex(l => l.PublisherId);
+        builder.HasIndex(l => l.AgencyId);
         builder.HasIndex(l => l.Status);
         // Search: every query filters Active, most also by Sale/Rent.
         builder.HasIndex(l => new { l.Status, l.TransactionType });

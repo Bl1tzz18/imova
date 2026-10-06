@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { Listing } from "@/types/listing";
 import {
+  authorLabel,
   contactRole,
   formatPhone,
   internationalDigits,
@@ -84,5 +86,19 @@ describe("contactRole", () => {
   it("is an individual owner, or the contact person they named", () => {
     expect(contactRole({ personType: "Self", name: "Ion", agencyName: null })).toEqual({ kind: "individual" });
     expect(contactRole({ personType: "Other", name: "Maria", agencyName: null })).toEqual({ kind: "contactPerson" });
+  });
+});
+
+describe("authorLabel", () => {
+  const publisher = { displayName: "Elena Ciobanu" } as Listing["publisher"];
+
+  it("names the agency after the agent for an agency's listing", () => {
+    const agency = { id: "a1", name: "Casa Ta Imobiliare", slug: "casa-ta-imobiliare", logoUrl: null, isVerified: false };
+    expect(authorLabel({ publisher, agency })).toBe("Elena Ciobanu · Casa Ta Imobiliare");
+  });
+
+  it("is just the person for a private listing", () => {
+    expect(authorLabel({ publisher, agency: null })).toBe("Elena Ciobanu");
+    expect(authorLabel({ publisher })).toBe("Elena Ciobanu");
   });
 });

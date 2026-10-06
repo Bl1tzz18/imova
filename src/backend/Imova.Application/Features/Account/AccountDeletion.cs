@@ -1,5 +1,11 @@
+using FluentValidation;
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
+using Imova.Application.Features.Agencies.Logos;
+using Imova.Application.Features.Agencies.Members;
 using Imova.Application.Features.Listings;
+using Imova.Domain.Agencies;
 using Imova.Application.Features.Media.Sizes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,8 +19,11 @@ namespace Imova.Application.Features.Account;
 // What goes, in one SaveChanges (so either all of it or none of it):
 // - the account row itself, and with it (database cascade) its roles, external logins, refresh
 //   tokens, favorites and saved searches — removed explicitly too, for providers without cascades;
-// - its publishers and every listing published under them, with the listings' photos, favorites
-//   and (when nothing else uses it) the property and its location — see ListingRemoval;
+// - its publisher and its private listings, with the listings' photos, favorites and (when nothing
+//   else uses it) the property and its location — see ListingRemoval;
+// - agencies it is the only member of, with their listings; from any other agency it leaves, and
+//   the agency keeps its listings, handed to an Owner or Admin who stays (AgencyListingReassignment).
+//   Refused while it's the last Owner of an agency with other members (EnsureCanDeleteAsync);
 // - photos uploaded for a listing that was never created, and blocks in either direction;
 // - conversations whose other participant is already gone too (nobody can read them any more).
 // Then, best-effort, the files: listing photos, profile pictures, agency logos, message images
@@ -46,17 +55,33 @@ public class AccountDeletion(
         var publicBlobs = new HashSet<string>(StringComparer.Ordinal);
         var attachmentBlobs = new HashSet<string>(StringComparer.Ordinal);
 
-        // Publishers and everything published under them.
-        var publishers = await dbContext.Publishers.Where(p => p.UserId == userId).ToListAsync(cancellationToken);
-        var publisherIds = publishers.Select(p => p.Id).ToList();
-        var listings = await dbContext.Listings.Where(l => publisherIds.Contains(l.PublisherId)).ToListAsync(cancellationToken);
-        publicBlobs.UnionWith(await ListingRemoval.RemoveAsync(dbContext, listings, cancellationToken));
-        foreach (var logoUrl in publishers.Select(p => p.LogoUrl).OfType<string>())
+        // Agencies first: refused outright while they're the last Owner of one that has other people
+        // (nothing is touched). An agency they're alone in goes with them; from any other they leave,
+        // and the agency keeps their listings — handed to an Owner or Admin who stays.
+        var agencies = await AgenciesOfAsync(userId, cancellationToken);
+        EnsureNotLastOwner(userId, agencies);
+
+        var soleMemberAgencies = agencies.Where(a => a.Members.Count == 1).ToList();
+        var now = DateTimeOffset.UtcNow;
+        foreach (var agency in agencies.Except(soleMemberAgencies))
         {
-            AddOwnBlob(publicBlobs, logoUrl);
+            await AgencyListingReassignment.MoveAsync(
+                dbContext, agency, userId, AgencyListingReassignment.DefaultHeir(agency, userId, actorId: null), cancellationToken);
+            agency.RemoveMember(userId, now);
         }
 
+        // Their own listings: the private ones, and those of the agencies that go with them.
+        var soleAgencyIds = soleMemberAgencies.Select(a => (Guid?)a.Id).ToList();
+        var publishers = await dbContext.Publishers.Where(p => p.UserId == userId).ToListAsync(cancellationToken);
+        var publisherIds = publishers.Select(p => p.Id).ToList();
+        var listings = await dbContext.Listings
+            .Where(l => publisherIds.Contains(l.PublisherId) && (l.AgencyId == null || soleAgencyIds.Contains(l.AgencyId)))
+            .ToListAsync(cancellationToken);
+        publicBlobs.UnionWith(await ListingRemoval.RemoveAsync(dbContext, listings, cancellationToken));
         dbContext.Publishers.RemoveRange(publishers);
+
+        publicBlobs.UnionWith(soleMemberAgencies.Select(a => a.LogoBlobName).OfType<string>().SelectMany(AgencyLogo.AllBlobNames));
+        dbContext.Agencies.RemoveRange(soleMemberAgencies);
 
         // Photos uploaded under a listing id that never became a listing (see Photo / MediaAccess).
         var listingIds = listings.Select(l => l.Id).ToList();
@@ -111,6 +136,36 @@ public class AccountDeletion(
         }
 
         return true;
+    }
+
+    // 400 account.lastAgencyOwner while the account is the only Owner of an agency that has other
+    // members — someone else must be made an Owner first. Checked before anything is deleted (and
+    // before a deletion link is emailed).
+    public async Task EnsureCanDeleteAsync(Guid userId, CancellationToken cancellationToken) =>
+        EnsureNotLastOwner(userId, await AgenciesOfAsync(userId, cancellationToken));
+
+    private Task<List<Agency>> AgenciesOfAsync(Guid userId, CancellationToken cancellationToken) =>
+        dbContext.Agencies.Include(a => a.Members)
+            .Where(a => a.Members.Any(m => m.UserId == userId))
+            .ToListAsync(cancellationToken);
+
+    private static void EnsureNotLastOwner(Guid userId, IEnumerable<Agency> agencies)
+    {
+        var blocking = agencies
+            .Where(a => a.Members.Count > 1 && a.RoleOf(userId) is AgencyRole.Owner && a.OwnerCount == 1)
+            .Select(a => a.Name)
+            .ToList();
+        if (blocking.Count > 0)
+        {
+            throw new ValidationException(
+            [
+                CodedFailure.Of(
+                    "Account",
+                    $"You are the only owner of {string.Join(", ", blocking)}. Make another member an owner before deleting your account.",
+                    ErrorCodes.AccountLastAgencyOwner,
+                    CodedFailure.Params(("agencies", string.Join(", ", blocking)))),
+            ]);
+        }
     }
 
     // Conversations where the other side's account is gone too are removed (their messages,

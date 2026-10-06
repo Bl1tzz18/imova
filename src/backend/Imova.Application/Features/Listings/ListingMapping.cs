@@ -66,7 +66,9 @@ public static class ListingMapping
         // hid from the public.
         bool canSeePrivateDetails = false,
         // The account behind the publisher — only needed with contact details.
-        PublisherPerson? publisherPerson = null) =>
+        PublisherPerson? publisherPerson = null,
+        // The agency it's published under, if any — only needed with contact details.
+        ListingAgency? agency = null) =>
         listing.ToDto(
             property.ToDto(location, amenitiesById, proximitiesById),
             // Never the publisher's own phone/email here: the listing's Contact is what the owner
@@ -74,23 +76,26 @@ public static class ListingMapping
             publisher.ToDto(includeContactDetails: false),
             photos,
             isSaved,
-            includeContactDetails ? listing.ContactDto(publisher, canSeePrivateDetails, publisherPerson) : null,
+            includeContactDetails ? listing.ContactDto(publisher, canSeePrivateDetails, publisherPerson, agency) : null,
             canSeeStats: canSeePrivateDetails);
 
     // Resolves a Self contact's name/email/photo from the publisher, and treats a listing from before
     // contact details existed as "Self, the publisher's own phone". The email is never public — the
-    // listing page offers the phone, the apps and platform messages — only the owner and admins get it. An agency's Self contact is the
-    // agent — the account behind the agency — shown by their own name and photo, with the agency
-    // named beside them (falling back to the agency's name/logo while the account has none).
+    // listing page offers the phone, the apps and platform messages — only the owner and admins get it. On an agency's listing
+    // the Self contact is the agent — the listing's author — shown by their own name and photo, with
+    // the agency named beside them (falling back to the agency's logo while they have no photo).
     public static ListingContactDto ContactDto(
-        this Listing listing, Publisher publisher, bool canSeePrivateDetails, PublisherPerson? publisherPerson = null)
+        this Listing listing,
+        Publisher publisher,
+        bool canSeePrivateDetails,
+        PublisherPerson? publisherPerson = null,
+        ListingAgency? agency = null)
     {
-        var isAgency = publisher.PublisherType == PublisherType.Agency;
-        var agencyName = isAgency ? publisher.DisplayName : null;
-        var selfName = isAgency && !string.IsNullOrWhiteSpace(publisherPerson?.DisplayName)
+        var agencyName = agency?.Name;
+        var selfName = agency is not null && !string.IsNullOrWhiteSpace(publisherPerson?.DisplayName)
             ? publisherPerson.DisplayName
             : publisher.DisplayName;
-        var selfPicture = publisherPerson?.PictureUrl ?? publisher.LogoUrl;
+        var selfPicture = publisherPerson?.PictureUrl ?? agency?.LogoUrl;
 
         // The number itself only for the owner/an admin; the public gets its shape (first digits, how
         // many follow) and asks for the rest one request at a time (RevealListingPhone) — unless the
@@ -201,3 +206,6 @@ public static class ListingMapping
 // The account behind a publisher, as a listing's contact shows it: its own name and profile picture
 // (a public URL of our own blob storage).
 public sealed record PublisherPerson(string? DisplayName, string? PictureUrl);
+
+// The agency a listing is published under, as its contact details show it.
+public sealed record ListingAgency(string Name, string? LogoUrl);

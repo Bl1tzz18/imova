@@ -28,8 +28,10 @@ public class RequestUploadUrlHandlerTests
         var before = DateTimeOffset.UtcNow;
 
         var result = await handler.Handle(new RequestUploadUrlCommand(Guid.NewGuid(), ".jpg", Guid.NewGuid(), false), CancellationToken.None);
+        var after = DateTimeOffset.UtcNow;
 
-        var expectedExpiry = before.Add(blobStorage.DefaultUploadExpiry);
-        Assert.True(Math.Abs((result.ExpiresAt - expectedExpiry).TotalSeconds) < 5);
+        // Bounded by the clock before and after the call, however long the call took (the first
+        // in-memory database of a test run can take seconds to build).
+        Assert.InRange(result.ExpiresAt, before.Add(blobStorage.DefaultUploadExpiry), after.Add(blobStorage.DefaultUploadExpiry));
     }
 }

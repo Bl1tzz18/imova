@@ -10,7 +10,8 @@ namespace Imova.Application.Features.Account.RequestAccountDeletionLink;
 public class RequestAccountDeletionLinkHandler(
     UserManager<ApplicationUser> userManager,
     AccountDeletionEmails emails,
-    AuthEmailThrottle throttle) : IRequestHandler<RequestAccountDeletionLinkCommand>
+    AuthEmailThrottle throttle,
+    AccountDeletion accountDeletion) : IRequestHandler<RequestAccountDeletionLinkCommand>
 {
     public const string TooSoon = "A link was just sent. Wait a minute before asking for another one.";
 
@@ -18,6 +19,9 @@ public class RequestAccountDeletionLinkHandler(
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString())
             ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
+
+        // No link they couldn't use: an agency's last Owner must hand ownership on first.
+        await accountDeletion.EnsureCanDeleteAsync(user.Id, cancellationToken);
 
         if (!throttle.TryAcquire($"account-deletion:{user.Id}"))
         {

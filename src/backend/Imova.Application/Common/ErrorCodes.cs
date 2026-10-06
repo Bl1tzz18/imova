@@ -47,6 +47,11 @@ public static class ErrorCodes
     public const string EmailNotConfirmed = "listing.emailNotConfirmed";
     public const string InvalidTransition = "listing.invalidTransition";
     public const string StreetRequired = "listing.streetRequired";
+    public const string ListingAgencyUnknown = "listing.agencyUnknown";
+    public const string ListingNotAgencyMember = "listing.notAgencyMember";
+    public const string ListingAgencyInactive = "listing.agencyInactive";
+    public const string ListingAgencyChangeAuthorOnly = "listing.agencyChangeAuthorOnly";
+    public const string ListingAgencyLeaveManagerOnly = "listing.agencyLeaveManagerOnly";
     public const string ContactNameRequired = "contact.nameRequired";
     public const string ContactEmailRequired = "contact.emailRequired";
     public const string HiddenPhoneNeedsMessages = "contact.hiddenPhoneNeedsMessages";
@@ -78,6 +83,21 @@ public static class ErrorCodes
     // --- Saved searches ---
     public const string SavedSearchLimit = "savedSearch.limitReached";
 
-    // --- Publishers ---
-    public const string AgencyExists = "publisher.agencyExists";
+    // --- Agencies ---
+    public const string AgencyWebsiteInvalid = "agency.websiteInvalid";
+    public const string AgencyRaionUnknown = "agency.raionUnknown";
+    public const string AgencyLogoType = "agency.logoType";
+    public const string AgencyLogoTooSmall = "agency.logoTooSmall";
+    public const string AgencyLimitReached = "agency.limitReached";
+    public const string AgencyEmailNotConfirmed = "agency.emailNotConfirmed";
+    public const string AgencyLastOwner = "agency.lastOwner";
+    public const string AgencyReassignInvalid = "agency.reassignInvalid";
+    public const string AgencyAlreadyMember = "agency.alreadyMember";
+    public const string AgencyTooManyInvitations = "agency.tooManyInvitations";
+    public const string AgencyInvitationRateLimit = "agency.invitationRateLimit";
+    public const string AgencyInvitationResendTooSoon = "agency.invitationResendTooSoon";
+    public const string AgencyInvitationExpired = "agency.invitationExpired";
+    public const string AgencyInvitationClosed = "agency.invitationClosed";
+    public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
+    public const string AccountLastAgencyOwner = "account.lastAgencyOwner";
 }

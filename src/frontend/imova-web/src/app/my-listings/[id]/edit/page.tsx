@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { LinkButton } from "@/components/ui/Button";
 import { PropertyForm } from "@/app/properties/new/PropertyForm";
+import { listingEditRights } from "@/lib/agency/publishAs";
+import { getMyAgencies } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
@@ -36,9 +38,10 @@ export default async function EditListingPage({
     redirect(`/login?next=${encodeURIComponent(`/my-listings/${id}/edit`)}`);
   }
 
-  const [listing, profile, t] = await Promise.all([
+  const [listing, profile, agencies, t] = await Promise.all([
     getListing(id, token),
     getCurrentUserProfile(),
+    getMyAgencies(token),
     getTranslations("EditListingPage"),
   ]);
 
@@ -46,8 +49,19 @@ export default async function EditListingPage({
     notFound();
   }
 
-  // Ownership is via the listing's publisher — whichever of the user's publishers it went out under.
-  const isOwner = profile != null && (profile.id === listing.publisher.userId || profile.roles.includes("Admin"));
+  // Its author, a site admin, or an Owner/Admin of its agency. Taking it out of its agency is for that
+  // agency's Owners/Admins; putting it under another agency only for its author (so only the author
+  // is offered their agencies).
+  const rights = profile
+    ? listingEditRights({
+        userId: profile.id,
+        isSiteAdmin: profile.roles.includes("Admin"),
+        authorUserId: listing.publisher.userId,
+        listingAgencyId: listing.agency?.id ?? null,
+        agencies,
+      })
+    : { canEdit: false, canChangeAgency: false, isAuthor: false };
+  const isOwner = rights.canEdit;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -63,7 +77,11 @@ export default async function EditListingPage({
             <>
               <p className="mt-2 text-sm text-ink-500">{t("subtitle")}</p>
               <div className="mt-8">
-                <PropertyForm listing={listing} />
+                <PropertyForm
+                  listing={listing}
+                  agencies={rights.isAuthor ? agencies : []}
+                  canChangeAgency={rights.canChangeAgency}
+                />
               </div>
             </>
           ) : (

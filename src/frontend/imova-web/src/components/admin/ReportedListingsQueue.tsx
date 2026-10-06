@@ -11,6 +11,7 @@ import { dismissListingReports, suspendListing } from "@/lib/admin/actions";
 import { moderationHref, type ReportView } from "@/lib/admin/moderationTabs";
 import { REPORT_TEXT_MAX, reporterSignal, topReason, waitingFor } from "@/lib/listing/reports";
 import { coverPhoto } from "@/lib/listing/view";
+import { authorLabel } from "@/lib/listing/contactCard";
 import { cn } from "@/lib/utils/cn";
 import { formatDateTime, formatLocation, formatPrice } from "@/lib/utils/format";
 import type { ListingReportItem, ListingReportReason, ReportedListing } from "@/types/listingReport";
@@ -106,7 +107,7 @@ function ReportCase({ reported, view, now }: { reported: ReportedListing; view: 
           <ListingStats listing={listing} showNumber className="mt-0.5" />
           <p className="mt-1.5 text-xs text-ink-600">
             <span className="text-ink-400">{t("publishedBy")} </span>
-            <span className="font-medium text-ink-800">{listing.publisher.displayName}</span>
+            <span className="font-medium text-ink-800">{authorLabel(listing)}</span>
           </p>
           {/* The listing's contact details (the API sends them, hidden phone included, to admins). */}
           {listing.contact && (listing.contact.phone || listing.contact.email) && (

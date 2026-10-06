@@ -42,12 +42,13 @@ public class DeleteMediaHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ByOwnerViaTheirAgencyPublisher_Succeeds()
+    public async Task Handle_ByTheAuthorOfAnAgencyListing_Succeeds()
     {
         await using var dbContext = TestDbContextFactory.Create();
         var ownerId = Guid.NewGuid();
-        var agency = ListingTestData.AddAgencyPublisher(dbContext, ownerId);
-        var listing = ListingTestData.AddListing(dbContext, agency.Id);
+        var agency = ListingTestData.AddAgency(dbContext, ownerId);
+        var author = ListingTestData.AddIndividualPublisher(dbContext, ownerId);
+        var listing = ListingTestData.AddListing(dbContext, author.Id, agencyId: agency.Id);
         var photo = AddPhoto(dbContext, listing.Id);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

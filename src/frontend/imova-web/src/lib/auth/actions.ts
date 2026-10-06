@@ -325,6 +325,19 @@ export async function removeProfilePicture(): Promise<UploadProfilePictureResult
 // Ends the session on the server too (its refresh token stops working), then drops the cookies.
 // Best effort: the cookies go either way.
 export async function logout() {
+  await endSession();
+  redirect("/");
+}
+
+// Signs out, then straight to the sign-in page, which comes back to `next` (a path on this site) —
+// "switch accounts", e.g. on an invitation sent to another address.
+export async function logoutTo(next: string) {
+  await endSession();
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  redirect(`/login?next=${encodeURIComponent(safeNext)}`);
+}
+
+async function endSession() {
   const refreshToken = await getRefreshToken();
   if (refreshToken) {
     const apiUrl = process.env.API_URL ?? "http://localhost:8080";
@@ -340,5 +353,4 @@ export async function logout() {
   }
 
   await clearSessionCookies();
-  redirect("/");
 }

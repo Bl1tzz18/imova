@@ -63,19 +63,25 @@ export type ListingContact = {
   phoneHiddenDigits: number | null;
 };
 
-export type PublisherType = "Individual" | "Agency";
+// The agency a listing is published under (never its phone). logoUrl: its 128 px square logo.
+export type ListingAgency = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  isVerified: boolean;
+  // How many Active listings the agency has — only on the listing's own page, null on cards.
+  activeListingCount?: number | null;
+};
 
-// phone/email are null wherever contact details aren't exposed (cards/search results) — only a
-// listing's detail view and the "my publishers" list carry them.
+// A listing's author (always a person — an agency listing also names its agency). phone/email are
+// null wherever contact details aren't exposed — only the author's own "my publishers" list carries them.
 export type Publisher = {
   id: string;
   userId: string;
-  publisherType: PublisherType;
   displayName: string;
   phone: string | null;
   email: string | null;
-  logoUrl: string | null;
-  bio: string | null;
 };
 
 // "Preț redus": the price is down `percent` from previousAmount since reducedAt (rule: the API's
@@ -186,6 +192,8 @@ export type Listing = {
   phoneRevealCount: number | null;
   // How many people saved it to their favorites — also the owner's and admins' only.
   favoriteCount?: number | null;
+  // Null for a private listing.
+  agency?: ListingAgency | null;
   expiresAt: string | null;
   rejectionReason: string | null;
   suspensionReason: string | null;

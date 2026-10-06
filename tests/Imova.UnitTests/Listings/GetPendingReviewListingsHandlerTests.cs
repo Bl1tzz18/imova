@@ -94,11 +94,13 @@ public class GetPendingReviewListingsHandlerTests
     [Theory]
     [InlineData("IMOBIL grup")]
     [InlineData("office@imobil")]
-    public async Task Handle_WithSearchText_MatchesThePublishersNameOrEmail_CaseInsensitively(string search)
+    public async Task Handle_WithSearchText_MatchesTheAgencysNameOrEmail_CaseInsensitively(string search)
     {
         await using var dbContext = TestDbContextFactory.Create();
-        var agency = ListingTestData.AddAgencyPublisher(dbContext, Guid.NewGuid());
-        var match = ListingTestData.AddListing(dbContext, agency.Id).MoveTo(ListingStatus.Active);
+        var ownerId = Guid.NewGuid();
+        var agency = ListingTestData.AddAgency(dbContext, ownerId);
+        var author = ListingTestData.AddIndividualPublisher(dbContext, ownerId);
+        var match = ListingTestData.AddListing(dbContext, author.Id, agencyId: agency.Id).MoveTo(ListingStatus.Active);
         ListingTestData.AddListing(dbContext, ListingTestData.AddIndividualPublisher(dbContext).Id).MoveTo(ListingStatus.Active);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

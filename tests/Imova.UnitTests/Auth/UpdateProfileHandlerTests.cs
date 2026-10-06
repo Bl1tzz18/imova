@@ -17,7 +17,7 @@ public class UpdateProfileHandlerTests
         var user = store.SeedUser("user@example.com", emailConfirmed: true);
         await using var dbContext = TestDbContextFactory.Create();
         var individual = ListingTestData.AddIndividualPublisher(dbContext, user.Id);
-        var agency = ListingTestData.AddAgencyPublisher(dbContext, user.Id);
+        var agency = ListingTestData.AddAgency(dbContext, user.Id);
         await dbContext.SaveChangesAsync(CancellationToken.None);
         var handler = CreateHandler(store, dbContext);
 
@@ -25,7 +25,7 @@ public class UpdateProfileHandlerTests
 
         Assert.Equal("New Name", individual.DisplayName);
         Assert.Equal("+373 79 000 111", individual.Phone);
-        Assert.Equal("Imobil Grup", agency.DisplayName);
+        Assert.Equal("Imobil Grup", agency.Name);
     }
 
     [Fact]

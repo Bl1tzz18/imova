@@ -52,7 +52,7 @@ public class AccountDeletionHandlersTests
         new DeleteAccountHandler(_userManager, Deletion()).Handle(new DeleteAccountCommand(userId, password), CancellationToken.None);
 
     private Task RequestLinkAsync(Guid userId, AuthEmailThrottle? throttle = null) =>
-        new RequestAccountDeletionLinkHandler(_userManager, Emails(), throttle ?? new AuthEmailThrottle(TimeProvider.System))
+        new RequestAccountDeletionLinkHandler(_userManager, Emails(), throttle ?? new AuthEmailThrottle(TimeProvider.System), Deletion())
             .Handle(new RequestAccountDeletionLinkCommand(userId), CancellationToken.None);
 
     private Task ConfirmAsync(Guid userId, string token) =>

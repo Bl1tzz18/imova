@@ -4,7 +4,6 @@ using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Account;
 using Imova.Domain.Listings;
-using Imova.Domain.Publishers;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,11 +19,10 @@ public class GetAccountDataSummaryHandler(IApplicationDbContext dbContext, UserM
         var user = await userManager.FindByIdAsync(userId.ToString())
             ?? throw new AuthenticationFailedException("User not found.", ErrorCodes.UserNotFound);
 
-        var publishers = await dbContext.Publishers.AsNoTracking()
+        var publisherIds = await dbContext.Publishers.AsNoTracking()
             .Where(p => p.UserId == userId)
-            .Select(p => new { p.Id, p.PublisherType })
+            .Select(p => p.Id)
             .ToListAsync(cancellationToken);
-        var publisherIds = publishers.Select(p => p.Id).ToList();
         var statuses = await dbContext.Listings.AsNoTracking()
             .Where(l => publisherIds.Contains(l.PublisherId))
             .Select(l => l.Status)
@@ -36,7 +34,7 @@ public class GetAccountDataSummaryHandler(IApplicationDbContext dbContext, UserM
             await dbContext.Favorites.CountAsync(f => f.UserId == userId, cancellationToken),
             await dbContext.SavedSearches.CountAsync(s => s.UserId == userId, cancellationToken),
             await dbContext.Conversations.CountAsync(c => c.InitiatorUserId == userId || c.PublisherUserId == userId, cancellationToken),
-            publishers.Any(p => p.PublisherType == PublisherType.Agency),
+            await dbContext.AgencyMembers.AnyAsync(m => m.UserId == userId, cancellationToken),
             await userManager.HasPasswordAsync(user));
     }
 }

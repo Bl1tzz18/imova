@@ -8,15 +8,15 @@ namespace Imova.UnitTests.Listings;
 public class GetMyListingsHandlerTests
 {
     [Fact]
-    public async Task Handle_ReturnsListingsFromAllOfTheUsersPublishers_InEveryStatus()
+    public async Task Handle_ReturnsTheUsersListings_PrivateAndUnderAnAgency_InEveryStatus()
     {
         await using var dbContext = TestDbContextFactory.Create();
         var userId = Guid.NewGuid();
         var individual = ListingTestData.AddIndividualPublisher(dbContext, userId);
-        var agency = ListingTestData.AddAgencyPublisher(dbContext, userId);
+        var agency = ListingTestData.AddAgency(dbContext, userId);
         var someoneElse = ListingTestData.AddIndividualPublisher(dbContext);
         var draft = ListingTestData.AddListing(dbContext, individual.Id);
-        var archived = ListingTestData.AddListing(dbContext, agency.Id).MoveTo(ListingStatus.Archived);
+        var archived = ListingTestData.AddListing(dbContext, individual.Id, agencyId: agency.Id).MoveTo(ListingStatus.Archived);
         ListingTestData.AddListing(dbContext, someoneElse.Id).MoveTo(ListingStatus.Active);
         await dbContext.SaveChangesAsync(CancellationToken.None);
 

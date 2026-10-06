@@ -110,6 +110,8 @@ internal static class ListingApi
         var raioane = await client.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane");
         return new()
         {
+            // A private listing. PUT requires the field (null included), POST takes it as optional.
+            ["agencyId"] = null,
             ["propertyType"] = "Apartment",
             ["totalAreaM2"] = 54,
             ["yearBuilt"] = 1985,

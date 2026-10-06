@@ -188,6 +188,190 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Agencies.Agency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LogoBlobName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("RaionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("RaionId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "IsVerified");
+
+                    b.ToTable("Agencies");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyFormerSlug", b =>
+                {
+                    b.Property<string>("Slug")
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)");
+
+                    b.Property<Guid>("AgencyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ReplacedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Slug");
+
+                    b.HasIndex("AgencyId");
+
+                    b.ToTable("AgencySlugHistory", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AcceptedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgencyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeclinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<DateTimeOffset?>("EmailFailedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("InvitedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastSentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("InvitedByUserId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("AgencyId", "Email")
+                        .IsUnique()
+                        .HasFilter("\"AcceptedAt\" IS NULL AND \"DeclinedAt\" IS NULL AND \"RevokedAt\" IS NULL");
+
+                    b.HasIndex("AgencyId", "LastSentAt");
+
+                    b.ToTable("AgencyInvitations");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyMember", b =>
+                {
+                    b.Property<Guid>("AgencyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.HasKey("AgencyId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AgencyMembers", (string)null);
+                });
+
             modelBuilder.Entity("Imova.Domain.Amenities.Amenity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -587,6 +771,9 @@ namespace Imova.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("AgencyId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Contact")
                         .HasColumnType("jsonb");
 
@@ -603,6 +790,10 @@ namespace Imova.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("ExpiryReminderSentAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalRef")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long>("Number")
                         .ValueGeneratedOnAdd()
@@ -660,6 +851,8 @@ namespace Imova.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AgencyId");
+
                     b.HasIndex("Number")
                         .IsUnique();
 
@@ -668,6 +861,10 @@ namespace Imova.Infrastructure.Migrations
                     b.HasIndex("PublisherId");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("AgencyId", "ExternalRef")
+                        .IsUnique()
+                        .HasFilter("\"ExternalRef\" IS NOT NULL");
 
                     b.HasIndex("Status", "ExpiresAt");
 
@@ -1384,10 +1581,6 @@ namespace Imova.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Bio")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1401,23 +1594,16 @@ namespace Imova.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<int>("PublisherType")
-                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "PublisherType")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("Publishers");
@@ -1624,6 +1810,57 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Agencies.Agency", b =>
+                {
+                    b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Imova.Domain.Locations.Raion", null)
+                        .WithMany()
+                        .HasForeignKey("RaionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyFormerSlug", b =>
+                {
+                    b.HasOne("Imova.Domain.Agencies.Agency", null)
+                        .WithMany()
+                        .HasForeignKey("AgencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyInvitation", b =>
+                {
+                    b.HasOne("Imova.Domain.Agencies.Agency", null)
+                        .WithMany()
+                        .HasForeignKey("AgencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyMember", b =>
+                {
+                    b.HasOne("Imova.Domain.Agencies.Agency", null)
+                        .WithMany("Members")
+                        .HasForeignKey("AgencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Favorites.Favorite", b =>
                 {
                     b.HasOne("Imova.Domain.Listings.Listing", null)
@@ -1641,6 +1878,11 @@ namespace Imova.Infrastructure.Migrations
 
             modelBuilder.Entity("Imova.Domain.Listings.Listing", b =>
                 {
+                    b.HasOne("Imova.Domain.Agencies.Agency", null)
+                        .WithMany()
+                        .HasForeignKey("AgencyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Imova.Domain.Properties.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
@@ -1883,6 +2125,11 @@ namespace Imova.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Agencies.Agency", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Imova.Domain.Messaging.Message", b =>

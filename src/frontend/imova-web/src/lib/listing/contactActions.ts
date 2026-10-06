@@ -35,6 +35,25 @@ export async function revealListingPhone(listingId: string): Promise<RevealPhone
   }
 }
 
+// "Arată numărul" on an agency's page — like a listing's number: one request at a time, rate-limited
+// per visitor IP together with listings' numbers (not counted anywhere yet). Never throws.
+export async function revealAgencyPhone(agencyId: string): Promise<RevealPhoneResult> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  try {
+    const res = await fetch(`${apiUrl}/api/v1/agencies/${encodeURIComponent(agencyId)}/contact/phone`, {
+      method: "POST",
+      headers: await headersFor(),
+      cache: "no-store",
+    });
+    if (res.status === 429) return { phone: null, reason: "tooMany" };
+    if (res.status === 404) return { phone: null, reason: "unavailable" };
+    if (!res.ok) return { phone: null, reason: "failed" };
+    return { phone: ((await res.json()) as { phone: string }).phone };
+  } catch {
+    return { phone: null, reason: "failed" };
+  }
+}
+
 // The listing page was opened (sent once by its script after loading, so prefetches and most bots
 // don't count). The API decides whether it counts; nothing to report back.
 export async function recordListingView(listingId: string): Promise<void> {

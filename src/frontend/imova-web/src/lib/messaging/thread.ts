@@ -3,8 +3,10 @@ import type { ConversationParticipant, Message, MessageStatus, MessageStatusChan
 // Pure helpers for the thread view — kept here (not in the components) so they're unit-tested.
 
 // What to call the other person — a deleted account has no name left, only the label.
+// "Agent · Agency" when the other side wrote an agency's listing, like the listing's contact card.
 export function participantName(participant: ConversationParticipant, deletedLabel: string): string {
-  return participant.isDeleted ? deletedLabel : participant.displayName;
+  if (participant.isDeleted) return deletedLabel;
+  return participant.agencyName ? `${participant.displayName} · ${participant.agencyName}` : participant.displayName;
 }
 
 export const MAX_MESSAGE_LENGTH = 2000;

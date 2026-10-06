@@ -36,7 +36,6 @@ public class RegisterHandlerTests
         Assert.Equal(user.Id, result.User.Id);
         var publisher = Assert.Single(dbContext.Publishers);
         Assert.Equal(user.Id, publisher.UserId);
-        Assert.Equal(PublisherType.Individual, publisher.PublisherType);
         Assert.Equal("Ana Rusu", publisher.DisplayName);
         Assert.Equal("+373 69 123 456", publisher.Phone);
         Assert.Equal("ana@example.com", publisher.Email);

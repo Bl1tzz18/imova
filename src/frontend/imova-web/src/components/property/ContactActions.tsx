@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { siTelegram, siViber, siWhatsapp, type SimpleIcon } from "simple-icons";
-import { revealListingPhone } from "@/lib/listing/contactActions";
+import { revealAgencyPhone, revealListingPhone } from "@/lib/listing/contactActions";
 import {
   formatPhone,
   maskedPhoneGlyphs,
@@ -37,14 +37,15 @@ type Problem = "unavailable" | "tooMany" | "failed";
 // masked and the real number share one format — see maskedPhoneGlyphs), only the hidden digits fade
 // in, one after another, and the "Arată" pill fades out where it is without moving anything.
 export function ContactActions({
-  listingId,
+  phoneOf,
   phonePrefix,
   hiddenDigits,
   ownPhone,
   apps,
   callHours,
 }: {
-  listingId: string;
+  // Whose number it is: a listing's contact, or an agency (its own page).
+  phoneOf: { listingId: string } | { agencyId: string };
   phonePrefix: string;
   hiddenDigits: number;
   ownPhone: string | null;
@@ -63,7 +64,7 @@ export function ContactActions({
     if (pending) return null;
     setPending(true);
     setProblem(null);
-    const result = await revealListingPhone(listingId);
+    const result = "listingId" in phoneOf ? await revealListingPhone(phoneOf.listingId) : await revealAgencyPhone(phoneOf.agencyId);
     setPending(false);
     if (result.phone === null) {
       setProblem(result.reason);

@@ -21,7 +21,13 @@ public class CreateListingHandler(
 {
     public async Task<ListingDto> Handle(CreateListingCommand request, CancellationToken cancellationToken)
     {
-        var publisher = await ResolvePublisherAsync(request, cancellationToken);
+        // The caller is the author; publishing under an agency needs them to be its member.
+        if (request.AgencyId is { } agencyId)
+        {
+            await ListingAgencyRules.EnsureCanPublishAsAsync(dbContext, agencyId, request.RequestingUserId, cancellationToken);
+        }
+
+        var publisher = await PublisherProvisioning.EnsureIndividualAsync(dbContext, request.RequestingUserId, cancellationToken);
 
         // The form uploads photos under this id before creating the listing — they must be the
         // caller's own (see MediaAccess), or anyone could plant photos on someone else's listing.
@@ -52,7 +58,8 @@ public class CreateListingHandler(
             ListingWriteSupport.BuildPrice(request, exchangeRates),
             rentalDetails: ListingWriteSupport.RentalDetails(request),
             contact: request.Contact,
-            id: request.Id);
+            id: request.Id,
+            agencyId: request.AgencyId);
 
         // A new listing goes straight into the admin review queue — the owner doesn't take a
         // separate "submit for review" step for a listing they just finished creating.
@@ -73,25 +80,5 @@ public class CreateListingHandler(
 
         return await ListingDtoLoader.LoadOneAsync(
             dbContext, blobStorageService, listing, request.RequestingUserId, cancellationToken, includeContactDetails: true);
-    }
-
-    private async Task<Publisher> ResolvePublisherAsync(CreateListingCommand request, CancellationToken cancellationToken)
-    {
-        if (request.PublisherId is not { } publisherId)
-        {
-            return await PublisherProvisioning.EnsureIndividualAsync(dbContext, request.RequestingUserId, cancellationToken);
-        }
-
-        var publisher = await dbContext.Publishers.FirstOrDefaultAsync(p => p.Id == publisherId, cancellationToken)
-            ?? throw new ValidationException(
-                [new ValidationFailure(nameof(CreateListingCommand.PublisherId), "PublisherId does not reference a known publisher.")]);
-
-        // Publishing under someone else's publisher (e.g. an agency you don't belong to) is never allowed.
-        if (publisher.UserId != request.RequestingUserId)
-        {
-            throw new ForbiddenAccessException();
-        }
-
-        return publisher;
     }
 }

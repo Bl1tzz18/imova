@@ -23,8 +23,6 @@ export async function createListing(
 
   const payload = {
     id: formData.get("id") || null,
-    // Omitted = the user's own Individual publisher; only sent when they picked their agency.
-    publisherId: formData.get("publisherId") || null,
     ...buildListingPayload(formData),
   };
 

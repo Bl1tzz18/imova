@@ -37,6 +37,9 @@ public record SearchListingsQuery : IRequest<PagedResult<ListingDto>>
 
     public Guid? ChisinauSectorId { get; init; }
 
+    // Only listings published under this agency (its public page's listings).
+    public Guid? AgencyId { get; init; }
+
     public decimal? MinAreaM2 { get; init; }
 
     public decimal? MaxAreaM2 { get; init; }

@@ -17,7 +17,14 @@ export type Message = {
 
 // isDeleted: that person deleted their account — the thread stays readable but can't be continued
 // (displayName is then empty; show participantName() instead).
-export type ConversationParticipant = { userId: string; displayName: string; avatarUrl: string | null; isDeleted?: boolean };
+// agencyName: the agency the other side works for, when the listing is an agency's ("Agent · Agency").
+export type ConversationParticipant = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  isDeleted?: boolean;
+  agencyName?: string | null;
+};
 
 // title is null when the listing has since been deleted.
 export type ConversationListing = { id: string; title: string | null; photoUrl: string | null };

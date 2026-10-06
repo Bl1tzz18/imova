@@ -126,4 +126,10 @@ describe("participantName", () => {
   it("is the deleted-account label once that account is gone", () => {
     expect(participantName({ userId: "u1", displayName: "", avatarUrl: null, isDeleted: true }, "Cont șters")).toBe("Cont șters");
   });
+
+  it("names the agency beside an agency listing's agent", () => {
+    expect(
+      participantName({ userId: "u1", displayName: "Elena Ciobanu", avatarUrl: null, agencyName: "Casa Ta" }, "Cont șters"),
+    ).toBe("Elena Ciobanu · Casa Ta");
+  });
 });

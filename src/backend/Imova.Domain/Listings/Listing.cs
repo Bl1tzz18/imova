@@ -6,8 +6,9 @@ namespace Imova.Domain.Listings;
 // Several Listings can point at the same Property over time (sold then relisted at a new price, a
 // separate rental offer, ...), which is why status lives here and not on Property.
 //
-// PublisherId, not a user id: a listing is published under a Publisher identity (the user's
-// Individual one, or their Agency), and ownership checks go through Publisher.UserId.
+// PublisherId, not a user id: the author is a Publisher (a person's public identity), and ownership
+// checks go through Publisher.UserId. AgencyId is set when the author publishes it under an agency
+// they're a member of (see Agency); the author must stay a member for as long as it is.
 public sealed class Listing : AggregateRoot
 {
     // How long a listing stays Active before it expires (ExpiresAt) unless the owner renews it.
@@ -33,11 +34,13 @@ public sealed class Listing : AggregateRoot
         Price price,
         SaleDetails? saleDetails,
         RentalDetails? rentalDetails,
-        ListingContact? contact)
+        ListingContact? contact,
+        Guid? agencyId)
         : base(id)
     {
         PropertyId = propertyId;
         PublisherId = publisherId;
+        AgencyId = agencyId;
         TransactionType = transactionType;
         Title = title;
         Description = description;
@@ -53,6 +56,13 @@ public sealed class Listing : AggregateRoot
     public Guid PropertyId { get; private set; }
 
     public Guid PublisherId { get; private set; }
+
+    // The agency it's published under; null for a private person's listing.
+    public Guid? AgencyId { get; private set; }
+
+    // The agency's own reference for this listing (from its CSV import), unique per agency — so
+    // importing the same file again updates the listing instead of adding a copy.
+    public string? ExternalRef { get; private set; }
 
     public TransactionType TransactionType { get; private set; }
 
@@ -119,7 +129,8 @@ public sealed class Listing : AggregateRoot
         ListingContact? contact = null,
         // Lets the caller supply the id up front, so a client can start uploading photos under a
         // known listing id before this row exists — see Photo.
-        Guid? id = null)
+        Guid? id = null,
+        Guid? agencyId = null)
     {
         if (propertyId == Guid.Empty)
         {
@@ -145,7 +156,37 @@ public sealed class Listing : AggregateRoot
             price,
             saleDetails,
             rentalDetails,
-            contact);
+            contact,
+            agencyId);
+    }
+
+    // Moves it between private (null) and an agency. Whether its author may publish under that agency
+    // is the caller's check (they must be a member and the agency active).
+    public void ChangeAgency(Guid? agencyId)
+    {
+        if (agencyId == Guid.Empty)
+        {
+            throw new ArgumentException("An agency id can't be empty; use null for a private listing.", nameof(agencyId));
+        }
+
+        AgencyId = agencyId;
+    }
+
+    // Hands an agency's listing to another author (a member who stays, when its author leaves the
+    // agency). Nothing else changes: not its status, dates or counters.
+    public void ChangeAuthor(Guid publisherId)
+    {
+        if (publisherId == Guid.Empty)
+        {
+            throw new ArgumentException("PublisherId is required.", nameof(publisherId));
+        }
+
+        if (AgencyId is null)
+        {
+            throw new InvalidOperationException("Only an agency's listing changes author.");
+        }
+
+        PublisherId = publisherId;
     }
 
     // Never touches Status/PublisherId/PropertyId — editing an offer's content is not a lifecycle

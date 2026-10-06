@@ -38,7 +38,14 @@ public record ListingDto(
     PriceHistoryDto? PriceHistory = null,
     // How many people saved it to their favorites — like ViewCount, the owner's and admins' only
     // (null for everyone else, on every view).
-    int? FavoriteCount = null);
+    int? FavoriteCount = null,
+    // The agency it's published under (on every view); null for a private listing.
+    ListingAgencyDto? Agency = null);
+
+// The agency a listing is published under. LogoUrl: its 128 px square logo. Never its phone — see AgencyDto.
+// ActiveListingCount: how many Active listings the agency has ("Vezi toate anunțurile agenției (N)") —
+// only on the listing's detail view, null on cards and search results.
+public record ListingAgencyDto(Guid Id, string Name, string Slug, string? LogoUrl, bool IsVerified, int? ActiveListingCount = null);
 
 // Percent: how much lower, rounded (from EUR values when the currency changed).
 public record PriceReductionDto(decimal PreviousAmount, string PreviousCurrency, int Percent, DateTimeOffset ReducedAt);

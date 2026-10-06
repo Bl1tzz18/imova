@@ -1,5 +1,6 @@
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Agencies;
 using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
@@ -41,6 +42,14 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<Listing> Listings => Set<Listing>();
 
     public DbSet<Publisher> Publishers => Set<Publisher>();
+
+    public DbSet<Agency> Agencies => Set<Agency>();
+
+    public DbSet<AgencyMember> AgencyMembers => Set<AgencyMember>();
+
+    public DbSet<AgencyFormerSlug> AgencyFormerSlugs => Set<AgencyFormerSlug>();
+
+    public DbSet<AgencyInvitation> AgencyInvitations => Set<AgencyInvitation>();
 
     public DbSet<Photo> Photos => Set<Photo>();
 

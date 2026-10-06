@@ -1,6 +1,7 @@
 {
   "Common": {
     "addListing": "Adaugă anunț",
+    "addListingShort": "Adaugă anunț",
     "selectLanguage": "Selectează limba",
     "previous": "Anterior",
     "next": "Următor"
@@ -18,13 +19,59 @@
     "messages": "Mesaje",
     "messagingReports": "Mesaje raportate",
     "savedSearches": "Căutări salvate",
-    "administrators": "Administratori"
+    "administrators": "Administratori",
+    "agencies": "Agenții"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
     "searchListings": "Caută anunțuri",
     "publishListing": "Publică un anunț",
+    "agencies": "Agenții imobiliare",
     "inDevelopment": "Proiect în dezvoltare."
+  },
+  "Agencies": {
+    "verified": "Verificată",
+    "verifiedTooltip": "Agenție verificată de IMOVA",
+    "directoryTitle": "Agenții imobiliare",
+    "directoryIntro": "Agențiile care publică pe IMOVA, cu anunțurile lor active. Cele verificate de echipa noastră apar primele.",
+    "directoryMetaTitle": "Agenții imobiliare din Moldova — IMOVA",
+    "directoryMetaDescription": "Găsește o agenție imobiliară din Moldova: agențiile de pe IMOVA, cu anunțurile lor active și datele de contact.",
+    "searchLabel": "Caută o agenție",
+    "searchPlaceholder": "Numele agenției",
+    "cityLabel": "Oraș / raion",
+    "allCities": "Toate",
+    "verifiedOnly": "Doar verificate",
+    "search": "Caută",
+    "resetFilters": "Resetează filtrele",
+    "agencyCount": "{count, plural, one {# agenție} few {# agenții} other {# de agenții}}",
+    "activeListings": "{count, plural, =0 {Niciun anunț activ} one {# anunț activ} few {# anunțuri active} other {# de anunțuri active}}",
+    "directoryEmpty": "Nicio agenție nu corespunde căutării.",
+    "directoryEmptyHint": "Încearcă alt nume sau alt oraș.",
+    "directoryError": "Agențiile nu au putut fi încărcate. Încearcă din nou.",
+    "pageTitle": "{name} — agenție imobiliară în {city} | IMOVA",
+    "pageTitleNoCity": "{name} — agenție imobiliară | IMOVA",
+    "metaFallback": "{name} — agenție imobiliară pe IMOVA. Anunțurile active ale agenției și datele de contact.",
+    "onImovaSince": "Pe IMOVA din {date}",
+    "readMore": "Citește mai mult",
+    "readLess": "Arată mai puțin",
+    "contactHeading": "Contact",
+    "writeEmail": "Trimite un email",
+    "website": "site-ul agenției",
+    "logoAlt": "Logo {name}",
+    "inactiveNotice": "Agenția este dezactivată: pagina și anunțurile ei se văd doar de membri și administratori.",
+    "backToDirectory": "Toate agențiile",
+    "listingsHeading": "Anunțurile agenției",
+    "transactionFilter": "Vânzare sau chirie",
+    "filterAll": "Toate",
+    "propertyTypeLabel": "Tip proprietate",
+    "allPropertyTypes": "Toate tipurile",
+    "apply": "Aplică",
+    "noListings": "Agenția nu are anunțuri active momentan.",
+    "noMatchingListings": "Niciun anunț al agenției nu corespunde filtrelor.",
+    "showAllListings": "Vezi toate anunțurile agenției",
+    "listingsError": "Anunțurile agenției nu au putut fi încărcate.",
+    "seeAllListings": "Vezi toate anunțurile agenției",
+    "seeAllListingsCount": "Vezi toate anunțurile agenției ({count})"
   },
   "PropertyType": {
     "Apartment": "Apartament",
@@ -50,7 +97,7 @@
   "Hero": {
     "eyebrow": "Piața imobiliară din Moldova, într-un singur loc",
     "title": "Găsește o locuință, nu doar un anunț.",
-    "subtitle": "Anunțuri verificate, actualizate zilnic și filtre care chiar funcționează — ca să nu mai pierzi timpul cu ce nu se potrivește.",
+    "subtitle": "Anunțuri moderate, actualizate zilnic și filtre care chiar funcționează — ca să nu mai pierzi timpul cu ce nu se potrivește.",
     "stats": {
       "houses": "Case",
       "apartments": "Apartamente",
@@ -1189,7 +1236,12 @@
       "listing": {
         "emailNotConfirmed": "Confirmă adresa de email înainte de a trimite anunțul spre verificare.",
         "invalidTransition": "Această acțiune nu este posibilă pentru statusul actual al anunțului.",
-        "streetRequired": "Introdu strada."
+        "streetRequired": "Introdu strada.",
+        "agencyUnknown": "Agenția aleasă nu există. Reîncarcă pagina și alege din nou.",
+        "notAgencyMember": "Poți publica doar în numele agențiilor din care faci parte.",
+        "agencyInactive": "Agenția este dezactivată: momentan nu se pot publica anunțuri în numele ei.",
+        "agencyChangeAuthorOnly": "Doar autorul anunțului îl poate publica în numele unei agenții.",
+        "agencyLeaveManagerOnly": "Doar proprietarii și administratorii agenției pot scoate un anunț din agenție."
       },
       "contact": {
         "nameRequired": "Introdu numele persoanei de contact.",
@@ -1219,16 +1271,31 @@
       "report": {
         "detailsRequired": "Descrie problema."
       },
-      "publisher": {
-        "agencyExists": "Contul tău are deja o agenție."
-      },
       "savedSearch": {
         "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
+      },
+      "agency": {
+        "websiteInvalid": "Introdu adresa completă a site-ului, de exemplu https://agentia.md.",
+        "raionUnknown": "Alege orașul sau raionul din listă.",
+        "logoType": "Logoul trebuie să fie o imagine JPEG, PNG sau WebP.",
+        "logoTooSmall": "Logoul trebuie să aibă cel puțin {min}×{min} pixeli. Încarcă o imagine mai mare.",
+        "limitReached": "Poți deține cel mult {max} agenții.",
+        "emailNotConfirmed": "Confirmă-ți adresa de email înainte să creezi o agenție. Verifică emailul primit la înregistrare sau cere un link nou din pagina contului.",
+        "lastOwner": "Agenția trebuie să aibă cel puțin un proprietar. Fă alt membru proprietar mai întâi.",
+        "reassignInvalid": "Anunțurile lui trebuie să treacă la un proprietar sau administrator care rămâne în agenție.",
+        "alreadyMember": "Această persoană este deja membru al agenției.",
+        "tooManyInvitations": "O agenție poate avea cel mult {max} invitații în așteptare.",
+        "invitationRateLimit": "Ai trimis prea multe invitații. O agenție poate trimite cel mult {max} invitații pe oră.",
+        "invitationResendTooSoon": "Invitația a fost trimisă de curând. Poți s-o retrimiți peste {minutes} minute.",
+        "invitationExpired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
+        "invitationClosed": "Invitația nu mai este valabilă.",
+        "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți."
       },
       "account": {
         "passwordRequired": "Introdu parola pentru a șterge contul.",
         "wrongPassword": "Parola este greșită.",
-        "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email."
+        "noPassword": "Contul tău nu are parolă — confirmă ștergerea prin linkul trimis pe email.",
+        "lastAgencyOwner": "Ești singurul proprietar al agenției {agencies}. Fă alt membru proprietar înainte să îți ștergi contul."
       },
       "admin": {
         "userNotFound": "Nu există niciun cont cu acest email.",
@@ -1520,5 +1587,30 @@
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri aceste emailuri din setările contului, la Notificări.",
     "manage": "Setările notificărilor"
+  },
+  "Invitation": {
+    "title": "Invitație într-o agenție",
+    "verified": "Agenție verificată",
+    "roleAdmin": "administrator",
+    "roleAgent": "agent",
+    "invitedBy": "{name} te-a invitat să te alături agenției {agency} ca {role}.",
+    "invited": "Ai fost invitat să te alături agenției {agency} ca {role}.",
+    "adminMeans": "Ca administrator vei putea edita profilul agenției, invita agenți și gestiona toate anunțurile ei.",
+    "agentMeans": "Ca agent vei putea publica anunțuri în numele agenției.",
+    "notFound": "Linkul invitației nu este valid. Poate a fost retrimisă — folosește cel mai nou email primit.",
+    "expired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
+    "closed": "Invitația nu mai este valabilă: a fost deja acceptată, refuzată sau retrasă.",
+    "signInFirst": "Invitația a fost trimisă pe {email}. Intră în contul cu această adresă sau creează unul ca s-o accepți.",
+    "signIn": "Intră în cont",
+    "register": "Creează cont",
+    "wrongAccount": "Invitația a fost trimisă pe {email}, dar acum ești în contul {current}.",
+    "switchAccount": "Schimbă contul",
+    "accept": "Acceptă invitația",
+    "decline": "Refuză",
+    "accepted": "Te-ai alăturat agenției {agency}.",
+    "declined": "Ai refuzat invitația.",
+    "goToAccount": "Mergi la contul tău",
+    "goHome": "Mergi la pagina principală",
+    "agencyInactive": "Agenția este inactivă momentan: profilul și anunțurile ei nu se văd public. Te poți alătura totuși, iar anunțurile vor apărea când agenția este reactivată."
   }
 }

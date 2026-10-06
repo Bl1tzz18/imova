@@ -2,84 +2,45 @@ using Imova.Domain.Common;
 
 namespace Imova.Domain.Publishers;
 
-// The identity a Listing is published under — separate from the login account (ApplicationUser)
-// so one user can publish both as themselves and as an agency, and so an agency can have a public
-// profile of its own. Every user gets an Individual publisher automatically (register / first
-// Google sign-in); an Agency publisher is created explicitly. At most one of each type per user
-// (unique index in PublisherConfiguration).
+// A person's public identity as the author of listings — separate from the login account
+// (ApplicationUser), whose own details stay private. Every user gets exactly one, automatically
+// (register / first Google sign-in; unique per user in PublisherConfiguration). Publishing under an
+// agency doesn't change the author: the listing keeps its author's Publisher and also points at the
+// agency (Listing.AgencyId).
 public sealed class Publisher : AggregateRoot
 {
-    private Publisher(
-        Guid id,
-        Guid userId,
-        PublisherType publisherType,
-        string displayName,
-        string? phone,
-        string email,
-        string? logoUrl,
-        string? bio)
+    private Publisher(Guid id, Guid userId, string displayName, string? phone, string email)
         : base(id)
     {
         UserId = userId;
-        PublisherType = publisherType;
         DisplayName = displayName;
         Phone = phone;
         Email = email;
-        LogoUrl = logoUrl;
-        Bio = bio;
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
     public Guid UserId { get; private set; }
 
-    public PublisherType PublisherType { get; private set; }
-
     public string DisplayName { get; private set; }
 
-    // Nullable for Individual publishers: a Google sign-in account has no phone number until the
-    // user completes their profile. Always set for an Agency.
+    // Null until the user adds a phone number: a Google sign-in account has none at first.
     public string? Phone { get; private set; }
 
     public string Email { get; private set; }
-
-    // Agency only.
-    public string? LogoUrl { get; private set; }
-
-    // Agency only.
-    public string? Bio { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
 
     public static Publisher CreateIndividual(Guid userId, string displayName, string? phone, string email)
     {
         EnsureValid(userId, displayName, email);
-        return new Publisher(Guid.NewGuid(), userId, PublisherType.Individual, displayName, phone, email, null, null);
+        return new Publisher(Guid.NewGuid(), userId, displayName, phone, email);
     }
 
-    public static Publisher CreateAgency(
-        Guid userId, string displayName, string phone, string email, string? logoUrl, string? bio)
-    {
-        EnsureValid(userId, displayName, email);
-
-        if (string.IsNullOrWhiteSpace(phone))
-        {
-            throw new ArgumentException("An agency requires a phone number.", nameof(phone));
-        }
-
-        return new Publisher(Guid.NewGuid(), userId, PublisherType.Agency, displayName, phone, email, logoUrl, bio);
-    }
-
-    // Keeps an Individual publisher's public contact details in step with the account they belong
-    // to (see UpdateProfileHandler / UpdatePhoneNumberHandler).
+    // Keeps the publisher's public contact details in step with the account it belongs to (see
+    // UpdateProfileHandler / UpdatePhoneNumberHandler).
     public void UpdateContactDetails(string displayName, string? phone, string email)
     {
         EnsureValid(UserId, displayName, email);
-
-        if (PublisherType == PublisherType.Agency && string.IsNullOrWhiteSpace(phone))
-        {
-            throw new ArgumentException("An agency requires a phone number.", nameof(phone));
-        }
-
         DisplayName = displayName;
         Phone = phone;
         Email = email;

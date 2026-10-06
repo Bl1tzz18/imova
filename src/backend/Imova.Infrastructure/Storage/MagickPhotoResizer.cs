@@ -23,8 +23,19 @@ public sealed class MagickPhotoResizer(ILogger<MagickPhotoResizer> logger) : IPh
         ResourceLimits.Height = 20_000;
     }
 
-    public async Task<IReadOnlyList<byte[]>?> ResizeToJpegAsync(
-        Stream source, IReadOnlyList<int> longestSides, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<byte[]>?> ResizeToJpegAsync(
+        Stream source, IReadOnlyList<int> longestSides, CancellationToken cancellationToken) =>
+        RunAsync(source, longestSides, square: false, cancellationToken);
+
+    public Task<IReadOnlyList<byte[]>?> ResizeToSquareJpegAsync(
+        Stream source, IReadOnlyList<int> sides, CancellationToken cancellationToken) =>
+        RunAsync(source, sides, square: true, cancellationToken);
+
+    public (int Width, int Height)? ReadSize(byte[] source) =>
+        TryReadSize(source) is { } size ? ((int)size.Width, (int)size.Height) : null;
+
+    private async Task<IReadOnlyList<byte[]>?> RunAsync(
+        Stream source, IReadOnlyList<int> sides, bool square, CancellationToken cancellationToken)
     {
         using var buffer = new MemoryStream();
         await source.CopyToAsync(buffer, cancellationToken);
@@ -33,7 +44,7 @@ public sealed class MagickPhotoResizer(ILogger<MagickPhotoResizer> logger) : IPh
         await Gate.WaitAsync(cancellationToken);
         try
         {
-            return await Task.Run(() => Resize(bytes, longestSides), cancellationToken);
+            return await Task.Run(() => Resize(bytes, sides, square), cancellationToken);
         }
         finally
         {
@@ -41,7 +52,7 @@ public sealed class MagickPhotoResizer(ILogger<MagickPhotoResizer> logger) : IPh
         }
     }
 
-    private byte[][]? Resize(byte[] source, IReadOnlyList<int> longestSides)
+    private byte[][]? Resize(byte[] source, IReadOnlyList<int> longestSides, bool square)
     {
         var settings = new MagickReadSettings
         {
@@ -110,8 +121,19 @@ public sealed class MagickPhotoResizer(ILogger<MagickPhotoResizer> logger) : IPh
                 {
                     using var copy = image.Clone();
 
-                    // Greater: only ever shrinks.
-                    copy.Resize(new MagickGeometry((uint)side, (uint)side) { Greater = true });
+                    if (square)
+                    {
+                        // A logo fills its square whatever its own size, centred on white.
+                        copy.Resize(new MagickGeometry((uint)side, (uint)side));
+                        copy.BackgroundColor = MagickColors.White;
+                        copy.Extent((uint)side, (uint)side, Gravity.Center);
+                    }
+                    else
+                    {
+                        // Greater: only ever shrinks.
+                        copy.Resize(new MagickGeometry((uint)side, (uint)side) { Greater = true });
+                    }
+
                     return copy.ToByteArray(MagickFormat.Jpeg);
                 })
                 .ToArray();

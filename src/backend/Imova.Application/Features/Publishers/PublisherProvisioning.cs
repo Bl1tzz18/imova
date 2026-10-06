@@ -23,7 +23,7 @@ public static class PublisherProvisioning
         IApplicationDbContext dbContext, ApplicationUser user, CancellationToken cancellationToken)
     {
         var publisher = await dbContext.Publishers.FirstOrDefaultAsync(
-            p => p.UserId == user.Id && p.PublisherType == PublisherType.Individual, cancellationToken);
+            p => p.UserId == user.Id, cancellationToken);
         if (publisher is null)
         {
             return;
@@ -38,7 +38,7 @@ public static class PublisherProvisioning
         IApplicationDbContext dbContext, Guid userId, CancellationToken cancellationToken)
     {
         var existing = await dbContext.Publishers.FirstOrDefaultAsync(
-            p => p.UserId == userId && p.PublisherType == PublisherType.Individual, cancellationToken);
+            p => p.UserId == userId, cancellationToken);
         if (existing is not null)
         {
             return existing;

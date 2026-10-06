@@ -16,7 +16,6 @@ public class GetMyPublishersHandler(IApplicationDbContext dbContext)
         var publishers = await dbContext.Publishers
             .AsNoTracking()
             .Where(p => p.UserId == request.UserId)
-            .OrderBy(p => p.PublisherType)
             .ToListAsync(cancellationToken);
 
         return publishers.Select(p => p.ToDto(includeContactDetails: true)).ToList();

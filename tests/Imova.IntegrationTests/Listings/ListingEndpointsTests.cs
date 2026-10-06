@@ -417,60 +417,28 @@ public class ListingEndpointsTests : IClassFixture<WebApplicationFactory<Program
         var publishers = (await client.GetFromJsonAsync<List<PublisherDto>>("/api/v1/publishers/mine"))!;
 
         var publisher = Assert.Single(publishers);
-        Assert.Equal("Individual", publisher.PublisherType);
         Assert.Equal(user.Id, publisher.UserId);
         Assert.Equal("Listing Test User", publisher.DisplayName);
         Assert.Equal("+373 69 123 456", publisher.Phone);
     }
 
-    [Fact]
-    public async Task AgencyPublisher_CanBeCreatedOnceAndUsedToPublish()
-    {
-        var (client, user) = await ListingApi.RegisterAsync(_factory);
-
-        var create = await client.PostAsJsonAsync("/api/v1/publishers/agency", new
-        {
-            displayName = "Imobil Grup",
-            phone = "+373 22 000 000",
-            bio = "Agenție imobiliară.",
-        });
-        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
-        var agency = (await create.Content.ReadFromJsonAsync<PublisherDto>())!;
-        Assert.Equal("Agency", agency.PublisherType);
-        Assert.Equal(user.Email, agency.Email);
-
-        var second = await client.PostAsJsonAsync("/api/v1/publishers/agency", new { displayName = "Alta", phone = "+373 22 000 001" });
-        Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
-
-        var mine = (await client.GetFromJsonAsync<List<PublisherDto>>("/api/v1/publishers/mine"))!;
-        Assert.Equal(["Individual", "Agency"], mine.Select(p => p.PublisherType));
-
-        var body = await ListingApi.ValidBodyAsync(client);
-        body["publisherId"] = agency.Id;
-        var listing = (await (await client.PostAsJsonAsync("/api/v1/listings", body)).Content.ReadFromJsonAsync<ListingDto>())!;
-        Assert.Equal(agency.Id, listing.Publisher.Id);
-        Assert.Equal("Imobil Grup", listing.Publisher.DisplayName);
-
-        // The detail view's contact is the agent behind the agency, by their own name, with the agency beside them.
-        var contact = (await client.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!.Contact!;
-        Assert.Equal("Listing Test User", contact.Name);
-        Assert.Equal("Imobil Grup", contact.AgencyName);
-
-        await client.DeleteAsync($"/api/v1/listings/{listing.Id}");
-    }
 
     [Fact]
-    public async Task CreateListing_UnderAnotherUsersPublisher_Returns403()
+    public async Task CreateListing_IsAlwaysTheCallersOwn_WhateverPublisherTheBodyNames()
     {
-        var (victim, _) = await ListingApi.RegisterAsync(_factory);
+        var (victim, victimUser) = await ListingApi.RegisterAsync(_factory);
         var victimPublisher = (await victim.GetFromJsonAsync<List<PublisherDto>>("/api/v1/publishers/mine"))!.Single();
-        var (attacker, _) = await ListingApi.RegisterAsync(_factory);
+        var (attacker, attackerUser) = await ListingApi.RegisterAsync(_factory);
         var body = await ListingApi.ValidBodyAsync(attacker);
+        // No longer part of the API (the author is the caller; an agency is chosen with agencyId) — ignored.
         body["publisherId"] = victimPublisher.Id;
 
         var response = await attacker.PostAsJsonAsync("/api/v1/listings", body);
 
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var listing = (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+        Assert.Equal(attackerUser.Id, listing.Publisher.UserId);
+        Assert.NotEqual(victimUser.Id, listing.Publisher.UserId);
     }
 
     [Fact]

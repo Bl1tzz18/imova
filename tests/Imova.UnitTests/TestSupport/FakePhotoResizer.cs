@@ -25,4 +25,22 @@ internal sealed class FakePhotoResizer : IPhotoResizer
         return Task.FromResult<IReadOnlyList<byte[]>?>(
             Unreadable ? null : longestSides.Select(side => Encoding.UTF8.GetBytes($"jpeg-{side}")).ToList());
     }
+
+    // What ReadSize reports for any source (null while Unreadable).
+    public (int Width, int Height) Size { get; set; } = (1000, 800);
+
+    public (int Width, int Height)? ReadSize(byte[] source) => Unreadable ? null : Size;
+
+    // "square-{side}".
+    public Task<IReadOnlyList<byte[]>?> ResizeToSquareJpegAsync(Stream source, IReadOnlyList<int> sides, CancellationToken cancellationToken)
+    {
+        Calls++;
+        if (Throws)
+        {
+            throw new InvalidOperationException("Resize failed.");
+        }
+
+        return Task.FromResult<IReadOnlyList<byte[]>?>(
+            Unreadable ? null : sides.Select(side => Encoding.UTF8.GetBytes($"square-{side}")).ToList());
+    }
 }
