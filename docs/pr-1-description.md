@@ -180,3 +180,6 @@ All UI text in ro/en/ru.
 - Header: fits one row on phones down to 360 px — the logo no longer shrinks, the language is a
   compact select and "Autentificare" a person icon below 640 px, and "Adaugă anunț" stays on one
   line (Russian shows the shorter "Разместить" there). Desktop unchanged.
+- Home page: the hero says "Anunțuri moderate" instead of "Anunțuri verificate" (en "Moderated
+  listings", ru "Модерируемые объявления") — listings go through moderation, but full verification
+  isn't live yet.
