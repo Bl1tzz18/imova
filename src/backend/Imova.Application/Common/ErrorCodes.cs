@@ -99,5 +99,6 @@ public static class ErrorCodes
     public const string AgencyInvitationExpired = "agency.invitationExpired";
     public const string AgencyInvitationClosed = "agency.invitationClosed";
     public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
+    public const string AgencyConfirmNameMismatch = "agency.confirmNameMismatch";
     public const string AccountLastAgencyOwner = "account.lastAgencyOwner";
 }

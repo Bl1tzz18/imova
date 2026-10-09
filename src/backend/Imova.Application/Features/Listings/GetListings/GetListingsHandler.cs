@@ -14,9 +14,8 @@ public class GetListingsHandler(IApplicationDbContext dbContext, IBlobStorageSer
     public async Task<List<ListingDto>> Handle(GetListingsQuery request, CancellationToken cancellationToken)
     {
         var query =
-            from listing in dbContext.Listings.AsNoTracking()
+            from listing in dbContext.Listings.AsNoTracking().WherePublic(dbContext)
             join property in dbContext.Properties.AsNoTracking() on listing.PropertyId equals property.Id
-            where listing.Status == ListingStatus.Active
             select new { listing, property };
 
         if (request.PropertyType is not null)

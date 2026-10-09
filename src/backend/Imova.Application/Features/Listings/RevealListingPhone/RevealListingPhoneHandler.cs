@@ -13,9 +13,9 @@ public class RevealListingPhoneHandler(IApplicationDbContext dbContext, IListing
     public async Task<ListingPhoneDto?> Handle(RevealListingPhoneCommand request, CancellationToken cancellationToken)
     {
         var row = await (
-                from l in dbContext.Listings.AsNoTracking()
+                from l in dbContext.Listings.AsNoTracking().WherePublic(dbContext)
                 join p in dbContext.Publishers.AsNoTracking() on l.PublisherId equals p.Id
-                where l.Id == request.ListingId && l.Status == ListingStatus.Active
+                where l.Id == request.ListingId
                 select new { Listing = l, Publisher = p })
             .FirstOrDefaultAsync(cancellationToken);
         if (row is null)

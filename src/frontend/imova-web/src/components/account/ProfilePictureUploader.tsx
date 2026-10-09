@@ -1,14 +1,27 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { removeProfilePicture, uploadProfilePicture } from "@/lib/auth/actions";
 import { Avatar } from "@/components/ui/Avatar";
+import { PROFILE_PICTURE_MAX_BYTES } from "@/lib/api/uploadSize";
 
 // Same allow-list/size-limit UX as ImageUploader.tsx (listing photos) — extension is only used
 // for the client-side check; the backend is what actually validates via magic-byte sniffing.
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif"];
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
+type PictureResult = { profilePictureUrl?: string | null; error?: string };
+
+// Upload and removal go through the route handler /account/profile-picture (a server action would
+// stop the photo at 1 MB; phone photos are 3–5 MB).
+async function sendPicture(init: RequestInit, failed: string): Promise<PictureResult> {
+  try {
+    const res = await fetch("/account/profile-picture", init);
+    return (await res.json()) as PictureResult;
+  } catch {
+    return { error: failed };
+  }
+}
 
 function getAllowedExtension(fileName: string): string | null {
   const match = /\.[a-zA-Z0-9]+$/.exec(fileName);
@@ -29,6 +42,7 @@ export function ProfilePictureUploader({
   profilePictureUrl: string | null;
 }) {
   const t = useTranslations("Account");
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pictureUrl, setPictureUrl] = useState(profilePictureUrl);
   const [pending, setPending] = useState<"upload" | "remove" | null>(null);
@@ -43,7 +57,7 @@ export function ProfilePictureUploader({
       setError(t("pictureInvalidType"));
       return;
     }
-    if (file.size > MAX_FILE_SIZE_BYTES) {
+    if (file.size > PROFILE_PICTURE_MAX_BYTES) {
       setError(t("pictureTooLarge"));
       return;
     }
@@ -54,7 +68,9 @@ export function ProfilePictureUploader({
     setPending("upload");
 
     void (async () => {
-      const result = await uploadProfilePicture(file);
+      const body = new FormData();
+      body.append("file", file);
+      const result = await sendPicture({ method: "POST", body }, t("pictureUploadFailed"));
       setPending(null);
 
       if (result.error) {
@@ -64,6 +80,7 @@ export function ProfilePictureUploader({
       }
 
       setPictureUrl(result.profilePictureUrl ?? localPreview);
+      router.refresh();
     })();
   }
 
@@ -73,7 +90,7 @@ export function ProfilePictureUploader({
     setPending("remove");
 
     void (async () => {
-      const result = await removeProfilePicture();
+      const result = await sendPicture({ method: "DELETE" }, t("pictureUploadFailed"));
       setPending(null);
 
       if (result.error) {
@@ -82,6 +99,7 @@ export function ProfilePictureUploader({
       }
 
       setPictureUrl(null);
+      router.refresh();
     })();
   }
 

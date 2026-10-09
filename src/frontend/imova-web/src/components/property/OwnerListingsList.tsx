@@ -209,8 +209,19 @@ export function OwnerListingsList({
 // One listing: photo, title, status + place, price, the line that matters for its status (until
 // when it's active, or the moderators' reason), and its actions — beside it on a wide screen, in
 // their own row under it on a phone.
-// showStatus: off in the Active tab, where every listing is active anyway.
-function OwnerListingRow({ listing, now, showStatus }: { listing: Listing; now: Date; showStatus: boolean }) {
+// showStatus: off in the Active tab, where every listing is active anyway. showAuthor: name who
+// wrote it (an agency's list, written by several people). Also the row of an agency's Anunțuri tab.
+export function OwnerListingRow({
+  listing,
+  now,
+  showStatus,
+  showAuthor = false,
+}: {
+  listing: Listing;
+  now: Date;
+  showStatus: boolean;
+  showAuthor?: boolean;
+}) {
   const t = useTranslations("MyListingsPage");
   const locale = useLocale();
   const location = formatLocation(listing.property.location);
@@ -254,6 +265,7 @@ function OwnerListingRow({ listing, now, showStatus }: { listing: Listing; now: 
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-500">
             {showStatus && <Badge tone={statusBadgeTone[listing.status] ?? "neutral"}>{statusLabel(t, listing.status)}</Badge>}
             {location && <span className="truncate">{location}</span>}
+            {showAuthor && <span className="truncate">{t("byAuthor", { name: listing.publisher.displayName })}</span>}
           </div>
 
           <p className="mt-1 sm:hidden">{price}</p>

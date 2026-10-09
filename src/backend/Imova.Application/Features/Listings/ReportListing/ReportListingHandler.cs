@@ -15,8 +15,8 @@ public class ReportListingHandler(IApplicationDbContext dbContext, TimeProvider 
 {
     public async Task<ReportListingResultDto?> Handle(ReportListingCommand request, CancellationToken cancellationToken)
     {
-        var listing = await dbContext.Listings.AsNoTracking()
-            .FirstOrDefaultAsync(l => l.Id == request.ListingId && l.Status == ListingStatus.Active, cancellationToken);
+        var listing = await dbContext.Listings.AsNoTracking().WherePublic(dbContext)
+            .FirstOrDefaultAsync(l => l.Id == request.ListingId, cancellationToken);
         if (listing is null)
         {
             return null;

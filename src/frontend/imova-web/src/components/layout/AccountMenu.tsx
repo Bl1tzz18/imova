@@ -90,6 +90,11 @@ export function AccountMenu({ profile }: { profile: UserProfile }) {
             </Link>
           )}
           {profile.roles.includes("Admin") && (
+            <Link href="/admin/agencies" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
+              {t("agencyVerification")}
+            </Link>
+          )}
+          {profile.roles.includes("Admin") && (
             <Link href="/admin/admins" role="menuitem" onClick={() => setOpen(false)} className={menuItemClass}>
               {t("administrators")}
             </Link>

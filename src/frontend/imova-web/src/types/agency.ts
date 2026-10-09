@@ -1,3 +1,5 @@
+import type { Listing } from "@/types/listing";
+
 export type AgencyRole = "Owner" | "Admin" | "Agent";
 
 export type InvitationStatus = "Pending" | "Accepted" | "Declined" | "Revoked" | "Expired";
@@ -51,6 +53,66 @@ export type MyAgency = {
   isVerified: boolean;
   status: "Active" | "Deactivated";
   role: AgencyRole;
+};
+
+// A member as the agency's other members see them (GET /api/v1/agencies/{id}/members). listingCount:
+// the listings they wrote under the agency — what would be handed on if they left.
+export type AgencyMember = {
+  userId: string;
+  name: string;
+  email: string;
+  pictureUrl: string | null;
+  role: AgencyRole;
+  joinedAt: string;
+  listingCount: number;
+};
+
+// One page of the agency's management list (GET /api/v1/agencies/{id}/listings): the group shown,
+// and every group's count + whether something in it waits on the owner (after the search).
+export type AgencyListingGroupSummary = { count: number; needsAttention: boolean };
+
+export type AgencyListingsPage = {
+  items: Listing[];
+  group: "Active" | "Unpublished" | "Ended";
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  active: AgencyListingGroupSummary;
+  unpublished: AgencyListingGroupSummary;
+  ended: AgencyListingGroupSummary;
+};
+
+// An agency in the admins' list (GET /api/v1/admin/agencies). ownerName/ownerEmail: its
+// longest-standing Owner.
+export type AdminAgency = {
+  id: string;
+  slug: string;
+  name: string;
+  logoThumbnailUrl: string | null;
+  isVerified: boolean;
+  verifiedAt: string | null;
+  status: "Active" | "Deactivated";
+  raionName: string | null;
+  memberCount: number;
+  activeListingCount: number;
+  createdAt: string;
+  ownerName: string | null;
+  ownerEmail: string | null;
+};
+
+export type AdminAgenciesPage = { items: AdminAgency[]; page: number; pageSize: number; totalCount: number };
+
+// An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).
+// emailFailedAt: its latest email couldn't be sent — resend it.
+export type AgencyInvitation = {
+  id: string;
+  email: string;
+  role: AgencyRole;
+  status: "Pending" | "Expired";
+  lastSentAt: string;
+  expiresAt: string;
+  invitedByName: string | null;
+  emailFailedAt: string | null;
 };
 
 // An invitation as its recipient sees it (GET /api/v1/invitations/{token}).

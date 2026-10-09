@@ -46,7 +46,7 @@ public class AgencyPublicEndpointsTests : IClassFixture<WebApplicationFactory<Pr
         return listing;
     }
 
-    // Deactivation has no endpoint yet (step 7).
+    // Straight in the database — the deactivate endpoint has its own tests (AgencyLifecycleEndpointsTests).
     private async Task DeactivateAsync(Guid agencyId)
     {
         using var scope = _factory.Services.CreateScope();

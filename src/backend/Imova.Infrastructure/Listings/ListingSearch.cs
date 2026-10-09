@@ -1,3 +1,4 @@
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Domain.Listings;
 using Imova.Domain.Properties;
@@ -161,7 +162,8 @@ public class ListingSearch(ImovaDbContext dbContext) : IListingSearch
             : dbContext.Listings.FromSqlRaw($"SELECT * FROM \"Listings\" WHERE \"RentalDetails\" IS NOT NULL AND {sql.Where}", sql.Parameters).AsNoTracking();
 #pragma warning restore EF1002
 
-        listings = listings.Where(l => l.Status == ListingStatus.Active);
+        // Active and not under a deactivated agency (ListingVisibility).
+        listings = listings.WherePublic(dbContext);
 
         if (q.AgencyId is { } agencyId)
         {

@@ -3,6 +3,7 @@ using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
+using Imova.Application.Features.Listings;
 using Imova.Contracts.Messaging;
 using Imova.Domain.Listings;
 using Imova.Domain.Messaging;
@@ -20,8 +21,8 @@ public class StartConversationHandler(
 {
     public async Task<StartConversationResultDto?> Handle(StartConversationCommand request, CancellationToken cancellationToken)
     {
-        var listing = await dbContext.Listings.AsNoTracking()
-            .FirstOrDefaultAsync(l => l.Id == request.ListingId && l.Status == ListingStatus.Active, cancellationToken);
+        var listing = await dbContext.Listings.AsNoTracking().WherePublic(dbContext)
+            .FirstOrDefaultAsync(l => l.Id == request.ListingId, cancellationToken);
         if (listing is null)
         {
             return null;

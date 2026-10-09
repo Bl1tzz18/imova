@@ -4,6 +4,7 @@ using Imova.Application.Common.Emails;
 using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.GetEndedListing;
 using Imova.Contracts.Listings;
+using Imova.Domain.Agencies;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,9 @@ public class FavoriteAlerts(
                 from favorite in dbContext.Favorites
                 where favorite.EndedAlertSentAt == null
                 join listing in dbContext.Listings on favorite.ListingId equals listing.Id
+                // Nothing while its agency is deactivated (hidden, like a suspended listing): it
+                // catches up once the agency is back.
+                where listing.AgencyId == null || dbContext.Agencies.Any(a => a.Id == listing.AgencyId && a.Status == AgencyStatus.Active)
                 where EndedListingStatuses.All.Contains(listing.Status)
                       || (listing.Status == ListingStatus.Active
                           && (favorite.KnownPriceAmount == null
