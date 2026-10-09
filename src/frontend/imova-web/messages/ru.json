@@ -528,6 +528,7 @@
     "removePictureCancel": "Отмена",
     "pictureInvalidType": "Неподдерживаемый формат",
     "pictureTooLarge": "Файл слишком большой (макс. 5МБ)",
+    "pictureUploadFailed": "Не удалось отправить фото. Проверьте подключение и попробуйте снова.",
     "saveChanges": "Сохранить изменения",
     "saving": "Сохранение...",
     "profileSaved": "Профиль обновлён.",

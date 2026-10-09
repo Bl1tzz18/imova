@@ -528,6 +528,7 @@
     "removePictureCancel": "Cancel",
     "pictureInvalidType": "Unsupported format",
     "pictureTooLarge": "File too large (max 5MB)",
+    "pictureUploadFailed": "The photo couldn't be sent. Check your connection and try again.",
     "saveChanges": "Save changes",
     "saving": "Saving...",
     "profileSaved": "Profile updated.",

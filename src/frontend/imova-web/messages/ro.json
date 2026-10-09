@@ -528,6 +528,7 @@
     "removePictureCancel": "Anulează",
     "pictureInvalidType": "Format neacceptat",
     "pictureTooLarge": "Fișier prea mare (max. 5MB)",
+    "pictureUploadFailed": "Fotografia nu a putut fi trimisă. Verifică conexiunea și încearcă din nou.",
     "saveChanges": "Salvează modificările",
     "saving": "Se salvează...",
     "profileSaved": "Profil actualizat.",
