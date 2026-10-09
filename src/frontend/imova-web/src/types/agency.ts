@@ -100,6 +100,43 @@ export type AdminAgency = {
   ownerEmail: string | null;
 };
 
+// GET /api/v1/agencies/{id}/stats — contacts = listing phone reveals + agency-page reveals + messages.
+export type AgencyStatsTotals = {
+  contacts: number;
+  views: number;
+  listingPhoneReveals: number;
+  agencyPhoneReveals: number;
+  messages: number;
+  favorites: number;
+};
+
+export type AgencyStats = {
+  from: string;
+  to: string;
+  totals: AgencyStatsTotals;
+  previous: AgencyStatsTotals;
+  daily: { day: string; views: number; contacts: number }[];
+  topListings: {
+    listingId: string;
+    number: number;
+    title: string;
+    status: string;
+    thumbnailUrl: string | null;
+    views: number;
+    phoneReveals: number;
+    messages: number;
+    favorites: number;
+  }[];
+  needsAttention: {
+    listingId: string;
+    number: number;
+    title: string;
+    reason: "FewPhotos" | "NoContacts" | "ExpiringSoon";
+    views: number;
+    expiresAt: string | null;
+  }[];
+};
+
 export type AdminAgenciesPage = { items: AdminAgency[]; page: number; pageSize: number; totalCount: number };
 
 // An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).

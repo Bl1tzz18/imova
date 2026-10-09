@@ -10,7 +10,7 @@ import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { agencyManagePath, MY_AGENCIES_HREF } from "@/lib/agency/manage";
 import { agencyPath } from "@/lib/agency/publicPage";
 
-// The agency's management pages: its header (logo, name, the caller's role, status), the four tabs,
+// The agency's management pages: its header (logo, name, the caller's role, status), the five tabs,
 // then the tab itself. Members only (and site admins); anyone else gets a 404, like for an agency
 // they can't see.
 export default async function AgencyManageLayout({

@@ -1628,6 +1628,66 @@
     "goHome": "Mergi la pagina principală",
     "agencyInactive": "Agenția este inactivă momentan: profilul și anunțurile ei nu se văd public. Te poți alătura totuși, iar anunțurile vor apărea când agenția este reactivată."
   },
+  "AgencyStats": {
+    "pageTitle": "Statistici — {name}",
+    "period": "Ultimele {days} zile · {from} – {to}",
+    "intro": "Săgețile compară cu perioada de aceeași lungime de dinainte.",
+    "introAgent": "Doar anunțurile tale. Săgețile compară cu perioada de aceeași lungime de dinainte.",
+    "periodLabel": "Perioada",
+    "preset": "{days} zile",
+    "contacts": "Contacte",
+    "views": "Vizualizări",
+    "favorites": "Salvări",
+    "contactsBreakdown": "{phones, plural, one {# telefon afișat} few {# telefoane afișate} other {# de telefoane afișate}} · {messages, plural, one {# conversație nouă} few {# conversații noi} other {# de conversații noi}}",
+    "agencyReveals": "Dintre telefoane, {count} de pe pagina agenției",
+    "contactRate": "{rate}% dintre vizualizări au devenit contacte",
+    "changeNew": "nou",
+    "changeSame": "la fel",
+    "change": {
+      "up": "cu {percent}% mai mult decât în perioada dinainte",
+      "down": "cu {percent}% mai puțin decât în perioada dinainte"
+    },
+    "contactsPerDay": "Contacte pe zi",
+    "viewsPerDay": "Vizualizări pe zi",
+    "chartTotal": "Total {count}",
+    "chartDay": "{day}: {count}",
+    "chartLabel": "{title}, pe zile: {count} în total. Valorile sunt în tabelul de dedesubt.",
+    "showTable": "Vezi tabelul",
+    "tableDay": "Ziua",
+    "attentionTitle": "De îmbunătățit",
+    "attentionIntro": "Anunțuri care pot aduce mai mult — fiecare cu pasul care le ajută.",
+    "reason": {
+      "FewPhotos": "Are mai puțin de 3 fotografii — nu poate fi editat sau prelungit până nu le adaugi.",
+      "NoContacts": "{views, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}}, dar niciun contact — verifică prețul, descrierea și fotografiile.",
+      "ExpiringSoon": "Expiră pe {date} — prelungește-l ca să rămână public."
+    },
+    "fix": {
+      "addPhotos": "Adaugă fotografii",
+      "edit": "Revizuiește"
+    },
+    "renew": "Prelungește",
+    "renewing": "Se prelungește…",
+    "topTitle": "Anunțurile cu cele mai multe contacte",
+    "topIntro": "În perioada aleasă — după contacte, apoi după vizualizări.",
+    "colListing": "Anunț",
+    "colRate": "Rată de contact",
+    "contactsSplit": "{phones} tel. · {messages} mes.",
+    "rowSummary": "{contacts, plural, one {# contact} few {# contacte} other {# de contacte}} · {views, plural, one {# vizualizare} few {# vizualizări} other {# de vizualizări}} · {favorites, plural, one {# salvare} few {# salvări} other {# de salvări}}",
+    "status": {
+      "Draft": "Ciornă",
+      "PendingReview": "În verificare",
+      "Active": "Activ",
+      "Rejected": "Respins",
+      "Suspended": "Suspendat",
+      "Rented": "Închiriat",
+      "Sold": "Vândut",
+      "Archived": "Dezactivat",
+      "Expired": "Expirat"
+    },
+    "emptyTitle": "Încă nu sunt cifre pentru această perioadă",
+    "emptyBody": "Vizualizările, telefoanele afișate și conversațiile apar aici din ziua în care anunțurile agenției sunt publice.",
+    "addListing": "Adaugă anunț"
+  },
   "AgencyManage": {
     "myAgenciesTitle": "Agențiile mele",
     "myAgenciesIntro": "Agențiile din care faci parte. Ca membru poți publica anunțuri în numele lor.",
@@ -1643,6 +1703,7 @@
       "profile": "Profil",
       "members": "Membri",
       "listings": "Anunțuri",
+      "stats": "Statistici",
       "settings": "Setări"
     },
     "role": {

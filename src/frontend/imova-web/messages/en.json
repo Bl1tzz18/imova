@@ -1628,6 +1628,66 @@
     "goHome": "Go to the home page",
     "agencyInactive": "This agency is currently inactive: its profile and listings aren't public. You can still join, and its listings will show again once it's reactivated."
   },
+  "AgencyStats": {
+    "pageTitle": "Stats — {name}",
+    "period": "Last {days} days · {from} – {to}",
+    "intro": "Arrows compare with the period of the same length before.",
+    "introAgent": "Your listings only. Arrows compare with the period of the same length before.",
+    "periodLabel": "Period",
+    "preset": "{days} days",
+    "contacts": "Contacts",
+    "views": "Views",
+    "favorites": "Saves",
+    "contactsBreakdown": "{phones, plural, one {# phone number shown} other {# phone numbers shown}} · {messages, plural, one {# new conversation} other {# new conversations}}",
+    "agencyReveals": "Of those numbers, {count} from the agency page",
+    "contactRate": "{rate}% of views turned into contacts",
+    "changeNew": "new",
+    "changeSame": "same",
+    "change": {
+      "up": "{percent}% more than the period before",
+      "down": "{percent}% less than the period before"
+    },
+    "contactsPerDay": "Contacts per day",
+    "viewsPerDay": "Views per day",
+    "chartTotal": "Total {count}",
+    "chartDay": "{day}: {count}",
+    "chartLabel": "{title}, by day: {count} in total. The values are in the table below.",
+    "showTable": "Show table",
+    "tableDay": "Day",
+    "attentionTitle": "To improve",
+    "attentionIntro": "Listings that could bring more — each with the step that helps.",
+    "reason": {
+      "FewPhotos": "Fewer than 3 photos — it can't be edited or renewed until you add them.",
+      "NoContacts": "{views, plural, one {# view} other {# views}} but no contacts — check the price, description and photos.",
+      "ExpiringSoon": "Expires on {date} — renew it to keep it public."
+    },
+    "fix": {
+      "addPhotos": "Add photos",
+      "edit": "Review"
+    },
+    "renew": "Renew",
+    "renewing": "Renewing…",
+    "topTitle": "Listings with the most contacts",
+    "topIntro": "In the chosen period — by contacts, then by views.",
+    "colListing": "Listing",
+    "colRate": "Contact rate",
+    "contactsSplit": "{phones} calls · {messages} msg.",
+    "rowSummary": "{contacts, plural, one {# contact} other {# contacts}} · {views, plural, one {# view} other {# views}} · {favorites, plural, one {# save} other {# saves}}",
+    "status": {
+      "Draft": "Draft",
+      "PendingReview": "In review",
+      "Active": "Active",
+      "Rejected": "Rejected",
+      "Suspended": "Suspended",
+      "Rented": "Rented",
+      "Sold": "Sold",
+      "Archived": "Deactivated",
+      "Expired": "Expired"
+    },
+    "emptyTitle": "No numbers for this period yet",
+    "emptyBody": "Views, phone numbers shown and conversations appear here from the day the agency's listings are public.",
+    "addListing": "Add listing"
+  },
   "AgencyManage": {
     "myAgenciesTitle": "My agencies",
     "myAgenciesIntro": "The agencies you belong to. As a member you can publish listings on their behalf.",
@@ -1643,6 +1703,7 @@
       "profile": "Profile",
       "members": "Members",
       "listings": "Listings",
+      "stats": "Stats",
       "settings": "Settings"
     },
     "role": {
