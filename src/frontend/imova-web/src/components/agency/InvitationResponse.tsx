@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AuthNotice } from "@/components/auth/AuthCard";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { respondToInvitation, type InvitationResponseState } from "@/lib/agency/actions";
+import { MY_AGENCIES_HREF } from "@/lib/agency/manage";
 
 const initialState: InvitationResponseState = {};
 
@@ -17,7 +18,7 @@ export function InvitationResponse({ token, agencyName }: { token: string; agenc
     return (
       <div className="flex flex-col gap-4">
         <AuthNotice tone="success">{t("accepted", { agency: agencyName })}</AuthNotice>
-        <LinkButton href="/account" className="w-full">
+        <LinkButton href={MY_AGENCIES_HREF} className="w-full">
           {t("goToAccount")}
         </LinkButton>
       </div>

@@ -5,6 +5,7 @@ using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.CreateAgency;
 using Imova.Application.Features.Agencies.Directory;
 using Imova.Application.Features.Agencies.GetAgency;
+using Imova.Application.Features.Agencies.Listings;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Application.Features.Agencies.UpdateAgency;
 using Imova.Contracts.Agencies;
@@ -111,6 +112,13 @@ public static class AgencyEndpoints
                 cancellationToken);
             return phone is null ? Results.NotFound() : Results.Ok(phone);
         }).RequireRateLimiting(ListingVisitorRateLimiting.PhoneRevealPolicy);
+
+        // Its listings in every status, for the management page — members (an Agent: their own) and admins.
+        app.MapGet("/api/v1/agencies/{id:guid}/listings", async (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            var listings = await sender.Send(new GetAgencyListingsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
+            return listings is null ? Results.NotFound() : Results.Ok(listings);
+        }).RequireAuthorization();
 
         app.MapPut("/api/v1/agencies/{id:guid}", async (
             Guid id,

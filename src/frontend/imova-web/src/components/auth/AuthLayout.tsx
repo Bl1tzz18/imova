@@ -5,6 +5,7 @@ import { AuthTabs } from "@/components/auth/AuthTabs";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { NEW_AGENCY_HREF } from "@/lib/agency/manage";
 
 export async function AuthLayout({
   mode,
@@ -26,7 +27,7 @@ export async function AuthLayout({
       footer={
         <p className="mt-6 text-sm text-ink-500">
           {t("agencyPrompt")}{" "}
-          <Link href="/properties/new" className="font-medium text-brand-700 hover:text-brand-800">
+          <Link href={NEW_AGENCY_HREF} className="font-medium text-brand-700 hover:text-brand-800">
             {t("agencyCta")}
           </Link>
         </p>

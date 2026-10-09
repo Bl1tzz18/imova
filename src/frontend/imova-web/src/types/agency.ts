@@ -53,6 +53,31 @@ export type MyAgency = {
   role: AgencyRole;
 };
 
+// A member as the agency's other members see them (GET /api/v1/agencies/{id}/members). listingCount:
+// the listings they wrote under the agency — what would be handed on if they left.
+export type AgencyMember = {
+  userId: string;
+  name: string;
+  email: string;
+  pictureUrl: string | null;
+  role: AgencyRole;
+  joinedAt: string;
+  listingCount: number;
+};
+
+// An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).
+// emailFailedAt: its latest email couldn't be sent — resend it.
+export type AgencyInvitation = {
+  id: string;
+  email: string;
+  role: AgencyRole;
+  status: "Pending" | "Expired";
+  lastSentAt: string;
+  expiresAt: string;
+  invitedByName: string | null;
+  emailFailedAt: string | null;
+};
+
 // An invitation as its recipient sees it (GET /api/v1/invitations/{token}).
 export type Invitation = {
   id: string;

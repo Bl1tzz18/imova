@@ -67,6 +67,30 @@ public class AgencyListingEndpointsTests : IClassFixture<WebApplicationFactory<P
     }
 
     [Fact]
+    public async Task TheAgencyListings_ShowManagersEverything_AnAgentTheirOwn_OutsidersNothing()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var (agent, agentUser) = await ListingApi.RegisterAsync(_factory);
+        var (stranger, _) = await ListingApi.RegisterAsync(_factory);
+        var agency = await CreateAgencyAsync(owner);
+        await AddMemberAsync(agency.Id, agentUser.Id, AgencyRole.Agent);
+        var ownersListing = (await (await PublishAsync(owner, agency.Id)).Content.ReadFromJsonAsync<ListingDto>())!;
+        var agentsListing = (await (await PublishAsync(agent, agency.Id)).Content.ReadFromJsonAsync<ListingDto>())!;
+        await PublishAsync(owner, null);
+
+        var forOwner = (await owner.GetFromJsonAsync<List<ListingDto>>($"/api/v1/agencies/{agency.Id}/listings"))!;
+        Assert.Equal(new[] { agentsListing.Id, ownersListing.Id }, forOwner.Select(l => l.Id));
+        Assert.All(forOwner, l => Assert.Equal("PendingReview", l.Status));
+
+        var forAgent = (await agent.GetFromJsonAsync<List<ListingDto>>($"/api/v1/agencies/{agency.Id}/listings"))!;
+        Assert.Equal([agentsListing.Id], forAgent.Select(l => l.Id));
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await stranger.GetAsync($"/api/v1/agencies/{agency.Id}/listings")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _factory.CreateClient().GetAsync($"/api/v1/agencies/{agency.Id}/listings")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await owner.GetAsync($"/api/v1/agencies/{Guid.NewGuid()}/listings")).StatusCode);
+    }
+
+    [Fact]
     public async Task SomeoneOutsideTheAgency_CantPublishUnderIt()
     {
         var (owner, _) = await ListingApi.RegisterAsync(_factory);
