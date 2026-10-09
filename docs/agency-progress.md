@@ -2,8 +2,9 @@
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
 **PR 1 (steps 1–5, branch `feat/agencies`) was merged on 2026-10-06:
-https://github.com/Bl1tzz18/imova/pull/32.** PR 2 (steps 6–7) is on branch `feat/agency-management`
-(from `main` at `571fd0c`), **not pushed**. Last updated 2026-10-09. Next: step 7.
+https://github.com/Bl1tzz18/imova/pull/32.** **PR 2 (steps 6–7) is complete** on branch
+`feat/agency-management` (from `main` at `571fd0c`), **not pushed**; its description is
+`docs/pr-2-description.md`. Last updated 2026-10-09. Next: push and open PR 2, then PR 3 (statistics).
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -69,6 +70,24 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 |---|---|---|
 | — | `e5dac11` | Not part of the agency work: the imova.md domain is bought. `docs/development.md` now names `https://imova.md` as the production `SITE_URL`, `App:WebBaseUrl` and CORS origin (the stale "CORS is locked in Program.cs" line points to the `Cors:AllowedOrigins` section); the `GeocodingOptions` comment no longer calls the domain a placeholder. The committed `UserAgent` defaults (code and `appsettings.json`, Nominatim and Photon) and the email sender `no-reply@imova.md` already used the domain — nothing else to change. The gitignored `appsettings.Development.json` was changed locally only: `IMOVA/1.0 (dev; +https://imova.md)`. |
 | 6 | `423a062` | Management UI. API: `GET /api/v1/agencies/{id}/listings` (every status; Owners/Admins/site admins all, an Agent their own; 403 non-member, 404 unknown/hidden; newest first). Web: `/account?tab=agencies` "Agențiile mele" (invitations with Accept/Decline + a count badge on the tab, my agencies, "Creează o agenție" only with a confirmed email; the account tabs now keep `?tab=` in the address). `/account/agencies/new` (profile form → `/account/agencies/{id}?created=1`, which asks for a logo). `/account/agencies/[id]` layout (logo, role, status, public link) + tabs as routes: Profil (logo via the route handler `/account/agencies/[id]/logo` — 5 MB logos don't fit a server action's 1 MB; form with live preview, bio counter, Save off until changed, leave-page warning incl. in-app links; Agents read-only), `/members` (role select per `AgencyAccess`, last Owner fixed, stepping down confirmed, remove with heir choice defaulting like the API, invite form, open invitations with resend/revoke and the `emailFailedAt` warning), `/listings` (`OwnerListingsList` with `showAuthor` + agency empty texts, "Adaugă anunț" → `/properties/new?agencyId=`), `/settings` (public link + copy, leave with heir choice; last Owner told why not). Invitation page "accepted" → the agencies tab; login/register "Ai o agenție?" → `/account/agencies/new`. Shared `components/ui/ConfirmDialog`; rules in `lib/agency/manage.ts`; namespace `AgencyManage` (ro/en/ru); `agency.logoTooSmall` text now says "the longer side". |
+
+| — | `12c81c3` | Not part of the agency work: profile pictures up to 5 MB really upload. A 4.35 MB phone photo failed ("Body exceeded 1 MB limit" — server actions stop at 1 MB) and the page hung on "Se încarcă...". Now `/account/profile-picture` (route handler, POST/DELETE) like the agency logo, both through `lib/api/imageUploadProxy.ts` with the limits in `lib/api/uploadSize.ts`; a failed request shows an error. Tests: `uploadSize.test.ts`, `ProfilePictureEndpointsTests` (4.35 MB → 200, 5 MB + 1 → 400). |
+| 6 | `d9cbe5c` | Follow-up: the Anunțuri tab is paged by the API, 24 per page. `GET /api/v1/agencies/{id}/listings?group=&q=&sort=&page=&pageSize=` → `AgencyListingsPageDto` (items + every tab's count and needs-attention, after the search). "Anunțurile mele"'s rules moved to the server (`AgencyListingGroups`) over a light row per listing; DTOs only for the page. Web: `AgencyListingsList` (server-rendered; tabs as links, search + sort as a GET form, `OwnerListingRow` exported, `LinkPagination`). "Anunțurile mele" itself has no paging (it never had) and is unchanged. |
+| 7 | `2c0360b` | Deactivate / reactivate / delete and admin verification. API: `POST /api/v1/agencies/{id}/deactivate|reactivate`, `DELETE /api/v1/agencies/{id} {confirmName}`, `GET /api/v1/admin/agencies`, `POST /api/v1/admin/agencies/{id}/verify|unverify` (email to the Owners). `ListingVisibility` (Active and not under a deactivated agency) used by search/map, `GET /listings`, the listing page, similar listings (SQL), views, phone reveal, reports, starting a conversation, favorite alerts. `Listing.ChangeAgency` clears `ExternalRef`. Web: Setări (deactivate confirmed / reactivate, delete by typing the name), `/admin/agencies` (+ account menu "Verificare agenții"). Error code `agency.confirmNameMismatch`; namespace `AdminAgencies`. |
+
+Tests at the end of step 7 (PR 2 complete): backend 1,312 unit + 269 integration + 5 architecture,
+frontend 430 Vitest; `tsc` clean.
+
+**Step 7 browser check (2026-10-09, rebuilt containers):** Casa Ta deactivated from Setări as Elena
+(confirm dialog; header badge "Dezactivată"; public: listing 404, agency page 404, search 0; Elena still
+opens the listing) and reactivated (10 back in search). A throwaway agency created through the UI, logo
+uploaded (2 files in Azurite), a misspelled name kept Delete off, the exact name deleted it → back on
+the agencies tab, both logo files gone. `/admin/agencies` at 1280 and 390 px as Ion with a temporary
+Admin role: Casa Ta verified (email in Mailpit to Elena), verification removed again (confirm dialog);
+the role removed after. Paging (step 6 follow-up) with 40 listings (30 temporary copies, deleted): 24 +
+16, search "botanica" (20), price order, 390 px. Azurite: 24 unreferenced agency-logo files (12 agency
+ids — "Test Pas Șase Imobil" and earlier test runs) deleted by hand; nothing under `agencies/` now.
+Dev data as before: Casa Ta active, not verified, 10 listings; Ion has only the User role.
 
 Tests at the end of step 6: backend 1,286 unit + 263 integration + 5 architecture, frontend 418 Vitest;
 `tsc` clean (new: `AgencyListingsHandlerTests` 7, one integration test in `AgencyListingEndpointsTests`,
@@ -180,12 +199,7 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 
 **Step 6 — done** (`423a062`), see above.
 
-**Step 7 (next)**
-- Deactivate/reactivate/delete endpoints (`Agency` has no domain methods for these yet) and the
-  hiding listed under decisions; admin verify/unverify + `/admin/agencies`; "verification granted" email.
-- UI goes into the Setări tab (`/account/agencies/[id]/settings`, after "Pagina publică"): deactivate /
-  reactivate, delete (type the name to confirm; listings stay with their authors as private). The
-  layout already shows a "Dezactivată" badge and hides the public link for a deactivated agency.
+**Step 7 — done** (`2c0360b`), see above.
 
 **Later PRs and wrap-up**
 - PR 3: stats (daily aggregate, `GET /api/v1/agencies/{id}/stats`, Statistici tab).
@@ -196,12 +210,15 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 
 ## Known issues and notes
 
-- `GET /api/v1/agencies/{id}/listings` isn't paginated (like `/users/me/listings`); fine at today's
-  sizes, but the CSV import (PR 4) can bring 2,000 listings at once — page it then.
-- Not verified, noticed while building step 6: the profile picture upload (`uploadProfilePicture`) sends
-  the file through a server action, whose default body limit is 1 MB, while the UI allows 5 MB — a
-  picture over 1 MB probably fails. Not touched; worth a check (and the same route-handler approach as
-  the agency logo if confirmed).
+- The Anunțuri tab's API loads a light row for every listing of the agency to group, search and sort in
+  memory (only the page's DTOs are built); fine for hundreds or a few thousand — move it into SQL if
+  agencies get much bigger.
+- Integration tests use their own database but the dev Azurite container, so their uploads (agency
+  logos, profile pictures) pile up there; clean by hand now and then (a Shared Key script against the
+  public Azurite dev key was used on 2026-10-09).
+- Listing expiry reminders still go out for listings of a deactivated agency; its ended listings still
+  show their 410 summary page.
+- Verifying is logged, not written to `AdminAuditEntries` (that table's target is a user).
 
 - The two load-sensitive tests (`MessageContentFilterTests.SuspiciousMessages_AreFlaggedWithAReason`,
   `MessagingEndpointsTests.BlockedVisitor_Gets403_AndAReportReachesAdmins`) shared one cause — a cold
@@ -220,11 +237,9 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 - Dev database: one accepted invitation row for `ion.popescu@demo.imova.md` → Casa Ta Imobiliare is
   left as history (Ion was removed from the agency again). A dump taken before the `AddAgencies`
   migration was saved in the session scratchpad and may not survive.
-- The compose containers were rebuilt at step 6 (all migrations applied; steps 5 and 6 added none); rebuild
+- The compose containers were rebuilt at step 7 (all migrations applied; steps 5–7 added none); rebuild
   `backend`, `worker` and `frontend` again after the next code change, before a browser check. A
   frontend build once failed in `next/font` (fetching Google Fonts) and passed on a plain retry.
-- Until step 7, a deactivated agency's listings still appear in search, on the map and through
-  `?agencyId=` — only its page, directory card and phone reveal are hidden.
 - The directory's `q` is a substring match (on the name, case-insensitive, and on the slug, which
   covers diacritics and Cyrillic) — words typed in another order ("imobiliare casa") don't match.
 - Agency phone reveals are rate-limited but not counted (agency statistics are PR 3).
@@ -248,7 +263,10 @@ home page's "Anunțuri moderate", `06be883`).
 **e) ~~PR 2, step 6: the management UI~~** — done 2026-10-09 (`423a062`, on `feat/agency-management`,
 not pushed).
 
-**f) Next — step 7:** deactivate/reactivate/delete (API + the Setări tab) and admin verification
-(`/admin/agencies`, verify/unverify, the email) — see "Open items" above; tests and a browser check at
-360/390/1280 px; stop after it with build + tests green, commit, update this file. Then the PR 2
-description and opening PR 2.
+**f) ~~Step 7~~** — done 2026-10-09 (`2c0360b`), with the profile picture fix (`12c81c3`) and the paged
+Anunțuri tab (`d9cbe5c`) before it.
+
+**g) ~~The PR 2 description~~** — `docs/pr-2-description.md`.
+
+**h) Next — push `feat/agency-management` and open PR 2** against `main` (the product owner pushes);
+then PR 3: statistics (daily aggregate, `GET /api/v1/agencies/{id}/stats`, Statistici tab).
