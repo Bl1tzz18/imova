@@ -11,8 +11,8 @@ public class GeocodingOptions
 
     // Nominatim's usage policy requires a descriptive User-Agent identifying the application so
     // OSM can contact the operator if this integration ever causes trouble — a generic browser-ish
-    // User-Agent risks getting silently blocked. Override per environment via configuration once a
-    // real contact address exists.
+    // User-Agent risks getting silently blocked. The default points at the live site, imova.md;
+    // configuration can still override it per environment.
     public string UserAgent { get; set; } = "IMOVA/1.0 (+https://imova.md)";
 
     // Nominatim's policy caps usage at 1 request/second — NominatimGeocodingService enforces this

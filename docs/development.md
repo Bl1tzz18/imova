@@ -61,10 +61,10 @@ not `localhost`. If running the frontend outside Docker, `API_URL` defaults to
 
 `SITE_URL` (server-only, default `http://localhost:3000`) is the site's own public address: page
 metadata (canonical links, the `og:url` of link previews) and the listing page's JSON-LD use it. Set
-it to the real domain in every deployed environment, or shared links will point at localhost.
+it to `https://imova.md` in production, or shared links will point at localhost.
 
-Backend CORS is currently locked to `http://localhost:3000` (`Program.cs`); update the `"Frontend"`
-CORS policy if the frontend origin changes.
+Backend CORS origins come from `Cors:AllowedOrigins` (default `http://localhost:3000`; production
+`https://imova.md`) — see "CORS" below.
 
 ### Backend only
 
@@ -134,7 +134,8 @@ The login token lasts 15 minutes; `src/middleware.ts` in the web app renews it f
 a new row appears in `RefreshTokens` with the previous one marked `ReplacedAt`.
 
 - **Links in emails** (email confirmation, password reset, new-message notifications) point at
-  `App:WebBaseUrl` (compose: `App__WebBaseUrl=http://localhost:3000`). In compose the emails land in
+  `App:WebBaseUrl` (compose: `App__WebBaseUrl=http://localhost:3000`; production:
+  `https://imova.md`, for the API and the Worker alike). In compose the emails land in
   Mailpit (http://localhost:8025); without an `Email:Host` they're only logged.
 - **Link tokens** are ASP.NET data-protection tokens, valid 24 h. The key ring is stored in Postgres
   (`DataProtectionKeys` table), so links survive a backend rebuild/restart. Deleting that table's
