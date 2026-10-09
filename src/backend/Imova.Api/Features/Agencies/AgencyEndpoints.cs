@@ -113,10 +113,30 @@ public static class AgencyEndpoints
             return phone is null ? Results.NotFound() : Results.Ok(phone);
         }).RequireRateLimiting(ListingVisitorRateLimiting.PhoneRevealPolicy);
 
-        // Its listings in every status, for the management page — members (an Agent: their own) and admins.
-        app.MapGet("/api/v1/agencies/{id:guid}/listings", async (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        // Its listings in every status, for the management page — members (an Agent: their own) and
+        // admins. One page of one tab: ?group=active|unpublished|ended&q=&sort=&page=&pageSize= (≤ 60).
+        app.MapGet("/api/v1/agencies/{id:guid}/listings", async (
+            Guid id,
+            string? group,
+            string? q,
+            string? sort,
+            int? page,
+            int? pageSize,
+            ClaimsPrincipal user,
+            ISender sender,
+            CancellationToken ct) =>
         {
-            var listings = await sender.Send(new GetAgencyListingsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
+            var listings = await sender.Send(
+                new GetAgencyListingsQuery(
+                    id,
+                    user.GetUserId(),
+                    user.IsInRole(Roles.Admin),
+                    group,
+                    q,
+                    sort,
+                    page ?? 1,
+                    pageSize ?? GetAgencyListingsQuery.DefaultPageSize),
+                ct);
             return listings is null ? Results.NotFound() : Results.Ok(listings);
         }).RequireAuthorization();
 

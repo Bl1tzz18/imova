@@ -1,3 +1,5 @@
+import type { Listing } from "@/types/listing";
+
 export type AgencyRole = "Owner" | "Admin" | "Agent";
 
 export type InvitationStatus = "Pending" | "Accepted" | "Declined" | "Revoked" | "Expired";
@@ -63,6 +65,21 @@ export type AgencyMember = {
   role: AgencyRole;
   joinedAt: string;
   listingCount: number;
+};
+
+// One page of the agency's management list (GET /api/v1/agencies/{id}/listings): the group shown,
+// and every group's count + whether something in it waits on the owner (after the search).
+export type AgencyListingGroupSummary = { count: number; needsAttention: boolean };
+
+export type AgencyListingsPage = {
+  items: Listing[];
+  group: "Active" | "Unpublished" | "Ended";
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  active: AgencyListingGroupSummary;
+  unpublished: AgencyListingGroupSummary;
+  ended: AgencyListingGroupSummary;
 };
 
 // An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).

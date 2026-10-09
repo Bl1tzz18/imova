@@ -48,22 +48,16 @@ const statusBadgeTone: Record<string, "brand" | "accent" | "neutral"> = {
 // waits on the owner, which is also listed first. From OWNER_TOOLS_FROM listings on, a search (title
 // and place, across all three tabs — the counts show where the matches are) and a sort. Tab, search
 // and sort are kept in the URL (?tab=&q=&sort=).
-// showAuthor: name who wrote each listing (an agency's listings, written by several people);
-// empty: what to say when there are no listings at all, instead of the "my listings" wording.
 export function OwnerListingsList({
   listings,
   initialTab,
   initialQuery = "",
   initialSort,
-  showAuthor = false,
-  empty,
 }: {
   listings: Listing[];
   initialTab?: string;
   initialQuery?: string;
   initialSort?: string;
-  showAuthor?: boolean;
-  empty?: { title: string; body: string };
 }) {
   const t = useTranslations("MyListingsPage");
   const now = new Date();
@@ -180,19 +174,19 @@ export function OwnerListingsList({
         {visible.length > 0 ? (
           <ul className="mt-5 flex flex-col gap-3">
             {visible.map((listing) => (
-              <OwnerListingRow key={listing.id} listing={listing} now={now} showStatus={tab !== "active"} showAuthor={showAuthor} />
+              <OwnerListingRow key={listing.id} listing={listing} now={now} showStatus={tab !== "active"} />
             ))}
           </ul>
         ) : (
           <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-14 text-center">
             <p className="text-sm font-medium text-ink-700">
               {listings.length === 0
-                ? (empty?.title ?? t("emptyTitle"))
+                ? t("emptyTitle")
                 : query.trim()
                   ? t("searchEmpty", { query: query.trim() })
                   : t(`groupEmpty.${tab}`)}
             </p>
-            {listings.length === 0 && <p className="text-sm text-ink-500">{empty?.body ?? t("emptyBody")}</p>}
+            {listings.length === 0 && <p className="text-sm text-ink-500">{t("emptyBody")}</p>}
             {listings.length > 0 && query.trim() && (
               <button
                 type="button"
@@ -215,17 +209,18 @@ export function OwnerListingsList({
 // One listing: photo, title, status + place, price, the line that matters for its status (until
 // when it's active, or the moderators' reason), and its actions — beside it on a wide screen, in
 // their own row under it on a phone.
-// showStatus: off in the Active tab, where every listing is active anyway.
-function OwnerListingRow({
+// showStatus: off in the Active tab, where every listing is active anyway. showAuthor: name who
+// wrote it (an agency's list, written by several people). Also the row of an agency's Anunțuri tab.
+export function OwnerListingRow({
   listing,
   now,
   showStatus,
-  showAuthor,
+  showAuthor = false,
 }: {
   listing: Listing;
   now: Date;
   showStatus: boolean;
-  showAuthor: boolean;
+  showAuthor?: boolean;
 }) {
   const t = useTranslations("MyListingsPage");
   const locale = useLocale();

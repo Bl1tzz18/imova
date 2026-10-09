@@ -1,7 +1,14 @@
 import { cache } from "react";
 import { getSessionToken } from "@/lib/auth/session";
-import type { Agency, AgencyDirectoryPage, AgencyInvitation, AgencyMember, Invitation, MyAgency } from "@/types/agency";
-import type { Listing } from "@/types/listing";
+import type {
+  Agency,
+  AgencyDirectoryPage,
+  AgencyInvitation,
+  AgencyListingsPage,
+  AgencyMember,
+  Invitation,
+  MyAgency,
+} from "@/types/agency";
 import type { Raion } from "@/lib/api/locations";
 
 function apiUrl(): string {
@@ -74,9 +81,9 @@ export function getAgencyInvitations(id: string): Promise<AgencyInvitation[] | n
   return getAsMember<AgencyInvitation[]>(`/api/v1/agencies/${encodeURIComponent(id)}/invitations`);
 }
 
-// Its listings in every status (an Agent gets only theirs).
-export function getAgencyListings(id: string): Promise<Listing[] | null> {
-  return getAsMember<Listing[]>(`/api/v1/agencies/${encodeURIComponent(id)}/listings`);
+// One page of its listings in every status (an Agent gets only theirs). `query`: agencyListingsApiQuery.
+export function getAgencyListings(id: string, query: string): Promise<AgencyListingsPage | null> {
+  return getAsMember<AgencyListingsPage>(`/api/v1/agencies/${encodeURIComponent(id)}/listings?${query}`);
 }
 
 // The invitations waiting for the signed-in account (its email), newest first.

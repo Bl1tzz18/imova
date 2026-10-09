@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  agencyListingsApiQuery,
+  agencyListingsTabHref,
+  parseAgencyListingsParams,
+  tabOfGroup,
   agencyInitials,
   agencyManagePath,
   agencyProfileChanged,
@@ -112,6 +116,42 @@ describe("heirs", () => {
 
   it("has no heir when nobody qualifies", () => {
     expect(defaultHeir([owner, agent], "owner", "owner")).toBeNull();
+  });
+});
+
+describe("the Anunțuri tab's address", () => {
+  it("reads tab, search, sort and page, ignoring what it doesn't know", () => {
+    expect(parseAgencyListingsParams({ tab: "ended", q: "  botanica ", sort: "priceAsc", page: "3" })).toEqual({
+      tab: "ended",
+      q: "botanica",
+      sort: "priceAsc",
+      page: 3,
+    });
+    expect(parseAgencyListingsParams({ tab: "all", sort: "cheap", page: "-1" })).toEqual({
+      tab: undefined,
+      q: "",
+      sort: "recommended",
+      page: 1,
+    });
+  });
+
+  it("writes only what differs from the defaults", () => {
+    expect(agencyListingsTabHref("a1", { sort: "recommended", page: 1 })).toBe("/account/agencies/a1/listings");
+    expect(agencyListingsTabHref("a1", { tab: "unpublished", q: "garaj", sort: "newest", page: 2 })).toBe(
+      "/account/agencies/a1/listings?tab=unpublished&q=garaj&sort=newest&page=2",
+    );
+  });
+
+  it("asks the API for one page of 24, the tab only when one was chosen", () => {
+    expect(agencyListingsApiQuery({ q: "", sort: "recommended", page: 1 })).toBe("sort=recommended&page=1&pageSize=24");
+    expect(agencyListingsApiQuery({ tab: "ended", q: "casa", sort: "priceDesc", page: 4 })).toBe(
+      "group=ended&q=casa&sort=priceDesc&page=4&pageSize=24",
+    );
+  });
+
+  it("maps the API's group names to tabs", () => {
+    expect(tabOfGroup("Unpublished")).toBe("unpublished");
+    expect(tabOfGroup("Whatever")).toBe("active");
   });
 });
 

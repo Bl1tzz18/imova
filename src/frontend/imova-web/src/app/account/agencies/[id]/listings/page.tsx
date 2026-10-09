@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { LinkButton } from "@/components/ui/Button";
-import { OwnerListingsList } from "@/components/property/OwnerListingsList";
+import { AgencyListingsList } from "@/components/agency/manage/AgencyListingsList";
 import { getAgencyForMember, getAgencyListings } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
-import { canManage } from "@/lib/agency/manage";
+import { agencyListingsApiQuery, canManage, parseAgencyListingsParams } from "@/lib/agency/manage";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -13,24 +13,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: agency ? t("listingsPageTitle", { name: agency.name }) : undefined, robots: { index: false } };
 }
 
-// The Anunțuri tab: the agency's listings in every status, with the same tabs, search, sort and
-// actions as "Anunțurile mele" (the listing actions already allow an agency's Owners/Admins). An
-// Agent sees only their own. "Adaugă anunț" opens the form on this agency.
+// The Anunțuri tab: the agency's listings in every status, a page at a time (?tab=&q=&sort=&page=),
+// with the same rows and actions as "Anunțurile mele" (the listing actions already allow an agency's
+// Owners/Admins). An Agent sees only their own. "Adaugă anunț" opens the form on this agency.
 export default async function AgencyListingsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; q?: string; sort?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ id }, { tab, q, sort }] = await Promise.all([params, searchParams]);
-  const [agency, profile, listings, t] = await Promise.all([
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const state = parseAgencyListingsParams(query);
+  const [agency, profile, result, t] = await Promise.all([
     getAgencyForMember(id),
     getCurrentUserProfile(),
-    getAgencyListings(id),
+    getAgencyListings(id, agencyListingsApiQuery(state)),
     getTranslations("AgencyManage"),
   ]);
-  if (!agency || !profile || !listings) notFound();
+  if (!agency || !profile || !result) notFound();
 
   const managesAll = canManage(agency.myRole, profile.roles.includes("Admin"));
 
@@ -44,14 +45,7 @@ export default async function AgencyListingsPage({
           </LinkButton>
         )}
       </div>
-      <OwnerListingsList
-        listings={listings}
-        initialTab={tab}
-        initialQuery={q ?? ""}
-        initialSort={sort}
-        showAuthor={managesAll}
-        empty={{ title: t("listingsEmptyTitle"), body: t("listingsEmptyBody") }}
-      />
+      <AgencyListingsList agencyId={agency.id} state={state} result={result} showAuthor={managesAll} />
     </div>
   );
 }

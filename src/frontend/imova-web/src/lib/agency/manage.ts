@@ -1,4 +1,5 @@
 import type { Agency, AgencyMember, AgencyRole } from "@/types/agency";
+import { OWNER_GROUPS, parseOwnerSort, type OwnerGroup, type OwnerSort } from "@/lib/listing/ownerGroups";
 
 // The agency management pages (/account/agencies/...) — pure rules, Vitest-covered. Who may do what
 // mirrors the API's AgencyAccess (which has the last word); the UI only leaves out what would be refused.
@@ -100,6 +101,64 @@ export function defaultHeir(members: AgencyMember[], leavingUserId: string, acto
   const options = heirOptions(members, leavingUserId);
   if (actorId && options.some((m) => m.userId === actorId)) return actorId;
   return options[0]?.userId ?? null;
+}
+
+// --- The Anunțuri tab: one page of one group, all in the address ---
+
+// Same page size as the agency's public page and search.
+export const AGENCY_MANAGE_PAGE_SIZE = 24;
+
+export type AgencyListingsTabState = {
+  // Undefined: let the API pick (Active, else the first group with listings).
+  tab?: OwnerGroup;
+  q: string;
+  sort: OwnerSort;
+  page: number;
+};
+
+type Params = Record<string, string | string[] | undefined>;
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export function parseAgencyListingsParams(params: Params): AgencyListingsTabState {
+  const tab = first(params.tab);
+  const page = Number(first(params.page));
+  return {
+    tab: (OWNER_GROUPS as readonly string[]).includes(tab ?? "") ? (tab as OwnerGroup) : undefined,
+    q: (first(params.q) ?? "").trim(),
+    sort: parseOwnerSort(first(params.sort)),
+    page: Number.isInteger(page) && page > 1 ? page : 1,
+  };
+}
+
+// The tab's own address; defaults left out (recommended order, page 1, no search).
+export function agencyListingsTabHref(agencyId: string, state: Partial<AgencyListingsTabState>): string {
+  const params = new URLSearchParams();
+  if (state.tab) params.set("tab", state.tab);
+  if (state.q) params.set("q", state.q);
+  if (state.sort && state.sort !== "recommended") params.set("sort", state.sort);
+  if (state.page && state.page > 1) params.set("page", String(state.page));
+  const query = params.toString();
+  return `${agencyManagePath(agencyId, "listings")}${query ? `?${query}` : ""}`;
+}
+
+// GET /api/v1/agencies/{id}/listings?… for that state.
+export function agencyListingsApiQuery(state: AgencyListingsTabState, pageSize = AGENCY_MANAGE_PAGE_SIZE): string {
+  const params = new URLSearchParams();
+  if (state.tab) params.set("group", state.tab);
+  if (state.q) params.set("q", state.q);
+  params.set("sort", state.sort);
+  params.set("page", String(state.page));
+  params.set("pageSize", String(pageSize));
+  return params.toString();
+}
+
+// The API's group name ("Unpublished") as the tab's ("unpublished").
+export function tabOfGroup(group: string): OwnerGroup {
+  const tab = group.toLowerCase();
+  return (OWNER_GROUPS as readonly string[]).includes(tab) ? (tab as OwnerGroup) : "active";
 }
 
 // --- The profile form ---
