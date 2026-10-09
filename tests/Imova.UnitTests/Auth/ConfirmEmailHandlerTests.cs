@@ -2,6 +2,7 @@ using FluentValidation;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Auth.ConfirmEmail;
+using Imova.Application.Features.Listings;
 using Imova.Domain.Listings;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
@@ -36,8 +37,10 @@ public class ConfirmEmailHandlerTests
         var user = _store.SeedUser("ana@example.com", emailConfirmed: false);
         var individual = ListingTestData.AddIndividualPublisher(_dbContext, user.Id);
         var agency = ListingTestData.AddAgency(_dbContext, user.Id);
-        var draft = ListingTestData.AddListing(_dbContext, individual.Id);
-        var agencyDraft = ListingTestData.AddListing(_dbContext, individual.Id, agencyId: agency.Id);
+        var draft = ListingTestData.AddListing(_dbContext, individual.Id, photos: ListingPhotoRules.MinPhotos);
+        var agencyDraft = ListingTestData.AddListing(_dbContext, individual.Id, agencyId: agency.Id, photos: ListingPhotoRules.MinPhotos);
+        // Short of photos: it stays a draft until its owner adds them (ListingPhotoRules).
+        var draftWithoutPhotos = ListingTestData.AddListing(_dbContext, individual.Id, photos: 2);
         var rejected = ListingTestData.AddListing(_dbContext, individual.Id).MoveTo(ListingStatus.Rejected);
         var someoneElsesDraft = ListingTestData.AddListing(_dbContext, ListingTestData.AddIndividualPublisher(_dbContext).Id);
         await _dbContext.SaveChangesAsync();
@@ -46,6 +49,7 @@ public class ConfirmEmailHandlerTests
 
         Assert.Equal(ListingStatus.PendingReview, draft.Status);
         Assert.Equal(ListingStatus.PendingReview, agencyDraft.Status);
+        Assert.Equal(ListingStatus.Draft, draftWithoutPhotos.Status);
         // A rejection needs the owner's fixes first — confirming doesn't resubmit it.
         Assert.Equal(ListingStatus.Rejected, rejected.Status);
         Assert.Equal(ListingStatus.Draft, someoneElsesDraft.Status);

@@ -1,5 +1,6 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Features.Agencies.Listings;
+using Imova.Application.Features.Listings;
 using Imova.Contracts.Agencies;
 using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
@@ -38,7 +39,7 @@ public class AgencyListingsHandlerTests : IAsyncDisposable
     {
         var publisher = await _db.Publishers.FirstOrDefaultAsync(p => p.UserId == userId)
             ?? ListingTestData.AddIndividualPublisher(_db, userId);
-        var listing = ListingTestData.AddListing(_db, publisher.Id, agencyId: agencyId).MoveTo(status);
+        var listing = ListingTestData.AddListing(_db, publisher.Id, agencyId: agencyId, photos: ListingPhotoRules.MinPhotos).MoveTo(status);
         await _db.SaveChangesAsync();
         return listing;
     }
@@ -158,6 +159,16 @@ public class AgencyListingsHandlerTests : IAsyncDisposable
         var result = (await ListAsync(_owner, group: "unpublished"))!;
 
         Assert.Equal([draft.Id, inReview.Id], result.Items.Select(l => l.Id));
+    }
+
+    [Fact]
+    public async Task AListingShortOfPhotos_NeedsAttention()
+    {
+        var publisher = ListingTestData.AddIndividualPublisher(_db, _owner);
+        ListingTestData.AddListing(_db, publisher.Id, agencyId: _agency.Id, photos: 2).MoveTo(ListingStatus.Active);
+        await _db.SaveChangesAsync();
+
+        Assert.True((await ListAsync(_owner))!.Active.NeedsAttention);
     }
 
     [Fact]

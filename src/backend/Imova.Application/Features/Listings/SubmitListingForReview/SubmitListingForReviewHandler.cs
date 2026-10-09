@@ -25,6 +25,7 @@ public class SubmitListingForReviewHandler(IApplicationDbContext dbContext, IBlo
             throw new ForbiddenAccessException(ReviewEligibility.EmailNotConfirmedMessage, ErrorCodes.EmailNotConfirmed);
         }
 
+        await ListingPhotoRules.EnsureEnoughAsync(dbContext, listing.Id, cancellationToken);
         ListingTransitions.Apply(listing.SubmitForReview);
         await dbContext.SaveChangesAsync(cancellationToken);
 

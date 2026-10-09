@@ -34,12 +34,18 @@ public static class ReviewEligibility
             .Where(l => l.Status == ListingStatus.Draft && publisherIds.Contains(l.PublisherId))
             .ToListAsync(cancellationToken);
 
+        // A draft short of photos (ListingPhotoRules) waits until its owner adds them and submits it.
+        var submitted = 0;
         foreach (var draft in drafts)
         {
-            draft.SubmitForReview();
+            if (await ListingPhotoRules.HasEnoughAsync(dbContext, draft.Id, cancellationToken))
+            {
+                draft.SubmitForReview();
+                submitted++;
+            }
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return drafts.Count;
+        return submitted;
     }
 }

@@ -297,6 +297,12 @@
     "photoTooLarge": "Fișier prea mare (max. 10MB)",
     "photoUploadFailed": "Încărcare eșuată",
     "removePhoto": "Elimină fotografia",
+    "photosRule": "Fiecare anunț de pe IMOVA are cel puțin {min} fotografii reale ale proprietății.",
+    "photosMissing": "{count} din {min} · {missing, plural, one {mai adaugă # fotografie} few {mai adaugă # fotografii} other {mai adaugă # de fotografii}}",
+    "photosEnough": "{count, plural, one {# fotografie} few {# fotografii} other {# de fotografii}} · gata",
+    "photosRecommend": "Recomandăm cel puțin {recommended}: fațada, fiecare cameră, bucătăria, baia și priveliștea.",
+    "photosNeeded": "Adaugă cel puțin {min} fotografii ca să continui ({missing, plural, one {mai lipsește #} few {mai lipsesc #} other {mai lipsesc #}}).",
+    "photosStillUploading": "Așteaptă să se încarce fotografiile, apoi continuă.",
     "tipsHeading": "Sfaturi pentru un anunț de succes",
     "tipPhotos": "Fotografii clare, făcute ziua, din mai multe unghiuri.",
     "tipPrice": "Un preț realist atrage mai multe mesaje de la persoane interesate.",
@@ -654,6 +660,7 @@
     },
     "needsAttention": "Necesită atenția ta",
     "byAuthor": "de {name}",
+    "addPhotos": "Adaugă fotografii",
     "moreActions": "Mai multe acțiuni",
     "searchLabel": "Caută în anunțurile tale",
     "searchPlaceholder": "Caută după titlu sau adresă",
@@ -1246,7 +1253,9 @@
         "notAgencyMember": "Poți publica doar în numele agențiilor din care faci parte.",
         "agencyInactive": "Agenția este dezactivată: momentan nu se pot publica anunțuri în numele ei.",
         "agencyChangeAuthorOnly": "Doar autorul anunțului îl poate publica în numele unei agenții.",
-        "agencyLeaveManagerOnly": "Doar proprietarii și administratorii agenției pot scoate un anunț din agenție."
+        "agencyLeaveManagerOnly": "Doar proprietarii și administratorii agenției pot scoate un anunț din agenție.",
+        "notEnoughPhotos": "Anunțul are nevoie de cel puțin {min} fotografii (are {count}). Adaugă fotografii și încearcă din nou.",
+        "lastPhotos": "Un anunț publicat sau în verificare păstrează cel puțin {min} fotografii. Adaugă una nouă înainte s-o ștergi pe aceasta."
       },
       "contact": {
         "nameRequired": "Introdu numele persoanei de contact.",

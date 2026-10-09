@@ -1,7 +1,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Listings;
+using Imova.Domain.Listings;
+using Imova.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Imova.Contracts.Auth;
 using Imova.Contracts.Locations;
 using Microsoft.AspNetCore.Identity;
@@ -105,11 +110,52 @@ internal static class ListingApi
 
     // An Apartment/Rent listing with every type-specific attribute filled in — tests override
     // individual keys as needed.
+    // Photo rows straight in the test database under `listingId`, uploaded by the client's user (read
+    // from its bearer token) — the upload flow itself has its own tests (IntegrationTests/Media). The
+    // blobs don't exist; nothing here reads them.
+    public static async Task AddPhotosAsync(HttpClient client, Guid listingId, int count = ListingPhotoRules.MinPhotos)
+    {
+        var token = client.DefaultRequestHeaders.Authorization?.Parameter
+            ?? throw new InvalidOperationException("The client isn't signed in.");
+        var payload = token.Split('.')[1].Replace('-', '+').Replace('_', '/');
+        payload = payload.PadRight(payload.Length + ((4 - (payload.Length % 4)) % 4), '=');
+        var userId = JsonDocument.Parse(Convert.FromBase64String(payload)).RootElement.GetProperty("sub").GetGuid();
+
+        var options = new DbContextOptionsBuilder<ImovaDbContext>()
+            .UseNpgsql(ConnectionString, npgsql => npgsql.UseNetTopologySuite())
+            .Options;
+        await using var db = new ImovaDbContext(options);
+        var existing = await db.Photos.CountAsync(p => p.ListingId == listingId);
+        for (var i = 0; i < count; i++)
+        {
+            db.Photos.Add(Photo.Create(
+                listingId,
+                $"{listingId}/test-{existing + i}.jpg",
+                "image/jpeg",
+                1024,
+                sortOrder: existing + i,
+                isPrimary: existing + i == 0,
+                uploadedByUserId: userId));
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    // A complete create body — with an id that already has the caller's MinPhotos photos under it,
+    // as the form would have uploaded them (a listing can't be created without; ListingPhotoRules).
     public static async Task<Dictionary<string, object?>> ValidBodyAsync(HttpClient client)
     {
         var raioane = await client.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane");
+        var id = Guid.NewGuid();
+        // An anonymous client only uses the body to be refused (401).
+        if (client.DefaultRequestHeaders.Authorization is not null)
+        {
+            await AddPhotosAsync(client, id);
+        }
+
         return new()
         {
+            ["id"] = id,
             // A private listing. PUT requires the field (null included), POST takes it as optional.
             ["agencyId"] = null,
             ["propertyType"] = "Apartment",

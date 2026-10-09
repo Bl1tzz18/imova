@@ -40,6 +40,7 @@ public class UpdateListingHandlerTests
         var property = ListingTestData.AddProperty(_dbContext, amenityIds: [_parking], proximityIds: [_school]);
         _listing = ListingTestData.NewListing(property.Id, publisher.Id);
         _dbContext.Listings.Add(_listing);
+        ListingTestData.AddPhotos(_dbContext, _listing.Id);
         _dbContext.SaveChanges();
     }
 

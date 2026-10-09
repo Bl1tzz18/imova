@@ -27,12 +27,15 @@ async function getListing(id: string, token: string): Promise<Listing | null> {
   return res.json();
 }
 
+// ?step=photos opens the form on its photos step ("Adaugă fotografii" in "Anunțurile mele").
 export default async function EditListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ step?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { step }] = await Promise.all([params, searchParams]);
   const token = await getSessionToken();
   if (!token) {
     redirect(`/login?next=${encodeURIComponent(`/my-listings/${id}/edit`)}`);
@@ -81,6 +84,7 @@ export default async function EditListingPage({
                   listing={listing}
                   agencies={rights.isAuthor ? agencies : []}
                   canChangeAgency={rights.canChangeAgency}
+                  initialStep={step === "photos" ? "photos" : undefined}
                 />
               </div>
             </>

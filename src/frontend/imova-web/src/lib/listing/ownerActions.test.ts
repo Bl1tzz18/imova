@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Listing } from "@/types/listing";
-import { ownerActions, ownerNotice } from "./ownerActions";
+import { needsPhotos, ownerActions, ownerNotice } from "./ownerActions";
 
 const now = new Date("2026-10-01T12:00:00Z");
 const inDays = (days: number) => new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+
+const threePhotos = [{}, {}, {}] as Listing["photos"];
 
 const listing = (status: Listing["status"], extra: Partial<Listing> = {}) =>
   ({
@@ -12,8 +14,25 @@ const listing = (status: Listing["status"], extra: Partial<Listing> = {}) =>
     expiresAt: null,
     rejectionReason: null,
     suspensionReason: null,
+    photos: threePhotos,
     ...extra,
   }) as Listing;
+
+describe("ownerActions for a listing short of photos", () => {
+  const twoPhotos = threePhotos.slice(0, 2);
+
+  it("leads with adding them, and keeps only what takes it off the site", () => {
+    expect(ownerActions(listing("Active", { photos: twoPhotos, expiresAt: inDays(3) }), now)).toEqual(["addPhotos", "markAsSold", "deactivate"]);
+    expect(ownerActions(listing("Draft", { photos: [] }), now)).toEqual(["addPhotos"]);
+    expect(ownerActions(listing("Rejected", { photos: twoPhotos }), now)).toEqual(["addPhotos"]);
+    expect(ownerActions(listing("Expired", { photos: twoPhotos }), now)).toEqual(["addPhotos", "deactivate"]);
+  });
+
+  it("doesn't bother a sold or rented listing", () => {
+    expect(needsPhotos(listing("Sold", { photos: [] }))).toBe(false);
+    expect(ownerActions(listing("Sold", { photos: [] }), now)).toEqual(["edit", "deactivate"]);
+  });
+});
 
 describe("ownerActions", () => {
   it("an active sale: edit, mark as sold, deactivate — renew only in its last week", () => {

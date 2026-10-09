@@ -297,6 +297,12 @@
     "photoTooLarge": "File too large (max 10MB)",
     "photoUploadFailed": "Upload failed",
     "removePhoto": "Remove photo",
+    "photosRule": "Every listing on IMOVA has at least {min} real photos of the property.",
+    "photosMissing": "{count} of {min} · {missing, plural, one {add # more photo} other {add # more photos}}",
+    "photosEnough": "{count, plural, one {# photo} other {# photos}} · done",
+    "photosRecommend": "We recommend at least {recommended}: the outside, every room, the kitchen, the bathroom and the view.",
+    "photosNeeded": "Add at least {min} photos to continue ({missing} still missing).",
+    "photosStillUploading": "Wait for the photos to finish uploading, then continue.",
     "tipsHeading": "Tips for a successful listing",
     "tipPhotos": "Clear photos, taken during the day, from several angles.",
     "tipPrice": "A realistic price attracts more messages from interested people.",
@@ -654,6 +660,7 @@
     },
     "needsAttention": "Needs your attention",
     "byAuthor": "by {name}",
+    "addPhotos": "Add photos",
     "moreActions": "More actions",
     "searchLabel": "Search your listings",
     "searchPlaceholder": "Search by title or address",
@@ -1246,7 +1253,9 @@
         "notAgencyMember": "You can only publish on behalf of agencies you belong to.",
         "agencyInactive": "This agency is deactivated: nothing can be published on its behalf for now.",
         "agencyChangeAuthorOnly": "Only the listing's author can publish it on behalf of an agency.",
-        "agencyLeaveManagerOnly": "Only the agency's owners and administrators can take a listing out of the agency."
+        "agencyLeaveManagerOnly": "Only the agency's owners and administrators can take a listing out of the agency.",
+        "notEnoughPhotos": "A listing needs at least {min} photos (it has {count}). Add photos and try again.",
+        "lastPhotos": "A published or in-review listing keeps at least {min} photos. Add a new one before deleting this one."
       },
       "contact": {
         "nameRequired": "Enter the contact person's name.",

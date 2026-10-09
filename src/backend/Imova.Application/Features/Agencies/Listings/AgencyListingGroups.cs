@@ -1,3 +1,4 @@
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.Expiry;
 using Imova.Application.Features.Locations.SearchLocations;
 using Imova.Domain.Listings;
@@ -32,7 +33,8 @@ public sealed record AgencyListingRow(
     string? RaionName,
     string? LocalitateName,
     string? ChisinauSectorName,
-    string? Street);
+    string? Street,
+    int PhotoCount);
 
 // The agency's listings in the same three tabs, search and orders as "Anunțurile mele" — the same
 // rules as the web app's lib/listing/ownerGroups.ts, applied on the server so the list can be paged.
@@ -46,10 +48,12 @@ public static class AgencyListingGroups
         _ => AgencyListingGroup.Ended, // Expired, Archived, Sold, Rented
     };
 
-    // Waiting on the owner: fix a rejected/suspended listing, submit a draft, renew before it expires.
+    // Waiting on the owner: fix a rejected/suspended listing, submit a draft, renew before it expires,
+    // add the photos an older listing is short of (ListingPhotoRules; sold and rented are over).
     public static bool NeedsAttention(AgencyListingRow row, DateTimeOffset now) =>
         row.Status is ListingStatus.Rejected or ListingStatus.Suspended or ListingStatus.Draft
-        || (row.Status == ListingStatus.Active && row.ExpiresAt is { } expiresAt && expiresAt - now <= ListingExpiry.ReminderBefore);
+        || (row.Status == ListingStatus.Active && row.ExpiresAt is { } expiresAt && expiresAt - now <= ListingExpiry.ReminderBefore)
+        || (row.Status is not (ListingStatus.Sold or ListingStatus.Rented) && row.PhotoCount < ListingPhotoRules.MinPhotos);
 
     // Every word in the title or the place (raion, locality, neighborhood, street), ignoring case and
     // diacritics.

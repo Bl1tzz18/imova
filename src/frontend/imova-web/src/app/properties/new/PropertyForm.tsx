@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { StepIndicator, type StepDef } from "@/components/property/listing-form/StepIndicator";
@@ -14,12 +14,14 @@ import { SuccessPanel } from "@/components/property/listing-form/SuccessPanel";
 import { ListingSavedDialog } from "@/components/property/listing-form/ListingSavedDialog";
 import { updateListingDetails, type UpdateListingState } from "@/lib/property/actions";
 import { createListing, type CreateListingState } from "./actions";
+import { photoRequirement } from "@/lib/property/photos";
 import type { MyAgency } from "@/types/agency";
 import type { Listing, Publisher } from "@/types/listing";
 
 const initialState: CreateListingState = {};
 
 const STEP_COUNT = 5;
+const PHOTOS_STEP = 3;
 
 // Reused as-is for both listing creation (no `listing` prop) and editing an existing listing
 // (`listing` supplied — see /my-listings/[id]/edit/page.tsx): same steps, same fields, all
@@ -33,6 +35,7 @@ export function PropertyForm({
   agencies = [],
   canChangeAgency = true,
   requestedAgencyId,
+  initialStep,
 }: {
   listing?: Listing;
   publishers?: Publisher[];
@@ -41,6 +44,8 @@ export function PropertyForm({
   agencies?: MyAgency[];
   canChangeAgency?: boolean;
   requestedAgencyId?: string | null;
+  // Editing only: "photos" opens on the photos step (an existing listing's earlier steps are filled in).
+  initialStep?: "photos";
 }) {
   const isEdit = listing != null;
   const boundUpdateAction = isEdit ? updateListingDetails.bind(null, listing.id) : null;
@@ -48,7 +53,7 @@ export function PropertyForm({
     isEdit ? boundUpdateAction! : createListing,
     initialState,
   );
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(isEdit && initialStep === "photos" ? PHOTOS_STEP : 1);
   const location = listing?.property.location;
   const [propertyType, setPropertyType] = useState(listing?.property.propertyType ?? "Apartment");
   const [transactionType, setTransactionType] = useState<string>(listing?.transactionType ?? "Sale");
@@ -75,6 +80,22 @@ export function PropertyForm({
 
   const formRef = useRef<HTMLFormElement>(null);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  // Every listing needs MIN_LISTING_PHOTOS photos (lib/property/photos.ts — the API refuses fewer):
+  // the photos step won't let the form go on without them, and saving from a later step goes back
+  // to it if photos were removed meanwhile.
+  const [photos, setPhotos] = useState({ count: listing?.photos.length ?? 0, uploading: false });
+  const [photoError, setPhotoError] = useState(false);
+  const handlePhotoCount = useCallback((count: number, uploading: boolean) => setPhotos({ count, uploading }), []);
+  const requirement = photoRequirement(photos.count, photos.uploading);
+
+  function photosOk(): boolean {
+    if (requirement.met) return true;
+    setPhotoError(true);
+    setStep(PHOTOS_STEP);
+    requestAnimationFrame(() => stepRefs.current[PHOTOS_STEP - 1]?.scrollIntoView({ block: "start", behavior: "smooth" }));
+    return false;
+  }
 
   const t = useTranslations("PropertyForm");
   const tEdit = useTranslations("EditListingPage");
@@ -121,7 +142,7 @@ export function PropertyForm({
       setStep(target);
       return;
     }
-    if (target === step + 1 && validateCurrentStep()) {
+    if (target === step + 1 && validateCurrentStep() && (step !== PHOTOS_STEP || photosOk())) {
       setStep(target);
     }
   }
@@ -129,7 +150,7 @@ export function PropertyForm({
   function handlePrimaryClick() {
     if (step < STEP_COUNT) {
       goToStep(step + 1);
-    } else if (validateCurrentStep()) {
+    } else if (validateCurrentStep() && photosOk()) {
       formRef.current?.requestSubmit();
     }
   }
@@ -219,7 +240,14 @@ export function PropertyForm({
             }}
             className={step === 3 ? "" : "hidden"}
           >
-            <StepPhotos listingId={listingId} initialPhotos={listing?.photos} deferDeletes={isEdit} />
+            <StepPhotos
+              listingId={listingId}
+              initialPhotos={listing?.photos}
+              deferDeletes={isEdit}
+              requirement={requirement}
+              showError={photoError}
+              onCountChange={handlePhotoCount}
+            />
           </div>
 
           <div

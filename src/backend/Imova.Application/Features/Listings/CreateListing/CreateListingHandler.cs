@@ -36,6 +36,9 @@ public class CreateListingHandler(
             await MediaAccess.EnsureNoOneElsesPhotosAsync(dbContext, id, request.RequestingUserId, cancellationToken);
         }
 
+        // No listing without its photos (ListingPhotoRules) — without an id there can't be any yet.
+        await ListingPhotoRules.EnsureEnoughAsync(dbContext, request.Id ?? Guid.Empty, cancellationToken);
+
         var address = await ListingWriteSupport.ResolveAddressAsync(dbContext, geocodingService, request, cancellationToken);
         var location = ListingWriteSupport.CreateLocation(request, address);
 
