@@ -65,6 +65,10 @@ public interface IApplicationDbContext
 
     DbSet<ListingVisitorMark> ListingVisitorMarks { get; }
 
+    DbSet<ListingDailyStat> ListingDailyStats { get; }
+
+    DbSet<AgencyPhoneReveal> AgencyPhoneReveals { get; }
+
     DbSet<ApplicationUser> Users { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }

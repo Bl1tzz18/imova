@@ -113,6 +113,12 @@ internal static class ListingApi
     // Photo rows straight in the test database under `listingId`, uploaded by the client's user (read
     // from its bearer token) — the upload flow itself has its own tests (IntegrationTests/Media). The
     // blobs don't exist; nothing here reads them.
+    // A context on the test database, for a test to look at (or seed) rows directly.
+    public static ImovaDbContext NewDbContext() =>
+        new(new DbContextOptionsBuilder<ImovaDbContext>()
+            .UseNpgsql(ConnectionString, npgsql => npgsql.UseNetTopologySuite())
+            .Options);
+
     public static async Task AddPhotosAsync(HttpClient client, Guid listingId, int count = ListingPhotoRules.MinPhotos)
     {
         var token = client.DefaultRequestHeaders.Authorization?.Parameter
@@ -121,10 +127,7 @@ internal static class ListingApi
         payload = payload.PadRight(payload.Length + ((4 - (payload.Length % 4)) % 4), '=');
         var userId = JsonDocument.Parse(Convert.FromBase64String(payload)).RootElement.GetProperty("sub").GetGuid();
 
-        var options = new DbContextOptionsBuilder<ImovaDbContext>()
-            .UseNpgsql(ConnectionString, npgsql => npgsql.UseNetTopologySuite())
-            .Options;
-        await using var db = new ImovaDbContext(options);
+        await using var db = NewDbContext();
         var existing = await db.Photos.CountAsync(p => p.ListingId == listingId);
         for (var i = 0; i < count; i++)
         {

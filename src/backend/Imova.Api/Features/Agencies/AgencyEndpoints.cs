@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Imova.Api.Common;
+using Imova.Api.Features.Listings.ListingVisitors;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.Admin;
@@ -107,13 +108,18 @@ public static class AgencyEndpoints
         // with listings' numbers.
         app.MapPost("/api/v1/agencies/{id:guid}/contact/phone", async (
             Guid id,
+            HttpRequest httpRequest,
             ClaimsPrincipal user,
             ISender sender,
             CancellationToken cancellationToken) =>
         {
             var signedIn = user.Identity?.IsAuthenticated == true;
             var phone = await sender.Send(
-                new RevealAgencyPhoneQuery(id, signedIn ? user.GetUserId() : null, signedIn && user.IsInRole(Roles.Admin)),
+                new RevealAgencyPhoneQuery(
+                    id,
+                    signedIn ? user.GetUserId() : null,
+                    signedIn && user.IsInRole(Roles.Admin),
+                    httpRequest.Headers[ListingVisitorEndpoints.VisitorHeader].FirstOrDefault()),
                 cancellationToken);
             return phone is null ? Results.NotFound() : Results.Ok(phone);
         }).RequireRateLimiting(ListingVisitorRateLimiting.PhoneRevealPolicy);

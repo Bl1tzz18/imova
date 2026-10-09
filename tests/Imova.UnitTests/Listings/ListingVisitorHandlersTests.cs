@@ -122,4 +122,19 @@ public class ListingVisitorHandlersTests
         Assert.Equal(1, deleted);
         Assert.Equal(["recent"], _dbContext.ListingVisitorMarks.Select(m => m.VisitorHash).ToList());
     }
+
+    [Fact]
+    public async Task Cleanup_DeletesAgencyPhoneReveals_PastWhatTheStatisticsShow()
+    {
+        var agencyId = Guid.NewGuid();
+        _dbContext.AgencyPhoneReveals.AddRange(
+            Imova.Domain.Agencies.AgencyPhoneReveal.Create(agencyId, new DateOnly(2025, 1, 1), "old", Start - TimeSpan.FromDays(401)),
+            Imova.Domain.Agencies.AgencyPhoneReveal.Create(agencyId, new DateOnly(2026, 9, 1), "kept", Start - TimeSpan.FromDays(39)));
+        await _dbContext.SaveChangesAsync();
+
+        var deleted = await new ListingVisitorMarkCleanup(_dbContext, _time).RunAsync(CancellationToken.None);
+
+        Assert.Equal(1, deleted);
+        Assert.Equal(["kept"], _dbContext.AgencyPhoneReveals.Select(r => r.VisitorHash).ToList());
+    }
 }

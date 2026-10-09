@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using Imova.Application.Common;
 using Imova.Contracts.Listings;
 using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imova.IntegrationTests.Listings;
 
@@ -73,6 +75,15 @@ public class ListingVisitorTests(WebApplicationFactory<Program> factory) : IClas
         Assert.Null(publicView.PhoneRevealCount);
         Assert.Equal(2, ownerView.ViewCount);
         Assert.Equal(1, ownerView.PhoneRevealCount);
+
+        // The same statement wrote today's row of the statistics (a Moldovan day).
+        await using (var db = ListingApi.NewDbContext())
+        {
+            var day = Assert.Single(await db.ListingDailyStats.Where(s => s.ListingId == listing.Id).ToListAsync());
+            Assert.Equal(MoldovaTime.Day(DateTimeOffset.UtcNow), day.Day);
+            Assert.Equal(2, day.Views);
+            Assert.Equal(1, day.PhoneReveals);
+        }
 
         await owner.DeleteAsync($"/api/v1/listings/{listing.Id}");
     }

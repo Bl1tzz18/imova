@@ -144,6 +144,30 @@ public class AgencyPublicEndpointsTests : IClassFixture<WebApplicationFactory<Pr
     }
 
     [Fact]
+    public async Task PhoneReveals_CountOncePerVisitorAndDay_NeverTheAgencysMembers()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var agency = await CreateAgencyAsync(owner);
+        var anonymous = _factory.CreateClient();
+        var (visitorA, visitorB) = (Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+        async Task RevealAs(HttpClient client, string visitor)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/agencies/{agency.Id}/contact/phone");
+            request.Headers.Add("X-Imova-Visitor", visitor);
+            (await client.SendAsync(request)).EnsureSuccessStatusCode();
+        }
+
+        await RevealAs(anonymous, visitorA);
+        await RevealAs(anonymous, visitorA);
+        await RevealAs(anonymous, visitorB);
+        await RevealAs(owner, Guid.NewGuid().ToString());
+
+        await using var db = ListingApi.NewDbContext();
+        Assert.Equal(2, await db.AgencyPhoneReveals.CountAsync(r => r.AgencyId == agency.Id));
+    }
+
+    [Fact]
     public async Task Search_ByAgency_ReturnsOnlyThatAgencysActiveListings()
     {
         var (owner, _) = await ListingApi.RegisterAsync(_factory);

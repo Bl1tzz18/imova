@@ -372,6 +372,28 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("AgencyMembers", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyPhoneReveal", b =>
+                {
+                    b.Property<Guid>("AgencyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<string>("VisitorHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("RevealedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("AgencyId", "Day", "VisitorHash");
+
+                    b.HasIndex("RevealedAt");
+
+                    b.ToTable("AgencyPhoneReveals");
+                });
+
             modelBuilder.Entity("Imova.Domain.Amenities.Amenity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -871,6 +893,27 @@ namespace Imova.Infrastructure.Migrations
                     b.HasIndex("Status", "TransactionType");
 
                     b.ToTable("Listings");
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.ListingDailyStat", b =>
+                {
+                    b.Property<Guid>("ListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("PhoneReveals")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Views")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ListingId", "Day");
+
+                    b.HasIndex("Day");
+
+                    b.ToTable("ListingDailyStats");
                 });
 
             modelBuilder.Entity("Imova.Domain.Listings.ListingPriceChange", b =>
@@ -1861,6 +1904,15 @@ namespace Imova.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Imova.Domain.Agencies.AgencyPhoneReveal", b =>
+                {
+                    b.HasOne("Imova.Domain.Agencies.Agency", null)
+                        .WithMany()
+                        .HasForeignKey("AgencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Imova.Domain.Favorites.Favorite", b =>
                 {
                     b.HasOne("Imova.Domain.Listings.Listing", null)
@@ -1929,6 +1981,15 @@ namespace Imova.Infrastructure.Migrations
                         });
 
                     b.Navigation("Price")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Domain.Listings.ListingDailyStat", b =>
+                {
+                    b.HasOne("Imova.Domain.Listings.Listing", null)
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
