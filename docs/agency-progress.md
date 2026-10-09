@@ -1,9 +1,9 @@
 # Agency publishers — progress
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
-Branch `feat/agencies` (from `main` at `593b393`), pushed. **PR 1 (steps 1–5) is open:
-https://github.com/Bl1tzz18/imova/pull/32** (not merged). Last updated 2026-10-06. Next: PR 2, starting
-with step 6.
+**PR 1 (steps 1–5, branch `feat/agencies`) was merged on 2026-10-06:
+https://github.com/Bl1tzz18/imova/pull/32.** PR 2 (steps 6–7) is on branch `feat/agency-management`
+(from `main` at `571fd0c`), **not pushed**. Last updated 2026-10-09. Next: step 7.
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -62,6 +62,34 @@ temporary Admin role (removed after): `/admin/moderation?tab=active` rows read "
 Imobiliare · Chișinău, Botanica" and `/messages/new` reads "Mesajul ajunge la Elena Ciobanu · Casa Ta
 Imobiliare". Header at 360/390 px in ro/en/ru, signed out and in (button ends 16 px from the edge),
 and 1280 px (unchanged); the phone language select switches language. Dev data left as it was.
+
+## Steps done (PR 2 = steps 6–7, branch `feat/agency-management`)
+
+| Step | Commit | What it delivered |
+|---|---|---|
+| — | `e5dac11` | Not part of the agency work: the imova.md domain is bought. `docs/development.md` now names `https://imova.md` as the production `SITE_URL`, `App:WebBaseUrl` and CORS origin (the stale "CORS is locked in Program.cs" line points to the `Cors:AllowedOrigins` section); the `GeocodingOptions` comment no longer calls the domain a placeholder. The committed `UserAgent` defaults (code and `appsettings.json`, Nominatim and Photon) and the email sender `no-reply@imova.md` already used the domain — nothing else to change. The gitignored `appsettings.Development.json` was changed locally only: `IMOVA/1.0 (dev; +https://imova.md)`. |
+| 6 | `423a062` | Management UI. API: `GET /api/v1/agencies/{id}/listings` (every status; Owners/Admins/site admins all, an Agent their own; 403 non-member, 404 unknown/hidden; newest first). Web: `/account?tab=agencies` "Agențiile mele" (invitations with Accept/Decline + a count badge on the tab, my agencies, "Creează o agenție" only with a confirmed email; the account tabs now keep `?tab=` in the address). `/account/agencies/new` (profile form → `/account/agencies/{id}?created=1`, which asks for a logo). `/account/agencies/[id]` layout (logo, role, status, public link) + tabs as routes: Profil (logo via the route handler `/account/agencies/[id]/logo` — 5 MB logos don't fit a server action's 1 MB; form with live preview, bio counter, Save off until changed, leave-page warning incl. in-app links; Agents read-only), `/members` (role select per `AgencyAccess`, last Owner fixed, stepping down confirmed, remove with heir choice defaulting like the API, invite form, open invitations with resend/revoke and the `emailFailedAt` warning), `/listings` (`OwnerListingsList` with `showAuthor` + agency empty texts, "Adaugă anunț" → `/properties/new?agencyId=`), `/settings` (public link + copy, leave with heir choice; last Owner told why not). Invitation page "accepted" → the agencies tab; login/register "Ai o agenție?" → `/account/agencies/new`. Shared `components/ui/ConfirmDialog`; rules in `lib/agency/manage.ts`; namespace `AgencyManage` (ro/en/ru); `agency.logoTooSmall` text now says "the longer side". |
+
+Tests at the end of step 6: backend 1,286 unit + 263 integration + 5 architecture, frontend 418 Vitest;
+`tsc` clean (new: `AgencyListingsHandlerTests` 7, one integration test in `AgencyListingEndpointsTests`,
+`manage.test.ts` 17).
+
+**Step 6 browser check (2026-10-09, rebuilt containers):** as Elena at 1280 px: the agencies tab, created
+"Test Pas Șase Imobil" through the form (the leave warning fired on the back link and was dismissed),
+landed on Profil with the logo prompt; a 100×50 PNG → the translated "longer side" error; a 600×300 PNG
+uploaded; bio + city edits saved (Save off before and after). Found and fixed during the check: after a
+save the city select showed "Nespecificat" while the state kept the city — React's automatic reset after
+an `action=` submit; forms now submit through `onSubmit` + `startTransition` (verified: the city stays).
+Also fixed: the phone field was wrapped in a `<label>` (a click on the label opened the country menu),
+and the hidden file input was announced as a second upload button. Invited Ion as Administrator
+(resend at once → the 10-minute cooldown message); as Ion at 390 px: the tab badge and invitation card,
+accepted, then his Membri page (only his own role selectable, invite limited to Agents). With one of
+Ion's listings put into the agency in SQL for a moment: Elena's remove dialog offered "Elena Ciobanu ·
+Proprietar" as heir (cancelled), and the Anunțuri tab showed it with "de Ion Popescu" and its stats
+(reverted right after). Ion at 360 px: Setări, no horizontal scroll, left the agency → back on his
+agencies tab. Elena's Setări: public link + copy, "you're the only owner". Profil at 390 px. Cleaned up:
+the test agency deleted in SQL (members/invitations/slug history cascade; no listings) — its two logo
+JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 
 ## Decisions (made by the product owner in this session)
 
@@ -150,17 +178,14 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 
 ## Open items for later steps
 
-**Step 6 — management UI (PR 2)**
-- `/account` "Agențiile mele" tab (`?tab=agencies`): my agencies, create button, my pending invitations
-  with Accept/Decline (`GET /api/v1/users/me/invitations`, accept/decline by id exist). The invitation
-  page's "accepted" state should link to this tab (it links to `/account` for now).
-- `/account/agencies/new` and `/account/agencies/[id]`: Profil (with logo uploader, confirm-email hint
-  on `agency.emailNotConfirmed`), Membri (roles, remove with the heir choice, invite, pending
-  invitations with resend/revoke and the `emailFailedAt` warning), Anunțuri, Setări.
+**Step 6 — done** (`423a062`), see above.
 
-**Step 7**
+**Step 7 (next)**
 - Deactivate/reactivate/delete endpoints (`Agency` has no domain methods for these yet) and the
   hiding listed under decisions; admin verify/unverify + `/admin/agencies`; "verification granted" email.
+- UI goes into the Setări tab (`/account/agencies/[id]/settings`, after "Pagina publică"): deactivate /
+  reactivate, delete (type the name to confirm; listings stay with their authors as private). The
+  layout already shows a "Dezactivată" badge and hides the public link for a deactivated agency.
 
 **Later PRs and wrap-up**
 - PR 3: stats (daily aggregate, `GET /api/v1/agencies/{id}/stats`, Statistici tab).
@@ -170,6 +195,13 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 - Update `CLAUDE.md` "Current status" and the PR descriptions (every endpoint, migration and screen).
 
 ## Known issues and notes
+
+- `GET /api/v1/agencies/{id}/listings` isn't paginated (like `/users/me/listings`); fine at today's
+  sizes, but the CSV import (PR 4) can bring 2,000 listings at once — page it then.
+- Not verified, noticed while building step 6: the profile picture upload (`uploadProfilePicture`) sends
+  the file through a server action, whose default body limit is 1 MB, while the UI allows 5 MB — a
+  picture over 1 MB probably fails. Not touched; worth a check (and the same route-handler approach as
+  the agency logo if confirmed).
 
 - The two load-sensitive tests (`MessageContentFilterTests.SuspiciousMessages_AreFlaggedWithAReason`,
   `MessagingEndpointsTests.BlockedVisitor_Gets403_AndAReportReachesAdmins`) shared one cause — a cold
@@ -188,7 +220,7 @@ and 1280 px (unchanged); the phone language select switches language. Dev data l
 - Dev database: one accepted invitation row for `ion.popescu@demo.imova.md` → Casa Ta Imobiliare is
   left as history (Ion was removed from the agency again). A dump taken before the `AddAgencies`
   migration was saved in the session scratchpad and may not survive.
-- The compose containers were rebuilt at step 5 (all migrations applied; step 5 added none); rebuild
+- The compose containers were rebuilt at step 6 (all migrations applied; steps 5 and 6 added none); rebuild
   `backend`, `worker` and `frontend` again after the next code change, before a browser check. A
   frontend build once failed in `next/font` (fetching Google Fonts) and passed on a plain retry.
 - Until step 7, a deactivated agency's listings still appear in search, on the map and through
@@ -213,8 +245,10 @@ home page's "Anunțuri moderate", `06be883`).
 
 **d) ~~Open PR 1~~** — https://github.com/Bl1tzz18/imova/pull/32, against `main`, not merged.
 
-**e) Next — PR 2, starting with step 6: the management UI** — see "Open items" above:
-the `/account` "Agențiile mele" tab with my agencies and my pending invitations, then
-`/account/agencies/new` and `/account/agencies/[id]` (Profil with logo upload, Membri, Anunțuri,
-Setări), each with tests and a browser check at 360/390/1280 px; stop after it with build + tests
-green, commit, update this file.
+**e) ~~PR 2, step 6: the management UI~~** — done 2026-10-09 (`423a062`, on `feat/agency-management`,
+not pushed).
+
+**f) Next — step 7:** deactivate/reactivate/delete (API + the Setări tab) and admin verification
+(`/admin/agencies`, verify/unverify, the email) — see "Open items" above; tests and a browser check at
+360/390/1280 px; stop after it with build + tests green, commit, update this file. Then the PR 2
+description and opening PR 2.
