@@ -30,6 +30,7 @@ using Imova.Application.Common.Validation;
 using Imova.Application.Features.Account;
 using Imova.Application.Features.Admins;
 using Imova.Application.Features.Agencies;
+using Imova.Application.Features.Agencies.Admin;
 using Imova.Application.Features.Agencies.Invitations;
 using Imova.Application.Features.Auth;
 using Imova.Application.Features.Auth.Sessions;
@@ -120,6 +121,7 @@ builder.Services.AddScoped<AccountDeletion>();
 builder.Services.AddScoped<AccountDeletionEmails>();
 builder.Services.AddScoped<AdminEmails>();
 builder.Services.AddScoped<AgencyInvitationEmail>();
+builder.Services.AddScoped<AgencyVerifiedEmail>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
 builder.Services.AddScoped<AuthSessions>();

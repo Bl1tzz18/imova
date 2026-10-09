@@ -20,10 +20,11 @@ public class GetListingByIdHandler(IApplicationDbContext dbContext, IBlobStorage
             return null;
         }
 
-        // A non-Active listing is only visible to its own owner (e.g. the edit page) or an admin
-        // (e.g. reviewing it from the moderation queue) — anyone else, including an anonymous
-        // visitor, gets the same "not found" as if the row didn't exist. Matches GetListingsHandler.
-        if (listing.Status != ListingStatus.Active
+        // A listing the public can't see (not Active, or under a deactivated agency) is only visible
+        // to its own owner (e.g. the edit page) or an admin (e.g. reviewing it from the moderation
+        // queue) — anyone else, including an anonymous visitor, gets the same "not found" as if the
+        // row didn't exist. Matches GetListingsHandler.
+        if (!await ListingVisibility.IsPublicAsync(dbContext, listing, cancellationToken)
             && !request.IsAdmin
             && !await ListingAccess.IsOwnedByAsync(dbContext, listing, request.CurrentUserId, cancellationToken))
         {

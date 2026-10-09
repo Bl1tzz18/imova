@@ -156,6 +156,58 @@ public sealed class Agency : AggregateRoot
 
     public int OwnerCount => _members.Count(m => m.Role == AgencyRole.Owner);
 
+    // Hides the agency and all its listings from the public until it's reactivated (its members still
+    // see and manage everything). Doing it twice changes nothing.
+    public void Deactivate(DateTimeOffset now)
+    {
+        if (Status == AgencyStatus.Deactivated)
+        {
+            return;
+        }
+
+        Status = AgencyStatus.Deactivated;
+        UpdatedAt = now;
+    }
+
+    public void Reactivate(DateTimeOffset now)
+    {
+        if (Status == AgencyStatus.Active)
+        {
+            return;
+        }
+
+        Status = AgencyStatus.Active;
+        UpdatedAt = now;
+    }
+
+    // Site admins only (the caller's check). Returns whether anything changed — only then is the
+    // owners' "verified" email due.
+    public bool Verify(DateTimeOffset now)
+    {
+        if (IsVerified)
+        {
+            return false;
+        }
+
+        IsVerified = true;
+        VerifiedAt = now;
+        UpdatedAt = now;
+        return true;
+    }
+
+    public bool Unverify(DateTimeOffset now)
+    {
+        if (!IsVerified)
+        {
+            return false;
+        }
+
+        IsVerified = false;
+        VerifiedAt = null;
+        UpdatedAt = now;
+        return true;
+    }
+
     // Who may ask for this is the caller's business (AgencyAccess); the agency only guards its own
     // rule: the last Owner can't stop being one (LastOwnerException).
     public void ChangeRole(Guid userId, AgencyRole role, DateTimeOffset now)

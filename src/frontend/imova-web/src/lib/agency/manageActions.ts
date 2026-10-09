@@ -78,6 +78,36 @@ export async function updateAgency(_prev: AgencyProfileState, formData: FormData
   return { savedAt: Date.now() };
 }
 
+// --- Deactivate / reactivate / delete (Setări) ---
+
+export async function setAgencyActive(agencyId: string, active: boolean): Promise<ActionResult> {
+  const res = await send(
+    `/api/v1/agencies/${encodeURIComponent(agencyId)}/${active ? "reactivate" : "deactivate"}`,
+    { method: "POST" },
+    agencyManagePath(agencyId, "settings"),
+  );
+  if (!res.ok) {
+    return { error: await apiErrorMessage(res) };
+  }
+  revalidatePath(agencyManagePath(agencyId), "layout");
+  revalidatePath("/account");
+  return {};
+}
+
+// Deletes for good (the exact name confirms it), then back to "Agențiile mele".
+export async function deleteAgency(agencyId: string, confirmName: string): Promise<ActionResult> {
+  const res = await send(
+    `/api/v1/agencies/${encodeURIComponent(agencyId)}`,
+    { method: "DELETE", json: { confirmName } },
+    agencyManagePath(agencyId, "settings"),
+  );
+  if (!res.ok) {
+    return { error: await apiErrorMessage(res) };
+  }
+  revalidatePath("/account");
+  redirect(MY_AGENCIES_HREF);
+}
+
 // --- Members ---
 
 export async function changeMemberRole(agencyId: string, userId: string, role: AgencyRole): Promise<ActionResult> {

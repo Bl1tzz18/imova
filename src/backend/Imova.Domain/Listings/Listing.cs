@@ -161,12 +161,18 @@ public sealed class Listing : AggregateRoot
     }
 
     // Moves it between private (null) and an agency. Whether its author may publish under that agency
-    // is the caller's check (they must be a member and the agency active).
+    // is the caller's check (they must be a member and the agency active). The external reference is
+    // the old agency's own (its CRM's), so it doesn't follow the listing elsewhere.
     public void ChangeAgency(Guid? agencyId)
     {
         if (agencyId == Guid.Empty)
         {
             throw new ArgumentException("An agency id can't be empty; use null for a private listing.", nameof(agencyId));
+        }
+
+        if (agencyId != AgencyId)
+        {
+            ExternalRef = null;
         }
 
         AgencyId = agencyId;

@@ -18,9 +18,9 @@ public class RecordListingViewHandler(IApplicationDbContext dbContext, IListingC
         }
 
         var ownerUserId = await (
-                from l in dbContext.Listings.AsNoTracking()
+                from l in dbContext.Listings.AsNoTracking().WherePublic(dbContext)
                 join p in dbContext.Publishers.AsNoTracking() on l.PublisherId equals p.Id
-                where l.Id == request.ListingId && l.Status == ListingStatus.Active
+                where l.Id == request.ListingId
                 select (Guid?)p.UserId)
             .FirstOrDefaultAsync(cancellationToken);
 

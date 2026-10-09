@@ -1,4 +1,5 @@
 using Imova.Application.Features.Listings.GetSimilarListings;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,8 @@ public class SimilarListingsFinder(ImovaDbContext dbContext) : ISimilarListingsF
         var where = new List<string>
         {
             $"l.\"Status\" = {P((int)ListingStatus.Active)}",
+            // Not under a deactivated agency (ListingVisibility).
+            $"(l.\"AgencyId\" IS NULL OR EXISTS (SELECT 1 FROM \"Agencies\" a WHERE a.\"Id\" = l.\"AgencyId\" AND a.\"Status\" = {P((int)AgencyStatus.Active)}))",
             $"l.\"TransactionType\" = {P((int)target.TransactionType)}",
             $"p.\"PropertyType\" = {P((int)target.PropertyType)}",
             $"l.\"Id\" <> {P(target.ListingId)}",

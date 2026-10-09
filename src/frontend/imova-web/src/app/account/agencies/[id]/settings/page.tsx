@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { CopyLinkButton, LeaveAgencySection } from "@/components/agency/manage/AgencySettingsActions";
+import {
+  AgencyStatusSection,
+  CopyLinkButton,
+  DeleteAgencySection,
+  LeaveAgencySection,
+} from "@/components/agency/manage/AgencySettingsActions";
 import { getAgencyForMember, getAgencyMembers } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { canDeleteAgency, canManage } from "@/lib/agency/manage";
 import { agencyPath } from "@/lib/agency/publicPage";
 import { siteUrl } from "@/lib/site";
 
@@ -13,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: agency ? t("settingsPageTitle", { name: agency.name }) : undefined, robots: { index: false } };
 }
 
-// The Setări tab: the public page's address to share, and leaving the agency. (Deactivating and
-// deleting the agency come with the next step.)
+// The Setări tab: the public page's address to share, deactivate / reactivate (Owners, Admins),
+// leaving the agency, and deleting it (Owners) — the most destructive last.
 export default async function AgencySettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [agency, profile, members, t] = await Promise.all([
@@ -25,13 +31,16 @@ export default async function AgencySettingsPage({ params }: { params: Promise<{
   ]);
   if (!agency || !profile || !members) notFound();
 
+  const isSiteAdmin = profile.roles.includes("Admin");
+  const active = agency.status === "Active";
+
   return (
     <div className="flex flex-col gap-6">
       <section aria-labelledby="agency-public-page-title" className="rounded-2xl border border-ink-100 p-4 sm:p-5">
         <h2 id="agency-public-page-title" className="font-display text-lg font-medium text-ink-950">
           {t("publicPageTitle")}
         </h2>
-        {agency.status === "Active" ? (
+        {active ? (
           <>
             <p className="mb-4 mt-1 text-sm text-ink-500">{t("publicPageIntro")}</p>
             <CopyLinkButton url={`${siteUrl()}${agencyPath(agency.slug)}`} />
@@ -41,9 +50,13 @@ export default async function AgencySettingsPage({ params }: { params: Promise<{
         )}
       </section>
 
+      {canManage(agency.myRole, isSiteAdmin) && <AgencyStatusSection agencyId={agency.id} active={active} />}
+
       {agency.myRole && (
         <LeaveAgencySection agencyId={agency.id} agencyName={agency.name} userId={profile.id} members={members} />
       )}
+
+      {canDeleteAgency(agency.myRole, isSiteAdmin) && <DeleteAgencySection agencyId={agency.id} agencyName={agency.name} />}
     </div>
   );
 }

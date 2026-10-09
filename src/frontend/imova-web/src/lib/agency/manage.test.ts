@@ -8,6 +8,7 @@ import {
   agencyManagePath,
   agencyProfileChanged,
   bioCounter,
+  canDeleteAgency,
   canLeave,
   canManage,
   canRemove,
@@ -49,6 +50,13 @@ describe("who manages", () => {
     expect(canManage("Agent")).toBe(false);
     expect(canManage(null)).toBe(false);
     expect(canManage(null, true)).toBe(true);
+  });
+
+  it("lets only Owners and site admins delete the agency", () => {
+    expect(canDeleteAgency("Owner")).toBe(true);
+    expect(canDeleteAgency("Admin")).toBe(false);
+    expect(canDeleteAgency("Agent")).toBe(false);
+    expect(canDeleteAgency(null, true)).toBe(true);
   });
 
   it("lets Owners invite Admins and Agents, Admins only Agents, Agents nobody", () => {

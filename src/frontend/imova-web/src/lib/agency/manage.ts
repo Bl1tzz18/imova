@@ -29,6 +29,11 @@ export function canManage(role: AgencyRole | null, isSiteAdmin = false): boolean
   return isSiteAdmin || role === "Owner" || role === "Admin";
 }
 
+// Deleting the agency: its Owners and site admins only (deactivating is canManage).
+export function canDeleteAgency(role: AgencyRole | null, isSiteAdmin = false): boolean {
+  return isSiteAdmin || role === "Owner";
+}
+
 // The roles a new member may be invited with: Owners invite Admins and Agents, Admins only Agents
 // (nobody is invited straight in as an Owner).
 export function inviteRoles(actorRole: AgencyRole | null, isSiteAdmin = false): AgencyRole[] {

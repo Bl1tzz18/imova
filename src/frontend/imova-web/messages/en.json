@@ -20,6 +20,7 @@
     "messagingReports": "Reported messages",
     "savedSearches": "Saved searches",
     "administrators": "Administrators",
+    "agencyVerification": "Agency verification",
     "agencies": "Agencies"
   },
   "Footer": {
@@ -1293,7 +1294,8 @@
         "invitationResendTooSoon": "This invitation was just sent. You can resend it in {minutes} minutes.",
         "invitationExpired": "This invitation has expired. Ask the agency to send it again.",
         "invitationClosed": "This invitation is no longer valid.",
-        "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it."
+        "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it.",
+        "confirmNameMismatch": "Type the agency's name exactly as it appears to confirm the deletion."
       },
       "account": {
         "passwordRequired": "Enter your password to delete the account.",
@@ -1743,6 +1745,46 @@
     "leaveLastOwner": "You're the agency's only owner. To leave, first make another member an owner (in the Members tab).",
     "leaveConfirmTitle": "Leave {agency}?",
     "leaveConfirm": "Leave the agency",
-    "leaving": "Working…"
+    "leaving": "Working…",
+    "deactivateTitle": "Deactivate the agency",
+    "deactivateIntro": "The agency's page and all its listings disappear for the public — from search, the map and alerts — until you reactivate it. Members still see and manage them.",
+    "deactivateButton": "Deactivate the agency",
+    "deactivateConfirmTitle": "Deactivate the agency?",
+    "deactivateConfirmBody": "Its page and all its listings won't be public until you reactivate it. Nothing is deleted.",
+    "reactivateTitle": "The agency is deactivated",
+    "reactivateIntro": "Its page and listings aren't public. Reactivate it to show them again.",
+    "reactivateButton": "Reactivate the agency",
+    "deleteTitle": "Delete the agency",
+    "deleteIntro": "Deleting is permanent. The listings stay on the site as their authors' own listings; the members, invitations, logo and the agency's page are deleted.",
+    "deleteNameLabel": "Type “{name}” to confirm",
+    "deleteButton": "Delete the agency for good",
+    "deleting": "Deleting…"
+  },
+  "AdminAgencies": {
+    "title": "Agency verification",
+    "subtitle": "Every agency, not yet verified first. Verification puts the “Verified agency” mark on the agency's page and listings; its owners get an email.",
+    "forbidden": "This page is for administrators only.",
+    "searchLabel": "Search for an agency",
+    "searchPlaceholder": "Agency name",
+    "filterLabel": "Show",
+    "filter": {
+      "all": "All agencies",
+      "unverified": "Not verified",
+      "verified": "Verified"
+    },
+    "count": "{count, plural, one {# agency} other {# agencies}}",
+    "deactivated": "Deactivated",
+    "members": "{count, plural, one {# member} other {# members}}",
+    "activeListings": "{count, plural, =0 {no active listings} one {# active listing} other {# active listings}}",
+    "createdOn": "created on {date}",
+    "owner": "Owner: {name}",
+    "verifiedOn": "Verified on {date}",
+    "verify": "Verify",
+    "unverify": "Remove verification",
+    "unverifyTitle": "Remove {name}'s verification?",
+    "unverifyBody": "The “Verified agency” mark disappears from its page and listings. The owners aren't emailed.",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "empty": "No agency matches the search."
   }
 }

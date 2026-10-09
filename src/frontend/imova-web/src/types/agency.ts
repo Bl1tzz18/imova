@@ -82,6 +82,26 @@ export type AgencyListingsPage = {
   ended: AgencyListingGroupSummary;
 };
 
+// An agency in the admins' list (GET /api/v1/admin/agencies). ownerName/ownerEmail: its
+// longest-standing Owner.
+export type AdminAgency = {
+  id: string;
+  slug: string;
+  name: string;
+  logoThumbnailUrl: string | null;
+  isVerified: boolean;
+  verifiedAt: string | null;
+  status: "Active" | "Deactivated";
+  raionName: string | null;
+  memberCount: number;
+  activeListingCount: number;
+  createdAt: string;
+  ownerName: string | null;
+  ownerEmail: string | null;
+};
+
+export type AdminAgenciesPage = { items: AdminAgency[]; page: number; pageSize: number; totalCount: number };
+
 // An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).
 // emailFailedAt: its latest email couldn't be sent — resend it.
 export type AgencyInvitation = {

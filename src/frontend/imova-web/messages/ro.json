@@ -20,6 +20,7 @@
     "messagingReports": "Mesaje raportate",
     "savedSearches": "Căutări salvate",
     "administrators": "Administratori",
+    "agencyVerification": "Verificare agenții",
     "agencies": "Agenții"
   },
   "Footer": {
@@ -1293,7 +1294,8 @@
         "invitationResendTooSoon": "Invitația a fost trimisă de curând. Poți s-o retrimiți peste {minutes} minute.",
         "invitationExpired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
         "invitationClosed": "Invitația nu mai este valabilă.",
-        "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți."
+        "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți.",
+        "confirmNameMismatch": "Scrie numele agenției exact cum apare, ca să confirmi ștergerea."
       },
       "account": {
         "passwordRequired": "Introdu parola pentru a șterge contul.",
@@ -1743,6 +1745,46 @@
     "leaveLastOwner": "Ești singurul proprietar al agenției. Ca să pleci, fă mai întâi alt membru proprietar (din fila Membri).",
     "leaveConfirmTitle": "Părăsești agenția {agency}?",
     "leaveConfirm": "Părăsește agenția",
-    "leaving": "Se procesează…"
+    "leaving": "Se procesează…",
+    "deactivateTitle": "Dezactivează agenția",
+    "deactivateIntro": "Pagina agenției și toate anunțurile ei dispar pentru public — din căutare, de pe hartă și din alerte — până o reactivezi. Membrii le văd și le gestionează în continuare.",
+    "deactivateButton": "Dezactivează agenția",
+    "deactivateConfirmTitle": "Dezactivezi agenția?",
+    "deactivateConfirmBody": "Pagina ei și toate anunțurile ei nu se vor mai vedea public până o reactivezi. Nu se șterge nimic.",
+    "reactivateTitle": "Agenția este dezactivată",
+    "reactivateIntro": "Pagina și anunțurile ei nu se văd public. Reactiveaz-o ca să apară din nou.",
+    "reactivateButton": "Reactivează agenția",
+    "deleteTitle": "Șterge agenția",
+    "deleteIntro": "Ștergerea este definitivă. Anunțurile rămân pe site, ca anunțuri personale ale autorilor lor; membrii, invitațiile, logoul și pagina agenției se șterg.",
+    "deleteNameLabel": "Scrie „{name}” ca să confirmi",
+    "deleteButton": "Șterge agenția definitiv",
+    "deleting": "Se șterge…"
+  },
+  "AdminAgencies": {
+    "title": "Verificare agenții",
+    "subtitle": "Toate agențiile, întâi cele încă neverificate. Verificarea pune semnul „Agenție verificată” pe pagina și anunțurile agenției; proprietarii primesc un email.",
+    "forbidden": "Pagina este doar pentru administratori.",
+    "searchLabel": "Caută o agenție",
+    "searchPlaceholder": "Numele agenției",
+    "filterLabel": "Arată",
+    "filter": {
+      "all": "Toate agențiile",
+      "unverified": "Neverificate",
+      "verified": "Verificate"
+    },
+    "count": "{count, plural, one {# agenție} few {# agenții} other {# de agenții}}",
+    "deactivated": "Dezactivată",
+    "members": "{count, plural, one {# membru} few {# membri} other {# de membri}}",
+    "activeListings": "{count, plural, =0 {niciun anunț activ} one {# anunț activ} few {# anunțuri active} other {# de anunțuri active}}",
+    "createdOn": "creată pe {date}",
+    "owner": "Proprietar: {name}",
+    "verifiedOn": "Verificată pe {date}",
+    "verify": "Verifică",
+    "unverify": "Retrage verificarea",
+    "unverifyTitle": "Retragi verificarea agenției {name}?",
+    "unverifyBody": "Semnul „Agenție verificată” dispare de pe pagina și anunțurile ei. Proprietarii nu primesc niciun email.",
+    "saving": "Se salvează…",
+    "cancel": "Anulează",
+    "empty": "Nicio agenție nu corespunde căutării."
   }
 }
