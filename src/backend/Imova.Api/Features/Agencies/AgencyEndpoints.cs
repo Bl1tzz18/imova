@@ -6,6 +6,7 @@ using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.Admin;
 using Imova.Application.Features.Agencies.CreateAgency;
 using Imova.Application.Features.Agencies.Lifecycle;
+using Imova.Application.Features.Agencies.Stats;
 using Imova.Application.Features.Agencies.Directory;
 using Imova.Application.Features.Agencies.GetAgency;
 using Imova.Application.Features.Agencies.Listings;
@@ -189,6 +190,15 @@ public static class AgencyEndpoints
                 new UploadAgencyLogoCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin), buffer.ToArray()), cancellationToken);
             return agency is null ? Results.NotFound() : Results.Ok(agency);
         }).RequireAuthorization().DisableAntiforgery();
+
+        // Its statistics over Moldovan days ?from=&to= (yyyy-MM-dd; default the last 30; at most 365) —
+        // members (an Agent: their own listings) and admins.
+        app.MapGet("/api/v1/agencies/{id:guid}/stats", async (
+            Guid id, DateOnly? from, DateOnly? to, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            var stats = await sender.Send(new GetAgencyStatsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), from, to), ct);
+            return stats is null ? Results.NotFound() : Results.Ok(stats);
+        }).RequireAuthorization();
 
         // Hide the agency and all its listings from the public, or show them again — Owners/Admins.
         app.MapPost("/api/v1/agencies/{id:guid}/deactivate", (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
