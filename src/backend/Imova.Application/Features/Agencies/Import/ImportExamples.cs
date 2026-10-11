@@ -10,7 +10,10 @@ public static class ImportExamples
     private const string Photos =
         "https://example.com/foto/1.jpg|https://example.com/foto/2.jpg|https://example.com/foto/3.jpg";
 
-    public static IReadOnlyDictionary<string, string> For(PropertyType propertyType) => propertyType switch
+    public static IReadOnlyDictionary<string, string> For(PropertyType propertyType) =>
+        new Dictionary<string, string>(Values(propertyType)) { [ImportColumns.PropertyTypeColumn] = propertyType.ToString() };
+
+    private static Dictionary<string, string> Values(PropertyType propertyType) => propertyType switch
     {
         PropertyType.Apartment => new Dictionary<string, string>
         {

@@ -59,6 +59,7 @@ public sealed record ImportColumn(
 public static class ImportColumns
 {
     public const string ExternalRef = "external_ref";
+    public const string PropertyTypeColumn = "property_type";
     public const string DealType = "deal_type";
     public const string Status = "status";
     public const string Title = "title";
@@ -104,6 +105,12 @@ public static class ImportColumns
 
     public static IReadOnlyList<ImportColumn> For(PropertyType propertyType) => ByType[propertyType];
 
+    // Every column of every type, by name — what a file's header may contain.
+    public static readonly IReadOnlyDictionary<string, ImportColumn> All =
+        ByType.Values.SelectMany(columns => columns)
+            .GroupBy(c => c.Name)
+            .ToDictionary(g => g.Key, g => g.First());
+
     // "LivingAreaM2" → "living_area_m2" (the header).
     public static string ColumnName(string propertyName) => JsonNamingPolicy.SnakeCaseLower.ConvertName(propertyName);
 
@@ -112,6 +119,9 @@ public static class ImportColumns
         var columns = new List<ImportColumn>
         {
             new(ExternalRef, ImportColumnKind.Text, ImportColumnRequirement.Required, MaxLength: ListingImportRow.MaxExternalRefLength),
+            // In every template (with that template's type), so one file may mix types: each row is
+            // read against its own type's columns.
+            new(PropertyTypeColumn, ImportColumnKind.Choice, ImportColumnRequirement.Required, Choices: Enum.GetNames<PropertyType>()),
             new(DealType, ImportColumnKind.Choice, ImportColumnRequirement.Required, Choices: [Sale, Rent]),
             new(Status, ImportColumnKind.Choice, ImportColumnRequirement.Optional, Choices: [Active, Inactive]),
             new(Title, ImportColumnKind.Text, ImportColumnRequirement.Required, MaxLength: 200),

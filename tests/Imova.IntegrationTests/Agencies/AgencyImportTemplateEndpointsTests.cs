@@ -28,7 +28,8 @@ public class AgencyImportTemplateEndpointsTests(WebApplicationFactory<Program> f
         Assert.Equal("imova-import-apartment.csv", response.Content.Headers.ContentDisposition!.FileNameStar ?? response.Content.Headers.ContentDisposition.FileName);
         var bytes = await response.Content.ReadAsByteArrayAsync();
         var text = Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
-        Assert.StartsWith("external_ref;deal_type;", text);
+        Assert.StartsWith("external_ref;property_type;deal_type;", text);
+        Assert.Contains(";Apartment;sale;", text);
         Assert.Contains("Chișinău", text);
 
         var columns = (await owner.GetFromJsonAsync<List<ImportColumnDto>>($"/api/v1/agencies/{agency.Id}/import/columns?propertyType=Room"))!;
