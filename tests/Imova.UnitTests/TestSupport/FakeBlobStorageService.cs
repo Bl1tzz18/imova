@@ -94,6 +94,31 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
         return Task.CompletedTask;
     }
 
+    // The private container's other files (import CSVs), by name.
+    public Dictionary<string, byte[]> PrivateContent { get; } = [];
+
+    public List<string> DeletedPrivateNames { get; } = [];
+
+    public string GenerateImportFileBlobName(Guid agencyId) => $"imports/{agencyId:N}/{Guid.NewGuid():N}.csv";
+
+    public Task UploadPrivateAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
+    {
+        using var copy = new MemoryStream();
+        content.CopyTo(copy);
+        PrivateContent[blobName] = copy.ToArray();
+        return Task.CompletedTask;
+    }
+
+    public Task<Stream?> OpenPrivateAsync(string blobName, CancellationToken cancellationToken) =>
+        Task.FromResult<Stream?>(PrivateContent.TryGetValue(blobName, out var bytes) ? new MemoryStream(bytes) : null);
+
+    public Task DeletePrivateAsync(string blobName, CancellationToken cancellationToken)
+    {
+        DeletedPrivateNames.Add(blobName);
+        PrivateContent.Remove(blobName);
+        return Task.CompletedTask;
+    }
+
     // Deleting one of these throws, like an unreachable storage account.
     public HashSet<string> FailingDeletes { get; } = [];
 

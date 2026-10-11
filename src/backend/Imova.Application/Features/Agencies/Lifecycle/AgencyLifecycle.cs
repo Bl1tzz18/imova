@@ -84,6 +84,12 @@ public class DeleteAgencyHandler(
             listing.ChangeAgency(null);
         }
 
+        // Its CSV imports go with it (rows cascade); their kept files are deleted after the save.
+        var importFiles = await dbContext.ListingImportJobs
+            .Where(j => j.AgencyId == agency.Id && j.FileBlobName != null)
+            .Select(j => j.FileBlobName!)
+            .ToListAsync(cancellationToken);
+
         dbContext.AgencyInvitations.RemoveRange(
             await dbContext.AgencyInvitations.Where(i => i.AgencyId == agency.Id).ToListAsync(cancellationToken));
         dbContext.AgencyFormerSlugs.RemoveRange(
@@ -107,6 +113,18 @@ public class DeleteAgencyHandler(
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 logger.LogWarning(ex, "Couldn't delete the logo file {BlobName} of deleted agency {AgencyId}.", blobName, agency.Id);
+            }
+        }
+
+        foreach (var blobName in importFiles)
+        {
+            try
+            {
+                await blobStorageService.DeletePrivateAsync(blobName, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Couldn't delete the import file {BlobName} of deleted agency {AgencyId}.", blobName, agency.Id);
             }
         }
 

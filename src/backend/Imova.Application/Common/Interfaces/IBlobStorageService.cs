@@ -35,6 +35,18 @@ public interface IBlobStorageService
 
     Task DeleteMessageAttachmentAsync(string blobName, CancellationToken cancellationToken);
 
+    // --- Other private files: the same private container, under their own prefix ---
+
+    // An agency's uploaded import CSV: "imports/{agencyId}/{guid}.csv" (kept ListingImportJob.KeepFileFor).
+    string GenerateImportFileBlobName(Guid agencyId);
+
+    Task UploadPrivateAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken);
+
+    // Null when the blob doesn't exist.
+    Task<Stream?> OpenPrivateAsync(string blobName, CancellationToken cancellationToken);
+
+    Task DeletePrivateAsync(string blobName, CancellationToken cancellationToken);
+
     string GenerateUploadSasUrl(string blobName, TimeSpan expiry);
 
     string GetPublicUrl(string blobName);

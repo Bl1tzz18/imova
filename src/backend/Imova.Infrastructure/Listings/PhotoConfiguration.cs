@@ -26,5 +26,8 @@ public class PhotoConfiguration : IEntityTypeConfiguration<Photo>
         // What the photo-sizes backfill looks for (see PhotoSizeBackfill).
         builder.Property(p => p.SizesVersion).IsRequired().HasDefaultValue(0);
         builder.HasIndex(p => p.SizesVersion);
+
+        // Set by a CSV import (where the photo was downloaded from); null for uploads.
+        builder.Property(p => p.SourceUrl).HasMaxLength(Photo.MaxSourceUrlLength);
     }
 }

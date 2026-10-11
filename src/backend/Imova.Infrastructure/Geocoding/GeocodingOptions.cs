@@ -15,7 +15,13 @@ public class GeocodingOptions
     // configuration can still override it per environment.
     public string UserAgent { get; set; } = "IMOVA/1.0 (+https://imova.md)";
 
-    // Nominatim's policy caps usage at 1 request/second — NominatimGeocodingService enforces this
-    // itself via a process-wide throttle, this is just the interval it throttles to.
+    // Nominatim's policy caps usage at 1 request/second — for all of IMOVA together: SharedGeocodingService
+    // reserves request slots this far apart in the database (GeocoderThrottle), shared by the API and the Worker.
     public int MinRequestIntervalMilliseconds { get; set; } = 1000;
+
+    // How long a looked-up address is remembered (GeocodedAddresses) — places don't move.
+    public int CacheDays { get; set; } = 180;
+
+    // How long "no such place" is remembered — shorter, as the map gains streets.
+    public int NotFoundCacheDays { get; set; } = 7;
 }

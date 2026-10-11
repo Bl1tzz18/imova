@@ -83,6 +83,12 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<AgencyPhoneReveal> AgencyPhoneReveals => Set<AgencyPhoneReveal>();
 
+    public DbSet<ListingImportJob> ListingImportJobs => Set<ListingImportJob>();
+
+    public DbSet<ListingImportRow> ListingImportRows => Set<ListingImportRow>();
+
+    public void DiscardChanges() => ChangeTracker.Clear();
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();

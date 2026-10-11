@@ -84,6 +84,12 @@ public sealed class Photo : Entity
     // image) — the backfill doesn't try again.
     public DateTimeOffset? SizesFailedAt { get; private set; }
 
+    // The address an agency's CSV import downloaded it from (null for an upload) — a re-import that
+    // names the same address keeps the photo instead of downloading it again.
+    public string? SourceUrl { get; private set; }
+
+    public const int MaxSourceUrlLength = 2048;
+
     public static Photo Create(
         Guid listingId,
         string blobName,
@@ -91,7 +97,8 @@ public sealed class Photo : Entity
         long fileSizeBytes,
         int sortOrder = 0,
         bool isPrimary = false,
-        Guid? uploadedByUserId = null)
+        Guid? uploadedByUserId = null,
+        string? sourceUrl = null)
     {
         if (listingId == Guid.Empty)
         {
@@ -118,10 +125,31 @@ public sealed class Photo : Entity
             throw new ArgumentOutOfRangeException(nameof(fileSizeBytes), $"FileSizeBytes exceeds the {MaxFileSizeBytes} byte limit.");
         }
 
-        return new Photo(Guid.NewGuid(), listingId, blobName, contentType, fileSizeBytes, sortOrder, isPrimary, uploadedByUserId);
+        if (sourceUrl is { Length: > MaxSourceUrlLength })
+        {
+            throw new ArgumentOutOfRangeException(nameof(sourceUrl), $"SourceUrl exceeds {MaxSourceUrlLength} characters.");
+        }
+
+        return new Photo(Guid.NewGuid(), listingId, blobName, contentType, fileSizeBytes, sortOrder, isPrimary, uploadedByUserId)
+        {
+            SourceUrl = string.IsNullOrWhiteSpace(sourceUrl) ? null : sourceUrl,
+        };
     }
 
     public void MarkAsPrimary() => IsPrimary = true;
+
+    // Its place among the listing's photos (an import puts them in the CSV's order, the first as the
+    // cover). Keeping a single primary per listing is the caller's job, as for MarkAsPrimary.
+    public void PlaceAt(int sortOrder, bool isPrimary)
+    {
+        if (sortOrder < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sortOrder), "SortOrder can't be negative.");
+        }
+
+        SortOrder = sortOrder;
+        IsPrimary = isPrimary;
+    }
 
     public void MarkSizesGenerated(int version)
     {

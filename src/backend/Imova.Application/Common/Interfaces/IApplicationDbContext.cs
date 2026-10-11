@@ -69,6 +69,10 @@ public interface IApplicationDbContext
 
     DbSet<AgencyPhoneReveal> AgencyPhoneReveals { get; }
 
+    DbSet<ListingImportJob> ListingImportJobs { get; }
+
+    DbSet<ListingImportRow> ListingImportRows { get; }
+
     DbSet<ApplicationUser> Users { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }
@@ -76,4 +80,8 @@ public interface IApplicationDbContext
     DbSet<AdminAuditEntry> AdminAuditEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
+
+    // Forgets every tracked change (and entity) — for a long-running job to carry on after one unit
+    // of work failed to save, without that failure poisoning the next save.
+    void DiscardChanges();
 }

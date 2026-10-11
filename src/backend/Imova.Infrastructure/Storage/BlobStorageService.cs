@@ -110,6 +110,22 @@ public sealed class BlobStorageService : IBlobStorageService
         await _messageAttachmentsClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
+    // Import files share the private container with message images (under "imports/"): no public
+    // access, read only by the Worker.
+    public string GenerateImportFileBlobName(Guid agencyId) => $"imports/{agencyId:N}/{Guid.NewGuid():N}.csv";
+
+    public async Task UploadPrivateAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken) =>
+        await _messageAttachmentsClient.GetBlobClient(blobName).UploadAsync(
+            content, new BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = contentType } }, cancellationToken);
+
+    public Task<Stream?> OpenPrivateAsync(string blobName, CancellationToken cancellationToken) =>
+        OpenAsync(_messageAttachmentsClient, blobName, cancellationToken);
+
+    public async Task DeletePrivateAsync(string blobName, CancellationToken cancellationToken)
+    {
+        await _messageAttachmentsClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: cancellationToken);
+    }
+
     private static async Task<Stream?> OpenAsync(BlobContainerClient container, string blobName, CancellationToken cancellationToken)
     {
         var blobClient = container.GetBlobClient(blobName);

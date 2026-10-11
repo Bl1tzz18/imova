@@ -103,4 +103,53 @@ public static class ErrorCodes
     public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
     public const string AgencyConfirmNameMismatch = "agency.confirmNameMismatch";
     public const string AccountLastAgencyOwner = "account.lastAgencyOwner";
+
+    // --- Agency CSV import: the whole file (ListingImportJob.FailureCode, or the upload's 400) ---
+    public const string ImportFileUnreadable = "import.fileUnreadable";
+    public const string ImportNoRows = "import.noRows";
+    public const string ImportTooManyRows = "import.tooManyRows";
+    public const string ImportMissingColumns = "import.missingColumns";
+    public const string ImportUnknownColumns = "import.unknownColumns";
+    public const string ImportDuplicateColumns = "import.duplicateColumns";
+    public const string ImportFileRequired = "import.fileRequired";
+    public const string ImportFileTooLarge = "import.fileTooLarge";
+    public const string ImportAgencyNotVerified = "import.agencyNotVerified";
+    public const string ImportAgencyInactive = "import.agencyInactive";
+    public const string ImportAlreadyRunning = "import.alreadyRunning";
+    public const string ImportFileMissing = "import.fileMissing";
+    public const string ImportWorkerFailed = "import.workerFailed";
+
+    // --- Agency CSV import: one row (ListingImportRow.Problems; listing-form codes are reused too) ---
+    public const string ImportRequired = "import.required";
+    public const string ImportNotANumber = "import.notANumber";
+    public const string ImportNotAWholeNumber = "import.notAWholeNumber";
+    public const string ImportNotYesNo = "import.notYesNo";
+    public const string ImportNotADate = "import.notADate";
+    public const string ImportUnknownValue = "import.unknownValue";
+    public const string ImportTooLong = "import.tooLong";
+    public const string ImportColumnNotForType = "import.columnNotForType";
+    public const string ImportRentOnly = "import.rentOnly";
+    public const string ImportDuplicateRef = "import.duplicateRef";
+    public const string ImportUnknownCity = "import.unknownCity";
+    public const string ImportUnknownLocality = "import.unknownLocality";
+    public const string ImportAmbiguousLocality = "import.ambiguousLocality";
+    public const string ImportUnknownSector = "import.unknownSector";
+    public const string ImportSectorOutsideChisinau = "import.sectorOutsideChisinau";
+    public const string ImportLocalityAndSector = "import.localityAndSector";
+    public const string ImportCoordinatesIncomplete = "import.coordinatesIncomplete";
+    public const string ImportTooFewPhotos = "import.tooFewPhotos";
+    public const string ImportTooManyPhotos = "import.tooManyPhotos";
+    public const string ImportBadPhotoUrl = "import.badPhotoUrl";
+    public const string ImportUnknownAmenity = "import.unknownAmenity";
+    public const string ImportUnknownProximity = "import.unknownProximity";
+    public const string ImportInvalidValue = "import.invalidValue";
+    // Something unexpected went wrong saving the row (logged); the other rows carry on.
+    public const string ImportRowFailed = "import.rowFailed";
+    // Fewer than ListingPhotoRules.MinPhotos of the row's photos could be downloaded and read.
+    public const string ImportNotEnoughPhotos = "import.notEnoughPhotos";
+    public const string ImportPhotoFailed = "import.photoFailed";
+
+    // Warnings: the row is imported anyway.
+    public const string ImportAgentNotMember = "import.agentNotMember";
+    public const string ImportCoordinatesIgnored = "import.coordinatesIgnored";
 }

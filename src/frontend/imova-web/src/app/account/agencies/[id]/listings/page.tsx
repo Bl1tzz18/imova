@@ -6,6 +6,7 @@ import { AgencyListingsList } from "@/components/agency/manage/AgencyListingsLis
 import { getAgencyForMember, getAgencyListings } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { agencyListingsApiQuery, canManage, parseAgencyListingsParams } from "@/lib/agency/manage";
+import { importPageHref } from "@/lib/agency/importJobs";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -25,11 +26,12 @@ export default async function AgencyListingsPage({
 }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const state = parseAgencyListingsParams(query);
-  const [agency, profile, result, t] = await Promise.all([
+  const [agency, profile, result, t, tImport] = await Promise.all([
     getAgencyForMember(id),
     getCurrentUserProfile(),
     getAgencyListings(id, agencyListingsApiQuery(state)),
     getTranslations("AgencyManage"),
+    getTranslations("AgencyImport.page"),
   ]);
   if (!agency || !profile || !result) notFound();
 
@@ -39,11 +41,18 @@ export default async function AgencyListingsPage({
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-500">{managesAll ? t("listingsIntro") : t("listingsIntroAgent")}</p>
-        {agency.status === "Active" && agency.myRole && (
-          <LinkButton href={`/properties/new?agencyId=${encodeURIComponent(agency.id)}`} size="sm">
-            {t("addListing")}
-          </LinkButton>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {managesAll && (
+            <LinkButton href={importPageHref(agency.id)} size="sm" variant="secondary">
+              {tImport("button")}
+            </LinkButton>
+          )}
+          {agency.status === "Active" && agency.myRole && (
+            <LinkButton href={`/properties/new?agencyId=${encodeURIComponent(agency.id)}`} size="sm">
+              {t("addListing")}
+            </LinkButton>
+          )}
+        </div>
       </div>
       <AgencyListingsList agencyId={agency.id} state={state} result={result} showAuthor={managesAll} />
     </div>

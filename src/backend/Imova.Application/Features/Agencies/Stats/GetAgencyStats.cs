@@ -46,6 +46,10 @@ public class GetAgencyStatsHandler(IApplicationDbContext dbContext, IBlobStorage
     // "Views but no contacts" only means something past a few views.
     public const int NoContactsAfterViews = 20;
 
+    // The order of the "De îmbunătățit" list: FewPhotos first (it's what stops a listing from being
+    // edited or renewed), then NoContacts, then ExpiringSoon. Also the order AttentionReason checks them.
+    private static readonly string[] AttentionOrder = ["FewPhotos", "NoContacts", "ExpiringSoon"];
+
     public async Task<AgencyStatsDto?> Handle(GetAgencyStatsQuery request, CancellationToken cancellationToken)
     {
         var agency = await dbContext.Agencies.AsNoTracking().Include(a => a.Members)
@@ -149,7 +153,7 @@ public class GetAgencyStatsHandler(IApplicationDbContext dbContext, IBlobStorage
             .Where(l => l.Status == ListingStatus.Active)
             .Select(l => (Listing: l, Views: perListing.GetValueOrDefault(l.Id).Views, Reason: AttentionReason(l, perListing.GetValueOrDefault(l.Id), photosByListing.GetValueOrDefault(l.Id)?.Count ?? 0, now)))
             .Where(x => x.Reason is not null)
-            .OrderBy(x => x.Reason)
+            .OrderBy(x => Array.IndexOf(AttentionOrder, x.Reason))
             .ThenByDescending(x => x.Views)
             .Take(MaxAttention)
             .Select(x => new AgencyStatsAttentionDto(x.Listing.Id, x.Listing.Number, x.Listing.Title, x.Reason!, x.Views, x.Listing.ExpiresAt))
@@ -158,7 +162,7 @@ public class GetAgencyStatsHandler(IApplicationDbContext dbContext, IBlobStorage
         return new AgencyStatsDto(from, to, Totals(current), Totals(previous), series, top, attention);
     }
 
-    // FewPhotos first (it's what stops a listing from being renewed), then NoContacts, then ExpiringSoon.
+    // One reason per listing, the first that applies in AttentionOrder.
     private static string? AttentionReason(
         Listing listing, (int Views, int Reveals, int Messages, int Favorites) numbers, int photoCount, DateTimeOffset now)
     {

@@ -137,6 +137,58 @@ export type AgencyStats = {
   }[];
 };
 
+// GET /api/v1/agencies/{id}/import/columns?propertyType= — one column of the CSV import, from the
+// backend's own definition (ImportColumns).
+export type ImportColumn = {
+  name: string;
+  kind: "Text" | "Integer" | "Decimal" | "YesNo" | "Choice" | "Date" | "List";
+  requirement: "Required" | "Conditional" | "Optional";
+  scope: "Both" | "Rent";
+  choices: string[] | null;
+  maxLength: number | null;
+  example: string | null;
+};
+
+// GET /api/v1/agencies/{id}/import[/{jobId}] — one CSV import. failureCode (import.*): why a Failed
+// import failed as a whole. notInFileCount: the agency's live listings with an external_ref the file
+// didn't mention (nothing was done to them).
+export type ListingImportJob = {
+  id: string;
+  fileName: string;
+  status: "Pending" | "Processing" | "Completed" | "Failed";
+  totalRows: number;
+  processedRows: number;
+  createdCount: number;
+  updatedCount: number;
+  failedCount: number;
+  warningCount: number;
+  notInFileCount: number;
+  failureCode: string | null;
+  uploadedByName: string | null;
+  createdAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  fileAvailable: boolean;
+};
+
+export type ListingImportProblem = {
+  severity: "Error" | "Warning";
+  column: string | null;
+  code: string;
+  params: Record<string, string> | null;
+  message: string;
+};
+
+export type ListingImportRow = {
+  rowNumber: number;
+  externalRef: string | null;
+  outcome: "Created" | "Updated" | "Failed";
+  listingId: string | null;
+  problems: ListingImportProblem[];
+};
+
+export type ListingImportRowsPage = { items: ListingImportRow[]; page: number; pageSize: number; totalCount: number };
+
 export type AdminAgenciesPage = { items: AdminAgency[]; page: number; pageSize: number; totalCount: number };
 
 // An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).

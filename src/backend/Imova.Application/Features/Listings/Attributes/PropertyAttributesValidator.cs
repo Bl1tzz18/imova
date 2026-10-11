@@ -29,6 +29,40 @@ public static class PropertyAttributesValidator
         RoomAttributes r => Room.Validate(r),
         _ => throw new ArgumentOutOfRangeException(nameof(attributes), attributes.GetType().Name, null),
     };
+
+    // Whether a field (the record's property name, e.g. "Rooms") must be filled in, read off the rules
+    // above so a description of them (the CSV import's columns) can't drift: Required = an
+    // unconditional NotNull, Conditional = a NotNull only for some other value (heating details,
+    // soil quality, number of offices), Optional otherwise.
+    public static AttributeRequirement RequirementOf(Imova.Domain.Properties.PropertyType propertyType, string propertyName)
+    {
+        IValidator validator = propertyType switch
+        {
+            Imova.Domain.Properties.PropertyType.Apartment => Apartment,
+            Imova.Domain.Properties.PropertyType.House => House,
+            Imova.Domain.Properties.PropertyType.Land => Land,
+            Imova.Domain.Properties.PropertyType.Commercial => Commercial,
+            Imova.Domain.Properties.PropertyType.Garage => Garage,
+            Imova.Domain.Properties.PropertyType.Room => Room,
+            _ => throw new ArgumentOutOfRangeException(nameof(propertyType), propertyType, null),
+        };
+
+        var notNulls = validator.CreateDescriptor().GetRulesForMember(propertyName)
+            .SelectMany(rule => rule.Components)
+            .Where(component => component.Validator is FluentValidation.Validators.INotNullValidator)
+            .ToList();
+
+        if (notNulls.Count == 0) return AttributeRequirement.Optional;
+        return notNulls.Any(c => !c.HasCondition && !c.HasAsyncCondition) ? AttributeRequirement.Required : AttributeRequirement.Conditional;
+    }
+}
+
+public enum AttributeRequirement
+{
+    Optional = 1,
+    Required = 2,
+    // Required only for some value of another field (e.g. heating details for a boiler).
+    Conditional = 3,
 }
 
 // The conditional heating-details rule shared by every type with a HeatingSystem (itself optional):

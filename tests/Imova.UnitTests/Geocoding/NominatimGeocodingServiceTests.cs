@@ -5,110 +5,77 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Imova.UnitTests.Geocoding;
 
+// The Nominatim client on its own: a place, "no such place", or a failure — told apart so only real
+// answers get cached (SharedGeocodingService). Throttling and caching are SharedGeocodingService's.
 public class NominatimGeocodingServiceTests
 {
     private static NominatimGeocodingService CreateService(FakeHttpMessageHandler handler) =>
-        new(
-            new HttpClient(handler) { BaseAddress = new Uri("https://nominatim.test/") },
-            // No throttle delay in tests — the real 1 req/sec pacing is exercised for real by
-            // NominatimGeocodingService in production, not something worth slowing the suite for.
-            new GeocodingOptions { MinRequestIntervalMilliseconds = 0 },
-            NullLogger<NominatimGeocodingService>.Instance);
+        new(new HttpClient(handler) { BaseAddress = new Uri("https://nominatim.test/") }, NullLogger<NominatimGeocodingService>.Instance);
 
     [Fact]
-    public async Task GeocodeAsync_WithAMatchingResult_ReturnsParsedCoordinates()
+    public async Task AMatch_IsFound_WithParsedCoordinates()
     {
         var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = new StringContent("""[{"lat":"47.0105","lon":"28.8638","display_name":"Chisinau, Moldova"}]"""),
         });
-        var service = CreateService(handler);
 
-        var result = await service.GeocodeAsync("Chisinau, Moldova", CancellationToken.None);
+        var lookup = await CreateService(handler).LookupAsync("Chisinau, Moldova", CancellationToken.None);
 
-        Assert.NotNull(result);
-        Assert.Equal(47.0105, result!.Latitude);
-        Assert.Equal(28.8638, result.Longitude);
-        Assert.Equal("Chisinau, Moldova", result.FormattedAddress);
+        Assert.Equal(GeocodeOutcome.Found, lookup.Outcome);
+        Assert.Equal((47.0105, 28.8638, "Chisinau, Moldova"), (lookup.Result!.Latitude, lookup.Result.Longitude, lookup.Result.FormattedAddress));
     }
 
     [Fact]
-    public async Task GeocodeAsync_RequestsRestrictToMoldova()
+    public async Task Requests_AreRestrictedToMoldova()
     {
-        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent("[]"),
-        });
-        var service = CreateService(handler);
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[]") });
 
-        await service.GeocodeAsync("Botanica, Chisinau, Moldova", CancellationToken.None);
+        await CreateService(handler).LookupAsync("Botanica, Chisinau, Moldova", CancellationToken.None);
 
-        Assert.NotNull(handler.LastRequest);
         var uri = handler.LastRequest!.RequestUri!.ToString();
         Assert.Contains("countrycodes=md", uri);
         Assert.Contains("format=json", uri);
     }
 
     [Fact]
-    public async Task GeocodeAsync_WithEmptyResultsArray_ReturnsNull()
+    public async Task AnEmptyResultsArray_IsNotFound()
     {
-        // An empty array is Nominatim's "nothing matched this address" response.
-        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("[]") });
+
+        var lookup = await CreateService(handler).LookupAsync("Nonexistent Place, Moldova", CancellationToken.None);
+
+        Assert.Equal(GeocodeOutcome.NotFound, lookup.Outcome);
+        Assert.Null(lookup.Result);
+    }
+
+    public static TheoryData<string> Failures() => new() { "429", "network", "json", "coordinate" };
+
+    [Theory]
+    [MemberData(nameof(Failures))]
+    public async Task ErrorsAndBadAnswers_AreFailures_NeverThrown(string failure)
+    {
+        var handler = new FakeHttpMessageHandler(_ => failure switch
         {
-            Content = new StringContent("[]"),
+            "429" => new HttpResponseMessage(HttpStatusCode.TooManyRequests),
+            "network" => throw new HttpRequestException("network unreachable"),
+            "json" => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("not valid json") },
+            _ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""[{"lat":"x","lon":"28.8","display_name":"?"}]""") },
         });
-        var service = CreateService(handler);
 
-        var result = await service.GeocodeAsync("Nonexistent Place, Moldova", CancellationToken.None);
+        var lookup = await CreateService(handler).LookupAsync("Chisinau, Moldova", CancellationToken.None);
 
-        Assert.Null(result);
+        Assert.Equal(GeocodeOutcome.Failed, lookup.Outcome);
     }
 
     [Fact]
-    public async Task GeocodeAsync_WithNonSuccessStatusCode_ReturnsNull()
-    {
-        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.TooManyRequests));
-        var service = CreateService(handler);
-
-        var result = await service.GeocodeAsync("Chisinau, Moldova", CancellationToken.None);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task GeocodeAsync_WhenHttpClientThrows_ReturnsNullInsteadOfPropagating()
-    {
-        var handler = new FakeHttpMessageHandler(_ => throw new HttpRequestException("network unreachable"));
-        var service = CreateService(handler);
-
-        var result = await service.GeocodeAsync("Chisinau, Moldova", CancellationToken.None);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task GeocodeAsync_WithMalformedJson_ReturnsNullInsteadOfPropagating()
-    {
-        var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = new StringContent("not valid json"),
-        });
-        var service = CreateService(handler);
-
-        var result = await service.GeocodeAsync("Chisinau, Moldova", CancellationToken.None);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task GeocodeAsync_WithBlankAddress_ReturnsNullWithoutMakingARequest()
+    public async Task ABlankAddress_IsNotLookedUp()
     {
         var handler = new FakeHttpMessageHandler(_ => throw new InvalidOperationException("should not be called"));
-        var service = CreateService(handler);
 
-        var result = await service.GeocodeAsync("   ", CancellationToken.None);
+        var lookup = await CreateService(handler).LookupAsync("   ", CancellationToken.None);
 
-        Assert.Null(result);
+        Assert.Equal(GeocodeOutcome.NotFound, lookup.Outcome);
         Assert.Null(handler.LastRequest);
     }
 }
