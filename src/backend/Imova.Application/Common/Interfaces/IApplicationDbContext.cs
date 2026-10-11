@@ -69,6 +69,10 @@ public interface IApplicationDbContext
 
     DbSet<AgencyPhoneReveal> AgencyPhoneReveals { get; }
 
+    DbSet<ListingImportJob> ListingImportJobs { get; }
+
+    DbSet<ListingImportRow> ListingImportRows { get; }
+
     DbSet<ApplicationUser> Users { get; }
 
     DbSet<RefreshToken> RefreshTokens { get; }

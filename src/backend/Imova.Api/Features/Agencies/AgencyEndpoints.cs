@@ -9,10 +9,12 @@ using Imova.Application.Features.Agencies.Lifecycle;
 using Imova.Application.Features.Agencies.Stats;
 using Imova.Application.Features.Agencies.Directory;
 using Imova.Application.Features.Agencies.GetAgency;
+using Imova.Application.Features.Agencies.Import;
 using Imova.Application.Features.Agencies.Listings;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Application.Features.Agencies.UpdateAgency;
 using Imova.Contracts.Agencies;
+using Imova.Domain.Properties;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -198,6 +200,24 @@ public static class AgencyEndpoints
         {
             var stats = await sender.Send(new GetAgencyStatsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), from, to), ct);
             return stats is null ? Results.NotFound() : Results.Ok(stats);
+        }).RequireAuthorization();
+
+        // --- CSV import (Owners, Admins, site admins) ---
+
+        // The template for one property type: header + one example row (semicolon-separated, UTF-8 BOM).
+        app.MapGet("/api/v1/agencies/{id:guid}/import/template", async (
+            Guid id, PropertyType propertyType, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            var file = await sender.Send(new GetImportTemplateQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
+            return file is null ? Results.NotFound() : Results.File(file.Content, file.ContentType, file.FileName);
+        }).RequireAuthorization();
+
+        // The same columns described (kind, required, accepted values, example), for the import page's guide.
+        app.MapGet("/api/v1/agencies/{id:guid}/import/columns", async (
+            Guid id, PropertyType propertyType, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            var columns = await sender.Send(new GetImportColumnsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
+            return columns is null ? Results.NotFound() : Results.Ok(columns);
         }).RequireAuthorization();
 
         // Hide the agency and all its listings from the public, or show them again — Owners/Admins.
