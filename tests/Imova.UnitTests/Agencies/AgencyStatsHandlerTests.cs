@@ -129,6 +129,27 @@ public class AgencyStatsHandlerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task NeedsAttention_IsOrdered_FewPhotos_ThenNoContacts_ThenExpiringSoon()
+    {
+        // Added in the reverse order on purpose; the reasons' names sort alphabetically the other way
+        // (ExpiringSoon < FewPhotos < NoContacts), which is the bug this guards against.
+        var expiring = await AddListingAsync(_owner);
+        var ignored = await AddListingAsync(_owner);
+        var fewPhotos = await AddListingAsync(_owner, photos: 1);
+        Day(expiring, Today, views: 30, reveals: 1);
+        Day(ignored, Today, views: 25, reveals: 0);
+        await _db.SaveChangesAsync();
+        _clock.Now = expiring.ExpiresAt!.Value.AddDays(-2);
+
+        var stats = (await StatsAsync(_owner, from: Today, to: Today))!;
+
+        Assert.Equal(
+            ["FewPhotos", "NoContacts", "ExpiringSoon"],
+            stats.NeedsAttention.Select(a => a.Reason));
+        Assert.Equal([fewPhotos.Id, ignored.Id, expiring.Id], stats.NeedsAttention.Select(a => a.ListingId));
+    }
+
+    [Fact]
     public async Task AnAgent_SeesOnlyTheirOwnListings_AndNotTheAgencyPage()
     {
         var agent = await AddMemberAsync(AgencyRole.Agent);
