@@ -8,6 +8,8 @@ import type {
   AgencyStats,
   AgencyMember,
   Invitation,
+  ListingImportJob,
+  ListingImportRowsPage,
   MyAgency,
 } from "@/types/agency";
 import type { Raion } from "@/lib/api/locations";
@@ -90,6 +92,22 @@ export function getAgencyListings(id: string, query: string): Promise<AgencyList
 // Its statistics for a period (`query`: statsApiQuery) — members only.
 export function getAgencyStats(id: string, query: string): Promise<AgencyStats | null> {
   return getAsMember<AgencyStats>(`/api/v1/agencies/${encodeURIComponent(id)}/stats?${query}`);
+}
+
+// Its CSV imports, newest first (the latest 20) — Owners, Admins, site admins.
+export function getImportJobs(id: string): Promise<ListingImportJob[] | null> {
+  return getAsMember<ListingImportJob[]>(`/api/v1/agencies/${encodeURIComponent(id)}/import`);
+}
+
+export function getImportJob(id: string, jobId: string): Promise<ListingImportJob | null> {
+  return getAsMember<ListingImportJob>(`/api/v1/agencies/${encodeURIComponent(id)}/import/${encodeURIComponent(jobId)}`);
+}
+
+// The import's rows that have errors or warnings, in file order.
+export function getImportProblemRows(id: string, jobId: string, pageSize: number): Promise<ListingImportRowsPage | null> {
+  return getAsMember<ListingImportRowsPage>(
+    `/api/v1/agencies/${encodeURIComponent(id)}/import/${encodeURIComponent(jobId)}/rows?problems=true&pageSize=${pageSize}`,
+  );
 }
 
 // The invitations waiting for the signed-in account (its email), newest first.
