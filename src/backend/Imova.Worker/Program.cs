@@ -1,6 +1,7 @@
 using Imova.Application.Features.Listings.Visitors;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Agencies.Import;
 using Imova.Application.Features.Auth.Sessions;
 using Imova.Application.Features.Favorites.Alerts;
 using Imova.Application.Features.Listings.Expiry;
@@ -11,6 +12,9 @@ using Imova.Application.Features.SavedSearches;
 using Imova.Application.Features.SavedSearches.Alerts;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
+using Imova.Infrastructure.Geocoding;
+using Imova.Infrastructure.Imports;
+using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Storage;
 using Imova.Worker;
@@ -59,6 +63,24 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<SavedSearchUnsubscribeTokens>();
 builder.Services.AddScoped<FavoriteAlertUnsubscribeTokens>();
 
+// Agencies' CSV imports: listings are placed on the map like the form's (the geocoder, same
+// "Geocoding" settings as the API) and priced in EUR (the "ExchangeRates" settings).
+var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>() ?? new GeocodingOptions();
+builder.Services.AddSingleton(geocodingOptions);
+builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp, client) =>
+{
+    var options = sp.GetRequiredService<GeocodingOptions>();
+    client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(ExchangeRateOptions.SectionName).Get<ExchangeRateOptions>() ?? new ExchangeRateOptions());
+builder.Services.AddSingleton<IExchangeRateProvider, ConfiguredExchangeRateProvider>();
+builder.Services.AddSingleton<IImportImageFetcher, PendingImportImageFetcher>();
+builder.Services.AddScoped<ImportPhotoSync>();
+builder.Services.AddScoped<ImportListingWriter>();
+
 // Each job on its own timer; "<Section>:IntervalSeconds" overrides the default.
 builder.Services.AddScheduledJob<SavedSearchAlerts>(builder.Configuration, "SavedSearchAlerts", defaultIntervalSeconds: 300);
 builder.Services.AddScheduledJob<FavoriteAlerts>(builder.Configuration, "FavoriteAlerts", defaultIntervalSeconds: 3600);
@@ -67,5 +89,6 @@ builder.Services.AddScheduledJob<PhotoSizeBackfill>(builder.Configuration, "Phot
 builder.Services.AddScheduledJob<AbandonedPhotoCleanup>(builder.Configuration, "PhotoCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<RefreshTokenCleanup>(builder.Configuration, "SessionCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<ListingVisitorMarkCleanup>(builder.Configuration, "ListingVisitorCleanup", defaultIntervalSeconds: 6 * 3600);
+builder.Services.AddScheduledJob<ListingImports>(builder.Configuration, "ListingImports", defaultIntervalSeconds: 15);
 
 builder.Build().Run();

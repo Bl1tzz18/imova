@@ -18,7 +18,7 @@ public class ExportPersonalDataHandler(
     TimeProvider timeProvider) : IRequestHandler<ExportPersonalDataQuery, PersonalDataExport>
 {
     // Bumped whenever the shape of imova-data.json changes in a way a reader would notice.
-    public const string Format = "imova.personal-data.v2";
+    public const string Format = "imova.personal-data.v3";
 
     public async Task<PersonalDataExport> Handle(ExportPersonalDataQuery request, CancellationToken cancellationToken)
     {
@@ -49,10 +49,33 @@ public class ExportPersonalDataHandler(
             await BlocksAsync(userId, cancellationToken),
             await ReportsAsync(userId, cancellationToken),
             await ListingReportsAsync(userId, cancellationToken),
+            await ListingImportsAsync(userId, cancellationToken),
             MissingFiles: []);
 
         return new PersonalDataExport(data, files);
     }
+
+    private async Task<List<ExportedListingImportDto>> ListingImportsAsync(Guid userId, CancellationToken cancellationToken) =>
+        (await (
+                from j in dbContext.ListingImportJobs.AsNoTracking()
+                join a in dbContext.Agencies.AsNoTracking() on j.AgencyId equals a.Id into agencies
+                from a in agencies.DefaultIfEmpty()
+                where j.UploadedByUserId == userId
+                orderby j.CreatedAt
+                select new { Job = j, AgencyName = a == null ? null : a.Name })
+            .ToListAsync(cancellationToken))
+        .Select(x => new ExportedListingImportDto(
+            x.Job.AgencyId,
+            x.AgencyName,
+            x.Job.FileName,
+            x.Job.Status.ToString(),
+            x.Job.TotalRows,
+            x.Job.CreatedCount,
+            x.Job.UpdatedCount,
+            x.Job.FailedCount,
+            x.Job.CreatedAt,
+            x.Job.FinishedAt))
+        .ToList();
 
     private async Task<List<ExportedAgencyMembershipDto>> AgenciesAsync(Guid userId, CancellationToken cancellationToken) =>
         (await (

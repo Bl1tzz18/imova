@@ -111,6 +111,13 @@ public static class ErrorCodes
     public const string ImportMissingColumns = "import.missingColumns";
     public const string ImportUnknownColumns = "import.unknownColumns";
     public const string ImportDuplicateColumns = "import.duplicateColumns";
+    public const string ImportFileRequired = "import.fileRequired";
+    public const string ImportFileTooLarge = "import.fileTooLarge";
+    public const string ImportAgencyNotVerified = "import.agencyNotVerified";
+    public const string ImportAgencyInactive = "import.agencyInactive";
+    public const string ImportAlreadyRunning = "import.alreadyRunning";
+    public const string ImportFileMissing = "import.fileMissing";
+    public const string ImportWorkerFailed = "import.workerFailed";
 
     // --- Agency CSV import: one row (ListingImportRow.Problems; listing-form codes are reused too) ---
     public const string ImportRequired = "import.required";
@@ -136,6 +143,11 @@ public static class ErrorCodes
     public const string ImportUnknownAmenity = "import.unknownAmenity";
     public const string ImportUnknownProximity = "import.unknownProximity";
     public const string ImportInvalidValue = "import.invalidValue";
+    // Something unexpected went wrong saving the row (logged); the other rows carry on.
+    public const string ImportRowFailed = "import.rowFailed";
+    // Fewer than ListingPhotoRules.MinPhotos of the row's photos could be downloaded and read.
+    public const string ImportNotEnoughPhotos = "import.notEnoughPhotos";
+    public const string ImportPhotoFailed = "import.photoFailed";
 
     // Warnings: the row is imported anyway.
     public const string ImportAgentNotMember = "import.agentNotMember";

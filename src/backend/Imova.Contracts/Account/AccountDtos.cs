@@ -33,7 +33,22 @@ public record PersonalDataExportDto(
     IReadOnlyList<ExportedBlockDto> BlockedUsers,
     IReadOnlyList<ExportedReportDto> ReportsYouFiled,
     IReadOnlyList<ExportedListingReportDto> ListingReportsYouFiled,
+    IReadOnlyList<ExportedListingImportDto> ListingImportsYouUploaded,
     IReadOnlyList<string> MissingFiles);
+
+// A CSV import the account uploaded for an agency: the file's name and what came of it (the file
+// itself isn't kept beyond 30 days, nor included — its rows are the agency's listings).
+public record ExportedListingImportDto(
+    Guid AgencyId,
+    string? AgencyName,
+    string FileName,
+    string Status,
+    int TotalRows,
+    int CreatedCount,
+    int UpdatedCount,
+    int FailedCount,
+    DateTimeOffset UploadedAt,
+    DateTimeOffset? FinishedAt);
 
 public record ExportedAccountDto(
     Guid Id,

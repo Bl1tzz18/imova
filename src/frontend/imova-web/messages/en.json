@@ -1628,6 +1628,78 @@
     "goHome": "Go to the home page",
     "agencyInactive": "This agency is currently inactive: its profile and listings aren't public. You can still join, and its listings will show again once it's reactivated."
   },
+  "AgencyImport": {
+    "readme": {
+      "title": "IMOVA — importing listings from CSV: {types}",
+      "intro": {
+        "format": "The file: CSV, separated by \";\" (or \",\" / tab), UTF-8 (or Windows-1250 / 1251, as Excel saves it). At most 2000 rows and 5 MB.",
+        "header": "First line: the column names, exactly as below (order and letter case don't matter). An unknown column rejects the whole file — so a typo can't silently lose data. One file may mix property types: each row is read against the columns of its property_type.",
+        "values": "Listed values are written as their code, as below. Yes / no: \"da\" or \"nu\". Numbers: 58 or 58,5 (no thousands separator, or a space). Dates: 2026-11-01 or 01.11.2026. Lists (photos, amenities, nearby places) are separated by \"|\".",
+        "reimport": "external_ref is the listing's code in the agency's system: in a later import, the row with the same code updates the existing listing. The agency's listings missing from the file aren't changed (the result shows how many were missing).",
+        "photos": "image_urls: 3 to 20 public http(s) addresses of the photos, the first being the cover. Each is downloaded and checked; a row with fewer than 3 good photos isn't imported.",
+        "author": "Contact: when empty, the agency's name, phone and email are used. agent_email: the account email of an agency member — the listing shows as theirs; otherwise as the uploader's (or the agency owner's, when an IMOVA administrator uploads)."
+      },
+      "typeHeading": "{type}",
+      "templateFile": "Template: {fileName} (download it from the agency's import page).",
+      "columnsHeading": "Columns",
+      "exampleHeading": "The example row (from the template)",
+      "allowedValues": "Values:",
+      "example": "Example:",
+      "rentOnly": "rentals only",
+      "maxLength": "max. {max} characters",
+      "requirement": {
+        "Required": "REQUIRED",
+        "Conditional": "required in some cases",
+        "Optional": "optional"
+      },
+      "kind": {
+        "Text": "text",
+        "Integer": "whole number",
+        "Decimal": "number",
+        "YesNo": "yes / no",
+        "Choice": "one value from the list",
+        "Date": "date",
+        "List": "list separated by \"|\""
+      },
+      "statusValues": {
+        "active": "public (default)",
+        "inactive": "deactivated — not on the site"
+      },
+      "columns": {
+        "external_ref": "The listing's code in the agency's system; later imports recognise the listing by it.",
+        "property_type": "The property type; it decides which columns apply to the row.",
+        "deal_type": "Sale or rent.",
+        "status": "Public or deactivated. Empty: public. \"inactive\" takes a previously imported listing off the site.",
+        "title": "The listing's title.",
+        "description": "The listing's description.",
+        "price": "The price.",
+        "currency": "The price's currency.",
+        "price_negotiable": "Price negotiable.",
+        "area_m2": "Total area in m² (for land: the plot's area, also in m²).",
+        "year_built": "Year built.",
+        "condition": "Condition.",
+        "city": "The municipality or district (e.g. Chișinău, Bălți, Ialoveni), as in the listing form.",
+        "locality": "The locality in that district (e.g. Durlești). Not together with sector.",
+        "sector": "Chișinău's sector (e.g. Botanica). Chișinău only; not together with locality.",
+        "street": "The street.",
+        "building_number": "The house / building number.",
+        "latitude": "Latitude (e.g. 46,9908). Together with longitude; used only inside Moldova and within 10 km of the locality, otherwise the address is looked up on the map.",
+        "longitude": "Longitude (e.g. 28,8586). See latitude.",
+        "image_urls": "The photos' addresses (3–20), separated by \"|\"; the first is the cover.",
+        "amenities": "Amenities, with the codes below, separated by \"|\".",
+        "proximities": "What's nearby, with the codes below, separated by \"|\".",
+        "min_lease_months": "Minimum lease period, in months.",
+        "deposit": "The deposit, in the price's currency.",
+        "utilities_included": "Utilities included in the price.",
+        "available_from": "Available from (date).",
+        "pets_allowed": "Pets allowed. Required for a rented apartment, house or room.",
+        "contact_name": "The contact person. Empty: the agency's name.",
+        "contact_phone": "The contact phone. Empty: the agency's phone.",
+        "contact_email": "The contact email. Empty: the agency's email.",
+        "agent_email": "The account email of an agency member: the listing shows as theirs. If they aren't a member, the row is still imported, with a warning."
+      }
+    }
+  },
   "AgencyStats": {
     "pageTitle": "Stats — {name}",
     "period": "Last {days} days · {from} – {to}",

@@ -137,6 +137,18 @@ export type AgencyStats = {
   }[];
 };
 
+// GET /api/v1/agencies/{id}/import/columns?propertyType= — one column of the CSV import, from the
+// backend's own definition (ImportColumns).
+export type ImportColumn = {
+  name: string;
+  kind: "Text" | "Integer" | "Decimal" | "YesNo" | "Choice" | "Date" | "List";
+  requirement: "Required" | "Conditional" | "Optional";
+  scope: "Both" | "Rent";
+  choices: string[] | null;
+  maxLength: number | null;
+  example: string | null;
+};
+
 export type AdminAgenciesPage = { items: AdminAgency[]; page: number; pageSize: number; totalCount: number };
 
 // An open invitation as the agency's Owners/Admins see it (GET /api/v1/agencies/{id}/invitations).

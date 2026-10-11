@@ -178,6 +178,54 @@ public sealed class Listing : AggregateRoot
         AgencyId = agencyId;
     }
 
+    // The agency's own reference for it (its CRM's id) — how a CSV import finds it again. Unique per
+    // agency (a database index); only an agency's listing has one.
+    public void AssignExternalRef(string externalRef)
+    {
+        if (AgencyId is null)
+        {
+            throw new InvalidOperationException("Only an agency's listing has an external reference.");
+        }
+
+        var value = externalRef?.Trim();
+        if (string.IsNullOrEmpty(value) || value.Length > MaxExternalRefLength)
+        {
+            throw new ArgumentException($"An external reference is 1 to {MaxExternalRefLength} characters.", nameof(externalRef));
+        }
+
+        ExternalRef = value;
+    }
+
+    public const int MaxExternalRefLength = 100;
+
+    // A verified agency's CSV import: a new listing (Draft) goes live without the review queue —
+    // admins can still suspend it afterwards. Starts its ActiveMonths period like an approval.
+    public void PublishImported()
+    {
+        if (Status != ListingStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a new (draft) listing can be published by an import.");
+        }
+
+        Status = ListingStatus.Active;
+        PublishedAt ??= DateTimeOffset.UtcNow;
+        StartActivePeriod();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    // A CSV row marked inactive that creates a listing: it starts deactivated (Archived) — never public
+    // yet, so no PublishedAt; the owner can put it up with Publish().
+    public void ImportDeactivated()
+    {
+        if (Status != ListingStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a new (draft) listing can be imported as deactivated.");
+        }
+
+        Status = ListingStatus.Archived;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     // Hands an agency's listing to another author (a member who stays, when its author leaves the
     // agency). Nothing else changes: not its status, dates or counters.
     public void ChangeAuthor(Guid publisherId)

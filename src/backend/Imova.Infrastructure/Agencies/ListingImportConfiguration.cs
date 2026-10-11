@@ -16,7 +16,9 @@ public class ListingImportJobConfiguration : IEntityTypeConfiguration<ListingImp
 
         builder.Property(j => j.FileName).IsRequired().HasMaxLength(ListingImportJob.MaxFileNameLength);
         builder.Property(j => j.FileBlobName).HasMaxLength(500);
-        builder.Property(j => j.Status).IsRequired();
+        // A concurrency token: the Worker claims a Pending job by saving it as Processing, which fails
+        // if another Worker got there first (the save checks the status it read).
+        builder.Property(j => j.Status).IsRequired().IsConcurrencyToken();
         builder.Property(j => j.FailureCode).HasMaxLength(100);
 
         builder.HasOne<Agency>().WithMany().HasForeignKey(j => j.AgencyId).OnDelete(DeleteBehavior.Cascade);
@@ -27,6 +29,13 @@ public class ListingImportJobConfiguration : IEntityTypeConfiguration<ListingImp
 
         // What the Worker looks for: the oldest waiting job; files past KeepFileFor.
         builder.HasIndex(j => new { j.Status, j.CreatedAt });
+
+        // One import at a time per agency, even for two uploads at the same moment: at most one job
+        // per agency Pending (1) or Processing (2). The upload answers a clash with a 409.
+        builder.HasIndex(j => j.AgencyId)
+            .IsUnique()
+            .HasFilter("\"Status\" IN (1, 2)")
+            .HasDatabaseName(Imova.Application.Features.Agencies.Import.ImportAccess.ActiveJobIndex);
     }
 }
 

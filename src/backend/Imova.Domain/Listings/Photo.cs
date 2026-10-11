@@ -138,6 +138,19 @@ public sealed class Photo : Entity
 
     public void MarkAsPrimary() => IsPrimary = true;
 
+    // Its place among the listing's photos (an import puts them in the CSV's order, the first as the
+    // cover). Keeping a single primary per listing is the caller's job, as for MarkAsPrimary.
+    public void PlaceAt(int sortOrder, bool isPrimary)
+    {
+        if (sortOrder < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sortOrder), "SortOrder can't be negative.");
+        }
+
+        SortOrder = sortOrder;
+        IsPrimary = isPrimary;
+    }
+
     public void MarkSizesGenerated(int version)
     {
         if (version <= 0)

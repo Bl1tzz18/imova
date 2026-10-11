@@ -199,6 +199,21 @@ public class AgencyLifecycleTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Deleting_RemovesItsImports_AndTheirKeptFiles()
+    {
+        var kept = ListingImportJob.Create(_agency.Id, _owner, "anunturi.csv", "imports/a/kept.csv", 100, Now);
+        var gone = ListingImportJob.Create(_agency.Id, _owner, "vechi.csv", "imports/a/gone.csv", 100, Now.AddDays(-40));
+        gone.Fail("import.fileUnreadable", Now.AddDays(-40));
+        gone.MarkFileDeleted(Now.AddDays(-9));
+        _db.ListingImportJobs.AddRange(kept, gone);
+        await _db.SaveChangesAsync();
+
+        Assert.True(await DeleteAsync(_owner, "Casa Ta"));
+
+        Assert.Equal(["imports/a/kept.csv"], _blobs.DeletedPrivateNames);
+    }
+
+    [Fact]
     public async Task ASiteAdmin_Deletes_AnUnknownAgencyIsFalse()
     {
         Assert.True(await DeleteAsync(Guid.NewGuid(), "Casa Ta", isAdmin: true));

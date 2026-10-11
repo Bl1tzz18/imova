@@ -87,6 +87,8 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
 
     public DbSet<ListingImportRow> ListingImportRows => Set<ListingImportRow>();
 
+    public void DiscardChanges() => ChangeTracker.Clear();
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();

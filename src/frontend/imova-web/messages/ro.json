@@ -1628,6 +1628,78 @@
     "goHome": "Mergi la pagina principală",
     "agencyInactive": "Agenția este inactivă momentan: profilul și anunțurile ei nu se văd public. Te poți alătura totuși, iar anunțurile vor apărea când agenția este reactivată."
   },
+  "AgencyImport": {
+    "readme": {
+      "title": "IMOVA — import de anunțuri din CSV: {types}",
+      "intro": {
+        "format": "Fișierul: CSV, separat cu „;” (sau „,” / tab), codificat UTF-8 (sau Windows-1250 / 1251, cum salvează Excel). Cel mult 2000 de rânduri și 5 MB.",
+        "header": "Prima linie: numele coloanelor, exact ca mai jos (ordinea nu contează; literele mari / mici nici ele). O coloană necunoscută face ca tot fișierul să fie refuzat — ca să nu se piardă date din cauza unei greșeli de scriere. Un fișier poate amesteca tipuri de proprietăți: fiecare rând e citit după coloanele tipului din property_type.",
+        "values": "Valorile din liste se scriu cu codul lor, ca mai jos. Da / nu: „da” sau „nu”. Numere: 58 sau 58,5 (fără separator de mii, sau cu spațiu). Date: 2026-11-01 sau 01.11.2026. Listele (poze, dotări, vecinătăți) se separă cu „|”.",
+        "reimport": "external_ref e codul anunțului în sistemul agenției: la un import următor, rândul cu același cod actualizează anunțul existent. Anunțurile agenției care lipsesc din fișier nu se schimbă (rezultatul arată câte au lipsit).",
+        "photos": "image_urls: între 3 și 20 de adrese publice http(s) ale fotografiilor, prima fiind coperta. Fiecare se descarcă și se verifică; un rând cu mai puțin de 3 fotografii bune nu se importă.",
+        "author": "Contact: dacă nu e completat, se folosesc numele, telefonul și emailul agenției. agent_email: emailul contului unui membru al agenției — anunțul apare ca al lui; altfel, al celui care încarcă (sau al proprietarului agenției, dacă încarcă un administrator IMOVA)."
+      },
+      "typeHeading": "{type}",
+      "templateFile": "Șablon: {fileName} (îl descarci din pagina de import a agenției).",
+      "columnsHeading": "Coloane",
+      "exampleHeading": "Rândul exemplu (din șablon)",
+      "allowedValues": "Valori:",
+      "example": "Exemplu:",
+      "rentOnly": "doar la chirie",
+      "maxLength": "max. {max} caractere",
+      "requirement": {
+        "Required": "OBLIGATORIU",
+        "Conditional": "obligatoriu în anumite cazuri",
+        "Optional": "opțional"
+      },
+      "kind": {
+        "Text": "text",
+        "Integer": "număr întreg",
+        "Decimal": "număr",
+        "YesNo": "da / nu",
+        "Choice": "o valoare din listă",
+        "Date": "dată",
+        "List": "listă separată cu „|”"
+      },
+      "statusValues": {
+        "active": "public (implicit)",
+        "inactive": "dezactivat — nu apare pe site"
+      },
+      "columns": {
+        "external_ref": "Codul anunțului în sistemul agenției; după el se recunoaște anunțul la importurile următoare.",
+        "property_type": "Tipul proprietății; decide ce coloane se aplică rândului.",
+        "deal_type": "Vânzare sau chirie.",
+        "status": "Public sau dezactivat. Gol: public. „inactive” scoate de pe site un anunț importat anterior.",
+        "title": "Titlul anunțului.",
+        "description": "Descrierea anunțului.",
+        "price": "Prețul.",
+        "currency": "Moneda prețului.",
+        "price_negotiable": "Preț negociabil.",
+        "area_m2": "Suprafața totală în m² (la teren: suprafața terenului, tot în m²).",
+        "year_built": "Anul construcției.",
+        "condition": "Starea.",
+        "city": "Municipiul sau raionul (ex.: Chișinău, Bălți, Ialoveni), ca în formularul de anunț.",
+        "locality": "Localitatea din acel raion (ex.: Durlești). Nu împreună cu sector.",
+        "sector": "Sectorul Chișinăului (ex.: Botanica). Doar pentru Chișinău; nu împreună cu localitatea.",
+        "street": "Strada.",
+        "building_number": "Numărul casei / blocului.",
+        "latitude": "Latitudinea (ex.: 46,9908). Împreună cu longitudinea; folosite doar dacă sunt în Moldova și la cel mult 10 km de localitate, altfel adresa se caută pe hartă.",
+        "longitude": "Longitudinea (ex.: 28,8586). Vezi latitudinea.",
+        "image_urls": "Adresele fotografiilor (3–20), separate cu „|”; prima e coperta.",
+        "amenities": "Dotările, cu codurile de mai jos, separate cu „|”.",
+        "proximities": "Ce e în apropiere, cu codurile de mai jos, separate cu „|”.",
+        "min_lease_months": "Perioada minimă de închiriere, în luni.",
+        "deposit": "Garanția (depozitul), în moneda prețului.",
+        "utilities_included": "Utilitățile sunt incluse în preț.",
+        "available_from": "Disponibil de la (dată).",
+        "pets_allowed": "Animale de companie permise. Obligatoriu la chirie pentru apartament, casă și cameră.",
+        "contact_name": "Persoana de contact. Gol: numele agenției.",
+        "contact_phone": "Telefonul de contact. Gol: telefonul agenției.",
+        "contact_email": "Emailul de contact. Gol: emailul agenției.",
+        "agent_email": "Emailul contului unui membru al agenției: anunțul apare ca al lui. Dacă nu e membru, rândul se importă totuși, cu un avertisment."
+      }
+    }
+  },
   "AgencyStats": {
     "pageTitle": "Statistici — {name}",
     "period": "Ultimele {days} zile · {from} – {to}",

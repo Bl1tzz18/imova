@@ -5,6 +5,7 @@ using Imova.Application.Common.Identity;
 using Imova.Application.Features.Account.ExportPersonalData;
 using Imova.Application.Features.Account.GetAccountDataSummary;
 using Imova.Contracts.Account;
+using Imova.Domain.Agencies;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Messaging;
@@ -197,6 +198,22 @@ public class PersonalDataExportTests
         Assert.Equal("Cere avans.", exported.Details);
         Assert.Equal("Dismissed", exported.Outcome);
         Assert.Empty((await ExportAsync(_f.Seller.Id)).Data.ListingReportsYouFiled);
+    }
+
+    [Fact]
+    public async Task Export_ListsTheImportsYouUploaded()
+    {
+        var agency = ListingTestData.AddAgency(_f.Db, _f.Seller.Id, "Casa Ta");
+        var job = ListingImportJob.Create(agency.Id, _f.Seller.Id, "anunturi.csv", "imports/x.csv", 100, _f.Clock.Now);
+        job.Start(3, _f.Clock.Now);
+        job.Complete(2, 0, 1, 0, 0, _f.Clock.Now);
+        _f.Db.ListingImportJobs.Add(job);
+        await _f.Db.SaveChangesAsync();
+
+        var exported = Assert.Single((await ExportAsync(_f.Seller.Id)).Data.ListingImportsYouUploaded);
+
+        Assert.Equal(("Casa Ta", "anunturi.csv", "Completed", 3, 2, 1), (exported.AgencyName, exported.FileName, exported.Status, exported.TotalRows, exported.CreatedCount, exported.FailedCount));
+        Assert.Empty((await ExportAsync(_f.Visitor.Id)).Data.ListingImportsYouUploaded);
     }
 
     [Fact]

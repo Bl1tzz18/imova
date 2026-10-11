@@ -20,6 +20,8 @@ public sealed record ImportRowPlan(
     ImportListingCommand Command,
     bool Inactive,
     Guid AuthorUserId,
+    // agent_email named a member: on a re-import the listing moves to them; otherwise its author stays.
+    bool AuthorNamed,
     ImportLocation Location,
     double? Latitude,
     double? Longitude,
@@ -139,12 +141,14 @@ public sealed class ImportRowParser(ImportContext context, IValidator<ImportList
 
         var warnings = new List<ListingImportProblem>();
         var author = context.DefaultAuthorId;
+        var authorNamed = false;
         var agentEmail = row.Get(ImportColumns.AgentEmail);
         if (agentEmail.Length > 0)
         {
             if (context.MemberByEmail(agentEmail) is { } member)
             {
                 author = member;
+                authorNamed = true;
             }
             else
             {
@@ -208,6 +212,7 @@ public sealed class ImportRowParser(ImportContext context, IValidator<ImportList
                 command,
                 inactive,
                 author,
+                authorNamed,
                 location,
                 latitude is { } lat ? (double)lat : null,
                 longitude is { } lon ? (double)lon : null,

@@ -441,6 +441,7 @@ namespace Imova.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer");
 
                     b.Property<int>("TotalRows")
@@ -456,6 +457,11 @@ namespace Imova.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AgencyId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ListingImportJobs_AgencyId_Active")
+                        .HasFilter("\"Status\" IN (1, 2)");
 
                     b.HasIndex("UploadedByUserId");
 
