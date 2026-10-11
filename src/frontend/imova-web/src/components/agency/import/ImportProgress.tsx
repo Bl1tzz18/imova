@@ -18,7 +18,8 @@ export function ImportProgress({ agencyId, initial }: { agencyId: string; initia
     const timer = window.setTimeout(async () => {
       const res = await fetch(`/account/agencies/${agencyId}/import/${job.id}/status`, { cache: "no-store" }).catch(() => null);
       const next = res?.ok ? ((await res.json()) as ListingImportJob) : null;
-      if (next && !isImportRunning(next)) {
+      // A new status (Pending → Processing, or done) changes what the server renders: the badge, then the results.
+      if (next && next.status !== job.status) {
         router.refresh();
       }
 

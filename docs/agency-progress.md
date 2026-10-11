@@ -3,10 +3,10 @@
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
 **PR 1 (steps 1–5, branch `feat/agencies`) was merged on 2026-10-06:
 https://github.com/Bl1tzz18/imova/pull/32.** **PR 2 (steps 6–7, `feat/agency-management`) was merged
-on 2026-10-09: https://github.com/Bl1tzz18/imova/pull/33.** **PR 3 (statistics + the 3-photo rule) is
-complete** on branch `feat/agency-stats` (from `feat/agency-management` at `338be7c`, i.e. what was
-merged), pushed and opened against `main`, not merged; its description is `docs/pr-3-description.md`.
-Last updated 2026-10-11. Next: PR 4 (CSV import).
+on 2026-10-09: https://github.com/Bl1tzz18/imova/pull/33.** **PR 3 (statistics + the 3-photo rule) was
+merged** (#34). **PR 4 (CSV import) is complete** on branch `feat/agency-import` (from `main` at
+`498cb92`), pushed and opened against `main`, not merged; its description is `docs/pr-4-description.md`.
+Last updated 2026-10-11. Next: the wrap-up items under "Open items" (Playwright path, CLAUDE.md).
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -134,6 +134,34 @@ tabs fit at 360 px, no horizontal scroll. Fixed: the chart total's number groupi
 `ListingDailyStats` rows deleted (the table is empty in dev), listing 100012's `ExpiresAt` back to
 2027-03-30 22:53:28.781741+00.
 
+## Steps done (PR 4 = CSV import, branch `feat/agency-import`)
+
+First on the branch, as its own small commit: `91132cc`, the "De îmbunătățit" list in its intended
+order (few photos, then no contacts, then expiring soon).
+
+| Step | Commit | What it delivered |
+|---|---|---|
+| 1/6 | `c485129` | `ListingImportJob` / `ListingImportRow` (migration `AddListingImports`), `Photo.SourceUrl`; `ImportColumns` per property type (attributes by reflection, required-ness from `PropertyAttributesValidator.RequirementOf`), templates with a valid example row, `GET …/import/template` and `…/import/columns`. CsvHelper. |
+| 2/6 | `58cd3ac` | `ImportCsvReader` (UTF-8/16, Windows-1250/1251, `;`/`,`/tab, strict header, 2,000 rows), `ImportValues`, `ImportRowParser` → `ImportListingCommand` checked by the form's `ListingWriteValidator`; `ImportLocationIndex`; coordinates within 10 km else geocoded (`ImportGeolocator`); author rule (`ImportContext`). `import.*` error codes. |
+| 3/6 | `41e63d0` | Upload (`POST …/import`, 5 MB, 409 one at a time — `AddOneListingImportAtATime`), history / job / rows / report.csv; Worker job `ListingImports` (row by row, own save per row, counts, "not in this file", email, stuck → Failed after 2 h, files deleted after 30 days); `ImportListingWriter` (`PublishImported`, `ImportDeactivated`, `AssignExternalRef`), `ImportPhotoSync`; site-admin onboarding (author = longest-standing Owner); agency deletion removes import files; data export v3; the README per type. |
+| 4/6 | `83b01d8` | `ImportImageFetcher` (destination checked at connect time — `PublicAddress`; 3 redirects re-checked; 10 MB; 20 s); orphaned downloads deleted when a row's save fails; `SharedGeocodingService` — one limit in Postgres for API + Worker (`GeocoderThrottle`) and a cache (`GeocodedAddresses`, 180 / 7 days), migration `AddSharedGeocodingCache`. |
+| 5/6 | `39653f7` | Web: "Importă din CSV" on the Anunțuri tab, `/account/agencies/[id]/import` (prepare, upload, history) and `/import/[jobId]` (progress, counts, translated problems, report). |
+| 6/6 | (this commit) | The result page refreshes on every status change (the badge stayed "În așteptare" while processing); `GeocodingStoreTests` made load-independent (cold connections skewed the waits — it failed once in a full run); docs + PR description. |
+
+Tests at PR 4 complete: backend 1,500 unit + 276 integration + 5 architecture, frontend 455 Vitest;
+`tsc` clean.
+
+**Real run (2026-10-11, compose + Mailpit + real internet), as Elena:** Casa Ta verified temporarily.
+File 1 (5 rows: apartment with coordinates — kept; garage without — geocoded; commercial with a
+non-member `agent_email` and a 404 photo; land with coordinates 10+ km off — ignored and geocoded;
+a house broken on purpose) → 4 Active listings (#100051–#100054) with 3 sized photos each, 1 failed
+row, 3 warnings; result page, report CSV, Mailpit email ("… 1 rânduri cu erori"), listing page with
+the real photos, 1280 px and 390 px. File 2 (one price 79 000 → 76 500) → 1 updated, "3 anunțuri
+active … nu erau în acest fișier", a `ListingPriceChanges` row, photos kept (not re-downloaded),
+second email. **Undone:** the 4 listings deleted through the API (photo blobs too), both import jobs and
+their files in Azurite deleted, Casa Ta back to `IsVerified = false` / `VerifiedAt = NULL` with its 10
+listings. Left on purpose: the 5 real answers in `GeocodedAddresses` (dev cache).
+
 ## Decisions (made by the product owner in this session)
 
 **Model and authorship**
@@ -236,12 +264,24 @@ tabs fit at 360 px, no horizontal scroll. Fixed: the chart total's number groupi
 
 **Later PRs and wrap-up**
 - ~~PR 3: stats~~ — done (`feat/agency-stats`), without the weekly email (later, see above).
-- PR 4: CSV import (see decisions) — through `ListingPhotoRules` like every other create.
+- ~~PR 4: CSV import~~ — done (`feat/agency-import`), see above.
 - Playwright end-to-end path: create agency → upload logo → publish as agency → public page → back
   from the listing's contact card.
 - Update `CLAUDE.md` "Current status" and the PR descriptions (every endpoint, migration and screen).
 
 ## Known issues and notes
+
+**CSV import (PR 4)**
+- **Nominatim's usage policy discourages bulk geocoding.** At hosting time, consider our own instance or
+  a paid geocoder if large imports become frequent.
+- Geocoding is ~1 address a second (shared with the form): a 2,000-row file without coordinates and
+  with many new addresses takes about half an hour. The cache makes repeats instant.
+- The report CSV is English (codes + English messages, for scripts); the result page is translated; the
+  email is Romanian only.
+- Uploaded files are kept 30 days, in the private message-attachments container under `imports/`
+  (a dedicated container can come with hosting).
+- `Photo.SourceUrl` (where an imported photo came from) isn't shown anywhere.
+- Integration tests leave small import files in the dev Azurite container (`imports/…`).
 
 - The Anunțuri tab's API loads a light row for every listing of the agency to group, search and sort in
   memory (only the page's DTOs are built); fine for hundreds or a few thousand — move it into SQL if
@@ -308,4 +348,8 @@ Anunțuri tab (`d9cbe5c`) before it.
 **i) ~~PR 3: statistics + the 3-photo rule~~** — done 2026-10-11 (`c28be5a`, `17e3b4e`, `ee0a95b`,
 `ba326d6`; description `docs/pr-3-description.md`), opened against `main`, not merged.
 
-**j) Next — PR 4: CSV import** (see decisions), after PR 3 is merged.
+**j) ~~PR 4: CSV import~~** — done 2026-10-11 (`c485129` … step 6; description
+`docs/pr-4-description.md`), opened against `main`, not merged.
+
+**k) Next — wrap-up:** the Playwright end-to-end path and the `CLAUDE.md` "Current status" update (see
+"Open items"), then the launch items (KAN-10, KAN-21, hosting).

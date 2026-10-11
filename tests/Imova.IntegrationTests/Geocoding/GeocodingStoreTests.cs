@@ -1,6 +1,7 @@
 using Imova.Infrastructure.Geocoding;
 using Imova.IntegrationTests.TestSupport;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Imova.IntegrationTests.Geocoding;
 
@@ -18,13 +19,24 @@ public class GeocodingStoreTests(WebApplicationFactory<Program> factory) : IClas
         var contexts = Enumerable.Range(0, 4).Select(_ => ListingApi.NewDbContext()).ToList();
         try
         {
-            var waits = await Task.WhenAll(contexts.Select(db => new GeocodingStore(db).ReserveSlotAsync(interval, CancellationToken.None)));
+            // Connections opened beforehand, and each slot compared as a moment (when the call returned +
+            // its wait): a wait alone is relative to its own statement, which a slow connection delays.
+            foreach (var db in contexts)
+            {
+                await db.Database.OpenConnectionAsync();
+            }
 
-            var sorted = waits.Order().ToList();
+            var slots = await Task.WhenAll(contexts.Select(async db =>
+            {
+                var wait = await new GeocodingStore(db).ReserveSlotAsync(interval, CancellationToken.None);
+                return DateTimeOffset.UtcNow + wait;
+            }));
+
+            var sorted = slots.Order().ToList();
             for (var i = 1; i < sorted.Count; i++)
             {
                 var gap = sorted[i] - sorted[i - 1];
-                Assert.InRange(gap.TotalMilliseconds, 200, 400);
+                Assert.InRange(gap.TotalMilliseconds, 200, 500);
             }
         }
         finally
