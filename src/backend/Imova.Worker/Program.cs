@@ -67,17 +67,22 @@ builder.Services.AddScoped<FavoriteAlertUnsubscribeTokens>();
 // "Geocoding" settings as the API) and priced in EUR (the "ExchangeRates" settings).
 var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>() ?? new GeocodingOptions();
 builder.Services.AddSingleton(geocodingOptions);
-builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp, client) =>
+builder.Services.AddHttpClient<IGeocoderClient, NominatimGeocodingService>((sp, client) =>
 {
     var options = sp.GetRequiredService<GeocodingOptions>();
     client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+// The same shared cache and request slots as the API (GeocodedAddresses, GeocoderThrottle).
+builder.Services.AddScoped<IGeocodingStore, GeocodingStore>();
+builder.Services.AddScoped<IGeocodingService, SharedGeocodingService>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(ExchangeRateOptions.SectionName).Get<ExchangeRateOptions>() ?? new ExchangeRateOptions());
 builder.Services.AddSingleton<IExchangeRateProvider, ConfiguredExchangeRateProvider>();
-builder.Services.AddSingleton<IImportImageFetcher, PendingImportImageFetcher>();
+// Photos named in agencies' CSVs: public internet addresses only, checked on every connection
+// (ImportImageFetcher); one instance, so its connections are pooled.
+builder.Services.AddSingleton<IImportImageFetcher, ImportImageFetcher>();
 builder.Services.AddScoped<ImportPhotoSync>();
 builder.Services.AddScoped<ImportListingWriter>();
 

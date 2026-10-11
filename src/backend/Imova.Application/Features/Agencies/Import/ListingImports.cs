@@ -89,11 +89,13 @@ public sealed class ListingImports(
             try
             {
                 await dbContext.SaveChangesAsync(cancellationToken);
+                writer.CommitDownloads();
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 logger.LogError(ex, "Import {JobId}: saving row {Row} failed.", jobId, csvRow.RowNumber);
                 dbContext.DiscardChanges();
+                await writer.DiscardDownloadsAsync(cancellationToken);
                 row = ListingImportRow.Failed(jobId, csvRow.RowNumber, csvRow.Get(ImportColumns.ExternalRef), [RowFailed()]);
                 dbContext.ListingImportRows.Add(row);
                 await dbContext.SaveChangesAsync(cancellationToken);
@@ -153,6 +155,7 @@ public sealed class ListingImports(
         {
             logger.LogError(ex, "Import {JobId}: row {Row} failed.", jobId, csvRow.RowNumber);
             dbContext.DiscardChanges();
+            await writer.DiscardDownloadsAsync(cancellationToken);
             return ListingImportRow.Failed(jobId, csvRow.RowNumber, csvRow.Get(ImportColumns.ExternalRef), [RowFailed()]);
         }
     }

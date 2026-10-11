@@ -29,8 +29,27 @@ public sealed class ImportPhotoSync(
     PhotoSizeGenerator photoSizeGenerator,
     ILogger<ImportPhotoSync> logger)
 {
+    // The photos the last SyncAsync downloaded, until the caller saved the row (CommitDownloads) or
+    // gave up on it (DiscardDownloadsAsync — their blobs would otherwise be left behind).
+    private List<Photo> _pending = [];
+
+    public void CommitDownloads() => _pending = [];
+
+    // Best effort: a blob that can't be deleted is logged and left.
+    public async Task DiscardDownloadsAsync(CancellationToken cancellationToken)
+    {
+        var pending = _pending;
+        _pending = [];
+        if (pending.Count > 0)
+        {
+            logger.LogInformation("Removing {Count} photos downloaded for an import row that wasn't saved.", pending.Count);
+            await DeleteBlobsAsync(pending, cancellationToken);
+        }
+    }
+
     public async Task<ImportPhotoResult> SyncAsync(Guid listingId, IReadOnlyList<string> urls, Guid uploadedByUserId, CancellationToken cancellationToken)
     {
+        _pending = [];
         var existing = await dbContext.Photos.Where(p => p.ListingId == listingId).OrderBy(p => p.SortOrder).ToListAsync(cancellationToken);
         var importedByUrl = existing.Where(p => p.SourceUrl is not null).GroupBy(p => p.SourceUrl!).ToDictionary(g => g.Key, g => g.First());
         var manual = existing.Where(p => p.SourceUrl is null).ToList();
@@ -82,6 +101,7 @@ public sealed class ImportPhotoSync(
             position++;
         }
 
+        _pending = downloaded;
         await DeleteBlobsAsync(removed, cancellationToken);
         return new ImportPhotoResult(true, count, problems);
     }

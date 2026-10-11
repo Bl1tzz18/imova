@@ -15,6 +15,7 @@ using Imova.Infrastructure.Amenities;
 using Imova.Infrastructure.Proximities;
 using Imova.UnitTests.TestSupport;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using ValidationException = FluentValidation.ValidationException;
 
@@ -27,7 +28,8 @@ public class ListingImportsJobTests : IAsyncDisposable
 {
     private static readonly DateTimeOffset Start = new(2026, 10, 11, 9, 0, 0, TimeSpan.Zero);
 
-    private readonly ImovaDbContext _db = TestDbContextFactory.Create();
+    private readonly FailingListingSave _failingSave = new();
+    private readonly ImovaDbContext _db;
     private readonly ManualTimeProvider _clock = new(Start);
     private readonly FakeBlobStorageService _blobs = new();
     private readonly FakeImportImageFetcher _fetcher = new();
@@ -37,6 +39,7 @@ public class ListingImportsJobTests : IAsyncDisposable
 
     public ListingImportsJobTests()
     {
+        _db = TestDbContextFactory.Create(Guid.NewGuid().ToString(), _failingSave);
         new ImportTestPlaces().AddTo(_db);
         _db.Amenities.AddRange(AmenityConfiguration.Seed);
         _db.Proximities.AddRange(ProximityConfiguration.Seed);
@@ -225,6 +228,28 @@ public class ListingImportsJobTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ARowWhoseSaveFails_LeavesNoPhotosBehind_AndTheOtherRowsCarryOn()
+    {
+        _failingSave.ExternalRef = "GR-3";
+
+        var job = await RunAsync((await UploadAsync(Csv(Row(PropertyType.Garage), Row(PropertyType.Apartment))))!.Id);
+
+        Assert.Equal((2, 1, 1), (job.TotalRows, job.CreatedCount, job.FailedCount));
+        var failed = await _db.ListingImportRows.SingleAsync(r => r.JobId == job.Id && r.ExternalRef == "GR-3");
+        Assert.Equal(ErrorCodes.ImportRowFailed, Assert.Single(failed.Problems).Code);
+        Assert.False(await _db.Listings.AnyAsync(l => l.ExternalRef == "GR-3"));
+
+        // The garage's downloaded photo files (originals and display sizes) are deleted again; the
+        // apartment's — saved — stay. (Blob names start with their listing's id.)
+        var apartment = await ListingAsync("AP-1024");
+        var garageBlobs = _blobs.UploadedContent.Keys.Where(name => !name.StartsWith(apartment.Id.ToString(), StringComparison.Ordinal)).ToList();
+        Assert.NotEmpty(garageBlobs);
+        Assert.All(garageBlobs, name => Assert.Contains(name, _blobs.DeletedBlobNames));
+        Assert.Equal(3, await _db.Photos.CountAsync(p => p.ListingId == apartment.Id));
+        Assert.DoesNotContain(_blobs.DeletedBlobNames, name => name.StartsWith(apartment.Id.ToString(), StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task AFileThatsGone_FailsTheImport_WithAnEmail()
     {
         var upload = (await UploadAsync(Csv(Row(PropertyType.Garage))))!;
@@ -258,6 +283,26 @@ public class ListingImportsJobTests : IAsyncDisposable
         var stuckAfter = await _db.ListingImportJobs.SingleAsync(j => j.Id == stuck.Id);
         Assert.Equal((ListingImportStatus.Failed, ErrorCodes.ImportWorkerFailed), (stuckAfter.Status, stuckAfter.FailureCode));
         Assert.Equal("imports/stuck.csv", stuckAfter.FileBlobName);
+    }
+
+    // Fails the save that would add the listing with ExternalRef (like a lost database connection),
+    // once.
+    private sealed class FailingListingSave : SaveChangesInterceptor
+    {
+        public string? ExternalRef { get; set; }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            if (ExternalRef is { } externalRef
+                && eventData.Context!.ChangeTracker.Entries<Listing>().Any(e => e.State == EntityState.Added && e.Entity.ExternalRef == externalRef))
+            {
+                ExternalRef = null;
+                throw new DbUpdateException("Simulated: the connection was lost.");
+            }
+
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
     }
 
     [Fact]

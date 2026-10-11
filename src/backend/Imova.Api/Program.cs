@@ -281,13 +281,17 @@ builder.Services.AddHttpClient<IExternalImageFetcher, ExternalImageFetcher>(clie
 var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>()
     ?? new GeocodingOptions();
 builder.Services.AddSingleton(geocodingOptions);
-builder.Services.AddHttpClient<IGeocodingService, NominatimGeocodingService>((sp, client) =>
+builder.Services.AddHttpClient<IGeocoderClient, NominatimGeocodingService>((sp, client) =>
 {
     var options = sp.GetRequiredService<GeocodingOptions>();
     client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
     client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+// Every lookup through the shared cache and request slots (the Worker does the same), so the API
+// and the Worker together keep to Nominatim's 1 request a second.
+builder.Services.AddScoped<IGeocodingStore, GeocodingStore>();
+builder.Services.AddScoped<IGeocodingService, SharedGeocodingService>();
 
 // Same missing-section-degrades-gracefully treatment as Geocoding above — street suggestions are
 // a best-effort typeahead aid, not something startup should fail without.

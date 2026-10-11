@@ -1810,6 +1810,50 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("SavedSearches");
                 });
 
+            modelBuilder.Entity("Imova.Infrastructure.Geocoding.GeocodedAddress", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("FormattedAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTimeOffset>("LookedUpAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("GeocodedAddresses", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Infrastructure.Geocoding.GeocoderThrottle", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NextSlotAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GeocoderThrottle", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            NextSlotAt = new DateTimeOffset(new DateTime(2000, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
                     b.Property<int>("Id")

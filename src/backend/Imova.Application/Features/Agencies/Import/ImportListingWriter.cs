@@ -119,6 +119,12 @@ public sealed class ImportListingWriter(IApplicationDbContext dbContext, IExchan
         return new ImportWriteResult(existing, false, photos.Problems);
     }
 
+    // After the caller saved the row: its downloaded photos are now the listing's.
+    public void CommitDownloads() => photoSync.CommitDownloads();
+
+    // The row wasn't saved after all: delete the photos downloaded for it (best effort, logged).
+    public Task DiscardDownloadsAsync(CancellationToken cancellationToken) => photoSync.DiscardDownloadsAsync(cancellationToken);
+
     public static void ApplyStatus(Listing listing, bool inactive)
     {
         switch (listing.Status)
