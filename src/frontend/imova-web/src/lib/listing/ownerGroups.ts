@@ -1,7 +1,7 @@
 import type { Listing } from "@/types/listing";
 import { normalizeForSearch } from "@/lib/utils/search";
 import { listingExpiry } from "@/lib/listing/expiry";
-import type { OwnerAction } from "@/lib/listing/ownerActions";
+import { needsPhotos, type OwnerAction } from "@/lib/listing/ownerActions";
 
 // "Anunțurile mele" in three questions an owner actually asks — is it live, what isn't (yet), what's
 // over — instead of one tab per status. Pure (Vitest-covered).
@@ -22,14 +22,16 @@ export function ownerGroup(status: Listing["status"]): OwnerGroup {
   }
 }
 
-// Waiting on the owner: fix a rejected/suspended listing, submit a draft, renew before it expires.
-export function needsAttention(listing: Pick<Listing, "status" | "expiresAt">, now: Date): boolean {
+// Waiting on the owner: fix a rejected/suspended listing, submit a draft, renew before it expires,
+// add the photos an older listing is short of.
+export function needsAttention(listing: Pick<Listing, "status" | "expiresAt" | "photos">, now: Date): boolean {
   if (listing.status === "Rejected" || listing.status === "Suspended" || listing.status === "Draft") return true;
+  if (needsPhotos(listing)) return true;
   const expiry = listingExpiry(listing, now);
   return expiry.kind === "active" && expiry.renewable;
 }
 
-type Groupable = Pick<Listing, "status" | "expiresAt" | "updatedAt" | "createdAt"> & { price: Pick<Listing["price"], "priceEur"> };
+type Groupable = Pick<Listing, "status" | "expiresAt" | "updatedAt" | "createdAt" | "photos"> & { price: Pick<Listing["price"], "priceEur"> };
 
 // How a tab is ordered. "recommended": what needs the owner first, then the most recently changed.
 export const OWNER_SORTS = ["recommended", "newest", "priceAsc", "priceDesc"] as const;
@@ -93,8 +95,9 @@ export function initialOwnerGroup(requested: string | undefined, groups: Record<
 // How a listing's actions are laid out: the next step as the filled button (if there is one), Edit
 // beside it, and the rarely used rest (sold/rented, deactivate) in the "⋯" menu.
 export function arrangeOwnerActions(actions: OwnerAction[]): { primary: OwnerAction | null; edit: OwnerAction | null; more: OwnerAction[] } {
-  const primary = actions.find((a) => a === "editAndResubmit" || a === "submitForReview" || a === "renew" || a === "activate") ?? null;
-  const edit = primary === "editAndResubmit" ? null : (actions.find((a) => a === "edit") ?? null);
+  const primary =
+    actions.find((a) => a === "addPhotos" || a === "editAndResubmit" || a === "submitForReview" || a === "renew" || a === "activate") ?? null;
+  const edit = primary === "editAndResubmit" || primary === "addPhotos" ? null : (actions.find((a) => a === "edit") ?? null);
   const more = actions.filter((a) => a !== primary && a !== edit && a !== "edit" && a !== "editAndResubmit");
   return { primary, edit, more };
 }

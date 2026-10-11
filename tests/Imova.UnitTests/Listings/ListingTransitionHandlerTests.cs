@@ -34,9 +34,10 @@ public class ListingTransitionHandlerTests
         _publisherId = ListingTestData.AddIndividualPublisher(_dbContext, _ownerId).Id;
     }
 
-    private async Task<Listing> SeedAsync(ListingStatus status, TransactionType transactionType = TransactionType.Rent)
+    private async Task<Listing> SeedAsync(
+        ListingStatus status, TransactionType transactionType = TransactionType.Rent, int photos = ListingPhotoRules.MinPhotos)
     {
-        var listing = ListingTestData.AddListing(_dbContext, _publisherId, transactionType).MoveTo(status);
+        var listing = ListingTestData.AddListing(_dbContext, _publisherId, transactionType, photos: photos).MoveTo(status);
         await _dbContext.SaveChangesAsync(CancellationToken.None);
         return listing;
     }

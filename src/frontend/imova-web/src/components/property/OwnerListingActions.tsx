@@ -74,8 +74,15 @@ export function OwnerListingActions({
 
   function button(action: OwnerAction, variant: "primary" | "secondary") {
     const cls = cn(stretch && "flex-1");
-    return action === "edit" || action === "editAndResubmit" ? (
-      <LinkButton key={action} href={`/my-listings/${listingId}/edit`} variant={variant} size="sm" className={cls}>
+    return action === "edit" || action === "editAndResubmit" || action === "addPhotos" ? (
+      <LinkButton
+        key={action}
+        // "Adaugă fotografii" opens the form right on its photos step.
+        href={`/my-listings/${listingId}/edit${action === "addPhotos" ? "?step=photos" : ""}`}
+        variant={variant}
+        size="sm"
+        className={cls}
+      >
         {t(action)}
       </LinkButton>
     ) : (

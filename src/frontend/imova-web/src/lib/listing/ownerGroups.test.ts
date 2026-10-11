@@ -6,7 +6,16 @@ const now = new Date("2026-10-01T12:00:00Z");
 const inDays = (days: number) => new Date(now.getTime() + days * 86_400_000).toISOString();
 
 const listing = (id: string, status: Listing["status"], extra: Partial<Listing> = {}) =>
-  ({ id, status, expiresAt: null, updatedAt: "2026-09-01T00:00:00Z", createdAt: "2026-01-01T00:00:00Z", price: { priceEur: 0 }, ...extra }) as Listing;
+  ({
+    id,
+    status,
+    expiresAt: null,
+    updatedAt: "2026-09-01T00:00:00Z",
+    createdAt: "2026-01-01T00:00:00Z",
+    price: { priceEur: 0 },
+    photos: [{}, {}, {}],
+    ...extra,
+  }) as Listing;
 
 describe("ownerGroup", () => {
   it("puts every status in one of three groups", () => {

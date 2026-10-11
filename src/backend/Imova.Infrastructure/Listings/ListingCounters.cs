@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Features.Listings.Visitors;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ public class ListingCounters(ImovaDbContext dbContext) : IListingCounters
         };
 
 #pragma warning disable EF1002 // Only the fixed column name is interpolated; every value is a parameter.
+        // ...and the day's row of the statistics (ListingDailyStat) in the same statement, so the
+        // listing's total and its daily series can't drift apart.
         var updated = await dbContext.Database.ExecuteSqlRawAsync(
             $$"""
             WITH counted AS (
@@ -31,11 +34,24 @@ public class ListingCounters(ImovaDbContext dbContext) : IListingCounters
                 DO UPDATE SET "CountedAt" = EXCLUDED."CountedAt"
                 WHERE "ListingVisitorMarks"."CountedAt" <= {4}
                 RETURNING 1
+            ),
+            raised AS (
+                UPDATE "Listings" SET "{{column}}" = "{{column}}" + 1
+                WHERE "Id" = {0} AND EXISTS (SELECT 1 FROM counted)
+                RETURNING 1
             )
-            UPDATE "Listings" SET "{{column}}" = "{{column}}" + 1
-            WHERE "Id" = {0} AND EXISTS (SELECT 1 FROM counted)
+            INSERT INTO "ListingDailyStats" ("ListingId", "Day", "Views", "PhoneReveals")
+            SELECT {0}, {5}, {6}, {7} WHERE EXISTS (SELECT 1 FROM raised)
+            ON CONFLICT ("ListingId", "Day")
+            DO UPDATE SET "Views" = "ListingDailyStats"."Views" + EXCLUDED."Views",
+                          "PhoneReveals" = "ListingDailyStats"."PhoneReveals" + EXCLUDED."PhoneReveals"
             """,
-            [listingId, (int)counter, visitorHash, now, now - ListingVisitorMark.CountOncePer],
+            [
+                listingId, (int)counter, visitorHash, now, now - ListingVisitorMark.CountOncePer,
+                MoldovaTime.Day(now),
+                counter == ListingCounter.View ? 1 : 0,
+                counter == ListingCounter.PhoneReveal ? 1 : 0,
+            ],
             cancellationToken);
 #pragma warning restore EF1002
 

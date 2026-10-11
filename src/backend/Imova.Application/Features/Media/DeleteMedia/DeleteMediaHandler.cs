@@ -26,6 +26,8 @@ public class DeleteMediaHandler(IApplicationDbContext dbContext, IBlobStorageSer
         if (listing is not null)
         {
             await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
+            // A live or in-review listing keeps its MinPhotos: add a photo before removing one.
+            await ListingPhotoRules.EnsureCanRemoveOneAsync(dbContext, listing, cancellationToken);
         }
         else if (!request.IsAdmin && photo.UploadedByUserId != request.RequestingUserId)
         {

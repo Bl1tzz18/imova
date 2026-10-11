@@ -22,6 +22,8 @@ public class ApproveListingHandler(IApplicationDbContext dbContext, IBlobStorage
             throw new ForbiddenAccessException();
         }
 
+        // A safety net: everything reaching review already has its photos (ListingPhotoRules).
+        await ListingPhotoRules.EnsureEnoughAsync(dbContext, listing.Id, cancellationToken);
         ListingTransitions.Apply(listing.Approve);
         await dbContext.SaveChangesAsync(cancellationToken);
 

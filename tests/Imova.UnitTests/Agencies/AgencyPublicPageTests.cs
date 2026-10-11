@@ -51,8 +51,27 @@ public class AgencyPublicPageTests : IAsyncDisposable
         new GetAgencyDirectoryHandler(_db, _blobs).Handle(
             new GetAgencyDirectoryQuery(q, raionId, verifiedOnly, page, pageSize), CancellationToken.None);
 
-    private Task<AgencyPhoneDto?> RevealAsync(Guid agencyId, Guid? userId = null, bool isAdmin = false) =>
-        new RevealAgencyPhoneHandler(_db).Handle(new RevealAgencyPhoneQuery(agencyId, userId, isAdmin), CancellationToken.None);
+    private readonly FakeAgencyCounters _counters = new();
+
+    private Task<AgencyPhoneDto?> RevealAsync(Guid agencyId, Guid? userId = null, bool isAdmin = false, string? visitorId = null) =>
+        new RevealAgencyPhoneHandler(_db, _counters, TimeProvider.System)
+            .Handle(new RevealAgencyPhoneQuery(agencyId, userId, isAdmin, visitorId), CancellationToken.None);
+
+    [Fact]
+    public async Task PhoneReveal_IsCountedForVisitors_NotForTheAgencysOwnMembers()
+    {
+        var owner = Guid.NewGuid();
+        ListingTestData.AddUser(_db, owner);
+        var agency = ListingTestData.AddAgency(_db, owner, "Agenția Numărată");
+        await _db.SaveChangesAsync();
+
+        await RevealAsync(agency.Id, visitorId: "0b6a2a3e-8c1f-4c7a-9d2b-1f2e3d4c5b6a");
+        await RevealAsync(agency.Id, userId: owner);
+        await RevealAsync(agency.Id);
+
+        var counted = Assert.Single(_counters.PhoneReveals);
+        Assert.Equal(agency.Id, counted.AgencyId);
+    }
 
     // --- By slug ---
 

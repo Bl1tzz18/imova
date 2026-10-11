@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { uploadFileToBlob } from "@/lib/api/media";
 import { confirmPhotoUpload, deleteListingPhoto, requestPhotoUploadUrl } from "@/lib/property/actions";
@@ -47,14 +47,18 @@ type UploadItem = {
 // the listing update itself has succeeded. Create mode leaves this off — the listing doesn't
 // exist yet, so there's nothing "live" to protect, and immediate cleanup avoids leaking rows/blobs
 // for photos the owner uploaded then reconsidered before ever publishing.
+// onCountChange: how many photos are uploaded and stay, and whether any is still uploading — the
+// form needs MIN_LISTING_PHOTOS of them (lib/property/photos.ts).
 export function ImageUploader({
   listingId,
   initialPhotos,
   deferDeletes,
+  onCountChange,
 }: {
   listingId: string;
   initialPhotos?: Photo[];
   deferDeletes?: boolean;
+  onCountChange?: (count: number, uploading: boolean) => void;
 }) {
   const [items, setItems] = useState<UploadItem[]>(
     () =>
@@ -67,6 +71,12 @@ export function ImageUploader({
   );
   const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
   const t = useTranslations("PropertyForm");
+
+  const doneCount = items.filter((item) => item.status === "done").length;
+  const uploading = items.some((item) => item.status === "uploading");
+  useEffect(() => {
+    onCountChange?.(doneCount, uploading);
+  }, [doneCount, uploading, onCountChange]);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;

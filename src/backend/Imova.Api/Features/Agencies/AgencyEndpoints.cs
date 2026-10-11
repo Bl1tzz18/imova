@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Imova.Api.Common;
+using Imova.Api.Features.Listings.ListingVisitors;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Agencies;
 using Imova.Application.Features.Agencies.Admin;
 using Imova.Application.Features.Agencies.CreateAgency;
 using Imova.Application.Features.Agencies.Lifecycle;
+using Imova.Application.Features.Agencies.Stats;
 using Imova.Application.Features.Agencies.Directory;
 using Imova.Application.Features.Agencies.GetAgency;
 using Imova.Application.Features.Agencies.Listings;
@@ -107,13 +109,18 @@ public static class AgencyEndpoints
         // with listings' numbers.
         app.MapPost("/api/v1/agencies/{id:guid}/contact/phone", async (
             Guid id,
+            HttpRequest httpRequest,
             ClaimsPrincipal user,
             ISender sender,
             CancellationToken cancellationToken) =>
         {
             var signedIn = user.Identity?.IsAuthenticated == true;
             var phone = await sender.Send(
-                new RevealAgencyPhoneQuery(id, signedIn ? user.GetUserId() : null, signedIn && user.IsInRole(Roles.Admin)),
+                new RevealAgencyPhoneQuery(
+                    id,
+                    signedIn ? user.GetUserId() : null,
+                    signedIn && user.IsInRole(Roles.Admin),
+                    httpRequest.Headers[ListingVisitorEndpoints.VisitorHeader].FirstOrDefault()),
                 cancellationToken);
             return phone is null ? Results.NotFound() : Results.Ok(phone);
         }).RequireRateLimiting(ListingVisitorRateLimiting.PhoneRevealPolicy);
@@ -183,6 +190,15 @@ public static class AgencyEndpoints
                 new UploadAgencyLogoCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin), buffer.ToArray()), cancellationToken);
             return agency is null ? Results.NotFound() : Results.Ok(agency);
         }).RequireAuthorization().DisableAntiforgery();
+
+        // Its statistics over Moldovan days ?from=&to= (yyyy-MM-dd; default the last 30; at most 365) —
+        // members (an Agent: their own listings) and admins.
+        app.MapGet("/api/v1/agencies/{id:guid}/stats", async (
+            Guid id, DateOnly? from, DateOnly? to, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
+        {
+            var stats = await sender.Send(new GetAgencyStatsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), from, to), ct);
+            return stats is null ? Results.NotFound() : Results.Ok(stats);
+        }).RequireAuthorization();
 
         // Hide the agency and all its listings from the public, or show them again — Owners/Admins.
         app.MapPost("/api/v1/agencies/{id:guid}/deactivate", (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>

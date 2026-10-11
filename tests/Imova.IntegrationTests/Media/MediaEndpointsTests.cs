@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using ImageMagick;
+using Imova.Application.Features.Listings;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Media;
 using Imova.IntegrationTests.TestSupport;
@@ -41,10 +42,17 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         return await client.PostAsJsonAsync($"/api/v1/listings/{listingId}/media/confirm", new { blobName = upload.BlobName });
     }
 
-    private static async Task<ListingDto> CreateListingAsync(HttpClient owner, Guid? id = null)
+    // With its own id: topped up to the photos a listing needs (ListingPhotoRules) besides the ones
+    // the test uploaded there.
+    private static async Task<ListingDto> CreateListingAsync(HttpClient owner, Guid? id = null, int uploadedThere = 0)
     {
         var body = await ListingApi.ValidBodyAsync(owner);
-        body["id"] = id;
+        if (id is { } own)
+        {
+            body["id"] = own;
+            await ListingApi.AddPhotosAsync(owner, own, Math.Max(0, ListingPhotoRules.MinPhotos - uploadedThere));
+        }
+
         var response = await owner.PostAsJsonAsync("/api/v1/listings", body);
         Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
         return (await response.Content.ReadFromJsonAsync<ListingDto>())!;
@@ -63,6 +71,26 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
+    public async Task AListing_NeedsThreePhotosToBeCreated_AndKeepsThemWhileInReviewOrLive()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var body = await ListingApi.ValidBodyAsync(owner);
+        var shortId = Guid.NewGuid();
+        await ListingApi.AddPhotosAsync(owner, shortId, count: 2);
+        body["id"] = shortId;
+
+        var refused = await owner.PostAsJsonAsync("/api/v1/listings", body);
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        Assert.Contains("listing.notEnoughPhotos", await refused.Content.ReadAsStringAsync());
+
+        var listing = await CreateListingAsync(owner);
+        Assert.Equal("PendingReview", listing.Status);
+        var removal = await owner.DeleteAsync($"/api/v1/listings/{listing.Id}/media/{listing.Photos[0].Id}");
+        Assert.Equal(HttpStatusCode.BadRequest, removal.StatusCode);
+        Assert.Contains("listing.lastPhotos", await removal.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Owner_CanAddPhotosToTheirListing_SomeoneElseCannot()
     {
         var (owner, _) = await ListingApi.RegisterAsync(_factory);
@@ -73,7 +101,7 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.Forbidden, (await RequestUploadUrlAsync(stranger, listing.Id)).StatusCode);
 
         var stored = (await owner.GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
-        Assert.Single(stored.Photos);
+        Assert.Equal(ListingPhotoRules.MinPhotos + 1, stored.Photos.Count);
     }
 
     [Fact]
@@ -91,8 +119,8 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         body["id"] = pendingId;
         Assert.Equal(HttpStatusCode.Forbidden, (await stranger.PostAsJsonAsync("/api/v1/listings", body)).StatusCode);
 
-        var listing = await CreateListingAsync(owner, pendingId);
-        Assert.Single(listing.Photos);
+        var listing = await CreateListingAsync(owner, pendingId, uploadedThere: 1);
+        Assert.Equal(ListingPhotoRules.MinPhotos, listing.Photos.Count);
     }
 
     [Fact]

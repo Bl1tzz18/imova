@@ -5,6 +5,7 @@ import type {
   AgencyDirectoryPage,
   AgencyInvitation,
   AgencyListingsPage,
+  AgencyStats,
   AgencyMember,
   Invitation,
   MyAgency,
@@ -84,6 +85,11 @@ export function getAgencyInvitations(id: string): Promise<AgencyInvitation[] | n
 // One page of its listings in every status (an Agent gets only theirs). `query`: agencyListingsApiQuery.
 export function getAgencyListings(id: string, query: string): Promise<AgencyListingsPage | null> {
   return getAsMember<AgencyListingsPage>(`/api/v1/agencies/${encodeURIComponent(id)}/listings?${query}`);
+}
+
+// Its statistics for a period (`query`: statsApiQuery) — members only.
+export function getAgencyStats(id: string, query: string): Promise<AgencyStats | null> {
+  return getAsMember<AgencyStats>(`/api/v1/agencies/${encodeURIComponent(id)}/stats?${query}`);
 }
 
 // The invitations waiting for the signed-in account (its email), newest first.

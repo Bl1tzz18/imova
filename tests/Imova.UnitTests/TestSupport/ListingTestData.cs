@@ -1,4 +1,5 @@
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Listings;
 using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Imova.Domain.Locations;
@@ -78,12 +79,24 @@ internal static class ListingTestData
         Guid? propertyId = null,
         PropertyType propertyType = PropertyType.Apartment,
         ListingContact? contact = null,
-        Guid? agencyId = null)
+        Guid? agencyId = null,
+        // Give it ListingPhotoRules.MinPhotos when the test sends it to review or onto the site.
+        int photos = 0)
     {
         var listing = NewListing(
             propertyId ?? AddProperty(dbContext, propertyType).Id, publisherId, transactionType, price, contact, agencyId);
         dbContext.Listings.Add(listing);
+        AddPhotos(dbContext, listing.Id, photos);
         return listing;
+    }
+
+    // Photo rows (no blobs) — a listing needs ListingPhotoRules.MinPhotos to be reviewed or shown.
+    public static void AddPhotos(ImovaDbContext dbContext, Guid listingId, int count = ListingPhotoRules.MinPhotos)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            dbContext.Photos.Add(Photo.Create(listingId, $"{listingId}/{Guid.NewGuid():N}.jpg", "image/jpeg", 100, sortOrder: i, isPrimary: i == 0));
+        }
     }
 
     public static Listing NewListing(

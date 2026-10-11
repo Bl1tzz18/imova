@@ -1,7 +1,9 @@
 using System.Text.Json;
+using FluentValidation;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Listings.CreateListing;
 using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
@@ -44,6 +46,25 @@ public class CreateListingHandlerTests
     private CreateListingHandler Handler() =>
         new(_dbContext, _geocoding, new FakeExchangeRateProvider(), new FakeBlobStorageService());
 
+    // Photos under a not-yet-created listing id, as the form uploads them first.
+    private void AddPhotos(Guid listingId, int count = ListingPhotoRules.MinPhotos, Guid? uploadedBy = null)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            _dbContext.Photos.Add(Photo.Create(listingId, $"{listingId}/{i}.jpg", "image/jpeg", 100, sortOrder: i, uploadedByUserId: uploadedBy ?? _user.Id));
+        }
+
+        _dbContext.SaveChanges();
+    }
+
+    private Guid NewIdWithPhotos()
+    {
+        var id = Guid.NewGuid();
+        AddPhotos(id);
+        return id;
+    }
+
+    // Without an id: a fresh one that already has the caller's photos (a listing needs them).
     private CreateListingCommand Command(
         Guid? id = null,
         Guid? agencyId = null,
@@ -59,7 +80,7 @@ public class CreateListingHandlerTests
         string? buildingNumber = null,
         ListingContact? contact = null) =>
         new(
-            id,
+            id ?? NewIdWithPhotos(),
             _user.Id,
             agencyId,
             PropertyType.Apartment,
@@ -128,12 +149,27 @@ public class CreateListingHandlerTests
     public async Task Handle_WithTheCallersOwnPhotosUnderTheId_Succeeds()
     {
         var id = Guid.NewGuid();
-        _dbContext.Photos.Add(Photo.Create(id, $"{id}/a.jpg", "image/jpeg", 100, uploadedByUserId: _user.Id));
-        await _dbContext.SaveChangesAsync();
+        AddPhotos(id);
 
         var result = await Handler().Handle(Command(id: id), CancellationToken.None);
 
         Assert.Equal(id, result.Id);
+        Assert.Equal(ListingPhotoRules.MinPhotos, result.Photos.Count);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task Handle_WithFewerThanThreePhotos_IsRefused_AndCreatesNothing(int photos)
+    {
+        var id = Guid.NewGuid();
+        AddPhotos(id, photos);
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => Handler().Handle(Command(id: id), CancellationToken.None));
+
+        var failure = Assert.Single(ex.Errors);
+        Assert.Equal(ErrorCodes.ListingNotEnoughPhotos, failure.ErrorCode);
+        Assert.Empty(_dbContext.Listings);
     }
 
     [Fact]
@@ -320,6 +356,7 @@ public class CreateListingHandlerTests
     public async Task Handle_WithClientSuppliedId_UsesItForTheListing()
     {
         var id = Guid.NewGuid();
+        AddPhotos(id);
 
         var result = await Handler().Handle(Command(id: id), CancellationToken.None);
 

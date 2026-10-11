@@ -89,7 +89,7 @@ public class ResetPasswordHandlerTests
         // The reset link reached the inbox — that proves the address as well as a confirmation link.
         var user = _store.SeedUser("ana@example.com", emailConfirmed: false);
         var publisher = ListingTestData.AddIndividualPublisher(_dbContext, user.Id);
-        var draft = ListingTestData.AddListing(_dbContext, publisher.Id);
+        var draft = ListingTestData.AddListing(_dbContext, publisher.Id, photos: Imova.Application.Features.Listings.ListingPhotoRules.MinPhotos);
         await _dbContext.SaveChangesAsync();
 
         await ResetAsync("ana@example.com", LinkToken(user));

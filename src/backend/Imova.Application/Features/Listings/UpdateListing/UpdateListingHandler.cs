@@ -24,6 +24,10 @@ public class UpdateListingHandler(
 
         await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
 
+        // In review, live, rejected or suspended: only with its photos (an older listing short of them
+        // gets them on this, its next change — ListingPhotoRules).
+        await ListingPhotoRules.EnsureEnoughForEditAsync(dbContext, listing, cancellationToken);
+
         // Moving it between private and an agency (or between agencies):
         // - out of an agency: only that agency's Owners/Admins — the agency keeps its inventory, so an
         //   Agent can't take its listings with them before leaving;

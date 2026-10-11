@@ -73,7 +73,8 @@ public class GetAgencyListingsHandler(IApplicationDbContext dbContext, IBlobStor
                     loc == null ? null : loc.RaionName,
                     loc == null ? null : loc.LocalitateName,
                     loc == null ? null : loc.ChisinauSectorName,
-                    loc == null ? null : loc.Street))
+                    loc == null ? null : loc.Street,
+                    dbContext.Photos.Count(ph => ph.ListingId == l.Id)))
             .ToListAsync(cancellationToken);
 
         var now = timeProvider.GetUtcNow();

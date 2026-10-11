@@ -18,6 +18,7 @@ public class PublishListingHandler(IApplicationDbContext dbContext, IBlobStorage
 
         await ListingAccess.EnsureCanManageAsync(dbContext, listing, request.RequestingUserId, request.IsAdmin, cancellationToken);
 
+        await ListingPhotoRules.EnsureEnoughAsync(dbContext, listing.Id, cancellationToken);
         ListingTransitions.Apply(listing.Publish);
         await dbContext.SaveChangesAsync(cancellationToken);
 

@@ -1,11 +1,13 @@
 import type { Listing } from "@/types/listing";
 import { listingExpiry } from "@/lib/listing/expiry";
+import { MIN_LISTING_PHOTOS } from "@/lib/property/photos";
 
 // What the owner can do with their listing, in each status — one list for "Anunțurile mele" and for
 // the bar on the listing's own page, mirroring the domain's guards (Listing.SubmitForReview, Renew,
 // MarkAsSold/MarkAsRented, Archive, Publish). Pure (Vitest-covered).
 
 export type OwnerAction =
+  | "addPhotos"
   | "edit"
   | "editAndResubmit"
   | "submitForReview"
@@ -21,7 +23,24 @@ export const CONFIRMED_ACTIONS: ReadonlySet<OwnerAction> = new Set(["markAsSold"
 const ARCHIVABLE = new Set(["Active", "Rented", "Sold", "Expired"]);
 const REPUBLISHABLE = new Set(["Archived", "Expired"]);
 
-export function ownerActions(listing: Pick<Listing, "status" | "transactionType" | "expiresAt">, now: Date): OwnerAction[] {
+// Statuses a listing can still go on from (sold and rented are over).
+const IN_PLAY = new Set(["Draft", "PendingReview", "Active", "Rejected", "Suspended", "Expired", "Archived"]);
+
+// Short of the photos every listing needs (MIN_LISTING_PHOTOS) — older listings from before the rule.
+// Its next step is adding them: editing, submitting, renewing and re-activating all need them first.
+export function needsPhotos(listing: Pick<Listing, "status" | "photos">): boolean {
+  return IN_PLAY.has(listing.status) && listing.photos.length < MIN_LISTING_PHOTOS;
+}
+
+export function ownerActions(listing: Pick<Listing, "status" | "transactionType" | "expiresAt" | "photos">, now: Date): OwnerAction[] {
+  if (needsPhotos(listing)) {
+    // Only what doesn't need the photos besides adding them: taking it off the site.
+    const actions: OwnerAction[] = ["addPhotos"];
+    if (listing.status === "Active") actions.push(listing.transactionType === "Sale" ? "markAsSold" : "markAsRented");
+    if (ARCHIVABLE.has(listing.status)) actions.push("deactivate");
+    return actions;
+  }
+
   const actions: OwnerAction[] = [listing.status === "Rejected" ? "editAndResubmit" : "edit"];
   if (listing.status === "Draft") actions.push("submitForReview");
   const expiry = listingExpiry(listing, now);

@@ -4,7 +4,7 @@ import { OWNER_GROUPS, parseOwnerSort, type OwnerGroup, type OwnerSort } from "@
 // The agency management pages (/account/agencies/...) — pure rules, Vitest-covered. Who may do what
 // mirrors the API's AgencyAccess (which has the last word); the UI only leaves out what would be refused.
 
-export const AGENCY_SECTIONS = ["profile", "members", "listings", "settings"] as const;
+export const AGENCY_SECTIONS = ["profile", "members", "listings", "stats", "settings"] as const;
 export type AgencySection = (typeof AGENCY_SECTIONS)[number];
 
 // The "Agențiile mele" tab of /account.
