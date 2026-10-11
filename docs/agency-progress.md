@@ -2,9 +2,11 @@
 
 Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishers-spec.md`.
 **PR 1 (steps 1–5, branch `feat/agencies`) was merged on 2026-10-06:
-https://github.com/Bl1tzz18/imova/pull/32.** **PR 2 (steps 6–7) is complete** on branch
-`feat/agency-management` (from `main` at `571fd0c`), **not pushed**; its description is
-`docs/pr-2-description.md`. Last updated 2026-10-09. Next: push and open PR 2, then PR 3 (statistics).
+https://github.com/Bl1tzz18/imova/pull/32.** **PR 2 (steps 6–7, `feat/agency-management`) was merged
+on 2026-10-09: https://github.com/Bl1tzz18/imova/pull/33.** **PR 3 (statistics + the 3-photo rule) is
+complete** on branch `feat/agency-stats` (from `feat/agency-management` at `338be7c`, i.e. what was
+merged), pushed and opened against `main`, not merged; its description is `docs/pr-3-description.md`.
+Last updated 2026-10-11. Next: PR 4 (CSV import).
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -110,6 +112,28 @@ agencies tab. Elena's Setări: public link + copy, "you're the only owner". Prof
 the test agency deleted in SQL (members/invitations/slug history cascade; no listings) — its two logo
 JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 
+## Steps done (PR 3 = statistics + the 3-photo rule, branch `feat/agency-stats`)
+
+| Step | Commit | What it delivered |
+|---|---|---|
+| — | `c28be5a` | Every listing needs at least 3 photos (`ListingPhotoRules.MinPhotos`), private sellers and agencies alike: create, submit/resubmit, edit while in review/live/rejected/suspended, re-publish, renew, admin approval → 400 `listing.notEnoughPhotos`; deleting below 3 on a live/in-review listing → 400 `listing.lastPhotos`; drafts waiting for email confirmation only go to review with the photos. Existing live listings stay live (decided: enforce on next change) and show "Adaugă fotografii" (→ edit `?step=photos`) as their next step / needing attention. Photos step: rule, live counter, 3-segment bar, recommends 8+, blocks Continue/Save with fewer or with uploads running. |
+| 1/4 | `17e3b4e` | `ListingDailyStats` (listing × Moldovan day: Views, PhoneReveals), upserted in the same SQL as the visitor mark and the totals (`ListingCounters`); `AgencyPhoneReveals` (agency × day × visitor, ON CONFLICT DO NOTHING; members not counted; cleanup after 400 days). `MoldovaTime`. Migration `AddListingDailyStatsAndAgencyPhoneReveals`. |
+| 2/4 | `ee0a95b` | `GET /api/v1/agencies/{id}/stats?from=&to=` → `AgencyStatsDto` (Totals + Previous period, Daily, TopListings 10, NeedsAttention: FewPhotos / NoContacts (20+ views, no contact) / ExpiringSoon). Contacts = listing reveals + agency-page reveals + conversations started. Agents: own listings, no agency reveals. |
+| 3/4 | `ba326d6` | Statistici tab (`/account/agencies/[id]/stats`, fifth tab; tab labels `text-xs` on phones): period 7/30/90 (`?days=`), contacts tile first (split, contact rate, change vs previous), views + saves tiles, two single-series daily bar charts (hover/tap/arrow keys readout, "Vezi tabelul"), "De îmbunătățit" with one fix per reason (add photos / review / renew in place), top listings (table on desktop, cards on phones), empty state. `lib/agency/stats.ts` (Vitest); namespace `AgencyStats`. |
+| 4/4 | — | **Skipped for now** (product owner, 2026-10-11): the weekly stats email to Owners — see "Product decisions for later". |
+
+Tests at PR 3 complete: backend 1,338 unit + 272 integration + 5 architecture, frontend 444
+Vitest; `tsc` clean.
+
+**Statistici browser check (2026-10-09, rebuilt containers):** as Elena (Owner of Casa Ta) at 1280 px,
+390 px and 360 px (3×), with 60 days of made-up `ListingDailyStats` rows for Casa Ta's 10 listings, one
+listing's expiry moved to 4 days ahead and another's reveals zeroed: KPIs and comparisons, both charts at
+30 and 90 days (90 bars fit at 360 px), hover readout, table view, the improve list with all three
+reasons — "Prelungește" renewed the listing and it left the list — top-listings table / phone cards, five
+tabs fit at 360 px, no horizontal scroll. Fixed: the chart total's number grouping. Reverted after: all
+`ListingDailyStats` rows deleted (the table is empty in dev), listing 100012's `ExpiresAt` back to
+2027-03-30 22:53:28.781741+00.
+
 ## Decisions (made by the product owner in this session)
 
 **Model and authorship**
@@ -190,6 +214,15 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 
 ## Product decisions for later
 
+- **Weekly stats email to Owners, with opt-out — after launch, once agencies are active.** Planned as
+  PR 3's step 4 and skipped (2026-10-11). Intended shape: a Worker job, once a week, to each Owner
+  (confirmed email) of an active agency — the week's contacts / views / saves against the week before
+  and the "De îmbunătățit" list with links; opt-out as an email preference like
+  `EmailFavoriteUpdates` (account "Notificări" tab + a tokened unsubscribe link). The stats endpoint's
+  handler already computes everything it needs.
+- **The 3-photo rule for listings already live** (decided 2026-10-09): they stay live; the rule applies
+  on their next edit, renewal or re-publishing.
+
 - **Deleting an Active listing.** "Anunțurile mele" offers an Active listing only "Marchează ca
   vândut/închiriat" and "Dezactivează" — no delete (the API's `DELETE /api/v1/listings/{id}` exists).
   Kept as it is on purpose (2026-10-06); whether owners should be able to delete a live listing
@@ -202,8 +235,8 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
 **Step 7 — done** (`2c0360b`), see above.
 
 **Later PRs and wrap-up**
-- PR 3: stats (daily aggregate, `GET /api/v1/agencies/{id}/stats`, Statistici tab).
-- PR 4: CSV import (see decisions).
+- ~~PR 3: stats~~ — done (`feat/agency-stats`), without the weekly email (later, see above).
+- PR 4: CSV import (see decisions) — through `ListingPhotoRules` like every other create.
 - Playwright end-to-end path: create agency → upload logo → publish as agency → public page → back
   from the listing's contact card.
 - Update `CLAUDE.md` "Current status" and the PR descriptions (every endpoint, migration and screen).
@@ -242,7 +275,9 @@ JPEGs remain in Azurite (dev only). Casa Ta Imobiliare is again the only agency.
   frontend build once failed in `next/font` (fetching Google Fonts) and passed on a plain retry.
 - The directory's `q` is a substring match (on the name, case-insensitive, and on the slug, which
   covers diacritics and Cyrillic) — words typed in another order ("imobiliare casa") don't match.
-- Agency phone reveals are rate-limited but not counted (agency statistics are PR 3).
+- Agency phone reveals are counted since PR 3 (`AgencyPhoneReveals`); daily statistics start empty on
+  deployment (no backfill), so the first weeks compare against zeros.
+- The stats endpoint groups the period's rows in memory (fine for hundreds of listings × 365 days).
 - The agency page's sort form submits `sort=Newest` explicitly when changed (harmless; links built by
   the page leave it out).
 - Dev database: the 36 empty "Imobil Grup" agencies (`imobil-grup`, `-2` … `-36`) and "Maria Imobil"
@@ -268,5 +303,9 @@ Anunțuri tab (`d9cbe5c`) before it.
 
 **g) ~~The PR 2 description~~** — `docs/pr-2-description.md`.
 
-**h) Next — push `feat/agency-management` and open PR 2** against `main` (the product owner pushes);
-then PR 3: statistics (daily aggregate, `GET /api/v1/agencies/{id}/stats`, Statistici tab).
+**h) ~~Push and open PR 2~~** — https://github.com/Bl1tzz18/imova/pull/33, merged 2026-10-09.
+
+**i) ~~PR 3: statistics + the 3-photo rule~~** — done 2026-10-11 (`c28be5a`, `17e3b4e`, `ee0a95b`,
+`ba326d6`; description `docs/pr-3-description.md`), opened against `main`, not merged.
+
+**j) Next — PR 4: CSV import** (see decisions), after PR 3 is merged.
