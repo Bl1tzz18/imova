@@ -63,8 +63,8 @@ public class GrantAdminHandlerTests
 
         Assert.True(await IsAdminAsync(target));
         var entry = Assert.Single(_db.AdminAuditEntries);
-        Assert.Equal((AdminAuditEntry.GrantAdmin, actor.Id, target.Id, _clock.Now, "203.0.113.7"),
-            (entry.Action, entry.ActorUserId, entry.TargetUserId, entry.CreatedAt, entry.IpAddress));
+        Assert.Equal((AdminAuditEntry.GrantAdmin, actor.Id, (Guid?)target.Id, (Guid?)null, _clock.Now, "203.0.113.7"),
+            (entry.Action, entry.ActorUserId, entry.TargetUserId, entry.TargetAgencyId, entry.CreatedAt, entry.IpAddress));
         Assert.Contains(_email.Sent, m => m.To == "ana@example.com" && m.Subject.Contains("administrator"));
         Assert.Contains(_email.Sent, m => m.To == "boss@imova.md" && m.TextBody.Contains("ana@example.com"));
         Assert.Contains(_email.Sent, m => m.To == other.Email && m.TextBody.Contains("boss@imova.md"));

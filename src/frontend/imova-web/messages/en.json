@@ -1693,15 +1693,24 @@
     "agencyInactive": "This agency is currently inactive: its profile and listings aren't public. You can still join, and its listings will show again once it's reactivated."
   },
   "AgencyImport": {
+    "byEmail": {
+      "title": "Import your listings",
+      "intro": "Already have your listings in a spreadsheet, a program or on your website? Don't enter them again. Write to us and we'll bring them to IMOVA, free of charge.",
+      "step1": "You write to us at <email></email> and tell us where your listings are.",
+      "step2": "Together we agree how you'll send them, and we prepare them and add them to the site.",
+      "step3": "You get an email when your listings are online.",
+      "button": "Write to us",
+      "note": "There's nothing for you to fill in. Just show us where the data is — we do the rest.",
+      "subject": "Listings import — {name}"
+    },
     "page": {
-      "button": "Import from CSV",
       "title": "Import from CSV",
       "pageTitle": "CSV import — {name}",
       "jobPageTitle": "Import result — {name}",
       "back": "The agency's listings",
       "intro": "Add or update the agency's listings from a CSV file. A row with the same external_ref updates the existing listing, without duplicates.",
-      "notVerified": "Importing is available once IMOVA has verified the agency. Meanwhile you can prepare the file with the templates below.",
-      "inactive": "The agency is deactivated — reactivate it in Settings to import.",
+      "notVerified": "The agency isn't verified yet — verify it (Agency verification) before importing. Meanwhile you can prepare the file with the templates below.",
+      "inactive": "The agency is deactivated — nothing can be imported until it's reactivated.",
       "prepareTitle": "1. Prepare the file",
       "prepareIntro": "A template for each property type, with an example row, and the guide with every column and allowed value. One file may mix types.",
       "template": "CSV template",
@@ -2033,6 +2042,9 @@
     "title": "Agency verification",
     "subtitle": "Every agency, not yet verified first. Verification puts the “Verified agency” mark on the agency's page and listings; its owners get an email.",
     "forbidden": "This page is for administrators only.",
+    "csvImport": "CSV import",
+    "adminOnly": "Admins only",
+    "agencyListings": "The agency's listings",
     "searchLabel": "Search for an agency",
     "searchPlaceholder": "Agency name",
     "filterLabel": "Show",

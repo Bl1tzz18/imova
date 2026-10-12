@@ -45,12 +45,17 @@ namespace Imova.Infrastructure.Migrations
                         .HasMaxLength(45)
                         .HasColumnType("character varying(45)");
 
-                    b.Property<Guid>("TargetUserId")
+                    b.Property<Guid?>("TargetAgencyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TargetUserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAt");
+
+                    b.HasIndex("TargetAgencyId");
 
                     b.HasIndex("TargetUserId");
 

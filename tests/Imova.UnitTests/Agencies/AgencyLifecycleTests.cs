@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
+using Imova.Application.Common.Identity;
 using Imova.Application.Features.Agencies.Admin;
 using Imova.Application.Features.Agencies.Lifecycle;
 using Imova.Application.Features.Listings;
@@ -61,13 +62,13 @@ public class AgencyLifecycleTests : IAsyncDisposable
         new DeleteAgencyHandler(_db, _blobs, NullLogger<DeleteAgencyHandler>.Instance)
             .Handle(new DeleteAgencyCommand(_agency.Id, userId, isAdmin, confirmName), CancellationToken.None);
 
-    private Task<bool> SetVerifiedAsync(bool verified, Guid? agencyId = null) =>
+    private Task<bool> SetVerifiedAsync(bool verified, Guid? agencyId = null, Guid? adminId = null) =>
         new SetAgencyVerifiedHandler(
                 _db,
                 new AgencyVerifiedEmail(_email, new AppOptions { WebBaseUrl = "https://imova.md" }),
                 _clock,
                 NullLogger<SetAgencyVerifiedHandler>.Instance)
-            .Handle(new SetAgencyVerifiedCommand(agencyId ?? _agency.Id, Guid.NewGuid(), verified), CancellationToken.None);
+            .Handle(new SetAgencyVerifiedCommand(agencyId ?? _agency.Id, adminId ?? Guid.NewGuid(), verified), CancellationToken.None);
 
     // --- The domain ---
 
@@ -98,6 +99,30 @@ public class AgencyLifecycleTests : IAsyncDisposable
         Assert.False(agency.IsVerified);
         Assert.Null(agency.VerifiedAt);
         Assert.False(agency.Unverify(Now.AddDays(3)));
+    }
+
+    [Fact]
+    public async Task VerifyingAndUnverifying_AreRecordedInTheAdminAudit_WhoWhenWhichAgency_OncePerChange()
+    {
+        var verifier = Guid.NewGuid();
+        var unverifier = Guid.NewGuid();
+
+        Assert.True(await SetVerifiedAsync(true, adminId: verifier));
+        // Verifying again changes nothing, so nothing new is recorded.
+        _clock.Now = Now.AddMinutes(5);
+        Assert.True(await SetVerifiedAsync(true, adminId: unverifier));
+        _clock.Now = Now.AddHours(2);
+        Assert.True(await SetVerifiedAsync(false, adminId: unverifier));
+        // An unknown agency: no change, no entry.
+        Assert.False(await SetVerifiedAsync(true, agencyId: Guid.NewGuid(), adminId: verifier));
+
+        var entries = await _db.AdminAuditEntries.OrderBy(e => e.CreatedAt).ToListAsync();
+        Assert.Equal(
+            [
+                (AdminAuditEntry.VerifyAgency, verifier, (Guid?)_agency.Id, (Guid?)null, Now),
+                (AdminAuditEntry.UnverifyAgency, unverifier, (Guid?)_agency.Id, (Guid?)null, Now.AddHours(2)),
+            ],
+            entries.Select(e => (e.Action, e.ActorUserId, e.TargetAgencyId, e.TargetUserId, e.CreatedAt)));
     }
 
     // --- Deactivate / reactivate ---

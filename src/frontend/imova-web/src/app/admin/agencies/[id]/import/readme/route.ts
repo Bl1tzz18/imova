@@ -12,8 +12,8 @@ import {
 import type { ImportColumn } from "@/types/agency";
 
 // The CSV import's README as a download: ?propertyType=Apartment for one type, without it all six.
-// Romanian unless ?locale=en|ru. Same access as the template (the agency's Owners and Admins, site
-// admins); signed in with the session cookie. The columns come from the API, the labels from the
+// Romanian unless ?locale=en|ru. Same access as the template (site admins only — the API refuses
+// anyone else); signed in with the session cookie. The columns come from the API, the labels from the
 // site's translations.
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -13,6 +13,7 @@ public class AdminAuditEntryConfiguration : IEntityTypeConfiguration<AdminAuditE
         builder.Property(e => e.Action).HasMaxLength(50).IsRequired();
         builder.Property(e => e.IpAddress).HasMaxLength(45);
         builder.HasIndex(e => e.TargetUserId);
+        builder.HasIndex(e => e.TargetAgencyId);
         builder.HasIndex(e => e.CreatedAt);
     }
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { IMPORT_POLL_MS, importProgress, isImportRunning } from "@/lib/agency/importJobs";
+import { IMPORT_POLL_MS, importJobHref, importProgress, isImportRunning } from "@/lib/agency/importJobs";
 import type { ListingImportJob } from "@/types/agency";
 
 // While an import waits or runs: its progress bar, refreshed every few seconds; once it's done the
@@ -16,7 +16,7 @@ export function ImportProgress({ agencyId, initial }: { agencyId: string; initia
   useEffect(() => {
     if (!isImportRunning(job)) return;
     const timer = window.setTimeout(async () => {
-      const res = await fetch(`/account/agencies/${agencyId}/import/${job.id}/status`, { cache: "no-store" }).catch(() => null);
+      const res = await fetch(`${importJobHref(agencyId, job.id)}/status`, { cache: "no-store" }).catch(() => null);
       const next = res?.ok ? ((await res.json()) as ListingImportJob) : null;
       // A new status (Pending → Processing, or done) changes what the server renders: the badge, then the results.
       if (next && next.status !== job.status) {

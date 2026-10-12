@@ -25,7 +25,7 @@ public class UploadListingImportHandler(
 {
     public async Task<ListingImportJobDto?> Handle(UploadListingImportCommand request, CancellationToken cancellationToken)
     {
-        var agency = await ImportAccess.EnsureCanUploadAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken);
+        var agency = await ImportAccess.EnsureCanUploadAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken);
         if (agency is null)
         {
             return null;
@@ -85,8 +85,8 @@ public class UploadListingImportHandler(
         new([CodedFailure.Of("File", message, code, parameters)]);
 }
 
-// GET /api/v1/agencies/{id}/import — the agency's imports, newest first (the latest 20). Owners,
-// Admins, site admins; null → 404.
+// GET /api/v1/agencies/{id}/import — the agency's imports, newest first (the latest 20). Site admins
+// only; null → 404.
 public sealed record GetListingImportsQuery(Guid AgencyId, Guid UserId, bool IsAdmin) : IRequest<IReadOnlyList<ListingImportJobDto>?>;
 
 public class GetListingImportsHandler(IApplicationDbContext dbContext) : IRequestHandler<GetListingImportsQuery, IReadOnlyList<ListingImportJobDto>?>
@@ -95,7 +95,7 @@ public class GetListingImportsHandler(IApplicationDbContext dbContext) : IReques
 
     public async Task<IReadOnlyList<ListingImportJobDto>?> Handle(GetListingImportsQuery request, CancellationToken cancellationToken)
     {
-        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken))
+        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken))
         {
             return null;
         }
@@ -116,7 +116,7 @@ public class GetListingImportHandler(IApplicationDbContext dbContext) : IRequest
 {
     public async Task<ListingImportJobDto?> Handle(GetListingImportQuery request, CancellationToken cancellationToken)
     {
-        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken))
+        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken))
         {
             return null;
         }
@@ -145,7 +145,7 @@ public class GetListingImportRowsHandler(IApplicationDbContext dbContext) : IReq
 {
     public async Task<ListingImportRowsPageDto?> Handle(GetListingImportRowsQuery request, CancellationToken cancellationToken)
     {
-        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken)
+        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken)
             || !await dbContext.ListingImportJobs.AnyAsync(j => j.Id == request.JobId && j.AgencyId == request.AgencyId, cancellationToken))
         {
             return null;

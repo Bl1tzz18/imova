@@ -88,8 +88,6 @@ public class AgencyImportEndpointsTests(WebApplicationFactory<Program> factory) 
                 dbContext,
                 services.GetRequiredService<IExchangeRateProvider>(),
                 new ImportPhotoSync(dbContext, blobs, new JpegFetcher(), services.GetRequiredService<PhotoSizeGenerator>(), NullLogger<ImportPhotoSync>.Instance)),
-            services.GetRequiredService<IEmailSender>(),
-            services.GetRequiredService<AppOptions>(),
             TimeProvider.System,
             NullLogger<ListingImports>.Instance);
         return await job.RunAsync(CancellationToken.None);
@@ -124,23 +122,30 @@ public class AgencyImportEndpointsTests(WebApplicationFactory<Program> factory) 
         var upload = (await accepted.Content.ReadFromJsonAsync<ListingImportJobDto>())!;
         Assert.Equal(("Pending", "anunturi.csv"), (upload.Status, upload.FileName));
 
-        var second = await owner.PostAsync(importUrl, File(Csv(externalRef)));
+        var second = await admin.PostAsync(importUrl, File(Csv(externalRef)));
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
         Assert.Equal(ErrorCodes.ImportAlreadyRunning, await CodeOf(second));
+
+        // The agency's own Owner can't import or read imports: IMOVA imports agencies' listings by hand.
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.PostAsync(importUrl, File(Csv(externalRef)))).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync(importUrl)).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync($"{importUrl}/{upload.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync($"{importUrl}/{upload.Id}/rows")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync($"{importUrl}/{upload.Id}/report.csv")).StatusCode);
 
         // The Worker's tick (any other waiting import is processed first, oldest first).
         while (await RunWorkerJobAsync() > 0)
         {
-            var current = (await owner.GetFromJsonAsync<ListingImportJobDto>($"{importUrl}/{upload.Id}"))!;
+            var current = (await admin.GetFromJsonAsync<ListingImportJobDto>($"{importUrl}/{upload.Id}"))!;
             if (current.Status is "Completed" or "Failed")
             {
                 break;
             }
         }
 
-        var done = (await owner.GetFromJsonAsync<ListingImportJobDto>($"{importUrl}/{upload.Id}"))!;
+        var done = (await admin.GetFromJsonAsync<ListingImportJobDto>($"{importUrl}/{upload.Id}"))!;
         Assert.Equal(("Completed", 1, 1, 1, 0), (done.Status, done.TotalRows, done.ProcessedRows, done.CreatedCount, done.FailedCount));
-        Assert.Single((await owner.GetFromJsonAsync<List<ListingImportJobDto>>(importUrl))!);
+        Assert.Single((await admin.GetFromJsonAsync<List<ListingImportJobDto>>(importUrl))!);
 
         await using var db = ListingApi.NewDbContext();
         var listing = await db.Listings.AsNoTracking().SingleAsync(l => l.AgencyId == agency.Id && l.ExternalRef == externalRef);
@@ -151,9 +156,9 @@ public class AgencyImportEndpointsTests(WebApplicationFactory<Program> factory) 
         Assert.All(photos, p => Assert.True(p.SizesVersion > 0));
         Assert.Equal(HttpStatusCode.OK, (await _factory.CreateClient().GetAsync($"/api/v1/listings/{listing.Id}")).StatusCode);
 
-        var rows = (await owner.GetFromJsonAsync<ListingImportRowsPageDto>($"{importUrl}/{upload.Id}/rows"))!;
+        var rows = (await admin.GetFromJsonAsync<ListingImportRowsPageDto>($"{importUrl}/{upload.Id}/rows"))!;
         Assert.Equal(("Created", listing.Id), (Assert.Single(rows.Items).Outcome, rows.Items[0].ListingId));
-        var report = await owner.GetAsync($"{importUrl}/{upload.Id}/report.csv");
+        var report = await admin.GetAsync($"{importUrl}/{upload.Id}/report.csv");
         Assert.Equal("text/csv", report.Content.Headers.ContentType!.MediaType);
         Assert.Equal(HttpStatusCode.Forbidden, (await stranger.GetAsync(importUrl)).StatusCode);
     }

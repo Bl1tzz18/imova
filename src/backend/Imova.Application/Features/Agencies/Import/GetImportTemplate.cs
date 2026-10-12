@@ -8,8 +8,8 @@ namespace Imova.Application.Features.Agencies.Import;
 
 public sealed record ImportTemplateFile(string FileName, string ContentType, byte[] Content);
 
-// GET /api/v1/agencies/{id}/import/template?propertyType= — Owners, Admins and site admins (those who
-// may import), also before the agency is verified so a file can be prepared. Null → 404.
+// GET /api/v1/agencies/{id}/import/template?propertyType= — site admins only (ImportAccess), also before
+// the agency is verified so a file can be prepared. Null → 404.
 public sealed record GetImportTemplateQuery(Guid AgencyId, Guid UserId, bool IsAdmin, PropertyType PropertyType)
     : IRequest<ImportTemplateFile?>;
 
@@ -17,7 +17,7 @@ public class GetImportTemplateHandler(IApplicationDbContext dbContext) : IReques
 {
     public async Task<ImportTemplateFile?> Handle(GetImportTemplateQuery request, CancellationToken cancellationToken)
     {
-        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken))
+        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken))
         {
             return null;
         }
@@ -36,7 +36,7 @@ public class GetImportColumnsHandler(IApplicationDbContext dbContext) : IRequest
 {
     public async Task<IReadOnlyList<ImportColumnDto>?> Handle(GetImportColumnsQuery request, CancellationToken cancellationToken)
     {
-        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.UserId, request.IsAdmin, cancellationToken))
+        if (!await ImportAccess.CanPrepareAsync(dbContext, request.AgencyId, request.IsAdmin, cancellationToken))
         {
             return null;
         }

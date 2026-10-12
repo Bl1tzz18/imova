@@ -1,4 +1,4 @@
-# PR 4 — Agencies: CSV import of listings
+# PR 4 — Agencies: CSV import of listings (a site admin's tool)
 
 **Branch:** `feat/agency-import` → `main`
 **Title:** Agencies (4/4): import listings from a CSV file
@@ -7,19 +7,27 @@ Roadmap item 3 ("Agency publishers"), the import part of `docs/agency-publishers
 PR departs from the spec, or settles something it left open, `docs/agency-progress.md` records the
 product owner's decision.
 
+> **Scope changed after merge (2026-10-12), in the follow-up branch `feat/admin-only-import`:** importing
+> an agency's listings is a **manual service by IMOVA**. Agencies no longer import or download templates
+> themselves: their Anunțuri tab only shows "Importă anunțurile tale" with a "Scrie-ne" `mailto:` button.
+> The CSV import below is **for site admins only** — every `/import` route is `RequireAdmin()` (an
+> agency's members get 403) and its pages moved to `/admin/agencies/[id]/import`. The "Import finalizat"
+> email was removed. Automatic import for agencies is an after-launch item. The sections below describe
+> the import as it now stands.
+
 ## Summary
 
-- **A verified agency can bring its whole portfolio in one CSV file.** Its listings go live at once,
-  with no review queue (admins can still moderate them afterwards). A re-import updates the listings
-  it already created, matched by the agency's own `external_ref`.
+- **A site admin can bring a verified agency's whole portfolio in one CSV file.** Its listings go live at
+  once, with no review queue (admins can still moderate them afterwards). A re-import updates the
+  listings it already created, matched by the agency's own `external_ref`.
 - **There is one template per property type, and one file may mix types.** Every value is a
   language-neutral code. A plain-text guide is generated per type from the same column definitions, so
   the guide can't drift from what the importer accepts.
 - **Every row goes through the listing form's own rules** (validator, required details, 3-photo rule,
   price history), and problems are reported per row and column. A bad row never stops the others.
 - **The Worker does the work in the background** (a queue in the database): it downloads photos
-  through a hardened downloader, places addresses on the map, emails the uploader when it's done, and
-  the web app shows progress and a translated list of problems.
+  through a hardened downloader and places addresses on the map; the admin page shows progress and a
+  translated list of problems.
 - **Geocoding is shared and cached:** one rate limit for the API and the Worker together, and a cache
   of looked-up addresses.
 
@@ -27,11 +35,12 @@ product owner's decision.
 
 | Who | Templates / guide | Upload |
 |---|---|---|
-| Agency Owner or Admin | yes, also before verification | verified, active agency |
-| Agent | no | no |
-| Site admin (onboarding) | any agency | any verified agency, without being a member |
+| Agency Owner, Admin or Agent | no (403) | no (403) |
+| Site admin | any agency, also before verification | any verified agency, without being a member |
 
-- **Unverified agency:** the import page explains it and lets the agency prepare its file meanwhile.
+- **Agencies** write to IMOVA from their Anunțuri tab ("Importă anunțurile tale", a `mailto:` link to
+  the one address in `IMPORT_CONTACT_EMAIL`); a site admin prepares the file and imports it.
+- **Unverified agency:** the import page says so, and the file can be prepared meanwhile.
 - **Deactivated agency:** 403 `import.agencyInactive`.
 - **One import at a time per agency:** a second upload gets 409 `import.alreadyRunning`. A partial
   unique index (`Status` Pending/Processing) also covers two uploads at the same moment.
@@ -139,7 +148,8 @@ the address is geocoded as the form would do.
 
 ## API
 
-All routes are under `/api/v1/agencies/{id}/import`, for Owners, Admins and site admins.
+All routes are under `/api/v1/agencies/{id}/import`, **for site admins only** (`RequireAdmin()` at the
+route; `ImportAccess` checks again).
 
 | Method | Route | Notes |
 |---|---|---|
@@ -151,7 +161,7 @@ All routes are under `/api/v1/agencies/{id}/import`, for Owners, Admins and site
 | GET | `/{jobId}/rows?problems=&page=&pageSize=` | rows with their problems (code, params, column, severity) |
 | GET | `/{jobId}/report.csv` | one line per problem: row, external_ref, outcome, severity, column, code, English message |
 
-Unknown or hidden agency → 404, non-member → 403, unknown property type → 400. All errors carry
+Unknown agency → 404, anyone but a site admin → 403, unknown property type → 400. All errors carry
 `import.*` codes, translated in the web app.
 
 ## Worker
@@ -159,8 +169,7 @@ Unknown or hidden agency → 404, non-member → 403, unknown property type → 
 Job **`ListingImports`** (`ListingImports:IntervalSeconds`, 15 s):
 - claims the oldest waiting import (`Status` is a concurrency token);
 - processes it row by row (parse → place → photos → write → save), updating the progress;
-- records the counts and emails the uploader (`ListingImportEmails`: counts, problems, a link to
-  the result);
+- records the counts (no email: the admin follows the import on its result page);
 - fails imports stuck in Processing for 2 hours;
 - deletes uploaded files after 30 days.
 
@@ -186,16 +195,17 @@ The file waits in private storage under `imports/{agency}/`.
 
 ## Web
 
-- **Entry point:** "Importă din CSV" (import from CSV) on the agency's Anunțuri tab, for those who can
-  import. There's no sixth tab, and the Anunțuri tab stays marked while on the import pages.
-- **`/account/agencies/[id]/import`:**
+- **Agencies:** only "Importă anunțurile tale" at the bottom of the Anunțuri tab (Owners/Admins): three
+  steps and a "Scrie-ne" `mailto:` button (the agency named in the subject); nothing to upload.
+- **Entry point for site admins:** "Import CSV" on each agency in `/admin/agencies`.
+- **`/admin/agencies/[id]/import`** (admin layout: the agency's header, back to `/admin/agencies`):
   - notices for an unverified agency (prepare the file meanwhile) and a deactivated one;
   - **1. Pregătește fișierul** (prepare the file): the template and the guide for each property type,
     and the guide for all types;
   - **2. Încarcă** (upload): checked in the browser (.csv, not empty, ≤ 5 MB), sent through a route
     handler (a server action stops at 1 MB), and disabled while an import runs, with a link to it;
   - the history: file, date, uploader, counts, status.
-- **`/account/agencies/[id]/import/[jobId]`:**
+- **`/admin/agencies/[id]/import/[jobId]`:**
   - a status badge, and a progress bar polled every 3 s while the import waits or runs; the page
     refreshes on every status change;
   - the counts (new, updated, with errors, with warnings) and "N live listings weren't in this file";
@@ -213,9 +223,11 @@ The file waits in private storage under `imports/{agency}/`.
 
 ## Decisions taken over the spec
 
+- **Importing is a manual service by IMOVA (2026-10-12):** the import is a site admin's tool; agencies
+  write to us. Automatic import for agencies comes after launch, once we know how they keep their data.
 - **Values are language-neutral codes**, not Romanian words. The guide shows each code next to its
   Romanian label. Onboarding is done by the site's team, so no Romanian input values are needed.
-- **No Import tab:** a button on the Anunțuri tab.
+- **No Import tab** for agencies.
 - **`inactive` = deactivated (Archived)**, and it takes an Active listing down on re-import.
 - **Rows missing from a re-import are left alone**, only counted in the result.
 - **Fewer than 3 usable photos fails the row**, the same rule as every listing.
@@ -260,8 +272,13 @@ Backend: **1,500 unit + 276 integration + 5 architecture** tests, all green.
 
 Frontend: **455** Vitest tests (new: `importReadme.test.ts`, `importJobs.test.ts`); `tsc` clean.
 
-**Real run** (compose stack, Mailpit, real internet), as Elena, Owner of Casa Ta Imobiliare. Casa Ta
-was verified temporarily for this.
+After the scope change: the import tests run as a site admin, and check that the agency's Owner, Admin,
+Agent and strangers get 403 on every import route; `importContact.test.ts` covers the `mailto:` link.
+Browser check (1280 px and 390 px): the agency's Anunțuri tab shows only the contact section; its old
+import page is a 404 and the templates/guide are 403 for it.
+
+**Real run, before the scope change** (compose stack, Mailpit, real internet), as Elena, Owner of Casa
+Ta Imobiliare. Casa Ta was verified temporarily for this.
 
 - **First file, 5 rows of mixed types, real Wikimedia photo addresses:**
   - an apartment with coordinates, which were kept;
@@ -304,7 +321,9 @@ The 5 real geocoding answers were left in the dev cache.
   2,000-row file with no coordinates and many new addresses takes about half an hour; cached and
   repeated places are instant. Coordinates in the file avoid it.
 - **The report CSV is in English** (codes + English messages, meant for scripts); the result page is
-  translated. The email is Romanian only, like every email.
+  translated.
+- **Before launch:** the import contact address (`IMPORT_CONTACT_EMAIL`, now a personal address) must
+  become an `@imova.md` one.
 - **Kept files:** uploaded files are kept 30 days (for support), then deleted. They share the private
   message-attachments container (under `imports/`); a dedicated container can come with hosting.
 - **`Photo.SourceUrl`** stores the address an imported photo came from. It isn't shown anywhere.

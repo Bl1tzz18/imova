@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common;
 using Imova.Application.Common.Emails;
+using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Contracts.Agencies;
@@ -139,6 +140,15 @@ public class SetAgencyVerifiedHandler(
             return true;
         }
 
+        // Who verified (or unverified) which agency, and when — in the same save as the change.
+        dbContext.AdminAuditEntries.Add(new AdminAuditEntry
+        {
+            Id = Guid.NewGuid(),
+            Action = request.Verified ? AdminAuditEntry.VerifyAgency : AdminAuditEntry.UnverifyAgency,
+            ActorUserId = request.AdminUserId,
+            TargetAgencyId = agency.Id,
+            CreatedAt = now,
+        });
         await dbContext.SaveChangesAsync(cancellationToken);
         logger.LogInformation(
             "Agency {AgencyId} {Action} by admin {AdminUserId}.", agency.Id, request.Verified ? "verified" : "unverified", request.AdminUserId);
