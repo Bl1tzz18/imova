@@ -326,7 +326,12 @@ by hand; automating it waits until after launch.
   public Azurite dev key was used on 2026-10-09).
 - Listing expiry reminders still go out for listings of a deactivated agency; its ended listings still
   show their 410 summary page.
-- Verifying is logged, not written to `AdminAuditEntries` (that table's target is a user).
+- Verifying and unverifying an agency are written to `AdminAuditEntries` (since 2026-10-12: action
+  `VerifyAgency` / `UnverifyAgency`, the admin, `TargetAgencyId`, the time — migration
+  `AddAgencyVerificationAudit`; `TargetUserId` is now nullable). No UI reads them yet (SQL). The client
+  IP isn't recorded for these (the verify endpoint doesn't pass it). Earlier verifications — e.g. Casa
+  Ta's on 2026-10-11 at 20:02 — left only a log line, now gone with the recreated container.
+  The migration's `Down()` would fail once agency entries exist (their `TargetUserId` is null).
 
 - The two load-sensitive tests (`MessageContentFilterTests.SuspiciousMessages_AreFlaggedWithAReason`,
   `MessagingEndpointsTests.BlockedVisitor_Gets403_AndAReportReachesAdmins`) shared one cause — a cold

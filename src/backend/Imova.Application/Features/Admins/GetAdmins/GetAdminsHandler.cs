@@ -18,9 +18,9 @@ public class GetAdminsHandler(UserManager<ApplicationUser> userManager, IApplica
         var admins = await userManager.GetUsersInRoleAsync(Roles.Admin);
         var ids = admins.Select(a => a.Id).ToList();
         var grants = (await dbContext.AdminAuditEntries.AsNoTracking()
-                .Where(e => e.Action == AdminAuditEntry.GrantAdmin && ids.Contains(e.TargetUserId))
+                .Where(e => e.Action == AdminAuditEntry.GrantAdmin && e.TargetUserId != null && ids.Contains(e.TargetUserId.Value))
                 .ToListAsync(cancellationToken))
-            .GroupBy(e => e.TargetUserId)
+            .GroupBy(e => e.TargetUserId!.Value)
             .ToDictionary(g => g.Key, g => g.OrderByDescending(e => e.CreatedAt).First());
         var actorIds = grants.Values.Select(g => g.ActorUserId).Distinct().ToList();
         var actorEmails = await dbContext.Users.AsNoTracking()
