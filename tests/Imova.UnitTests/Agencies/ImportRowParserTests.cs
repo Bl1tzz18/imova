@@ -189,9 +189,11 @@ public class ImportRowParserTests : IAsyncDisposable
     [Fact]
     public async Task ASiteAdminImportingForAnAgency_MakesItsLongestStandingOwnerTheAuthor()
     {
+        // Later than the founder's real join time (AddAgency uses the clock), whatever day the test runs.
         var laterOwner = Guid.NewGuid();
         AddUser(laterOwner);
-        _agency.AddMember(laterOwner, AgencyRole.Owner, Now.AddDays(1));
+        var founderJoined = _agency.Members.Single(m => m.UserId == _owner).JoinedAt;
+        _agency.AddMember(laterOwner, AgencyRole.Owner, founderJoined.AddDays(1));
         await _db.SaveChangesAsync();
 
         var siteAdmin = Guid.NewGuid();

@@ -4,9 +4,11 @@ Work on roadmap item 3 ("Agency publishers"), specified in `docs/agency-publishe
 **PR 1 (steps 1–5, branch `feat/agencies`) was merged on 2026-10-06:
 https://github.com/Bl1tzz18/imova/pull/32.** **PR 2 (steps 6–7, `feat/agency-management`) was merged
 on 2026-10-09: https://github.com/Bl1tzz18/imova/pull/33.** **PR 3 (statistics + the 3-photo rule) was
-merged** (#34). **PR 4 (CSV import) is complete** on branch `feat/agency-import` (from `main` at
-`498cb92`), pushed and opened against `main`, not merged; its description is `docs/pr-4-description.md`.
-Last updated 2026-10-11. Next: the wrap-up items under "Open items" (Playwright path, CLAUDE.md).
+merged** (#34). **PR 4 (CSV import) was merged** (#35, `a994bb2`). **Then the product owner decided
+(2026-10-12): importing agencies' listings is a manual service by IMOVA** — the CSV import is a site
+admin's tool only, and an agency just writes to us (branch `feat/admin-only-import`, see "Import becomes
+a manual service" below); automating it for agencies is an after-launch item.
+Last updated 2026-10-12. Next: the wrap-up items under "Open items" (Playwright path, CLAUDE.md).
 
 **Pushed now:** commits are no longer amended — a fix to a pushed step is a new commit on top.
 
@@ -162,6 +164,34 @@ second email. **Undone:** the 4 listings deleted through the API (photo blobs to
 their files in Azurite deleted, Casa Ta back to `IsVerified = false` / `VerifiedAt = NULL` with its 10
 listings. Left on purpose: the 5 real answers in `GeocodedAddresses` (dev cache).
 
+## Import becomes a manual service (branch `feat/admin-only-import`, from `main` at `a994bb2`)
+
+Decided 2026-10-12: we don't know yet how agencies keep their data, so importing is something IMOVA does
+by hand; automating it waits until after launch.
+
+- **Agencies:** no import page, upload, template, guide or import email any more. The Anunțuri tab (for
+  Owners/Admins) shows only "Importă anunțurile tale" — three steps and a "Scrie-ne" `mailto:` button to
+  `IMPORT_CONTACT_EMAIL` (`lib/agency/importContact.ts`, the one place the address lives; the subject
+  names the agency). Every `/api/v1/agencies/{id}/import/*` route is `RequireAdmin()` (members get 403,
+  `ImportAccess` checks again); `/account/agencies/[id]/import` is gone (404).
+- **Site admins:** the whole CSV import stays — upload, the Worker job, photo downloads (SSRF-safe),
+  the shared geocoding limit and cache, templates and the README per type, results and report — now at
+  `/admin/agencies/[id]/import` (own admin layout), reached from `/admin/agencies` ("Import CSV").
+- **Removed:** the "Import finalizat" email (`ListingImportEmails`) — the admin follows the import on its
+  result page. The personal data export keeps `listingImportsYouUploaded` (now an admin's uploads).
+- **Never shipped (branch `feat/import-requests`, deleted):** import requests (agency upload form,
+  statuses, `/admin/imports`, their files and emails, the 90-day clean-up) and the "draft waiting for
+  photos" idea. The dev database was rolled back to `AddSharedGeocodingCache`.
+- **Tests:** the import tests run as a site admin; new checks that the agency's Owner, Admin, Agent and
+  strangers get 403 on the import routes and on the templates/columns, that `/import-requests` doesn't
+  exist (404), and `importContact.test.ts` (the `mailto:` link). Fixed in passing: a date time bomb in
+  `ImportRowParserTests`.
+
+## Before launch
+
+- Change the import contact email (`IMPORT_CONTACT_EMAIL`, now `catalinfilip47@gmail.com`) to an
+  `@imova.md` address — „schimbă emailul de contact pentru import cu o adresă @imova.md”.
+
 ## Decisions (made by the product owner in this session)
 
 **Model and authorship**
@@ -200,10 +230,11 @@ listings. Left on purpose: the 5 real answers in `GeocodedAddresses` (dev cache)
 - A failed invitation email is recorded on the invitation and shown in the members UI (step 6) with
   a resend action.
 
-**Import (PR 4)**
+**Import (PR 4, then 2026-10-12)**
+- **Importing is a manual service by IMOVA (2026-10-12):** agencies write to us; only site admins run
+  the CSV import. Automatic import for agencies: after launch (see "Product decisions for later").
 - CSV import only for verified agencies; their imported listings go live without the review queue
-  (admins can still moderate after). Unverified agencies see the Import tab in an "available after
-  verification" state.
+  (admins can still moderate after).
 - DB-backed queue processed by the Worker (no in-memory channel).
 - Locations resolved with the location typeahead's normalisation; per-property-type CSV columns (one
   template per type is fine); Contact defaults to the agency's contact details when a row has none.
@@ -242,6 +273,11 @@ listings. Left on purpose: the 5 real answers in `GeocodedAddresses` (dev cache)
 
 ## Product decisions for later
 
+- **Automatic import for agencies — after launch,** once we know how agencies keep their data (a
+  spreadsheet, a CRM export, a feed from their site). Until then IMOVA imports by hand with the admin
+  CSV import. Ideas tried and dropped on 2026-10-12 (never shipped): agencies uploading the CSV
+  themselves; "import requests" (upload any file + status + replies); listings imported without enough
+  photos as drafts waiting for photos.
 - **Weekly stats email to Owners, with opt-out — after launch, once agencies are active.** Planned as
   PR 3's step 4 and skipped (2026-10-11). Intended shape: a Worker job, once a week, to each Owner
   (confirmed email) of an active agency — the week's contacts / views / saves against the week before
@@ -276,8 +312,7 @@ listings. Left on purpose: the 5 real answers in `GeocodedAddresses` (dev cache)
   a paid geocoder if large imports become frequent.
 - Geocoding is ~1 address a second (shared with the form): a 2,000-row file without coordinates and
   with many new addresses takes about half an hour. The cache makes repeats instant.
-- The report CSV is English (codes + English messages, for scripts); the result page is translated; the
-  email is Romanian only.
+- The report CSV is English (codes + English messages, for scripts); the result page is translated.
 - Uploaded files are kept 30 days, in the private message-attachments container under `imports/`
   (a dedicated container can come with hosting).
 - `Photo.SourceUrl` (where an imported photo came from) isn't shown anywhere.
@@ -351,5 +386,7 @@ Anunțuri tab (`d9cbe5c`) before it.
 **j) ~~PR 4: CSV import~~** — done 2026-10-11 (`c485129` … step 6; description
 `docs/pr-4-description.md`), opened against `main`, not merged.
 
-**k) Next — wrap-up:** the Playwright end-to-end path and the `CLAUDE.md` "Current status" update (see
-"Open items"), then the launch items (KAN-10, KAN-21, hosting).
+**k) ~~Import becomes a manual service~~** — 2026-10-12, branch `feat/admin-only-import` (see above).
+
+**l) Next — wrap-up:** the Playwright end-to-end path and the `CLAUDE.md` "Current status" update (see
+"Open items"), then the launch items (KAN-10, KAN-21, hosting, and "Before launch" above).

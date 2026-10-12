@@ -7,7 +7,6 @@ import { ImportProgress } from "@/components/agency/import/ImportProgress";
 import { ImportStatusBadge } from "@/components/agency/import/ImportStatusBadge";
 import { getAgencyForMember, getImportJob, getImportProblemRows } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
-import { canManage } from "@/lib/agency/manage";
 import { describeImportProblem, importPageHref, isImportRunning, sortProblems, type ImportTranslate } from "@/lib/agency/importJobs";
 import { formatDateTime } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -33,7 +32,7 @@ export default async function AgencyImportJobPage({ params }: { params: Promise<
     getTranslations("Errors"),
     getLocale(),
   ]);
-  if (!agency || !profile || !job || !canManage(agency.myRole, profile.roles.includes("Admin"))) notFound();
+  if (!agency || !profile || !job || !profile.roles.includes("Admin")) notFound();
 
   const running = isImportRunning(job);
   const rows = running ? null : await getImportProblemRows(id, jobId, SHOWN_ROWS);

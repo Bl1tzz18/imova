@@ -15,13 +15,11 @@ export function agencyManagePath(agencyId: string, section: AgencySection = "pro
   return section === "profile" ? `/account/agencies/${agencyId}` : `/account/agencies/${agencyId}/${section}`;
 }
 
-// Which section a pathname shows (the tab to mark), "profile" for the agency's own address. The CSV
-// import (/import and its results, /import/[jobId]) belongs to the listings.
+// Which section a pathname shows (the tab to mark), "profile" for the agency's own address.
 export function sectionOf(pathname: string): AgencySection {
   const parts = pathname.replace(/\/+$/, "").split("/");
   const agencies = parts.indexOf("agencies");
   const segment = agencies >= 0 ? parts[agencies + 2] : parts.at(-1);
-  if (segment === "import") return "listings";
   return AGENCY_SECTIONS.find((s) => s === segment) ?? "profile";
 }
 

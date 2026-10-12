@@ -40,9 +40,6 @@ describe("paths", () => {
     expect(sectionOf("/account/agencies/a1")).toBe("profile");
     expect(sectionOf("/account/agencies/a1/listings")).toBe("listings");
     expect(sectionOf("/account/agencies/a1/settings/")).toBe("settings");
-    // The CSV import and its results sit under the listings.
-    expect(sectionOf("/account/agencies/a1/import")).toBe("listings");
-    expect(sectionOf("/account/agencies/a1/import/j9")).toBe("listings");
   });
 });
 

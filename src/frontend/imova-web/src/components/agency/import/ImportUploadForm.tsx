@@ -4,7 +4,7 @@ import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { importFileProblem, importJobHref } from "@/lib/agency/importJobs";
+import { importFileProblem, importJobHref, importPageHref } from "@/lib/agency/importJobs";
 
 // Choose a CSV and upload it; the import then runs in the background and the page moves to its
 // result. The file is checked here first (name, size), again by the web app's route and the API.
@@ -33,7 +33,7 @@ export function ImportUploadForm({ agencyId, disabled }: { agencyId: string; dis
     startTransition(async () => {
       const body = new FormData();
       body.append("file", file, file.name);
-      const res = await fetch(`/account/agencies/${agencyId}/import/upload`, { method: "POST", body });
+      const res = await fetch(`${importPageHref(agencyId)}/upload`, { method: "POST", body });
       const json = (await res.json().catch(() => null)) as { id?: string; error?: string } | null;
       if (!res.ok || !json?.id) {
         setError(json?.error ?? t("failedWhole"));

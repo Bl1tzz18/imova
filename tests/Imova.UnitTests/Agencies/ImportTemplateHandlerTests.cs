@@ -44,37 +44,39 @@ public class ImportTemplateHandlerTests : IAsyncDisposable
             new GetImportTemplateQuery(agencyId ?? _agency.Id, userId, isAdmin, PropertyType.Apartment), CancellationToken.None);
 
     [Fact]
-    public async Task OwnersAndAdmins_GetTheTemplate_EvenBeforeVerification()
+    public async Task ASiteAdmin_GetsTheTemplate_EvenBeforeVerification()
     {
-        var admin = await AddMemberAsync(AgencyRole.Admin);
-
         Assert.False(_agency.IsVerified);
-        var file = (await TemplateAsync(_owner))!;
+        var file = (await TemplateAsync(Guid.NewGuid(), isAdmin: true))!;
         Assert.Equal("imova-import-apartment.csv", file.FileName);
         Assert.StartsWith("text/csv", file.ContentType);
-        Assert.NotNull(await TemplateAsync(admin));
-        Assert.NotNull(await TemplateAsync(Guid.NewGuid(), isAdmin: true));
-    }
-
-    [Fact]
-    public async Task AnAgentOrAStranger_IsRefused_AndAnUnknownAgencyIsNotFound()
-    {
-        var agent = await AddMemberAsync(AgencyRole.Agent);
-
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(agent));
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(Guid.NewGuid()));
-        Assert.Null(await TemplateAsync(_owner, agencyId: Guid.NewGuid()));
 
         _agency.Deactivate(Now);
         await _db.SaveChangesAsync();
-        Assert.Null(await TemplateAsync(Guid.NewGuid()));
+        Assert.NotNull(await TemplateAsync(Guid.NewGuid(), isAdmin: true));
+        Assert.Null(await TemplateAsync(Guid.NewGuid(), isAdmin: true, agencyId: Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task TheAgencysOwnOwnersAdminsAndAgents_AndStrangers_AreRefused()
+    {
+        // IMOVA imports agencies' listings by hand: the templates are a site admin's tool.
+        var admin = await AddMemberAsync(AgencyRole.Admin);
+        var agent = await AddMemberAsync(AgencyRole.Agent);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(_owner));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(admin));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(agent));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(Guid.NewGuid()));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => new GetImportColumnsHandler(_db).Handle(
+            new GetImportColumnsQuery(_agency.Id, _owner, false, PropertyType.Garage), CancellationToken.None));
     }
 
     [Fact]
     public async Task TheColumnsGuide_ListsTheAmenitiesAndProximities_ThatApplyToTheType()
     {
         var columns = (await new GetImportColumnsHandler(_db).Handle(
-            new GetImportColumnsQuery(_agency.Id, _owner, false, PropertyType.Garage), CancellationToken.None))!;
+            new GetImportColumnsQuery(_agency.Id, Guid.NewGuid(), true, PropertyType.Garage), CancellationToken.None))!;
 
         var amenities = columns.Single(c => c.Name == ImportColumns.Amenities);
         Assert.Contains("electricity", amenities.Choices!);

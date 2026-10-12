@@ -14,15 +14,14 @@ namespace Imova.Application.Features.Agencies.Import;
 // 3. takes the oldest waiting import (claimed by saving it as Processing — see the configuration's
 //    concurrency token) and runs it row by row: parse (ImportRowParser), place on the map
 //    (ImportGeolocator), photos + create/update (ImportListingWriter), one save per row so progress
-//    shows and one bad row never undoes the others; then the counts and an email to the uploader.
+//    shows and one bad row never undoes the others; then the counts. No email: the import is run by a
+//    site admin, who follows it on its result page (/admin/agencies/[id]/import/[jobId]).
 // One import per run; the next waits for the next tick.
 public sealed class ListingImports(
     IApplicationDbContext dbContext,
     IBlobStorageService blobStorageService,
     IGeocodingService geocodingService,
     ImportListingWriter writer,
-    IEmailSender emailSender,
-    AppOptions appOptions,
     TimeProvider timeProvider,
     ILogger<ListingImports> logger) : IScheduledJob
 {
@@ -58,7 +57,6 @@ public sealed class ListingImports(
         {
             job.Fail(fileError.Code, now);
             await dbContext.SaveChangesAsync(cancellationToken);
-            await NotifyAsync(job, cancellationToken);
             return;
         }
 
@@ -123,7 +121,6 @@ public sealed class ListingImports(
         job = await dbContext.ListingImportJobs.FirstAsync(j => j.Id == jobId, cancellationToken);
         job.Complete(created, updated, failed, warned, notInFile, timeProvider.GetUtcNow());
         await dbContext.SaveChangesAsync(cancellationToken);
-        await NotifyAsync(job, cancellationToken);
     }
 
     // One row → its ListingImportRow (the listing, if any, is added to the context alongside).
@@ -179,28 +176,6 @@ public sealed class ListingImports(
         using var buffer = new MemoryStream();
         await stream.CopyToAsync(buffer, cancellationToken);
         return buffer.ToArray();
-    }
-
-    private async Task NotifyAsync(ListingImportJob job, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var to = job.UploadedByUserId is { } userId
-                ? await dbContext.Users.AsNoTracking().Where(u => u.Id == userId && u.EmailConfirmed).Select(u => u.Email).FirstOrDefaultAsync(cancellationToken)
-                : null;
-            if (string.IsNullOrEmpty(to))
-            {
-                return;
-            }
-
-            var agencyName = await dbContext.Agencies.AsNoTracking().Where(a => a.Id == job.AgencyId).Select(a => a.Name).FirstAsync(cancellationToken);
-            var url = $"{appOptions.WebBaseUrl.TrimEnd('/')}/account/agencies/{job.AgencyId}/import/{job.Id}";
-            await emailSender.SendAsync(ListingImportEmails.Finished(to, agencyName, job, url), cancellationToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            logger.LogWarning(ex, "Import {JobId}: the email to the uploader couldn't be sent.", job.Id);
-        }
     }
 
     private async Task DeleteOldFilesAsync(CancellationToken cancellationToken)

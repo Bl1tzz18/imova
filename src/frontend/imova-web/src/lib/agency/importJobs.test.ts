@@ -37,7 +37,7 @@ describe("an import's state", () => {
     expect(importProgress({ status: "Pending", totalRows: 0, processedRows: 0 })).toBe(0);
     expect(importProgress({ status: "Processing", totalRows: 8, processedRows: 3 })).toBe(37);
     expect(importProgress({ status: "Failed", totalRows: 8, processedRows: 3 })).toBe(100);
-    expect(importJobHref("a1", "j9")).toBe("/account/agencies/a1/import/j9");
+    expect(importJobHref("a1", "j9")).toBe("/admin/agencies/a1/import/j9");
   });
 
   it("only takes a non-empty CSV of at most 5 MB", () => {

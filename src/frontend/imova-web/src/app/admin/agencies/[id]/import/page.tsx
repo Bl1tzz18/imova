@@ -6,8 +6,7 @@ import { ImportStatusBadge } from "@/components/agency/import/ImportStatusBadge"
 import { ImportUploadForm } from "@/components/agency/import/ImportUploadForm";
 import { getAgencyForMember, getImportJobs } from "@/lib/api/agencies";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
-import { agencyManagePath, canManage } from "@/lib/agency/manage";
-import { importJobHref, isImportRunning } from "@/lib/agency/importJobs";
+import { importJobHref, importPageHref, isImportRunning } from "@/lib/agency/importJobs";
 import { IMPORT_PROPERTY_TYPES } from "@/lib/agency/importReadme";
 import { formatDateTime } from "@/lib/utils/format";
 
@@ -17,9 +16,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: agency ? t("pageTitle", { name: agency.name }) : undefined, robots: { index: false } };
 }
 
-// The agency's CSV import: the templates and guides to prepare a file, the upload, and the past imports.
-// Its Owners and Admins, and site admins (who onboard agencies). Uploading needs the agency verified
-// and active; preparing a file doesn't.
+// An agency's CSV import — site admins only (the layout checks; IMOVA imports agencies' listings by
+// hand): the templates and guides to prepare a file, the upload, and the past imports. Uploading needs
+// the agency verified and active; preparing a file doesn't.
 export default async function AgencyImportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [agency, profile, jobs, t, types, locale] = await Promise.all([
@@ -30,18 +29,15 @@ export default async function AgencyImportPage({ params }: { params: Promise<{ i
     getTranslations("PropertyType"),
     getLocale(),
   ]);
-  if (!agency || !profile || !jobs || !canManage(agency.myRole, profile.roles.includes("Admin"))) notFound();
+  if (!agency || !profile || !jobs || !profile.roles.includes("Admin")) notFound();
 
   const running = jobs.find(isImportRunning);
-  const base = `/account/agencies/${agency.id}/import`;
+  const base = importPageHref(agency.id);
 
   return (
     <div className="space-y-6">
       <div>
-        <Link href={agencyManagePath(agency.id, "listings")} className="text-sm font-medium text-ink-500 hover:text-ink-900">
-          <span aria-hidden>←</span> {t("back")}
-        </Link>
-        <h2 className="mt-3 font-display text-xl font-medium text-ink-950">{t("title")}</h2>
+        <h2 className="font-display text-xl font-medium text-ink-950">{t("title")}</h2>
         <p className="mt-1 max-w-2xl text-sm text-ink-600">{t("intro")}</p>
       </div>
 

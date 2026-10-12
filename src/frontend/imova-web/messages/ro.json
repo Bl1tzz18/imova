@@ -1693,15 +1693,24 @@
     "agencyInactive": "Agenția este inactivă momentan: profilul și anunțurile ei nu se văd public. Te poți alătura totuși, iar anunțurile vor apărea când agenția este reactivată."
   },
   "AgencyImport": {
+    "byEmail": {
+      "title": "Importă anunțurile tale",
+      "intro": "Ai deja anunțurile într-un tabel, într-un program sau pe site-ul tău? Nu le introduce din nou. Scrie-ne, iar noi le aducem pe IMOVA, gratuit.",
+      "step1": "Ne scrii la <email></email> și ne spui unde ai anunțurile.",
+      "step2": "Stabilim împreună cum ni le trimiți, iar noi le pregătim și le adăugăm pe site.",
+      "step3": "Primești un email când anunțurile sunt online.",
+      "button": "Scrie-ne",
+      "note": "Tu nu ai nimic de completat. Ne arăți doar unde sunt datele, restul îl facem noi.",
+      "subject": "Import anunțuri — {name}"
+    },
     "page": {
-      "button": "Importă din CSV",
       "title": "Import din CSV",
       "pageTitle": "Import CSV — {name}",
       "jobPageTitle": "Rezultatul importului — {name}",
       "back": "Anunțurile agenției",
       "intro": "Adaugă sau actualizează anunțurile agenției dintr-un fișier CSV. Un rând cu același external_ref actualizează anunțul existent, fără dubluri.",
-      "notVerified": "Importul e disponibil după ce IMOVA verifică agenția. Între timp poți pregăti fișierul cu șabloanele de mai jos.",
-      "inactive": "Agenția e dezactivată — reactiveaz-o din Setări ca să poți importa.",
+      "notVerified": "Agenția nu e verificată încă — verific-o (Verificare agenții) înainte de import. Între timp poți pregăti fișierul cu șabloanele de mai jos.",
+      "inactive": "Agenția e dezactivată — nu se poate importa până nu e reactivată.",
       "prepareTitle": "1. Pregătește fișierul",
       "prepareIntro": "Un șablon pentru fiecare tip de proprietate, cu un rând exemplu, și ghidul cu toate coloanele și valorile permise. Un fișier poate amesteca tipuri.",
       "template": "Șablon CSV",
@@ -2033,6 +2042,9 @@
     "title": "Verificare agenții",
     "subtitle": "Toate agențiile, întâi cele încă neverificate. Verificarea pune semnul „Agenție verificată” pe pagina și anunțurile agenției; proprietarii primesc un email.",
     "forbidden": "Pagina este doar pentru administratori.",
+    "csvImport": "Import CSV",
+    "adminOnly": "Doar pentru administratori",
+    "agencyListings": "Anunțurile agenției",
     "searchLabel": "Caută o agenție",
     "searchPlaceholder": "Numele agenției",
     "filterLabel": "Arată",

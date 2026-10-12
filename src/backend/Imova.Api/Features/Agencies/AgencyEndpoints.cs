@@ -203,7 +203,7 @@ public static class AgencyEndpoints
             return stats is null ? Results.NotFound() : Results.Ok(stats);
         }).RequireAuthorization();
 
-        // --- CSV import (Owners, Admins, site admins) ---
+        // --- CSV import: site admins only (importing an agency's listings is done by IMOVA, by hand) ---
 
         // The template for one property type: header + one example row (semicolon-separated, UTF-8 BOM).
         app.MapGet("/api/v1/agencies/{id:guid}/import/template", async (
@@ -211,7 +211,7 @@ public static class AgencyEndpoints
         {
             var file = await sender.Send(new GetImportTemplateQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
             return file is null ? Results.NotFound() : Results.File(file.Content, file.ContentType, file.FileName);
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // The same columns described (kind, required, accepted values, example), for the import page's guide.
         app.MapGet("/api/v1/agencies/{id:guid}/import/columns", async (
@@ -219,7 +219,7 @@ public static class AgencyEndpoints
         {
             var columns = await sender.Send(new GetImportColumnsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
             return columns is null ? Results.NotFound() : Results.Ok(columns);
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // Upload a CSV (multipart "file", ≤ 5 MB): checked at once (header, size), then imported by the
         // Worker → 202 with the job to poll. A verified, active agency only; one import at a time (409).
@@ -238,14 +238,14 @@ public static class AgencyEndpoints
             var job = await sender.Send(
                 new UploadListingImportCommand(id, user.GetUserId(), user.IsInRole(Roles.Admin), file?.FileName ?? "import.csv", content), ct);
             return job is null ? Results.NotFound() : Results.Accepted($"/api/v1/agencies/{id}/import/{job.Id}", job);
-        }).RequireAuthorization().DisableAntiforgery();
+        }).RequireAdmin().DisableAntiforgery();
 
         // The agency's imports, newest first (the latest 20).
         app.MapGet("/api/v1/agencies/{id:guid}/import", async (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
             var jobs = await sender.Send(new GetListingImportsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
             return jobs is null ? Results.NotFound() : Results.Ok(jobs);
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // One import — polled while it runs (ProcessedRows of TotalRows).
         app.MapGet("/api/v1/agencies/{id:guid}/import/{jobId:guid}", async (
@@ -253,7 +253,7 @@ public static class AgencyEndpoints
         {
             var job = await sender.Send(new GetListingImportQuery(id, jobId, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
             return job is null ? Results.NotFound() : Results.Ok(job);
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // Its rows in file order (?problems=true: only those with errors or warnings), paged.
         app.MapGet("/api/v1/agencies/{id:guid}/import/{jobId:guid}/rows", async (
@@ -262,7 +262,7 @@ public static class AgencyEndpoints
             var rows = await sender.Send(
                 new GetListingImportRowsQuery(id, jobId, user.GetUserId(), user.IsInRole(Roles.Admin), problems ?? false, page ?? 1, pageSize ?? 100), ct);
             return rows is null ? Results.NotFound() : Results.Ok(rows);
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // The problems as a CSV (codes + English text) — for scripts and spreadsheets.
         app.MapGet("/api/v1/agencies/{id:guid}/import/{jobId:guid}/report.csv", async (
@@ -273,7 +273,7 @@ public static class AgencyEndpoints
             return rows is null
                 ? Results.NotFound()
                 : Results.File(ListingImportDtos.ReportCsv(rows.Items), ImportTemplate.ContentType, $"imova-import-{jobId:N}-report.csv");
-        }).RequireAuthorization();
+        }).RequireAdmin();
 
         // Hide the agency and all its listings from the public, or show them again — Owners/Admins.
         app.MapPost("/api/v1/agencies/{id:guid}/deactivate", (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>

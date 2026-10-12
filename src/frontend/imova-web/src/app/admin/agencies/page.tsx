@@ -14,6 +14,7 @@ import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getSessionToken } from "@/lib/auth/session";
 import { ADMIN_AGENCY_FILTERS, adminAgenciesApiQuery, adminAgenciesHref, parseAdminAgenciesParams } from "@/lib/admin/agencies";
 import { agencyPath } from "@/lib/agency/publicPage";
+import { importPageHref } from "@/lib/agency/importJobs";
 import { formatDate } from "@/lib/utils/format";
 import type { AdminAgenciesPage as AdminAgenciesResult } from "@/types/agency";
 
@@ -129,7 +130,10 @@ export default async function AdminAgenciesPage({
                         )}
                       </div>
                     </div>
-                    <div className="sm:shrink-0">
+                    <div className="flex items-center gap-3 sm:shrink-0">
+                      <Link href={importPageHref(agency.id)} className="py-2 text-sm font-medium text-brand-700 hover:underline">
+                        {t("csvImport")}
+                      </Link>
                       <AgencyVerifyButton agencyId={agency.id} agencyName={agency.name} verified={agency.isVerified} />
                     </div>
                   </li>

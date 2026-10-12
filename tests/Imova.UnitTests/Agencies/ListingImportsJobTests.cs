@@ -22,8 +22,8 @@ using ValidationException = FluentValidation.ValidationException;
 namespace Imova.UnitTests.Agencies;
 
 // The import end to end without a server: the upload's checks, the Worker job turning every row into
-// a listing (or a reported failure), re-imports by external_ref, a site admin importing for an agency,
-// the email, the reads, and the job's housekeeping.
+// a listing (or a reported failure), re-imports by external_ref, a site admin importing for an agency
+// (only site admins may — IMOVA imports by hand), no email, the reads, and the job's housekeeping.
 public class ListingImportsJobTests : IAsyncDisposable
 {
     private static readonly DateTimeOffset Start = new(2026, 10, 11, 9, 0, 0, TimeSpan.Zero);
@@ -33,7 +33,6 @@ public class ListingImportsJobTests : IAsyncDisposable
     private readonly ManualTimeProvider _clock = new(Start);
     private readonly FakeBlobStorageService _blobs = new();
     private readonly FakeImportImageFetcher _fetcher = new();
-    private readonly FakeEmailSender _email = new();
     private readonly Guid _owner = Guid.NewGuid();
     private readonly Agency _agency;
 
@@ -66,12 +65,12 @@ public class ListingImportsJobTests : IAsyncDisposable
                 _db,
                 new FakeExchangeRateProvider(),
                 new ImportPhotoSync(_db, _blobs, _fetcher, new PhotoSizeGenerator(_blobs, new FakePhotoResizer()), NullLogger<ImportPhotoSync>.Instance)),
-            _email,
-            new AppOptions { WebBaseUrl = "https://imova.test" },
             _clock,
             NullLogger<ListingImports>.Instance);
 
-    private Task<Contracts.Agencies.ListingImportJobDto?> UploadAsync(byte[] content, Guid? userId = null, bool isAdmin = false) =>
+    // Only site admins import: by default the upload is by the Owner acting as a site admin (a member,
+    // so the Owner stays the author).
+    private Task<Contracts.Agencies.ListingImportJobDto?> UploadAsync(byte[] content, Guid? userId = null, bool isAdmin = true) =>
         new UploadListingImportHandler(_db, _blobs, new FakeDatabaseErrors(), _clock).Handle(
             new UploadListingImportCommand(_agency.Id, userId ?? _owner, isAdmin, "anunturi.csv", content), CancellationToken.None);
 
@@ -139,11 +138,6 @@ public class ListingImportsJobTests : IAsyncDisposable
         var failure = Assert.Single(rows[2].Problems);
         Assert.Equal(("price", ErrorCodes.ImportNotANumber), (failure.Column, failure.Code));
 
-        var email = Assert.Single(_email.Sent);
-        Assert.Equal($"{_owner:N}@example.com", email.To);
-        Assert.Contains($"/account/agencies/{_agency.Id}/import/{job.Id}", email.TextBody);
-        Assert.Contains("1 rânduri cu erori", email.Subject);
-
         Assert.Equal(0, await Job().RunAsync(CancellationToken.None));
     }
 
@@ -182,12 +176,11 @@ public class ListingImportsJobTests : IAsyncDisposable
         var listing = await ListingAsync("AP-1024");
         Assert.Equal(_owner, (await _db.Publishers.SingleAsync(p => p.Id == listing.PublisherId)).UserId);
         Assert.Equal(_agency.Id, listing.AgencyId);
-        Assert.Equal($"{siteAdmin:N}@example.com", Assert.Single(_email.Sent).To);
         Assert.DoesNotContain(siteAdmin, (await _db.Agencies.Include(a => a.Members).SingleAsync()).Members.Select(m => m.UserId));
     }
 
     [Fact]
-    public async Task OnlyAVerifiedActiveAgency_ItsManagersOrASiteAdmin_MayUpload()
+    public async Task OnlyASiteAdmin_MayUpload_ForAVerifiedActiveAgency()
     {
         var agent = Guid.NewGuid();
         AddUser(agent);
@@ -196,10 +189,12 @@ public class ListingImportsJobTests : IAsyncDisposable
         await _db.SaveChangesAsync();
         var file = Csv(Row(PropertyType.Garage));
 
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => UploadAsync(file, agent));
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => UploadAsync(file, Guid.NewGuid()));
+        // The agency's own Owner, an Agent, a stranger: importing is IMOVA's service, done by a site admin.
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => UploadAsync(file, _owner, isAdmin: false));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => UploadAsync(file, agent, isAdmin: false));
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => UploadAsync(file, Guid.NewGuid(), isAdmin: false));
         Assert.Null(await new UploadListingImportHandler(_db, _blobs, new FakeDatabaseErrors(), _clock).Handle(
-            new UploadListingImportCommand(Guid.NewGuid(), _owner, false, "x.csv", file), CancellationToken.None));
+            new UploadListingImportCommand(Guid.NewGuid(), _owner, true, "x.csv", file), CancellationToken.None));
 
         agency.Unverify(Start);
         await _db.SaveChangesAsync();
@@ -250,7 +245,7 @@ public class ListingImportsJobTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task AFileThatsGone_FailsTheImport_WithAnEmail()
+    public async Task AFileThatsGone_FailsTheImport()
     {
         var upload = (await UploadAsync(Csv(Row(PropertyType.Garage))))!;
         _blobs.PrivateContent.Clear();
@@ -258,7 +253,6 @@ public class ListingImportsJobTests : IAsyncDisposable
         var job = await RunAsync(upload.Id);
 
         Assert.Equal((ListingImportStatus.Failed, ErrorCodes.ImportFileMissing), (job.Status, job.FailureCode));
-        Assert.Contains("nu a putut fi procesat", Assert.Single(_email.Sent).Subject);
     }
 
     [Fact]
@@ -310,12 +304,14 @@ public class ListingImportsJobTests : IAsyncDisposable
     {
         var job = await RunAsync((await UploadAsync(Csv(Row(PropertyType.Garage), Row(PropertyType.Room, ("bathroom_type", "")))))!.Id);
 
-        var history = (await new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, _owner, false), CancellationToken.None))!;
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, _owner, false), CancellationToken.None));
+        var history = (await new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, _owner, true), CancellationToken.None))!;
         var dto = Assert.Single(history);
         Assert.Equal((job.Id, "Completed", 2, 2, 1), (dto.Id, dto.Status, dto.TotalRows, dto.ProcessedRows, dto.FailedCount));
 
         var problems = (await new GetListingImportRowsHandler(_db).Handle(
-            new GetListingImportRowsQuery(_agency.Id, job.Id, _owner, false, OnlyProblems: true), CancellationToken.None))!;
+            new GetListingImportRowsQuery(_agency.Id, job.Id, _owner, true, OnlyProblems: true), CancellationToken.None))!;
         var row = Assert.Single(problems.Items);
         Assert.Equal((3, "CM-12", "Failed"), (row.RowNumber, row.ExternalRef, row.Outcome));
         Assert.Contains(row.Problems, p => p.Column == "bathroom_type" && p.Code == ErrorCodes.ImportRequired);

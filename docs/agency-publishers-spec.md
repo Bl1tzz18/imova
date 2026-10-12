@@ -18,7 +18,9 @@ All user-facing text in Romanian (and Russian too, if the app already has RU str
 - Every agency has a public page at `/agentii/{slug}` with its active listings, and a public directory at `/agentii`.
 - Listing pages link to the agency from the contact card.
 - Agency members see a stats dashboard for their agency.
-- Agencies can bulk-import listings from CSV.
+- An agency's existing listings can be brought in bulk: **as a manual service by IMOVA** (decided
+  2026-10-12) — the agency writes to us from its Anunțuri tab and a site admin runs the CSV import.
+  Agencies importing by themselves is **after launch** (see "After launch" at the end).
 - Migrations, tests and the PR description are complete; the build and all tests pass.
 
 ---
@@ -77,8 +79,8 @@ If the app does not already track listing views and contact actions, add:
 - `ListingEvent` (Id, ListingId, AgencyId?, Type: View | PhoneReveal | Message | Favorite, CreatedAt, VisitorHash?) with indexes on (AgencyId, CreatedAt) and (ListingId, CreatedAt).
 - Count a view at most once per visitor per listing per 30 minutes (dedupe by hashed IP + user agent, or by user id when logged in). Do not store raw IPs.
 
-### Import
-- `ListingImportJob` (Id, AgencyId, UploadedByUserId, FileName, Status: Pending | Processing | Completed | Failed, TotalRows, CreatedCount, UpdatedCount, FailedCount, ErrorReportUrl?, CreatedAt, FinishedAt).
+### Import (site admins only — a manual service by IMOVA)
+- `ListingImportJob` (Id, AgencyId, UploadedByUserId, FileName, Status: Pending | Processing | Completed | Failed, TotalRows, CreatedCount, UpdatedCount, FailedCount, ErrorReportUrl?, CreatedAt, FinishedAt). UploadedByUserId is always a site admin.
 - `Listing.ExternalRef` (string(100)?, unique per AgencyId) so re-importing the same file updates instead of duplicating.
 
 ---
@@ -151,9 +153,10 @@ Rules:
 - POST /api/listings/{id}/events — `{ type }` for PhoneReveal / Message / Favorite if not already tracked server-side; views are recorded server-side when the listing is served.
 - GET /api/agencies/{id}/stats?from=&to= — members only. Returns totals (views, phone reveals, messages, favorites), per-day series, and top 10 listings by views. Default range: last 30 days; max 365.
 
-**Import**
+**Import** — **site admins only** (`RequireAdmin()`; an agency's members get 403). Importing an agency's
+listings is a manual service by IMOVA: the agency writes to us, a site admin prepares the CSV and runs it.
 - GET /api/agencies/{id}/import/template — CSV template with headers + one example row.
-- POST /api/agencies/{id}/import — multipart CSV (max 5 MB, max 2,000 rows), CanEdit. Creates a job, processes it in a background service (`IHostedService` + `Channel<T>` queue is enough; no new infra).
+- POST /api/agencies/{id}/import — multipart CSV (max 5 MB, max 2,000 rows), site admin, for a verified active agency. Creates a job, processed by the Worker (a database-backed queue; no new infra).
 - GET /api/agencies/{id}/import/{jobId} — status + counts.
 - GET /api/agencies/{id}/import/{jobId}/errors — CSV of failed rows with an `error` column.
 - CSV columns: `external_ref, title, description, deal_type (sale|rent), property_type, price, currency (MDL|EUR|USD), area_m2, rooms, floor, total_floors, city, sector, address, latitude, longitude, image_urls (separated by |), status (active|inactive)`. Map to existing listing fields; extend the list if the listing has more required fields.
@@ -181,7 +184,7 @@ Rules:
 Use the existing email service; if none exists, add an `IEmailSender` interface with a dev implementation that logs to console and a real one behind configuration.
 - Invitation: "{Inviter} te-a invitat să te alături agenției {Agency} pe IMOVA", button → `/invitatie/{token}`.
 - Verification granted: "Agenția {Agency} a fost verificată."
-- Import finished: counts + link to the error report if any.
+- No import emails: the import is run by a site admin, who follows it on its result page.
 
 ---
 
@@ -196,9 +199,9 @@ Use the existing email service; if none exists, add an `IEmailSender` interface 
 Tabs or sections:
 1. **Profil** — name, bio (character counter), phone, email, website, address, city; logo uploader with preview, crop-free (server pads it), remove button; live preview card showing how the contact card will look. Save button disabled while unchanged; unsaved-changes warning on navigation.
 2. **Membri** (Owner/Admin) — table: name, email, role (dropdown), joined; remove button with confirm. Invite form (email + role). Pending invitations with resend/revoke. "Părăsește agenția" for non-last-owners.
-3. **Anunțuri** — the agency's listings incl. inactive/drafts, with filters, edit links, and a "Adaugă anunț" button pre-selecting this agency.
+3. **Anunțuri** — the agency's listings incl. inactive/drafts, with filters, edit links, and a "Adaugă anunț" button pre-selecting this agency. Below, for Owners/Admins, "Importă anunțurile tale": three steps and a "Scrie-ne" `mailto:` button (the address lives in one constant) — nothing to upload or fill in; IMOVA imports by hand.
 4. **Statistici** — date-range picker (7/30/90 days, custom), four KPI tiles, a daily line chart (views) and a top-listings table. Empty state when there is no data yet.
-5. **Import** — download template, upload CSV, job progress (poll every 3 s until done), results, error-report download, history of past jobs.
+5. ~~**Import**~~ — no import tab for agencies. The CSV import (download template, upload CSV, job progress, results, error report, history) is a site admin's page at `/admin/agencies/{id}/import`.
 6. **Setări** — public page link with copy button, deactivate/reactivate, delete (type the agency name to confirm).
 
 After creation, redirect to the edit page with a success toast and a prompt to add a logo.
@@ -249,7 +252,7 @@ After creation, redirect to the edit page with a success toast and a prompt to a
 - Slug rename → old slug resolves to new.
 - Admin-only verify.
 - Stats: view dedupe within 30 minutes; stats only for members.
-- Import: valid file creates listings; re-import updates by external_ref; bad rows reported; `;` delimiter and Windows-1251 handled.
+- Import: valid file creates listings; re-import updates by external_ref; bad rows reported; `;` delimiter and Windows-1251 handled; only site admins may import (an agency's members get 403).
 
 **Frontend:** component tests for the agency form, "Publică ca" selector and contact card; one end-to-end (Playwright) path: create agency → upload logo → publish listing as agency → open public page → see listing → click through from the listing's contact card.
 
@@ -265,8 +268,14 @@ After creation, redirect to the edit page with a success toast and a prompt to a
 6. /account "Agențiile mele" + full management UI (Profil, Membri, Anunțuri, Setări).
 7. Deactivate/delete, admin verification UI.
 8. Event tracking + stats endpoint + Statistici tab.
-9. CSV import (background job, template, error report) + Import tab.
+9. CSV import (background job, template, error report) — a site admin's tool (`/admin/agencies/{id}/import`); agencies get the "Importă anunțurile tale" contact section on the Anunțuri tab.
 10. Tests, cleanup, PR description listing every endpoint, migration and screen.
+
+## After launch
+
+- **Automatic import for agencies** — agencies bringing their listings in by themselves (upload, a CRM
+  export, a feed from their site), once we know how they keep their data. Until then IMOVA imports by
+  hand with the admin CSV import.
 
 ---
 

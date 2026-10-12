@@ -1,6 +1,7 @@
 import type { ListingImportJob, ListingImportProblem } from "@/types/agency";
 
-// The CSV import pages (/account/agencies/[id]/import[/jobId]) — pure rules, Vitest-covered.
+// The CSV import pages, site admins only (/admin/agencies/[id]/import[/jobId]) — IMOVA imports agencies'
+// listings by hand. Pure rules, Vitest-covered.
 
 export const IMPORT_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -8,7 +9,7 @@ export const IMPORT_MAX_BYTES = 5 * 1024 * 1024;
 export const IMPORT_POLL_MS = 3000;
 
 export function importPageHref(agencyId: string): string {
-  return `/account/agencies/${agencyId}/import`;
+  return `/admin/agencies/${agencyId}/import`;
 }
 
 export function importJobHref(agencyId: string, jobId: string): string {
