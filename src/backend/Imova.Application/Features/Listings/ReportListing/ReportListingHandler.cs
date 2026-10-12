@@ -10,9 +10,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Imova.Application.Features.Listings.ReportListing;
 
-public class ReportListingHandler(IApplicationDbContext dbContext, TimeProvider timeProvider, ListingReportOptions options)
+public class ReportListingHandler(
+    IApplicationDbContext dbContext, TimeProvider timeProvider, ListingReportOptions options, IDatabaseErrors databaseErrors)
     : IRequestHandler<ReportListingCommand, ReportListingResultDto?>
 {
+    // One open report per reporter and listing (ListingReportConfiguration).
+    public const string OpenReportIndex = "IX_ListingReports_ListingId_ReporterUserId";
+
     public async Task<ReportListingResultDto?> Handle(ReportListingCommand request, CancellationToken cancellationToken)
     {
         var listing = await dbContext.Listings.AsNoTracking().WherePublic(dbContext)
@@ -52,7 +56,23 @@ public class ReportListingHandler(IApplicationDbContext dbContext, TimeProvider 
         }
 
         dbContext.ListingReports.Add(ListingReport.Create(listing, request.UserId, request.Reason, request.Details, now));
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (databaseErrors.IsUniqueViolation(ex, OpenReportIndex))
+        {
+            // The same person's other submission (a double click) saved its report between our check and
+            // our save. Ours becomes what pressing again does: an amendment of that open report — the
+            // same answer a second, sequential click gets.
+            dbContext.DiscardChanges();
+            var saved = await dbContext.ListingReports.FirstAsync(
+                r => r.ListingId == listing.Id && r.ReporterUserId == request.UserId && r.ResolvedAt == null, cancellationToken);
+            saved.Amend(request.Reason, request.Details, now);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return new ReportListingResultDto(Amended: true);
+        }
+
         return new ReportListingResultDto(Amended: false);
     }
 }

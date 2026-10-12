@@ -102,6 +102,9 @@ public static class ErrorCodes
     public const string AgencyInvitationClosed = "agency.invitationClosed";
     public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
     public const string AgencyConfirmNameMismatch = "agency.confirmNameMismatch";
+
+    // 409: renaming the agency raced another agency for the same address (slug); nothing was saved.
+    public const string AgencyNameConflict = "agency.nameConflict";
     public const string AccountLastAgencyOwner = "account.lastAgencyOwner";
 
     // --- Agency CSV import: the whole file (ListingImportJob.FailureCode, or the upload's 400) ---

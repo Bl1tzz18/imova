@@ -1304,7 +1304,8 @@
         "invitationExpired": "Invitația a expirat. Cere agenției să ți-o trimită din nou.",
         "invitationClosed": "Invitația nu mai este valabilă.",
         "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți.",
-        "confirmNameMismatch": "Scrie numele agenției exact cum apare, ca să confirmi ștergerea."
+        "confirmNameMismatch": "Scrie numele agenției exact cum apare, ca să confirmi ștergerea.",
+        "nameConflict": "O altă agenție tocmai a primit aceeași adresă. Nu s-a salvat nimic — apasă din nou pe „Salvează modificările”."
       },
       "account": {
         "passwordRequired": "Introdu parola pentru a șterge contul.",

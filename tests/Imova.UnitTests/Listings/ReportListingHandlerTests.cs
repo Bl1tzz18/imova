@@ -17,8 +17,62 @@ public class ReportListingHandlerTests
 
     private Task<Imova.Contracts.Listings.ReportListingResultDto?> ReportAsync(
         Guid? userId = null, Guid? listingId = null, ListingReportReason reason = ListingReportReason.Fraud, string? details = null) =>
-        new ReportListingHandler(_f.Db, _f.Clock, _options)
+        new ReportListingHandler(_f.Db, _f.Clock, _options, new FakeDatabaseErrors())
             .Handle(new ReportListingCommand(userId ?? _f.Visitor.Id, listingId ?? _f.Listing.Id, reason, details), CancellationToken.None);
+
+    // A double click: just before our save of a new report, the same person's other submission (a
+    // second context on the same store) saves its report, and our save fails the way Postgres's unique
+    // index on open reports would make it fail.
+    private sealed class DoubleSubmitInterceptor(string databaseName, DateTimeOffset now)
+        : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor
+    {
+        public bool Armed { get; set; }
+
+        public override async ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>> SavingChangesAsync(
+            Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            var added = eventData.Context!.ChangeTracker.Entries<ListingReport>().Where(e => e.State == EntityState.Added).ToList();
+            if (!Armed || added.Count == 0)
+            {
+                return result;
+            }
+
+            Armed = false;
+            var ours = added[0].Entity;
+            await using var other = TestDbContextFactory.Create(databaseName);
+            var listing = await other.Listings.SingleAsync(l => l.Id == ours.ListingId, cancellationToken);
+            other.ListingReports.Add(ListingReport.Create(listing, ours.ReporterUserId, ListingReportReason.Fraud, null, now));
+            await other.SaveChangesAsync(cancellationToken);
+            throw new SimulatedUniqueViolation(ReportListingHandler.OpenReportIndex);
+        }
+    }
+
+    [Fact]
+    public async Task ADoubleClick_TheLosingSubmissionAmendsTheWinnersReport_NoError()
+    {
+        var databaseName = Guid.NewGuid().ToString();
+        var race = new DoubleSubmitInterceptor(databaseName, _f.Clock.Now);
+        await using var db = TestDbContextFactory.Create(databaseName, race);
+        var seller = Guid.NewGuid();
+        var visitor = Guid.NewGuid();
+        ListingTestData.AddUser(db, seller);
+        ListingTestData.AddUser(db, visitor);
+        var publisher = ListingTestData.AddIndividualPublisher(db, seller);
+        var listing = ListingTestData.AddListing(db, publisher.Id).MoveTo(ListingStatus.Active);
+        await db.SaveChangesAsync();
+        race.Armed = true;
+
+        var result = await new ReportListingHandler(db, _f.Clock, _options, new FakeDatabaseErrors()).Handle(
+            new ReportListingCommand(visitor, listing.Id, ListingReportReason.Other, "A doua apăsare"), CancellationToken.None);
+
+        // Same answer as a second, sequential click: the one open report, amended with this submission.
+        Assert.True(result!.Amended);
+        await using var fresh = TestDbContextFactory.Create(databaseName);
+        var report = await fresh.ListingReports.SingleAsync();
+        Assert.Equal((visitor, ListingReportReason.Other, "A doua apăsare"), (report.ReporterUserId, report.Reason, report.Details));
+    }
 
     private Listing AddActiveListing()
     {

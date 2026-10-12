@@ -67,6 +67,34 @@ public class ListingExpiryTests
     }
 
     [Fact]
+    public async Task ADeactivatedAgencysListing_GetsNoReminder_UntilTheAgencyIsActiveAgain()
+    {
+        var agency = ListingTestData.AddAgency(_db, _ownerId, "Casa Ta");
+        var other = ListingTestData.AddAgency(_db, _ownerId, "Alta");
+        var hidden = Seed();
+        hidden.ChangeAgency(agency.Id);
+        var shown = Seed();
+        shown.ChangeAgency(other.Id);
+        agency.Deactivate(_clock.Now);
+        _db.SaveChanges();
+        _clock.Now = hidden.ExpiresAt!.Value - TimeSpan.FromDays(3);
+
+        // Only the active agency's listing is reminded about; the hidden one isn't marked as reminded.
+        Assert.Equal(1, await RunAsync());
+        Assert.Single(_email.Sent);
+        Assert.NotNull((await ReloadAsync(shown.Id)).ExpiryReminderSentAt);
+        Assert.Null((await ReloadAsync(hidden.Id)).ExpiryReminderSentAt);
+
+        // Reactivated before the end: its reminder goes out on the next run.
+        agency.Reactivate(_clock.Now);
+        _db.SaveChanges();
+        _clock.Advance(TimeSpan.FromHours(1));
+        Assert.Equal(1, await RunAsync());
+        Assert.Equal(2, _email.Sent.Count);
+        Assert.NotNull((await ReloadAsync(hidden.Id)).ExpiryReminderSentAt);
+    }
+
+    [Fact]
     public async Task EightDaysBeforeTheEnd_ItIsTooEarlyForAReminder()
     {
         var listing = Seed();

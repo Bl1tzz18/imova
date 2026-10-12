@@ -1,5 +1,6 @@
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -57,11 +58,14 @@ public class ListingExpiry(
     private async Task<int> RemindAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
         var remindBy = now + ReminderBefore;
+        // Not for a deactivated agency's listings: they're hidden, so "renew it" means nothing. They
+        // aren't marked as reminded either — reactivated in time, the reminder still goes out.
         var due = await WithOwnerEmailsAsync(
             dbContext.Listings.Where(l =>
                 l.Status == ListingStatus.Active
                 && l.ExpiryReminderSentAt == null
-                && l.ExpiresAt != null && l.ExpiresAt > now && l.ExpiresAt <= remindBy),
+                && l.ExpiresAt != null && l.ExpiresAt > now && l.ExpiresAt <= remindBy
+                && (l.AgencyId == null || dbContext.Agencies.Any(a => a.Id == l.AgencyId && a.Status == AgencyStatus.Active))),
             cancellationToken);
 
         var sent = 0;
