@@ -39,6 +39,14 @@ public class ListingExpiry(
             dbContext.Listings.Where(l => l.Status == ListingStatus.Active && l.ExpiresAt != null && l.ExpiresAt <= now),
             cancellationToken);
 
+        // A deactivated agency's listings still expire, but their owners aren't emailed: the listing is
+        // hidden, so "re-activate it" means nothing until the agency is active again.
+        var agencyIds = due.Select(d => d.Listing.AgencyId).OfType<Guid>().Distinct().ToList();
+        var hiddenAgencyIds = await dbContext.Agencies
+            .Where(a => agencyIds.Contains(a.Id) && a.Status != AgencyStatus.Active)
+            .Select(a => a.Id)
+            .ToHashSetAsync(cancellationToken);
+
         foreach (var (listing, email) in due)
         {
             listing.Expire();
@@ -46,7 +54,7 @@ public class ListingExpiry(
             // Per listing, so an email failure below never undoes or repeats an expiry.
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            if (email is not null)
+            if (email is not null && !(listing.AgencyId is { } agencyId && hiddenAgencyIds.Contains(agencyId)))
             {
                 await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl), listing.Id, cancellationToken);
             }

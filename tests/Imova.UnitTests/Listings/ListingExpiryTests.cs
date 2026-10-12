@@ -95,6 +95,28 @@ public class ListingExpiryTests
     }
 
     [Fact]
+    public async Task ADeactivatedAgencysListing_StillExpires_ButItsOwnerIsNotEmailed()
+    {
+        var agency = ListingTestData.AddAgency(_db, _ownerId, "Casa Ta");
+        var other = ListingTestData.AddAgency(_db, _ownerId, "Alta");
+        var hidden = Seed();
+        hidden.ChangeAgency(agency.Id);
+        var shown = Seed();
+        shown.ChangeAgency(other.Id);
+        agency.Deactivate(_clock.Now);
+        _db.SaveChanges();
+        _clock.Now = hidden.ExpiresAt!.Value + TimeSpan.FromMinutes(1);
+
+        await RunAsync();
+
+        Assert.Equal(ListingStatus.Expired, (await ReloadAsync(hidden.Id)).Status);
+        Assert.Equal(ListingStatus.Expired, (await ReloadAsync(shown.Id)).Status);
+        // One "expired" email: the active agency's listing's.
+        var email = Assert.Single(_email.Sent);
+        Assert.Contains(shown.Title, email.TextBody);
+    }
+
+    [Fact]
     public async Task EightDaysBeforeTheEnd_ItIsTooEarlyForAReminder()
     {
         var listing = Seed();
