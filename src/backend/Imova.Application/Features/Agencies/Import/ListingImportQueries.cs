@@ -87,7 +87,7 @@ public class UploadListingImportHandler(
 
 // GET /api/v1/agencies/{id}/import — the agency's imports, newest first (the latest 20). Site admins
 // only; null → 404.
-public sealed record GetListingImportsQuery(Guid AgencyId, Guid UserId, bool IsAdmin) : IRequest<IReadOnlyList<ListingImportJobDto>?>;
+public sealed record GetListingImportsQuery(Guid AgencyId, bool IsAdmin) : IRequest<IReadOnlyList<ListingImportJobDto>?>;
 
 public class GetListingImportsHandler(IApplicationDbContext dbContext) : IRequestHandler<GetListingImportsQuery, IReadOnlyList<ListingImportJobDto>?>
 {
@@ -110,7 +110,7 @@ public class GetListingImportsHandler(IApplicationDbContext dbContext) : IReques
 }
 
 // GET /api/v1/agencies/{id}/import/{jobId} — one import (polled while it runs). Null → 404.
-public sealed record GetListingImportQuery(Guid AgencyId, Guid JobId, Guid UserId, bool IsAdmin) : IRequest<ListingImportJobDto?>;
+public sealed record GetListingImportQuery(Guid AgencyId, Guid JobId, bool IsAdmin) : IRequest<ListingImportJobDto?>;
 
 public class GetListingImportHandler(IApplicationDbContext dbContext) : IRequestHandler<GetListingImportQuery, ListingImportJobDto?>
 {
@@ -129,7 +129,7 @@ public class GetListingImportHandler(IApplicationDbContext dbContext) : IRequest
 
 // GET /api/v1/agencies/{id}/import/{jobId}/rows?problems=&page=&pageSize= — the rows in file order;
 // problems=true: only those with errors or warnings (what the report lists). Null → 404.
-public sealed record GetListingImportRowsQuery(Guid AgencyId, Guid JobId, Guid UserId, bool IsAdmin, bool OnlyProblems, int Page = 1, int PageSize = 100)
+public sealed record GetListingImportRowsQuery(Guid AgencyId, Guid JobId, bool IsAdmin, bool OnlyProblems, int Page = 1, int PageSize = 100)
     : IRequest<ListingImportRowsPageDto?>;
 
 public class GetListingImportRowsValidator : AbstractValidator<GetListingImportRowsQuery>

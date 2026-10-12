@@ -209,7 +209,7 @@ public static class AgencyEndpoints
         app.MapGet("/api/v1/agencies/{id:guid}/import/template", async (
             Guid id, PropertyType propertyType, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
-            var file = await sender.Send(new GetImportTemplateQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
+            var file = await sender.Send(new GetImportTemplateQuery(id, user.IsInRole(Roles.Admin), propertyType), ct);
             return file is null ? Results.NotFound() : Results.File(file.Content, file.ContentType, file.FileName);
         }).RequireAdmin();
 
@@ -217,7 +217,7 @@ public static class AgencyEndpoints
         app.MapGet("/api/v1/agencies/{id:guid}/import/columns", async (
             Guid id, PropertyType propertyType, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
-            var columns = await sender.Send(new GetImportColumnsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin), propertyType), ct);
+            var columns = await sender.Send(new GetImportColumnsQuery(id, user.IsInRole(Roles.Admin), propertyType), ct);
             return columns is null ? Results.NotFound() : Results.Ok(columns);
         }).RequireAdmin();
 
@@ -243,7 +243,7 @@ public static class AgencyEndpoints
         // The agency's imports, newest first (the latest 20).
         app.MapGet("/api/v1/agencies/{id:guid}/import", async (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
-            var jobs = await sender.Send(new GetListingImportsQuery(id, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
+            var jobs = await sender.Send(new GetListingImportsQuery(id, user.IsInRole(Roles.Admin)), ct);
             return jobs is null ? Results.NotFound() : Results.Ok(jobs);
         }).RequireAdmin();
 
@@ -251,7 +251,7 @@ public static class AgencyEndpoints
         app.MapGet("/api/v1/agencies/{id:guid}/import/{jobId:guid}", async (
             Guid id, Guid jobId, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
-            var job = await sender.Send(new GetListingImportQuery(id, jobId, user.GetUserId(), user.IsInRole(Roles.Admin)), ct);
+            var job = await sender.Send(new GetListingImportQuery(id, jobId, user.IsInRole(Roles.Admin)), ct);
             return job is null ? Results.NotFound() : Results.Ok(job);
         }).RequireAdmin();
 
@@ -260,7 +260,7 @@ public static class AgencyEndpoints
             Guid id, Guid jobId, bool? problems, int? page, int? pageSize, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
             var rows = await sender.Send(
-                new GetListingImportRowsQuery(id, jobId, user.GetUserId(), user.IsInRole(Roles.Admin), problems ?? false, page ?? 1, pageSize ?? 100), ct);
+                new GetListingImportRowsQuery(id, jobId, user.IsInRole(Roles.Admin), problems ?? false, page ?? 1, pageSize ?? 100), ct);
             return rows is null ? Results.NotFound() : Results.Ok(rows);
         }).RequireAdmin();
 
@@ -269,7 +269,7 @@ public static class AgencyEndpoints
             Guid id, Guid jobId, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
         {
             var rows = await sender.Send(
-                new GetListingImportRowsQuery(id, jobId, user.GetUserId(), user.IsInRole(Roles.Admin), OnlyProblems: true, Page: 1, PageSize: ListingImportJob.MaxRows), ct);
+                new GetListingImportRowsQuery(id, jobId, user.IsInRole(Roles.Admin), OnlyProblems: true, Page: 1, PageSize: ListingImportJob.MaxRows), ct);
             return rows is null
                 ? Results.NotFound()
                 : Results.File(ListingImportDtos.ReportCsv(rows.Items), ImportTemplate.ContentType, $"imova-import-{jobId:N}-report.csv");

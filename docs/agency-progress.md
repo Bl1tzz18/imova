@@ -147,7 +147,7 @@ order (few photos, then no contacts, then expiring soon).
 | 2/6 | `58cd3ac` | `ImportCsvReader` (UTF-8/16, Windows-1250/1251, `;`/`,`/tab, strict header, 2,000 rows), `ImportValues`, `ImportRowParser` → `ImportListingCommand` checked by the form's `ListingWriteValidator`; `ImportLocationIndex`; coordinates within 10 km else geocoded (`ImportGeolocator`); author rule (`ImportContext`). `import.*` error codes. |
 | 3/6 | `41e63d0` | Upload (`POST …/import`, 5 MB, 409 one at a time — `AddOneListingImportAtATime`), history / job / rows / report.csv; Worker job `ListingImports` (row by row, own save per row, counts, "not in this file", email, stuck → Failed after 2 h, files deleted after 30 days); `ImportListingWriter` (`PublishImported`, `ImportDeactivated`, `AssignExternalRef`), `ImportPhotoSync`; site-admin onboarding (author = longest-standing Owner); agency deletion removes import files; data export v3; the README per type. |
 | 4/6 | `83b01d8` | `ImportImageFetcher` (destination checked at connect time — `PublicAddress`; 3 redirects re-checked; 10 MB; 20 s); orphaned downloads deleted when a row's save fails; `SharedGeocodingService` — one limit in Postgres for API + Worker (`GeocoderThrottle`) and a cache (`GeocodedAddresses`, 180 / 7 days), migration `AddSharedGeocodingCache`. |
-| 5/6 | `39653f7` | Web: "Importă din CSV" on the Anunțuri tab, `/account/agencies/[id]/import` (prepare, upload, history) and `/import/[jobId]` (progress, counts, translated problems, report). |
+| 5/6 | `39653f7` | Web: "Importă din CSV" on the Anunțuri tab, an import page under the agency's own pages (prepare, upload, history) and the result page (progress, counts, translated problems, report) — moved to `/admin/agencies/[id]/import` on 2026-10-12. |
 | 6/6 | (this commit) | The result page refreshes on every status change (the badge stayed "În așteptare" while processing); `GeocodingStoreTests` made load-independent (cold connections skewed the waits — it failed once in a full run); docs + PR description. |
 
 Tests at PR 4 complete: backend 1,500 unit + 276 integration + 5 architecture, frontend 455 Vitest;
@@ -173,18 +173,17 @@ by hand; automating it waits until after launch.
   Owners/Admins) shows only "Importă anunțurile tale" — three steps and a "Scrie-ne" `mailto:` button to
   `IMPORT_CONTACT_EMAIL` (`lib/agency/importContact.ts`, the one place the address lives; the subject
   names the agency). Every `/api/v1/agencies/{id}/import/*` route is `RequireAdmin()` (members get 403,
-  `ImportAccess` checks again); `/account/agencies/[id]/import` is gone (404).
+  `ImportAccess` checks again); the agency's own import page is gone (404).
 - **Site admins:** the whole CSV import stays — upload, the Worker job, photo downloads (SSRF-safe),
   the shared geocoding limit and cache, templates and the README per type, results and report — now at
   `/admin/agencies/[id]/import` (own admin layout), reached from `/admin/agencies` ("Import CSV").
-- **Removed:** the "Import finalizat" email (`ListingImportEmails`) — the admin follows the import on its
-  result page. The personal data export keeps `listingImportsYouUploaded` (now an admin's uploads).
-- **Never shipped (branch `feat/import-requests`, deleted):** import requests (agency upload form,
-  statuses, `/admin/imports`, their files and emails, the 90-day clean-up) and the "draft waiting for
-  photos" idea. The dev database was rolled back to `AddSharedGeocodingCache`.
+- **Removed:** the "Import finalizat" email — the admin follows the import on its result page. The personal data export keeps `listingImportsYouUploaded` (now an admin's uploads).
+- **Never shipped (a draft branch, deleted):** agencies sending their own files for IMOVA to import
+  (upload form, statuses, an admin queue, their files and emails, a 90-day clean-up) and the "draft
+  waiting for photos" idea. The dev database was rolled back to `AddSharedGeocodingCache`.
 - **Tests:** the import tests run as a site admin; new checks that the agency's Owner, Admin, Agent and
-  strangers get 403 on the import routes and on the templates/columns, that `/import-requests` doesn't
-  exist (404), and `importContact.test.ts` (the `mailto:` link). Fixed in passing: a date time bomb in
+  strangers get 403 on the import routes and on the templates/columns, and `importContact.test.ts` (the
+  `mailto:` link). Fixed in passing: a date time bomb in
   `ImportRowParserTests`.
 
 ## Before launch

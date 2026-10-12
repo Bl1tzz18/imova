@@ -10,7 +10,7 @@ public sealed record ImportTemplateFile(string FileName, string ContentType, byt
 
 // GET /api/v1/agencies/{id}/import/template?propertyType= — site admins only (ImportAccess), also before
 // the agency is verified so a file can be prepared. Null → 404.
-public sealed record GetImportTemplateQuery(Guid AgencyId, Guid UserId, bool IsAdmin, PropertyType PropertyType)
+public sealed record GetImportTemplateQuery(Guid AgencyId, bool IsAdmin, PropertyType PropertyType)
     : IRequest<ImportTemplateFile?>;
 
 public class GetImportTemplateHandler(IApplicationDbContext dbContext) : IRequestHandler<GetImportTemplateQuery, ImportTemplateFile?>
@@ -29,7 +29,7 @@ public class GetImportTemplateHandler(IApplicationDbContext dbContext) : IReques
 
 // GET /api/v1/agencies/{id}/import/columns?propertyType= — the same columns described for the import
 // page's guide, with the amenity and proximity keys that apply to the type. Same access as the template.
-public sealed record GetImportColumnsQuery(Guid AgencyId, Guid UserId, bool IsAdmin, PropertyType PropertyType)
+public sealed record GetImportColumnsQuery(Guid AgencyId, bool IsAdmin, PropertyType PropertyType)
     : IRequest<IReadOnlyList<ImportColumnDto>?>;
 
 public class GetImportColumnsHandler(IApplicationDbContext dbContext) : IRequestHandler<GetImportColumnsQuery, IReadOnlyList<ImportColumnDto>?>

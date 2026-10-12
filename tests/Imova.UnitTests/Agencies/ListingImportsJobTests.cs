@@ -305,13 +305,13 @@ public class ListingImportsJobTests : IAsyncDisposable
         var job = await RunAsync((await UploadAsync(Csv(Row(PropertyType.Garage), Row(PropertyType.Room, ("bathroom_type", "")))))!.Id);
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
-            new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, _owner, false), CancellationToken.None));
-        var history = (await new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, _owner, true), CancellationToken.None))!;
+            new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, false), CancellationToken.None));
+        var history = (await new GetListingImportsHandler(_db).Handle(new GetListingImportsQuery(_agency.Id, true), CancellationToken.None))!;
         var dto = Assert.Single(history);
         Assert.Equal((job.Id, "Completed", 2, 2, 1), (dto.Id, dto.Status, dto.TotalRows, dto.ProcessedRows, dto.FailedCount));
 
         var problems = (await new GetListingImportRowsHandler(_db).Handle(
-            new GetListingImportRowsQuery(_agency.Id, job.Id, _owner, true, OnlyProblems: true), CancellationToken.None))!;
+            new GetListingImportRowsQuery(_agency.Id, job.Id, true, OnlyProblems: true), CancellationToken.None))!;
         var row = Assert.Single(problems.Items);
         Assert.Equal((3, "CM-12", "Failed"), (row.RowNumber, row.ExternalRef, row.Outcome));
         Assert.Contains(row.Problems, p => p.Column == "bathroom_type" && p.Code == ErrorCodes.ImportRequired);
@@ -320,6 +320,6 @@ public class ListingImportsJobTests : IAsyncDisposable
         Assert.StartsWith("row;external_ref;outcome;severity;column;code;message", report);
         Assert.Contains($"3;CM-12;Failed;Error;bathroom_type;{ErrorCodes.ImportRequired};", report);
 
-        Assert.Null(await new GetListingImportHandler(_db).Handle(new GetListingImportQuery(Guid.NewGuid(), job.Id, _owner, true), CancellationToken.None));
+        Assert.Null(await new GetListingImportHandler(_db).Handle(new GetListingImportQuery(Guid.NewGuid(), job.Id, true), CancellationToken.None));
     }
 }
