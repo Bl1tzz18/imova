@@ -67,7 +67,7 @@ public class FavoriteAlerts(
         var userIds = candidates.Select(c => c.Favorite.UserId).Distinct().ToList();
         var recipients = await dbContext.Users.AsNoTracking()
             .Where(u => userIds.Contains(u.Id) && u.EmailConfirmed && u.EmailFavoriteUpdates && u.Email != null)
-            .ToDictionaryAsync(u => u.Id, u => u.Email!, cancellationToken);
+            .ToDictionaryAsync(u => u.Id, u => new Recipient(u.Email!, u.PreferredLanguage), cancellationToken);
 
         var publisherIds = candidates.Select(c => c.Listing.PublisherId).Distinct().ToList();
         var ownerByPublisherId = await dbContext.Publishers.AsNoTracking()
@@ -163,9 +163,11 @@ public class FavoriteAlerts(
 
     private sealed record CardDetails(string? PhotoUrl, string? Location, string PropertyType, decimal AreaM2);
 
-    private EmailMessage BuildPriceEmail(string to, Favorite favorite, Listing listing, CardDetails? card) =>
+    private sealed record Recipient(string Email, string Language);
+
+    private EmailMessage BuildPriceEmail(Recipient to, Favorite favorite, Listing listing, CardDetails? card) =>
         FavoriteAlertEmails.PriceChanged(
-            to,
+            to.Email,
             new FavoriteAlertEmails.PriceChange(
                 listing.Id,
                 listing.Title,
@@ -180,12 +182,13 @@ public class FavoriteAlerts(
                 card?.PhotoUrl),
             listingUrl: appOptions.WebUrl($"/property/{listing.Id}"),
             UnsubscribeUrl(favorite.UserId),
-            SettingsUrl);
+            SettingsUrl,
+            to.Language);
 
     // The listing's own link now shows its 410 page: the summary, then "Anunțuri asemănătoare".
-    private EmailMessage BuildEndedEmail(string to, Guid userId, EndedListingDto ended, CardDetails? card) =>
+    private EmailMessage BuildEndedEmail(Recipient to, Guid userId, EndedListingDto ended, CardDetails? card) =>
         FavoriteAlertEmails.Ended(
-            to,
+            to.Email,
             ended,
             listingUrl: appOptions.WebUrl($"/property/{ended.Id}"),
             similarUrl: appOptions.WebUrl($"/property/{ended.Id}#similar-listings-title"),
@@ -193,6 +196,7 @@ public class FavoriteAlerts(
                 $"/search?transactionType={ended.TransactionType}&propertyType={ended.PropertyType}&raionId={ended.RaionId}"),
             UnsubscribeUrl(userId),
             SettingsUrl,
+            to.Language,
             card?.PhotoUrl);
 
     private string UnsubscribeUrl(Guid userId) =>

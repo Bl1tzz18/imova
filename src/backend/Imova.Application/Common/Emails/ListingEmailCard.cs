@@ -55,11 +55,11 @@ public record ListingEmailCard(
             """;
     }
 
-    public string CompactHtml()
+    public string CompactHtml(string language)
     {
         var photo = PhotoUrl is { } url
             ? $"""<img src="{E(url)}" width="144" height="108" alt="{E(Title)}" style="display:block;width:144px;height:108px;object-fit:cover;border:0;border-radius:8px;">"""
-            : """<div style="width:144px;height:108px;line-height:108px;border-radius:8px;background:#e2f1f6;color:#57a8c4;font-size:12px;text-align:center;">fără foto</div>""";
+            : $"""<div style="width:144px;height:108px;line-height:108px;border-radius:8px;background:#e2f1f6;color:#57a8c4;font-size:12px;text-align:center;">{E(Languages.Pick(language, "fără foto", "no photo", "без фото"))}</div>""";
         return $"""
             <tr><td style="padding:6px 28px;">
               <a href="{E(Url)}" style="text-decoration:none;color:#0b1620;display:block;">

@@ -30,18 +30,22 @@ public static class EmailLayout
         """;
 
     // For buttons that carry a one-time link: some mail apps block buttons, so show the address too.
-    public static string LinkFallback(string url) =>
+    public static string LinkFallback(string url, string language) =>
         $"""
         <tr><td style="padding:6px 28px 4px;font-size:12px;line-height:1.5;color:#7592ac;">
-          Dacă butonul nu funcționează, copiază acest link în browser:<br>
+          {Encode(Languages.Pick(language,
+              "Dacă butonul nu funcționează, copiază acest link în browser:",
+              "If the button doesn't work, copy this link into your browser:",
+              "Если кнопка не работает, скопируйте эту ссылку в браузер:"))}<br>
           <a href="{Encode(url)}" style="color:#4d6e8c;word-break:break-all;">{Encode(url)}</a>
         </td></tr>
         """;
 
-    public static string Page(string title, string content, string footerHtml) =>
+    // `language` (see Languages) is the page's lang attribute — mail apps and screen readers use it.
+    public static string Page(string title, string content, string footerHtml, string language) =>
         $"""
         <!DOCTYPE html>
-        <html lang="ro">
+        <html lang="{Languages.Normalize(language)}">
         <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{Encode(title)}</title></head>
         <body style="margin:0;padding:0;background:#eef2f6;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f6;">

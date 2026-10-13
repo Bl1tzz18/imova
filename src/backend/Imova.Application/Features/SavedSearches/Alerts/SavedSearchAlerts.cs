@@ -41,7 +41,7 @@ public class SavedSearchAlerts(
                 where savedSearch.AlertFrequency != AlertFrequency.Off
                 join user in dbContext.Users on savedSearch.UserId equals user.Id
                 where user.EmailConfirmed && user.Email != null
-                select new { SavedSearch = savedSearch, Email = user.Email! })
+                select new { SavedSearch = savedSearch, Email = user.Email!, user.PreferredLanguage })
             .ToListAsync(cancellationToken);
 
         var sent = 0;
@@ -60,7 +60,7 @@ public class SavedSearchAlerts(
                 {
                     try
                     {
-                        await emailSender.SendAsync(await BuildEmailAsync(candidate.Email, savedSearch, ids, total, cancellationToken), cancellationToken);
+                        await emailSender.SendAsync(await BuildEmailAsync(candidate.Email, candidate.PreferredLanguage, savedSearch, ids, total, cancellationToken), cancellationToken);
                         emailSent = true;
                         sent++;
                     }
@@ -83,7 +83,7 @@ public class SavedSearchAlerts(
     }
 
     private async Task<EmailMessage> BuildEmailAsync(
-        string to, SavedSearch savedSearch, IReadOnlyList<Guid> ids, int total, CancellationToken cancellationToken)
+        string to, string language, SavedSearch savedSearch, IReadOnlyList<Guid> ids, int total, CancellationToken cancellationToken)
     {
         // The same data the site's cards show (main photo URL, location names), via the shared loader.
         var byId = await dbContext.Listings.AsNoTracking()
@@ -119,6 +119,7 @@ public class SavedSearchAlerts(
             total,
             openUrl: appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open"),
             unsubscribeUrl: appOptions.WebUrl(
-                $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}"));
+                $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}"),
+            language);
     }
 }

@@ -117,6 +117,21 @@ public class ListingExpiryTests
     }
 
     [Fact]
+    public async Task TheEmails_AreInTheOwnersLanguage()
+    {
+        (await _db.Users.SingleAsync(u => u.Id == _ownerId)).PreferredLanguage = "en";
+        var listing = Seed();
+        _clock.Now = listing.ExpiresAt!.Value - TimeSpan.FromDays(3);
+        await RunAsync();
+        _clock.Now = listing.ExpiresAt.Value + TimeSpan.FromMinutes(1);
+        await RunAsync();
+
+        Assert.Equal(
+            [$"Your listing expires on {ListingExpiryEmails.FormatDate(listing.ExpiresAt.Value)} — IMOVA", "Your listing has expired — IMOVA"],
+            _email.Sent.Select(e => e.Subject));
+    }
+
+    [Fact]
     public async Task EightDaysBeforeTheEnd_ItIsTooEarlyForAReminder()
     {
         var listing = Seed();

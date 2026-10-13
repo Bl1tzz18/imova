@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getLocale } from "next-intl/server";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { clearSessionCookies, getRefreshToken, getSessionToken, setSessionCookies } from "@/lib/auth/session";
 import type { SessionTokens } from "@/lib/auth/sessionCookies";
@@ -61,6 +62,8 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
       password: formData.get("password"),
       displayName: formData.get("name"),
       phoneNumber: formData.get("phone"),
+      // The site's language right now: the account's emails are written in it.
+      language: await getLocale(),
     }),
   });
 
@@ -73,7 +76,8 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
-    body: JSON.stringify({ idToken }),
+    // Only used when this sign-in creates the account (see register).
+    body: JSON.stringify({ idToken, language: await getLocale() }),
   });
 
   if (!res.ok) {

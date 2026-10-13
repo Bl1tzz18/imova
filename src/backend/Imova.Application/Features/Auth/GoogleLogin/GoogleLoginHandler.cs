@@ -39,6 +39,7 @@ public class GoogleLoginHandler(
                 Email = googleUser.Email,
                 EmailConfirmed = true,
                 DisplayName = googleUser.Name,
+                PreferredLanguage = Languages.Normalize(request.Language),
             };
 
             // No password set — this account can only sign in via Google, never via the

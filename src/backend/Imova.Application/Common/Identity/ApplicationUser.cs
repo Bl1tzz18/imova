@@ -25,4 +25,9 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     // "Email me when a listing I saved changes price or is no longer available" (FavoriteAlerts) —
     // on by default; off from the account settings or the link in any of those emails.
     public bool EmailFavoriteUpdates { get; set; } = true;
+
+    // The site language the user uses (ro/en/ru, see Languages) — every email to them is written in
+    // it. Set at sign-up from the language the site was in, then whenever they switch language while
+    // signed in.
+    public string PreferredLanguage { get; set; } = Languages.Default;
 }

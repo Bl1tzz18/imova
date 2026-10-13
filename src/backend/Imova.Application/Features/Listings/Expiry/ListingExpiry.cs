@@ -47,7 +47,7 @@ public class ListingExpiry(
             .Select(a => a.Id)
             .ToHashSetAsync(cancellationToken);
 
-        foreach (var (listing, email) in due)
+        foreach (var (listing, email, language) in due)
         {
             listing.Expire();
 
@@ -56,7 +56,7 @@ public class ListingExpiry(
 
             if (email is not null && !(listing.AgencyId is { } agencyId && hiddenAgencyIds.Contains(agencyId)))
             {
-                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl), listing.Id, cancellationToken);
+                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl, language), listing.Id, cancellationToken);
             }
         }
 
@@ -77,11 +77,12 @@ public class ListingExpiry(
             cancellationToken);
 
         var sent = 0;
-        foreach (var (listing, email) in due)
+        foreach (var (listing, email, language) in due)
         {
             if (email is not null)
             {
-                if (!await TrySendAsync(ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl), listing.Id, cancellationToken))
+                if (!await TrySendAsync(
+                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl, language), listing.Id, cancellationToken))
                 {
                     continue; // Retried next run.
                 }
@@ -99,8 +100,8 @@ public class ListingExpiry(
 
     private string MyListingsUrl => appOptions.WebUrl("/my-listings");
 
-    // The owner is the user behind the listing's publisher (see ListingAccess).
-    private async Task<List<(Listing Listing, string? Email)>> WithOwnerEmailsAsync(
+    // The owner is the user behind the listing's publisher (see ListingAccess); emails go in their language.
+    private async Task<List<(Listing Listing, string? Email, string Language)>> WithOwnerEmailsAsync(
         IQueryable<Listing> listings, CancellationToken cancellationToken)
     {
         var rows = await (
@@ -108,12 +109,12 @@ public class ListingExpiry(
                 join publisher in dbContext.Publishers on listing.PublisherId equals publisher.Id
                 join user in dbContext.Users on publisher.UserId equals user.Id
                 orderby listing.ExpiresAt
-                select new { Listing = listing, user.Email })
+                select new { Listing = listing, user.Email, user.PreferredLanguage })
             .Take(BatchSize)
             .ToListAsync(cancellationToken);
 
         // An account's email may be missing (Identity's Email is nullable); the callers skip those.
-        return rows.Select(r => (r.Listing, (string?)r.Email)).ToList();
+        return rows.Select(r => (r.Listing, (string?)r.Email, r.PreferredLanguage)).ToList();
     }
 
     private async Task<bool> TrySendAsync(EmailMessage email, Guid listingId, CancellationToken cancellationToken)

@@ -110,7 +110,7 @@ public class GrantAdminHandler(
         var newAdmin = target.Email!;
         try
         {
-            await emails.SendWelcomeAsync(newAdmin, grantedBy, cancellationToken);
+            await emails.SendWelcomeAsync(newAdmin, grantedBy, target.PreferredLanguage, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -126,7 +126,7 @@ public class GrantAdminHandler(
 
             try
             {
-                await emails.SendNoticeAsync(admin.Email, newAdmin, grantedBy, cancellationToken);
+                await emails.SendNoticeAsync(admin.Email, newAdmin, grantedBy, admin.PreferredLanguage, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
