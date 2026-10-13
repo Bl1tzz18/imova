@@ -7,7 +7,6 @@ import type { ImportColumn } from "@/types/agency";
 // Pure (Vitest): the caller passes the labels.
 
 export const IMPORT_PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
-export type ImportPropertyType = (typeof IMPORT_PROPERTY_TYPES)[number];
 
 // What the README needs from the translations (the route handler wires them to next-intl).
 export type ImportReadmeLabels = {

@@ -10,6 +10,8 @@ node_modules/
 out/
 next-env.d.ts
 npm-debug.log*
+# TypeScript's incremental build cache (rewritten by every `tsc --noEmit`)
+*.tsbuildinfo
 
 # Env files
 .env

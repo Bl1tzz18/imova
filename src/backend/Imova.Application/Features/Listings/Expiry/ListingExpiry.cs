@@ -100,7 +100,8 @@ public class ListingExpiry(
             .Take(BatchSize)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(r => (r.Listing, r.Email)).ToList();
+        // An account's email may be missing (Identity's Email is nullable); the callers skip those.
+        return rows.Select(r => (r.Listing, (string?)r.Email)).ToList();
     }
 
     private async Task<bool> TrySendAsync(EmailMessage email, Guid listingId, CancellationToken cancellationToken)

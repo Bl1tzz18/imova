@@ -30,53 +30,39 @@ public class ImportTemplateHandlerTests : IAsyncDisposable
 
     public ValueTask DisposeAsync() => _db.DisposeAsync();
 
-    private async Task<Guid> AddMemberAsync(AgencyRole role)
-    {
-        var userId = Guid.NewGuid();
-        ListingTestData.AddUser(_db, userId);
-        _agency.AddMember(userId, role, Now);
-        await _db.SaveChangesAsync();
-        return userId;
-    }
-
-    private Task<ImportTemplateFile?> TemplateAsync(Guid userId, bool isAdmin = false, Guid? agencyId = null) =>
+    private Task<ImportTemplateFile?> TemplateAsync(bool isAdmin, Guid? agencyId = null) =>
         new GetImportTemplateHandler(_db).Handle(
-            new GetImportTemplateQuery(agencyId ?? _agency.Id, userId, isAdmin, PropertyType.Apartment), CancellationToken.None);
+            new GetImportTemplateQuery(agencyId ?? _agency.Id, isAdmin, PropertyType.Apartment), CancellationToken.None);
 
     [Fact]
     public async Task ASiteAdmin_GetsTheTemplate_EvenBeforeVerification()
     {
         Assert.False(_agency.IsVerified);
-        var file = (await TemplateAsync(Guid.NewGuid(), isAdmin: true))!;
+        var file = (await TemplateAsync(isAdmin: true))!;
         Assert.Equal("imova-import-apartment.csv", file.FileName);
         Assert.StartsWith("text/csv", file.ContentType);
 
         _agency.Deactivate(Now);
         await _db.SaveChangesAsync();
-        Assert.NotNull(await TemplateAsync(Guid.NewGuid(), isAdmin: true));
-        Assert.Null(await TemplateAsync(Guid.NewGuid(), isAdmin: true, agencyId: Guid.NewGuid()));
+        Assert.NotNull(await TemplateAsync(isAdmin: true));
+        Assert.Null(await TemplateAsync(isAdmin: true, agencyId: Guid.NewGuid()));
     }
 
     [Fact]
-    public async Task TheAgencysOwnOwnersAdminsAndAgents_AndStrangers_AreRefused()
+    public async Task AnyoneButASiteAdmin_IsRefused()
     {
-        // IMOVA imports agencies' listings by hand: the templates are a site admin's tool.
-        var admin = await AddMemberAsync(AgencyRole.Admin);
-        var agent = await AddMemberAsync(AgencyRole.Agent);
-
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(_owner));
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(admin));
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(agent));
-        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(Guid.NewGuid()));
+        // IMOVA imports agencies' listings by hand: the templates are a site admin's tool. (That an
+        // agency's own Owner, Admin and Agent get 403 is checked end to end in the integration tests.)
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => TemplateAsync(isAdmin: false));
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => new GetImportColumnsHandler(_db).Handle(
-            new GetImportColumnsQuery(_agency.Id, _owner, false, PropertyType.Garage), CancellationToken.None));
+            new GetImportColumnsQuery(_agency.Id, false, PropertyType.Garage), CancellationToken.None));
     }
 
     [Fact]
     public async Task TheColumnsGuide_ListsTheAmenitiesAndProximities_ThatApplyToTheType()
     {
         var columns = (await new GetImportColumnsHandler(_db).Handle(
-            new GetImportColumnsQuery(_agency.Id, Guid.NewGuid(), true, PropertyType.Garage), CancellationToken.None))!;
+            new GetImportColumnsQuery(_agency.Id, true, PropertyType.Garage), CancellationToken.None))!;
 
         var amenities = columns.Single(c => c.Name == ImportColumns.Amenities);
         Assert.Contains("electricity", amenities.Choices!);

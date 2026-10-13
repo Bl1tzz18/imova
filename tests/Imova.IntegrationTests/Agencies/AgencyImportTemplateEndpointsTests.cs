@@ -26,8 +26,6 @@ public class AgencyImportTemplateEndpointsTests(WebApplicationFactory<Program> f
 
         Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync(template)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await owner.GetAsync($"/api/v1/agencies/{agency.Id}/import/columns?propertyType=Room")).StatusCode);
-        // The import-request flow from an earlier draft never shipped: no such endpoint.
-        Assert.Equal(HttpStatusCode.NotFound, (await owner.GetAsync($"/api/v1/agencies/{agency.Id}/import-requests")).StatusCode);
 
         var response = await admin.GetAsync(template);
         response.EnsureSuccessStatusCode();

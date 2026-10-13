@@ -1707,7 +1707,6 @@
       "title": "Import from CSV",
       "pageTitle": "CSV import — {name}",
       "jobPageTitle": "Import result — {name}",
-      "back": "The agency's listings",
       "intro": "Add or update the agency's listings from a CSV file. A row with the same external_ref updates the existing listing, without duplicates.",
       "notVerified": "The agency isn't verified yet — verify it (Agency verification) before importing. Meanwhile you can prepare the file with the templates below.",
       "inactive": "The agency is deactivated — nothing can be imported until it's reactivated.",
