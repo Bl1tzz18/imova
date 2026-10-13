@@ -1,11 +1,11 @@
 // /admin/agencies — the address (?q=&show=&page=) and the API query, pure (Vitest-covered).
 
 export const ADMIN_AGENCY_FILTERS = ["all", "unverified", "verified"] as const;
-export type AdminAgencyFilter = (typeof ADMIN_AGENCY_FILTERS)[number];
+type AdminAgencyFilter = (typeof ADMIN_AGENCY_FILTERS)[number];
 
-export const ADMIN_AGENCIES_PAGE_SIZE = 20;
+const ADMIN_AGENCIES_PAGE_SIZE = 20;
 
-export type AdminAgenciesState = { q: string; show: AdminAgencyFilter; page: number };
+type AdminAgenciesState = { q: string; show: AdminAgencyFilter; page: number };
 
 type Params = Record<string, string | string[] | undefined>;
 

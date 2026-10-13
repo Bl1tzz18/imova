@@ -99,7 +99,7 @@ export function hasListingFilters(state: AgencyListingsState): boolean {
 
 // --- The directory ---
 
-export type AgencyDirectoryState = {
+type AgencyDirectoryState = {
   q?: string;
   raionId?: string;
   verified: boolean;

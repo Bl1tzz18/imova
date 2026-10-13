@@ -17,7 +17,7 @@ export function convertFromEur(priceEur: number, currency: string, rates: EurRat
 
 // The price per unit of area, as buyers compare a sale: per m², except land, which in Moldova is
 // priced per ar (100 m²). In the listing's own currency, rounded. Only for a sale with an area.
-export type UnitPrice = { amount: number; currency: string; unit: "m2" | "ar" };
+type UnitPrice = { amount: number; currency: string; unit: "m2" | "ar" };
 
 export function unitPrice(listing: Pick<Listing, "transactionType" | "price"> & { property: Pick<Listing["property"], "propertyType" | "totalAreaM2"> }): UnitPrice | null {
   const area = listing.property.totalAreaM2;

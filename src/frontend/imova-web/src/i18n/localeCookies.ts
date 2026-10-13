@@ -1,4 +1,4 @@
-import "server-only";
+// Server only: called from the auth and locale server actions (cookies() fails anywhere else).
 import { cookies } from "next/headers";
 import { localeCookieName, type Locale } from "./config";
 import { localeAfterSignIn, localeChosenCookieName } from "./signInLocale";

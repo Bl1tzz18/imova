@@ -35,7 +35,3 @@ export function getCountryList(locale: string): Country[] {
   cache = { locale, countries };
   return countries;
 }
-
-export function findCountry(locale: string, code: CountryCode): Country | undefined {
-  return getCountryList(locale).find((c) => c.code === code);
-}

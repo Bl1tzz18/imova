@@ -13,7 +13,7 @@ async function headersFor(): Promise<Record<string, string>> {
   };
 }
 
-export type RevealPhoneResult = { phone: string } | { phone: null; reason: "unavailable" | "tooMany" | "failed" };
+type RevealPhoneResult = { phone: string } | { phone: null; reason: "unavailable" | "tooMany" | "failed" };
 
 // "Arată" on a listing's phone number. The listing page only has the number's shape; the number
 // comes from the API one request at a time (rate-limited per visitor IP — forwarded here — and

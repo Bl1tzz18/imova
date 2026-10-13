@@ -12,7 +12,7 @@ export type AccountDataSummary = {
 };
 
 // One line of "this will be deleted" — `key` is the Account.deletion.* message, `count` its number.
-export type DeletionItem = { key: "listings" | "favorites" | "savedSearches" | "agency"; count: number };
+type DeletionItem = { key: "listings" | "favorites" | "savedSearches" | "agency"; count: number };
 
 // Only what the account actually has, so the list reads as the user's own data, not boilerplate.
 export function deletionItems(summary: AccountDataSummary): DeletionItem[] {

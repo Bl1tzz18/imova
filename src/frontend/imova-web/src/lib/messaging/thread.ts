@@ -14,7 +14,7 @@ export const MAX_ATTACHMENTS = 5;
 
 // How long a "typing…" indicator stays up without a fresh event, and how often we send one.
 export const TYPING_DISPLAY_MS = 5000;
-export const TYPING_SEND_INTERVAL_MS = 3000;
+const TYPING_SEND_INTERVAL_MS = 3000;
 
 const STATUS_RANK: Record<MessageStatus, number> = { Sent: 0, Delivered: 1, Read: 2 };
 

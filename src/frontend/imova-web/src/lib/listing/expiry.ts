@@ -2,11 +2,11 @@ import type { Listing } from "@/types/listing";
 
 // Mirrors the backend's ListingExpiry.ReminderBefore: from this close to the end, the owner has
 // had the reminder email and "Anunțurile mele" offers to renew.
-export const RENEW_WINDOW_DAYS = 7;
+const RENEW_WINDOW_DAYS = 7;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export type ListingExpiry =
+type ListingExpiry =
   | { kind: "none" }
   | { kind: "active"; expiresAt: string; daysLeft: number; renewable: boolean };
 

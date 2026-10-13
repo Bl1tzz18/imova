@@ -2,9 +2,9 @@ import type { MyAgency } from "@/types/agency";
 
 // "Publică ca": a private listing ("") or one of the user's agencies (its id). The last choice made
 // on the create form is remembered in this browser only (localStorage), never on the account.
-export const PUBLISH_AS_STORAGE_KEY = "imova:publishAs:v1";
+const PUBLISH_AS_STORAGE_KEY = "imova:publishAs:v1";
 
-export type PublishAsOption = { id: string; name: string; logoUrl: string | null; isVerified: boolean };
+type PublishAsOption = { id: string; name: string; logoUrl: string | null; isVerified: boolean };
 
 // What the picker offers besides "private": the active agencies the user belongs to, plus — when
 // editing — the agency the listing is already under, even if it's no longer active (so saving

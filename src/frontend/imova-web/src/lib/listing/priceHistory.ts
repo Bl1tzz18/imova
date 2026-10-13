@@ -3,7 +3,7 @@ import type { PriceHistory } from "@/types/listing";
 // One line of a listing's price history, newest first: what the price became and when, with the
 // change in percent; the last line is where it started — at publication, or (when the API left
 // older changes out) just "earlier", without a date.
-export type PriceHistoryRow =
+type PriceHistoryRow =
   | { kind: "change"; amount: number; currency: string; date: string; changePercent: number }
   | { kind: "published"; amount: number; currency: string; date: string | null }
   | { kind: "earlier"; amount: number; currency: string };

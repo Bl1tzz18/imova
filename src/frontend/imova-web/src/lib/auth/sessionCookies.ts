@@ -9,7 +9,7 @@ export const REFRESH_COOKIE = "imova_refresh";
 
 // Renew the login token this long before it runs out, so a request never starts with one that
 // expires halfway through.
-export const REFRESH_MARGIN_MS = 60_000;
+const REFRESH_MARGIN_MS = 60_000;
 
 export type SessionTokens = {
   token: string;
@@ -20,7 +20,7 @@ export type SessionTokens = {
   persistent: boolean;
 };
 
-export type CookieOptions = {
+type CookieOptions = {
   httpOnly: true;
   sameSite: "lax";
   secure: boolean;

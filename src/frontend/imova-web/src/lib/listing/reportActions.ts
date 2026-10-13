@@ -4,7 +4,7 @@ import { getSessionToken } from "@/lib/auth/session";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import type { ListingReportReason, ReportListingResult } from "@/types/listingReport";
 
-export type ReportListingActionResult = { data: ReportListingResult; error?: never } | { data?: never; error: string; signedOut?: boolean };
+type ReportListingActionResult = { data: ReportListingResult; error?: never } | { data?: never; error: string; signedOut?: boolean };
 
 // Reports a listing to the admins. Never throws: a failed call comes back as a translated error
 // (signedOut when the session ended meanwhile, so the dialog can offer to sign in).

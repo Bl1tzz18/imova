@@ -52,7 +52,7 @@ export function ownerActions(listing: Pick<Listing, "status" | "transactionType"
 }
 
 // The owner bar's message on the listing page: is it public, and if not why and what next.
-export type OwnerNotice =
+type OwnerNotice =
   | { kind: "active"; expiresAt: string | null; renewable: boolean }
   | { kind: "notPublic"; status: "Draft" | "PendingReview" | "Expired" | "Archived" }
   | { kind: "ended"; status: "Sold" | "Rented" }

@@ -12,7 +12,7 @@ import type { AgencyRole } from "@/types/agency";
 // The logo goes through a route handler instead (app/account/agencies/[id]/logo) — files are bigger
 // than a server action's body limit.
 
-export type ActionResult = { error?: string };
+type ActionResult = { error?: string };
 
 function apiUrl(): string {
   return process.env.API_URL ?? "http://localhost:8080";

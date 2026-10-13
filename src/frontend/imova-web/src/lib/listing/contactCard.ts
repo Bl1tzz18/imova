@@ -24,7 +24,7 @@ export function formatPhone(phone: string): string {
 // phonePrefix) and how many follow (phoneHiddenDigits) — formatted with stand-in digits, which gives
 // the real number's grouping, then those shown as dots; after, the real number in the same format,
 // the same digit positions marked `hidden` (the ones that fade in).
-export type PhoneGlyph = { char: string; hidden: boolean };
+type PhoneGlyph = { char: string; hidden: boolean };
 
 export function maskedPhoneGlyphs(prefix: string, hiddenDigits: number): PhoneGlyph[] {
   return glyphs(formatPhone(prefix + "0".repeat(hiddenDigits)), hiddenDigits, true);
@@ -84,7 +84,7 @@ export function opensInNewTab(app: MessagingApp): boolean {
 // The line under the name: an agency's agent ("Agent imobiliar · Casa Ta"), the agency itself
 // (while the account behind it has no name of its own), an individual owner, or the separate
 // contact person an individual named.
-export type ContactRole =
+type ContactRole =
   | { kind: "agent"; agencyName: string }
   | { kind: "agency" }
   | { kind: "individual" }

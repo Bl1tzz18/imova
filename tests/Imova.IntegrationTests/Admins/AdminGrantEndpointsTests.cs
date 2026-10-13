@@ -66,7 +66,7 @@ public class AdminGrantEndpointsTests : IClassFixture<WebApplicationFactory<Prog
         Assert.Equal(HttpStatusCode.Forbidden, (await GrantAsync(user, target.Email)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await user.GetAsync("/api/v1/admin/admins")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await GrantAsync(_factory.CreateClient(), target.Email)).StatusCode);
-        Assert.Empty(_email.SentTo(target.Email).Where(m => m.Subject.Contains("administrator")));
+        Assert.DoesNotContain(_email.SentTo(target.Email), m => m.Subject.Contains("administrator"));
     }
 
     [Fact]
