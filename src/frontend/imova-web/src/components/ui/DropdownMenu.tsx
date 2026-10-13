@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export type DropdownItem = {
+type DropdownItem = {
   id: string;
   label: string;
   icon?: ReactNode;

@@ -16,4 +16,6 @@ public record AuthUserDto(
     IReadOnlyList<string> Roles,
     bool RequiresPhoneNumber,
     string? ProfilePictureUrl,
-    bool EmailConfirmed);
+    bool EmailConfirmed,
+    // ro/en/ru — the account's language; the web app switches the site to it after sign-in.
+    string PreferredLanguage);

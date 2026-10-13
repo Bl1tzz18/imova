@@ -5,7 +5,7 @@
 
 export type RentalField = "petsAllowed" | "minLeasePeriodMonths" | "securityDepositAmount" | "availableFrom" | "utilitiesIncluded";
 
-export type RentalFieldStep = "details" | "priceTerms";
+type RentalFieldStep = "details" | "priceTerms";
 
 export const RENTAL_FIELDS_BY_STEP: Record<RentalFieldStep, readonly RentalField[]> = {
   // Step 2 "Details": house rules for the home (its own "Rental rules" section).

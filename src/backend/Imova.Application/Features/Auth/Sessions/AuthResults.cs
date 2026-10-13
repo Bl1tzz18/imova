@@ -16,7 +16,8 @@ public static class AuthResults
                 roles,
                 string.IsNullOrWhiteSpace(user.PhoneNumber),
                 user.ProfilePictureUrl,
-                user.EmailConfirmed),
+                user.EmailConfirmed,
+                user.PreferredLanguage),
             session.RefreshToken,
             session.RefreshTokenExpiresAt,
             session.Persistent);

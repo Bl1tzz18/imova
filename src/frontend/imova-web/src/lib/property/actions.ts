@@ -164,7 +164,7 @@ export async function deleteListingPhoto(listingId: string, mediaId: string): Pr
 // to storage via the SAS URL — see uploadFileToBlob). Server actions because the API needs the
 // session token, which lives in an httpOnly cookie the browser can't read. They return errors
 // instead of throwing: a thrown server-action error reaches the client with its message masked.
-export type PhotoActionResult<T> = { data: T; error?: undefined } | { data?: undefined; error: string };
+type PhotoActionResult<T> = { data: T; error?: undefined } | { data?: undefined; error: string };
 
 async function postPhotoCall<T>(path: string, body: unknown): Promise<PhotoActionResult<T>> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";

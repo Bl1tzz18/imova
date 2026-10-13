@@ -9,7 +9,7 @@ export type PropertyTypeName = (typeof PROPERTY_TYPES)[number];
 // A field that only exists while another field has one of the given values (e.g. heating energy
 // source, only for boiler/heat-pump/solar heating). While hidden it's never submitted, and
 // `required` applies only while it's visible.
-export type Visibility = { field: string; values: readonly string[] };
+type Visibility = { field: string; values: readonly string[] };
 
 type FieldBase = { name: string; visibleWhen?: Visibility };
 
@@ -45,8 +45,8 @@ const FLOOR_MATERIALS = ["Parquet", "Laminate", "Tile", "Other"] as const;
 
 // Mirror Heating.RequiresEnergySource / RequiresDistribution on the backend. Solar panels are
 // their own energy source, so they only ask for distribution.
-export const HEATING_WITH_ENERGY_SOURCE = ["OwnBoiler", "HeatPump"] as const;
-export const HEATING_WITH_DISTRIBUTION = ["OwnBoiler", "HeatPump", "SolarPanels"] as const;
+const HEATING_WITH_ENERGY_SOURCE = ["OwnBoiler", "HeatPump"] as const;
+const HEATING_WITH_DISTRIBUTION = ["OwnBoiler", "HeatPump", "SolarPanels"] as const;
 
 // Heating system (optional) + its conditional energy source/distribution, required only while
 // shown — identical for House and Apartment.

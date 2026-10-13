@@ -47,9 +47,28 @@ public class AgencyHandlerTests : IAsyncDisposable
             new CreateAgencyCommand(userId, name, "+373 22 555 010", email, null, null, null, raionId), CancellationToken.None);
 
     private Task<Imova.Contracts.Agencies.AgencyDto?> UpdateAsync(Guid agencyId, Guid userId, string name = "Casa Ta Imobiliare", bool isAdmin = false) =>
-        new UpdateAgencyHandler(_db, _blobs, _clock).Handle(
+        UpdateWith(_db, agencyId, userId, name, isAdmin);
+
+    private Task<Imova.Contracts.Agencies.AgencyDto?> UpdateWith(
+        ImovaDbContext db, Guid agencyId, Guid userId, string name = "Casa Ta Imobiliare", bool isAdmin = false) =>
+        new UpdateAgencyHandler(db, _blobs, _clock, new FakeDatabaseErrors()).Handle(
             new UpdateAgencyCommand(agencyId, userId, isAdmin, name, "+373 22 555 010", "office@casata.md", "Bio", null, null, null),
             CancellationToken.None);
+
+    // A rename that loses a race for the new address: the save fails the way Postgres's unique index
+    // (or the slug history's key) would, once armed.
+    private sealed class RenameRaceInterceptor(string constraint) : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor
+    {
+        public bool Armed { get; set; }
+
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>> SavingChangesAsync(
+            Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result,
+            CancellationToken cancellationToken = default) =>
+            Armed && eventData.Context!.ChangeTracker.Entries<Agency>().Any(e => e.State == EntityState.Modified)
+                ? throw new SimulatedUniqueViolation(constraint)
+                : ValueTask.FromResult(result);
+    }
 
     private Task<Imova.Contracts.Agencies.AgencyDto?> UploadLogoAsync(Guid agencyId, Guid userId, byte[] content) =>
         new UploadAgencyLogoHandler(_db, _blobs, _resizer, _clock, NullLogger<UploadAgencyLogoHandler>.Instance).Handle(
@@ -305,6 +324,27 @@ public class AgencyHandlerTests : IAsyncDisposable
 
         Assert.Equal("casa-ta-imobiliare", dto!.Slug);
         Assert.Equal(["casa-noastra"], _db.AgencyFormerSlugs.Select(s => s.Slug));
+    }
+
+    [Theory]
+    [InlineData(CreateAgencyHandler.SlugIndex)]
+    [InlineData(UpdateAgencyHandler.SlugHistoryKey)]
+    public async Task Update_RenameRacingAnotherAgencyForTheAddress_IsA409WithItsCode_AndSavesNothing(string constraint)
+    {
+        var databaseName = Guid.NewGuid().ToString();
+        var race = new RenameRaceInterceptor(constraint);
+        await using var db = TestDbContextFactory.Create(databaseName, race);
+        ListingTestData.AddUser(db, _ownerId);
+        await db.SaveChangesAsync();
+        var created = await CreateWith(db, _ownerId);
+        race.Armed = true;
+
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() => UpdateWith(db, created.Id, _ownerId, "Casa Noastră"));
+
+        Assert.Equal(ErrorCodes.AgencyNameConflict, conflict.Code);
+        await using var fresh = TestDbContextFactory.Create(databaseName);
+        Assert.Equal(("Casa Ta Imobiliare", "casa-ta-imobiliare"), await fresh.Agencies.Select(a => ValueTuple.Create(a.Name, a.Slug)).SingleAsync());
+        Assert.Empty(fresh.AgencyFormerSlugs);
     }
 
     [Fact]

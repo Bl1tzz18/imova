@@ -68,6 +68,22 @@ public class RegisterHandlerTests
         Assert.Contains("Ana Rusu", email.TextBody);
     }
 
+    [Theory]
+    [InlineData("ru", "ru", "Подтвердите адрес электронной почты — IMOVA")]
+    [InlineData("en", "en", "Confirm your email address — IMOVA")]
+    [InlineData(null, "ro", "Confirmă adresa de email — IMOVA")]
+    [InlineData("fr", "ro", "Confirmă adresa de email — IMOVA")]
+    public async Task Handle_KeepsTheSitesLanguage_AndSendsTheConfirmationInIt(string? sent, string stored, string subject)
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+
+        await Handler(dbContext).Handle(
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", sent), CancellationToken.None);
+
+        Assert.Equal(stored, Assert.Single(_store.Users).PreferredLanguage);
+        Assert.Equal(subject, Assert.Single(_email.Sent).Subject);
+    }
+
     [Fact]
     public async Task Handle_WhenTheConfirmationEmailFails_StillRegisters()
     {

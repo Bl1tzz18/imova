@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils/cn";
 
 const initialState: AgencyProfileState = {};
 
-export type RaionOption = { id: string; label: string };
+type RaionOption = { id: string; label: string };
 
 // The agency's profile — creating one (/account/agencies/new) or editing it (its Profil tab). Beside
 // it (under it on a phone) a preview of how the agency shows on IMOVA, following what's typed. When

@@ -156,15 +156,15 @@ public class SetAgencyVerifiedHandler(
         if (request.Verified)
         {
             var ownerIds = agency.Members.Where(m => m.Role == AgencyRole.Owner).Select(m => m.UserId).ToList();
-            var addresses = await dbContext.Users.AsNoTracking()
+            var owners = await dbContext.Users.AsNoTracking()
                 .Where(u => ownerIds.Contains(u.Id) && u.EmailConfirmed && u.Email != null)
-                .Select(u => u.Email!)
+                .Select(u => new { Email = u.Email!, u.PreferredLanguage })
                 .ToListAsync(cancellationToken);
-            foreach (var address in addresses)
+            foreach (var owner in owners)
             {
                 try
                 {
-                    await email.SendAsync(address, agency.Name, agency.Slug, cancellationToken);
+                    await email.SendAsync(owner.Email, agency.Name, agency.Slug, owner.PreferredLanguage, cancellationToken);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -177,25 +177,39 @@ public class SetAgencyVerifiedHandler(
     }
 }
 
-// "Agenția {Agency} a fost verificată" (Romanian, HTML + text), with a link to its page.
+// "Agenția {Agency} a fost verificată" (HTML + text, in the owner's language), with a link to its page.
 public class AgencyVerifiedEmail(IEmailSender emailSender, AppOptions appOptions)
 {
-    public Task SendAsync(string to, string agencyName, string slug, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}")), cancellationToken);
+    public Task SendAsync(string to, string agencyName, string slug, string language, CancellationToken cancellationToken) =>
+        emailSender.SendAsync(
+            Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}"), language), cancellationToken);
 
-    public static EmailMessage Build(string to, string agencyName, string link)
+    public static EmailMessage Build(string to, string agencyName, string link, string language)
     {
-        var heading = $"Agenția {agencyName} a fost verificată";
-        const string body =
-            "Echipa IMOVA a verificat agenția. De acum, pagina ei și anunțurile ei poartă semnul „Agenție verificată”, iar agenția apare printre primele în lista agențiilor.";
+        string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
-        var text = $"{heading}.\n\n{body}\n\nPagina agenției: {link}\n";
+        var heading = T(
+            $"Agenția {agencyName} a fost verificată",
+            $"The agency {agencyName} has been verified",
+            $"Агентство {agencyName} прошло проверку");
+        var body = T(
+            "Echipa IMOVA a verificat agenția. De acum, pagina ei și anunțurile ei poartă semnul „Agenție verificată”, iar agenția apare printre primele în lista agențiilor.",
+            "The IMOVA team has verified the agency. From now on its page and its listings carry the “Verified agency” mark, and the agency is shown among the first in the list of agencies.",
+            "Команда IMOVA проверила агентство. Теперь на его странице и объявлениях стоит знак «Проверенное агентство», а само агентство показывается одним из первых в списке агентств.");
+        var page = T("Pagina agenției", "The agency's page", "Страница агентства");
+        var footer = T(
+            "Ai primit acest email pentru că ești proprietarul agenției pe IMOVA.",
+            "You're getting this email because you own the agency on IMOVA.",
+            "Вы получили это письмо, потому что вы владелец агентства на IMOVA.");
+
+        var text = $"{heading}.\n\n{body}\n\n{page}: {link}\n";
         var html = EmailLayout.Page(
             heading,
             EmailLayout.Heading(heading)
             + EmailLayout.Paragraph(EmailLayout.Encode(body))
-            + EmailLayout.Button("Vezi pagina agenției", link),
-            EmailLayout.Encode("Ai primit acest email pentru că ești proprietarul agenției pe IMOVA."));
-        return new EmailMessage(to, $"Agenția {agencyName} a fost verificată — IMOVA", text, html);
+            + EmailLayout.Button(T("Vezi pagina agenției", "View agency page", "Открыть страницу агентства"), link),
+            EmailLayout.Encode(footer),
+            language);
+        return new EmailMessage(to, $"{heading} — IMOVA", text, html);
     }
 }

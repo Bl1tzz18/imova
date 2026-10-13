@@ -20,7 +20,7 @@ import {
 import { formatDate } from "@/lib/utils/format";
 import type { AgencyInvitation, AgencyMember, AgencyRole } from "@/types/agency";
 
-export type MembersActor = { userId: string; role: AgencyRole | null; isSiteAdmin: boolean };
+type MembersActor = { userId: string; role: AgencyRole | null; isSiteAdmin: boolean };
 
 // The Membri tab: who's in the agency (with role changes and removal for those allowed), an invite
 // form, and the invitations still open (resend, revoke, a warning when the email didn't go out).

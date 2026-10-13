@@ -15,7 +15,7 @@ export function attachmentExtension(file: { type: string }): string | null {
   return EXTENSIONS[file.type] ?? null;
 }
 
-export type AttachmentProblem = "type" | "size" | "count";
+type AttachmentProblem = "type" | "size" | "count";
 
 // Splits picked files into the ones to upload (up to the remaining slots) and why others were
 // skipped.

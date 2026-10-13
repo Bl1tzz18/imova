@@ -19,6 +19,34 @@ public class EmailNotificationTests
     }
 
     [Fact]
+    public async Task TheEmail_IsInTheRecipientsLanguage()
+    {
+        var fixture = new MessagingFixture();
+        fixture.Seller.PreferredLanguage = "ru";
+        await fixture.Db.SaveChangesAsync();
+
+        await fixture.StartAsync(body: "Bună ziua!");
+
+        var email = Assert.Single(fixture.Email.Sent);
+        Assert.StartsWith("Новое сообщение на IMOVA по объявлению «", email.Subject);
+        Assert.Contains("Новое сообщение от Maria Rusu", email.TextBody);
+        Assert.Contains("Прочитать и ответить:", email.TextBody);
+    }
+
+    [Theory]
+    [InlineData("ro", "Cineva ți-a trimis un mesaj despre un anunț:", "[imagine]")]
+    [InlineData("en", "Someone sent you a message about a listing:", "[image]")]
+    [InlineData("ru", "Новое сообщение от пользователя по объявлению:", "[изображение]")]
+    public void NewMessageEmail_WithoutNameTitleOrText_StillReads(string language, string intro, string image)
+    {
+        var email = Imova.Application.Features.Messaging.MessageDelivery.NewMessageEmail(
+            "a@example.com", null, null, "", "https://imova.test/messages/1", language);
+
+        Assert.Contains(intro, email.TextBody);
+        Assert.Contains(image, email.TextBody);
+    }
+
+    [Fact]
     public async Task ABurstOfMessages_SendsOneEmail()
     {
         var fixture = new MessagingFixture();

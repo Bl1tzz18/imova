@@ -51,7 +51,7 @@ public class AccountDeletion(
             return false;
         }
 
-        var (email, displayName, emailConfirmed) = (user.Email, user.DisplayName, user.EmailConfirmed);
+        var (email, displayName, emailConfirmed, language) = (user.Email, user.DisplayName, user.EmailConfirmed, user.PreferredLanguage);
         var publicBlobs = new HashSet<string>(StringComparer.Ordinal);
         var attachmentBlobs = new HashSet<string>(StringComparer.Ordinal);
 
@@ -127,7 +127,7 @@ public class AccountDeletion(
         {
             try
             {
-                await emails.SendDeletedAsync(email, displayName, cancellationToken);
+                await emails.SendDeletedAsync(email, displayName, language, cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

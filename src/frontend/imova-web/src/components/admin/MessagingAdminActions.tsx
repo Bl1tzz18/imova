@@ -9,7 +9,7 @@ import type { MessagingUser } from "@/types/messaging";
 
 // What the Resolve / Reopen button acts on — omitted where there's nothing to resolve (the
 // conversation view's per-participant ban buttons).
-export type ResolvableItem = { kind: "report" | "flag"; id: string; resolved: boolean };
+type ResolvableItem = { kind: "report" | "flag"; id: string; resolved: boolean };
 
 // Resolve (or reopen) a report / flagged message, and ban (or unban) a user from messaging.
 export function MessagingAdminActions({ item, user }: { item?: ResolvableItem; user: MessagingUser }) {

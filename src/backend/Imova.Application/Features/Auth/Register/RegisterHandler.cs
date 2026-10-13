@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Auth.Sessions;
@@ -27,6 +28,7 @@ public class RegisterHandler(
             Email = request.Email,
             DisplayName = request.DisplayName,
             PhoneNumber = request.PhoneNumber,
+            PreferredLanguage = Languages.Normalize(request.Language),
         };
 
         var result = await userManager.CreateAsync(user, request.Password);

@@ -1304,7 +1304,8 @@
         "invitationExpired": "This invitation has expired. Ask the agency to send it again.",
         "invitationClosed": "This invitation is no longer valid.",
         "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it.",
-        "confirmNameMismatch": "Type the agency's name exactly as it appears to confirm the deletion."
+        "confirmNameMismatch": "Type the agency's name exactly as it appears to confirm the deletion.",
+        "nameConflict": "Another agency just got the same address. Nothing was saved — press “Save changes” again."
       },
       "account": {
         "passwordRequired": "Enter your password to delete the account.",

@@ -83,6 +83,36 @@ public class AgencyMemberHandlerTests : IAsyncDisposable
         return userId;
     }
 
+    // --- The invitation's language ---
+
+    [Fact]
+    public async Task AnInvitationToAnAddressWithoutAnAccount_IsInTheInvitersLanguage()
+    {
+        (await _db.Users.SingleAsync(u => u.Id == _owner)).PreferredLanguage = "ru";
+        await _db.SaveChangesAsync();
+
+        await InviteAsync("nobody-yet@example.com");
+
+        var email = Assert.Single(_email.Sent);
+        Assert.StartsWith("Приглашение: агентство", email.Subject);
+        Assert.Contains("<html lang=\"ru\">", email.HtmlBody);
+    }
+
+    [Fact]
+    public async Task AnInvitationToAnExistingAccount_IsInThatAccountsLanguage()
+    {
+        (await _db.Users.SingleAsync(u => u.Id == _owner)).PreferredLanguage = "ru";
+        var inviteeId = await AddUserWithEmailAsync("Ana@Example.com");
+        var invitee = await _db.Users.SingleAsync(u => u.Id == inviteeId);
+        invitee.NormalizedEmail = "ANA@EXAMPLE.COM";
+        invitee.PreferredLanguage = "en";
+        await _db.SaveChangesAsync();
+
+        await InviteAsync("ana@example.com");
+
+        Assert.StartsWith("Invitation: the agency", Assert.Single(_email.Sent).Subject);
+    }
+
     // --- Removing and leaving ---
 
     [Fact]

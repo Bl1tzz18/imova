@@ -23,6 +23,18 @@ public class LoginHandlerTests
 
         Assert.Equal(user.Id, result.User.Id);
         Assert.Equal("user@example.com", result.User.Email);
+        Assert.Equal("ro", result.User.PreferredLanguage);
+    }
+
+    [Fact]
+    public async Task Handle_ReturnsTheAccountsLanguage_SoTheSiteCanSwitchToIt()
+    {
+        var store = new FakeUserStore();
+        store.SeedUserWithPassword("user@example.com", "CorrectPassword1").PreferredLanguage = "ru";
+
+        var result = await CreateHandler(store).Handle(new LoginCommand("user@example.com", "CorrectPassword1"), CancellationToken.None);
+
+        Assert.Equal("ru", result.User.PreferredLanguage);
     }
 
     [Theory]

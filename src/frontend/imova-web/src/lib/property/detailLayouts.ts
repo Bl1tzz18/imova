@@ -205,7 +205,7 @@ export function isProximitySection(section: DetailSection): boolean {
   return section.proximities === true;
 }
 
-export function hasRequiredFields(section: DetailSection, propertyType: string): boolean {
+function hasRequiredFields(section: DetailSection, propertyType: string): boolean {
   return (
     (section.rentalFields?.length ?? 0) > 0 ||
     section.coreFields.some((name) => REQUIRED_CORE_FIELDS.has(name)) ||

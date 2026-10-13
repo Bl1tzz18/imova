@@ -72,6 +72,7 @@ public static class AgencyInvitationRules
         ILogger logger,
         AgencyInvitation invitation,
         string token,
+        Guid? inviterId,
         string inviterName,
         string agencyName,
         DateTimeOffset now,
@@ -79,7 +80,8 @@ public static class AgencyInvitationRules
     {
         try
         {
-            await email.SendAsync(invitation.Email, inviterName, agencyName, invitation.Role, token, cancellationToken);
+            var language = await LanguageAsync(dbContext, invitation.Email, inviterId, cancellationToken);
+            await email.SendAsync(invitation.Email, inviterName, agencyName, invitation.Role, token, language, cancellationToken);
             invitation.RecordEmailSent();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -89,6 +91,28 @@ public static class AgencyInvitationRules
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    // The invitation is written in the invitee's language when the address already has an account;
+    // otherwise there's nobody behind it yet, so in the language of whoever invited (Romanian when
+    // that's unknown).
+    public static async Task<string> LanguageAsync(
+        IApplicationDbContext dbContext, string inviteeEmail, Guid? inviterId, CancellationToken cancellationToken)
+    {
+        var normalized = inviteeEmail.Trim().ToUpperInvariant();
+        var invitee = await dbContext.Users.AsNoTracking()
+            .Where(u => u.NormalizedEmail == normalized)
+            .Select(u => u.PreferredLanguage)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (invitee is not null)
+        {
+            return Languages.Normalize(invitee);
+        }
+
+        var inviter = inviterId is { } id
+            ? await dbContext.Users.AsNoTracking().Where(u => u.Id == id).Select(u => u.PreferredLanguage).FirstOrDefaultAsync(cancellationToken)
+            : null;
+        return Languages.Normalize(inviter);
     }
 
     public static async Task<string> DisplayNameAsync(IApplicationDbContext dbContext, Guid? userId, CancellationToken cancellationToken)

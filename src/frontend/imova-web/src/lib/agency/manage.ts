@@ -5,7 +5,7 @@ import { OWNER_GROUPS, parseOwnerSort, type OwnerGroup, type OwnerSort } from "@
 // mirrors the API's AgencyAccess (which has the last word); the UI only leaves out what would be refused.
 
 export const AGENCY_SECTIONS = ["profile", "members", "listings", "stats", "settings"] as const;
-export type AgencySection = (typeof AGENCY_SECTIONS)[number];
+type AgencySection = (typeof AGENCY_SECTIONS)[number];
 
 // The "Agențiile mele" tab of /account.
 export const MY_AGENCIES_HREF = "/account?tab=agencies";
@@ -47,7 +47,7 @@ function ownerCount(members: AgencyMember[]): number {
   return members.filter((m) => m.role === "Owner").length;
 }
 
-export function isLastOwner(members: AgencyMember[], userId: string): boolean {
+function isLastOwner(members: AgencyMember[], userId: string): boolean {
   const member = members.find((m) => m.userId === userId);
   return member?.role === "Owner" && ownerCount(members) === 1;
 }
@@ -113,7 +113,7 @@ export function defaultHeir(members: AgencyMember[], leavingUserId: string, acto
 // --- The Anunțuri tab: one page of one group, all in the address ---
 
 // Same page size as the agency's public page and search.
-export const AGENCY_MANAGE_PAGE_SIZE = 24;
+const AGENCY_MANAGE_PAGE_SIZE = 24;
 
 export type AgencyListingsTabState = {
   // Undefined: let the API pick (Active, else the first group with listings).

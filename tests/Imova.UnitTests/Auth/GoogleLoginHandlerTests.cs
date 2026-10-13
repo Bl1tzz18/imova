@@ -91,6 +91,23 @@ public class GoogleLoginHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ANewAccount_TakesTheSitesLanguage_AnExistingOneKeepsItsOwn()
+    {
+        var store = new FakeUserStore();
+        var existing = store.SeedUser("existing@example.com", emailConfirmed: true);
+        existing.PreferredLanguage = "en";
+        var validator = new FakeGoogleTokenValidator { UserToReturn = new GoogleUserInfo("new@example.com", "New", null) };
+        var handler = CreateHandler(store, validator);
+
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru"), CancellationToken.None);
+        validator.UserToReturn = new GoogleUserInfo("existing@example.com", "Existing", null);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru"), CancellationToken.None);
+
+        Assert.Equal("ru", store.Users.Single(u => u.Email == "new@example.com").PreferredLanguage);
+        Assert.Equal("en", existing.PreferredLanguage);
+    }
+
+    [Fact]
     public async Task Handle_WithExistingUnconfirmedAccount_ConfirmsEmail()
     {
         // Simulates an account originally created via email/password registration (which leaves

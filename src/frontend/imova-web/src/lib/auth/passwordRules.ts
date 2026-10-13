@@ -4,7 +4,7 @@
 // (char.IsDigit), a "special character" anything that's neither a letter nor a decimal digit
 // (!char.IsLetterOrDigit — a space, "²" or "½" count).
 
-export const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MIN_LENGTH = 8;
 
 export const PASSWORD_RULES = ["minLength", "number", "special"] as const;
 export type PasswordRule = (typeof PASSWORD_RULES)[number];
@@ -23,7 +23,7 @@ export function meetsPasswordRules(password: string): boolean {
 }
 
 // "empty" until the user starts typing the confirmation — then it's always one of the other two.
-export type ConfirmationState = "empty" | "match" | "mismatch";
+type ConfirmationState = "empty" | "match" | "mismatch";
 
 export function confirmationState(password: string, confirmation: string): ConfirmationState {
   if (confirmation === "") return "empty";

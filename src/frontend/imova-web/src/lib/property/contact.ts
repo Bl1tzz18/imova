@@ -69,7 +69,7 @@ export function readContact(formData: FormData) {
   };
 }
 
-export type ContactDefaults = {
+type ContactDefaults = {
   personType: ContactPersonType;
   // The listing publisher's own identity — what "Eu" (Self) shows.
   selfName: string | null;

@@ -30,6 +30,8 @@ export function ReportListingButton({ listingId, signedIn }: { listingId: string
   const [sent, setSent] = useState<"new" | "amended" | null>(null);
   const [signedOut, setSignedOut] = useState(false);
   const [pending, startTransition] = useTransition();
+  // Set at once (pending only after a re-render), so a quick double click sends one report.
+  const inFlight = useRef(false);
 
   if (!signedIn) {
     return (
@@ -56,6 +58,7 @@ export function ReportListingButton({ listingId, signedIn }: { listingId: string
   }
 
   function submit() {
+    if (inFlight.current) return;
     const problem = reportFormProblem(reason, details);
     if (problem) {
       setError(t(`problem.${problem}`));
@@ -63,14 +66,19 @@ export function ReportListingButton({ listingId, signedIn }: { listingId: string
     }
 
     setError(null);
+    inFlight.current = true;
     startTransition(async () => {
-      const result = await reportListing(listingId, reason!, details);
-      if (result.error !== undefined) {
-        if (result.signedOut) setSignedOut(true);
-        else setError(result.error);
-        return;
+      try {
+        const result = await reportListing(listingId, reason!, details);
+        if (result.error !== undefined) {
+          if (result.signedOut) setSignedOut(true);
+          else setError(result.error);
+          return;
+        }
+        setSent(result.data.amended ? "amended" : "new");
+      } finally {
+        inFlight.current = false;
       }
-      setSent(result.data.amended ? "amended" : "new");
     });
   }
 

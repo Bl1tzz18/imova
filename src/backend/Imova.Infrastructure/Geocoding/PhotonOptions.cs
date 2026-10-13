@@ -9,7 +9,7 @@ public class PhotonOptions
 
     public string BaseUrl { get; set; } = "https://photon.komoot.io/api";
 
-    public string UserAgent { get; set; } = "IMOVA/1.0 (+https://imova.md)";
+    // User-Agent: ServiceIdentityOptions, shared with Nominatim.
 
     // No documented rate limit on komoot's public instance, unlike Nominatim's explicit 1 req/s
     // policy — but PhotonStreetSuggestionService throttles itself anyway (same process-wide gate

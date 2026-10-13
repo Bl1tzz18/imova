@@ -2,10 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getLocale } from "next-intl/server";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { clearSessionCookies, getRefreshToken, getSessionToken, setSessionCookies } from "@/lib/auth/session";
 import type { SessionTokens } from "@/lib/auth/sessionCookies";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
+import { applySignInLocale } from "@/i18n/localeCookies";
 
 export type AuthFormState = { error?: string; success?: boolean };
 
@@ -16,8 +18,14 @@ function safeNext(next: FormDataEntryValue | string | null): string {
 }
 
 type AuthResponseBody = SessionTokens & {
-  user: { requiresPhoneNumber: boolean };
+  user: { requiresPhoneNumber: boolean; preferredLanguage?: string };
 };
+
+// Stores the session, then puts the site in the account's language (see applySignInLocale).
+async function startSession(session: AuthResponseBody) {
+  await setSessionCookies(session);
+  await applySignInLocale(session.user.preferredLanguage, session.token);
+}
 
 // Translated into the current UI language from the API's error code (see lib/api/problem.ts).
 async function readAuthError(res: Response): Promise<AuthFormState> {
@@ -29,7 +37,7 @@ async function completeSignIn(res: Response, next: string): Promise<AuthFormStat
     return readAuthError(res);
   }
 
-  await setSessionCookies((await res.json()) as AuthResponseBody);
+  await startSession((await res.json()) as AuthResponseBody);
   redirect(next);
 }
 
@@ -61,6 +69,8 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
       password: formData.get("password"),
       displayName: formData.get("name"),
       phoneNumber: formData.get("phone"),
+      // The site's language right now: the account's emails are written in it.
+      language: await getLocale(),
     }),
   });
 
@@ -73,7 +83,8 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
-    body: JSON.stringify({ idToken }),
+    // Only used when this sign-in creates the account (see register).
+    body: JSON.stringify({ idToken, language: await getLocale() }),
   });
 
   if (!res.ok) {
@@ -81,7 +92,7 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   }
 
   const session = (await res.json()) as AuthResponseBody;
-  await setSessionCookies(session);
+  await startSession(session);
   const { user } = session;
 
   const safeNextPath = safeNext(next ?? null);

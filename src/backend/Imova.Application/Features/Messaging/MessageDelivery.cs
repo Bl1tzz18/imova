@@ -72,30 +72,48 @@ public class MessageDelivery(
     {
         var people = await dbContext.Users.AsNoTracking()
             .Where(u => u.Id == senderUserId || u.Id == recipientUserId)
-            .Select(u => new { u.Id, u.DisplayName, u.Email })
+            .Select(u => new { u.Id, u.DisplayName, u.Email, u.PreferredLanguage })
             .ToListAsync(cancellationToken);
-        var recipientEmail = people.FirstOrDefault(p => p.Id == recipientUserId)?.Email;
-        if (string.IsNullOrWhiteSpace(recipientEmail))
+        var recipient = people.FirstOrDefault(p => p.Id == recipientUserId);
+        if (string.IsNullOrWhiteSpace(recipient?.Email))
         {
             return;
         }
 
-        var senderName = people.FirstOrDefault(p => p.Id == senderUserId)?.DisplayName ?? "Cineva";
+        var senderName = people.FirstOrDefault(p => p.Id == senderUserId)?.DisplayName;
         var title = await dbContext.Listings.AsNoTracking()
             .Where(l => l.Id == conversation.ListingId)
             .Select(l => l.Title)
-            .FirstOrDefaultAsync(cancellationToken) ?? "un anunț";
+            .FirstOrDefaultAsync(cancellationToken);
         var preview = message.Body.Length > 300 ? message.Body[..300] + "…" : message.Body;
         var link = appOptions.WebUrl($"/messages/{conversation.Id}");
 
         await emailSender.SendAsync(
-            new EmailMessage(
-                recipientEmail,
-                $"Mesaj nou pe IMOVA despre „{title}”",
-                $"{senderName} ți-a trimis un mesaj despre anunțul „{title}”:\n\n" +
-                $"{(preview.Length > 0 ? preview : "[imagine]")}\n\n" +
-                $"Citește și răspunde: {link}\n"),
-            cancellationToken);
+            NewMessageEmail(recipient.Email, senderName, title, preview, link, recipient.PreferredLanguage), cancellationToken);
+    }
+
+    // Plain text, in the recipient's language. A missing sender name or listing title (both gone in
+    // the meantime) reads as "someone" / "a listing"; an images-only message as "[image]".
+    public static EmailMessage NewMessageEmail(
+        string to, string? senderName, string? listingTitle, string preview, string link, string language)
+    {
+        string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
+
+        // Russian says "от {sender}", so its fallback is in the genitive.
+        var sender = senderName ?? T("Cineva", "Someone", "пользователя");
+        var body = preview.Length > 0 ? preview : T("[imagine]", "[image]", "[изображение]");
+        var (subject, intro) = listingTitle is { } title
+            ? (T($"Mesaj nou pe IMOVA despre „{title}”", $"New message on IMOVA about “{title}”", $"Новое сообщение на IMOVA по объявлению «{title}»"),
+               T($"{sender} ți-a trimis un mesaj despre anunțul „{title}”:",
+                   $"{sender} sent you a message about the listing “{title}”:",
+                   $"Новое сообщение от {sender} по объявлению «{title}»:"))
+            : (T("Mesaj nou pe IMOVA despre un anunț", "New message on IMOVA about a listing", "Новое сообщение на IMOVA по объявлению"),
+               T($"{sender} ți-a trimis un mesaj despre un anunț:",
+                   $"{sender} sent you a message about a listing:",
+                   $"Новое сообщение от {sender} по объявлению:"));
+
+        return new EmailMessage(
+            to, subject, $"{intro}\n\n{body}\n\n{T("Citește și răspunde", "Read and reply", "Прочитать и ответить")}: {link}\n");
     }
 
     // Saving the message is what matters; a failed push or email is logged, never surfaced.

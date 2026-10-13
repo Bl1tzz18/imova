@@ -72,7 +72,7 @@ public class InviteMemberHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var inviterName = await AgencyInvitationRules.DisplayNameAsync(dbContext, request.ActorId, cancellationToken);
-        await AgencyInvitationRules.SendEmailAsync(dbContext, email, logger, invitation, token, inviterName, agency.Name, now, cancellationToken);
+        await AgencyInvitationRules.SendEmailAsync(dbContext, email, logger, invitation, token, request.ActorId, inviterName, agency.Name, now, cancellationToken);
         return AgencyInvitationRules.ToAgencyDto(invitation, inviterName, now);
     }
 }

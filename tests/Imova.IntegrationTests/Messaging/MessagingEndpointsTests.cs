@@ -287,7 +287,8 @@ public class MessagingEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         // Typing reaches only the other participant.
         var typing = Expect<TypingDto>(sellerHub, "Typing");
         await visitorHub.InvokeAsync("Typing", started.ConversationId);
-        Assert.Equal((started.ConversationId, visitorId), ((await typing.Task.WaitAsync(EventTimeout)).ConversationId, typing.Task.Result.UserId));
+        var typed = await typing.Task.WaitAsync(EventTimeout);
+        Assert.Equal((started.ConversationId, visitorId), (typed.ConversationId, typed.UserId));
 
         // A new message arrives live, with the seller's unread badge count.
         var received = Expect<MessageDto>(sellerHub, "MessageReceived", m => m.Body == "Mai este disponibil?");

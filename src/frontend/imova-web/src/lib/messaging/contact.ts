@@ -8,7 +8,7 @@ export function messageButtonEmphasis(contact: ListingContact | null | undefined
 }
 
 // Whether there is a number to call: its shape for the public, the number itself for the owner.
-export function hasPhone(contact: ListingContact | null | undefined): boolean {
+function hasPhone(contact: ListingContact | null | undefined): boolean {
   return Boolean(contact?.phone || contact?.phonePrefix);
 }
 
@@ -31,7 +31,7 @@ export function messageButtonHref(listingId: string, loggedIn: boolean, existing
 // the owner: messages when they asked for platform messages or hid the number, the contact
 // details otherwise. The owner sees no bar on their own listing (null); a listing without contact
 // details (from before the Contact step) only offers messages.
-export type MobileContactBar = { contactDetails: boolean; primary: "contactDetails" | "message" };
+type MobileContactBar = { contactDetails: boolean; primary: "contactDetails" | "message" };
 
 export function mobileContactBar(contact: ListingContact | null | undefined, viewerIsOwner: boolean): MobileContactBar | null {
   if (viewerIsOwner) return null;

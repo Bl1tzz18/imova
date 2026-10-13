@@ -2,8 +2,8 @@
 // the API query, the change against the period before, and the bar chart's scale.
 
 export const STATS_PRESETS = [7, 30, 90] as const;
-export type StatsPreset = (typeof STATS_PRESETS)[number];
-export const DEFAULT_STATS_PRESET: StatsPreset = 30;
+type StatsPreset = (typeof STATS_PRESETS)[number];
+const DEFAULT_STATS_PRESET: StatsPreset = 30;
 
 type Params = Record<string, string | string[] | undefined>;
 
@@ -43,8 +43,8 @@ export function contactRate(contacts: number, views: number): number | null {
 
 // What fixes a listing in "De îmbunătățit": its photos step, renewing it, or a fresh look at the
 // listing (price, description, photos) when it's seen but nobody gets in touch.
-export type AttentionReason = "FewPhotos" | "NoContacts" | "ExpiringSoon";
-export type AttentionFix = { kind: "renew" } | { kind: "edit"; href: string };
+type AttentionReason = "FewPhotos" | "NoContacts" | "ExpiringSoon";
+type AttentionFix = { kind: "renew" } | { kind: "edit"; href: string };
 
 export function attentionFix(reason: AttentionReason, listingId: string): AttentionFix {
   if (reason === "ExpiringSoon") return { kind: "renew" };

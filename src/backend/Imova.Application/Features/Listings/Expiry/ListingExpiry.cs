@@ -1,5 +1,6 @@
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
+using Imova.Domain.Agencies;
 using Imova.Domain.Listings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -38,16 +39,24 @@ public class ListingExpiry(
             dbContext.Listings.Where(l => l.Status == ListingStatus.Active && l.ExpiresAt != null && l.ExpiresAt <= now),
             cancellationToken);
 
-        foreach (var (listing, email) in due)
+        // A deactivated agency's listings still expire, but their owners aren't emailed: the listing is
+        // hidden, so "re-activate it" means nothing until the agency is active again.
+        var agencyIds = due.Select(d => d.Listing.AgencyId).OfType<Guid>().Distinct().ToList();
+        var hiddenAgencyIds = await dbContext.Agencies
+            .Where(a => agencyIds.Contains(a.Id) && a.Status != AgencyStatus.Active)
+            .Select(a => a.Id)
+            .ToHashSetAsync(cancellationToken);
+
+        foreach (var (listing, email, language) in due)
         {
             listing.Expire();
 
             // Per listing, so an email failure below never undoes or repeats an expiry.
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            if (email is not null)
+            if (email is not null && !(listing.AgencyId is { } agencyId && hiddenAgencyIds.Contains(agencyId)))
             {
-                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl), listing.Id, cancellationToken);
+                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl, language), listing.Id, cancellationToken);
             }
         }
 
@@ -57,19 +66,23 @@ public class ListingExpiry(
     private async Task<int> RemindAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
         var remindBy = now + ReminderBefore;
+        // Not for a deactivated agency's listings: they're hidden, so "renew it" means nothing. They
+        // aren't marked as reminded either — reactivated in time, the reminder still goes out.
         var due = await WithOwnerEmailsAsync(
             dbContext.Listings.Where(l =>
                 l.Status == ListingStatus.Active
                 && l.ExpiryReminderSentAt == null
-                && l.ExpiresAt != null && l.ExpiresAt > now && l.ExpiresAt <= remindBy),
+                && l.ExpiresAt != null && l.ExpiresAt > now && l.ExpiresAt <= remindBy
+                && (l.AgencyId == null || dbContext.Agencies.Any(a => a.Id == l.AgencyId && a.Status == AgencyStatus.Active))),
             cancellationToken);
 
         var sent = 0;
-        foreach (var (listing, email) in due)
+        foreach (var (listing, email, language) in due)
         {
             if (email is not null)
             {
-                if (!await TrySendAsync(ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl), listing.Id, cancellationToken))
+                if (!await TrySendAsync(
+                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl, language), listing.Id, cancellationToken))
                 {
                     continue; // Retried next run.
                 }
@@ -87,8 +100,8 @@ public class ListingExpiry(
 
     private string MyListingsUrl => appOptions.WebUrl("/my-listings");
 
-    // The owner is the user behind the listing's publisher (see ListingAccess).
-    private async Task<List<(Listing Listing, string? Email)>> WithOwnerEmailsAsync(
+    // The owner is the user behind the listing's publisher (see ListingAccess); emails go in their language.
+    private async Task<List<(Listing Listing, string? Email, string Language)>> WithOwnerEmailsAsync(
         IQueryable<Listing> listings, CancellationToken cancellationToken)
     {
         var rows = await (
@@ -96,12 +109,12 @@ public class ListingExpiry(
                 join publisher in dbContext.Publishers on listing.PublisherId equals publisher.Id
                 join user in dbContext.Users on publisher.UserId equals user.Id
                 orderby listing.ExpiresAt
-                select new { Listing = listing, user.Email })
+                select new { Listing = listing, user.Email, user.PreferredLanguage })
             .Take(BatchSize)
             .ToListAsync(cancellationToken);
 
         // An account's email may be missing (Identity's Email is nullable); the callers skip those.
-        return rows.Select(r => (r.Listing, (string?)r.Email)).ToList();
+        return rows.Select(r => (r.Listing, (string?)r.Email, r.PreferredLanguage)).ToList();
     }
 
     private async Task<bool> TrySendAsync(EmailMessage email, Guid listingId, CancellationToken cancellationToken)

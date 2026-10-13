@@ -29,6 +29,7 @@ public class UpdatePhoneNumberHandler(UserManager<ApplicationUser> userManager, 
             roles,
             string.IsNullOrWhiteSpace(user.PhoneNumber),
             user.ProfilePictureUrl,
-            user.EmailConfirmed);
+            user.EmailConfirmed,
+            user.PreferredLanguage);
     }
 }

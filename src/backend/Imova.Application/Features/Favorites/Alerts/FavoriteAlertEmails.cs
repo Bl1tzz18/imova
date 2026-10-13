@@ -1,4 +1,5 @@
 using System.Text;
+using Imova.Application.Common;
 using Imova.Application.Common.Emails;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
@@ -7,7 +8,7 @@ namespace Imova.Application.Features.Favorites.Alerts;
 
 // The two emails about a listing the user saved: its price changed, or it is no longer available.
 // HTML (the listing as a card, like on the site — ListingEmailCard) + the same content as plain
-// text, Romanian like the other emails, built on EmailLayout.
+// text, in the user's language, built on EmailLayout.
 // Every user-written value (the title) is HTML-encoded.
 public static class FavoriteAlertEmails
 {
@@ -42,23 +43,34 @@ public static class FavoriteAlertEmails
         };
     }
 
-    public static EmailMessage PriceChanged(string to, PriceChange change, string listingUrl, string unsubscribeUrl, string settingsUrl)
+    public static EmailMessage PriceChanged(
+        string to, PriceChange change, string listingUrl, string unsubscribeUrl, string settingsUrl, string language)
     {
+        string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
+
         var dropped = change.OldCurrency == change.NewCurrency && change.NewAmount < change.OldAmount;
-        var headline = dropped ? "Prețul a scăzut" : "Prețul s-a schimbat";
+        var headline = dropped
+            ? T("Prețul a scăzut", "The price has dropped", "Цена снизилась")
+            : T("Prețul s-a schimbat", "The price has changed", "Цена изменилась");
         var subject = $"{headline}: {change.Title} — IMOVA";
-        var oldPrice = ListingEmailText.Price(change.OldAmount, change.OldCurrency, change.TransactionType);
-        var newPrice = ListingEmailText.Price(change.NewAmount, change.NewCurrency, change.TransactionType);
+        var oldPrice = ListingEmailText.Price(change.OldAmount, change.OldCurrency, change.TransactionType, language);
+        var newPrice = ListingEmailText.Price(change.NewAmount, change.NewCurrency, change.TransactionType, language);
 
         var percent = ChangePercent(change);
-        var facts = ListingEmailText.Facts(change.PropertyType, change.TransactionType, change.AreaM2);
+        var facts = ListingEmailText.Facts(change.PropertyType, change.TransactionType, change.AreaM2, language);
+        var intro = T(
+            "Anunțul pe care l-ai salvat și-a schimbat prețul.",
+            "A listing you saved has changed its price.",
+            "У сохранённого вами объявления изменилась цена.");
+        var view = T("Vezi anunțul", "View listing", "Посмотреть объявление");
 
         var text = new StringBuilder()
-            .Append($"Anunțul pe care l-ai salvat și-a schimbat prețul:\n\n{change.Title}\n{facts}\n")
+            .Append($"{intro.TrimEnd('.')}:\n\n{change.Title}\n{facts}\n")
             .Append(change.Location is null ? string.Empty : $"{change.Location}\n")
-            .Append($"Preț vechi: {oldPrice}\nPreț nou: {newPrice}{(percent is null ? string.Empty : $" ({percent})")}\n\n")
-            .Append($"Vezi anunțul: {listingUrl}\n\n")
-            .Append(TextFooter(unsubscribeUrl, settingsUrl))
+            .Append($"{T("Preț vechi", "Old price", "Старая цена")}: {oldPrice}\n")
+            .Append($"{T("Preț nou", "New price", "Новая цена")}: {newPrice}{(percent is null ? string.Empty : $" ({percent})")}\n\n")
+            .Append($"{view}: {listingUrl}\n\n")
+            .Append(TextFooter(unsubscribeUrl, settingsUrl, language))
             .ToString();
 
         static string E(string value) => EmailLayout.Encode(value);
@@ -69,15 +81,16 @@ public static class FavoriteAlertEmails
             : $"""<span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:{(dropped ? "#e3f4ea" : "#eef2f6")};color:{newColor};font-size:12px;font-weight:700;vertical-align:middle;">{E(percent)}</span>""";
         var priceHtml =
             $"""<span style="color:{newColor};white-space:nowrap;">{E(newPrice)}</span>{percentPill}"""
-            + $"""<div style="margin-top:2px;font-size:13px;font-weight:400;color:#7592ac;">înainte <span style="text-decoration:line-through;white-space:nowrap;">{E(oldPrice)}</span></div>""";
+            + $"""<div style="margin-top:2px;font-size:13px;font-weight:400;color:#7592ac;">{E(T("înainte", "before", "было"))} <span style="text-decoration:line-through;white-space:nowrap;">{E(oldPrice)}</span></div>""";
 
         var content =
             EmailLayout.Heading(headline)
-            + EmailLayout.Paragraph("Anunțul pe care l-ai salvat și-a schimbat prețul.")
+            + EmailLayout.Paragraph(E(intro))
             + new ListingEmailCard(change.Title, listingUrl, change.PhotoUrl, priceHtml, facts, change.Location).LargeHtml()
-            + EmailLayout.Button("Vezi anunțul", listingUrl);
+            + EmailLayout.Button(view, listingUrl);
 
-        return new EmailMessage(to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl)));
+        return new EmailMessage(
+            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language));
     }
 
     // The 410 page's summary (EndedListingDto): what it was, where, its last price, and why it's gone.
@@ -89,63 +102,103 @@ public static class FavoriteAlertEmails
         string searchUrl,
         string unsubscribeUrl,
         string settingsUrl,
+        string language,
         string? photoUrl = null)
     {
-        var headline = "Anunțul salvat nu mai este disponibil";
-        var subject = $"Nu mai este disponibil: {ended.Title} — IMOVA";
-        var reason = Reason(ended.Status);
-        var facts = ListingEmailText.Facts(ended.PropertyType, ended.TransactionType, ended.TotalAreaM2);
+        string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
+
+        var headline = T(
+            "Anunțul salvat nu mai este disponibil", "The listing you saved is no longer available", "Сохранённое объявление больше недоступно");
+        var subject = T(
+            $"Nu mai este disponibil: {ended.Title} — IMOVA",
+            $"No longer available: {ended.Title} — IMOVA",
+            $"Больше недоступно: {ended.Title} — IMOVA");
+        var reason = Reason(ended.Status, language);
+        var facts = ListingEmailText.Facts(ended.PropertyType, ended.TransactionType, ended.TotalAreaM2, language);
         var location = ListingEmailText.Location(ended.RaionName, ended.LocalitateName, ended.ChisinauSectorName);
-        var lastPrice = ListingEmailText.Price(ended.Price.Amount, ended.Price.Currency, ended.TransactionType);
+        var lastPrice = ListingEmailText.Price(ended.Price.Amount, ended.Price.Currency, ended.TransactionType, language);
+        var intro = T(
+            "Un anunț pe care l-ai salvat nu mai este disponibil.",
+            "A listing you saved is no longer available.",
+            "Объявление, которое вы сохранили, больше недоступно.");
+        var lastPriceLabel = T("Ultimul preț", "Last price", "Последняя цена");
+        var similar = T("Vezi anunțuri asemănătoare", "View similar listings", "Посмотреть похожие объявления");
+        var sameArea = T("Caută în aceeași zonă", "Search in the same area", "Искать в этом же районе");
 
         var text = new StringBuilder()
-            .Append($"Un anunț pe care l-ai salvat nu mai este disponibil. {reason}\n\n")
+            .Append($"{intro} {reason}\n\n")
             .Append($"{ended.Title}\n{facts}\n")
             .Append(location is null ? string.Empty : $"{location}\n")
-            .Append($"Ultimul preț: {lastPrice}\n\n")
-            .Append($"Vezi anunțuri asemănătoare: {similarUrl}\n")
-            .Append($"Caută în aceeași zonă: {searchUrl}\n\n")
-            .Append(TextFooter(unsubscribeUrl, settingsUrl))
+            .Append($"{lastPriceLabel}: {lastPrice}\n\n")
+            .Append($"{similar}: {similarUrl}\n")
+            .Append($"{sameArea}: {searchUrl}\n\n")
+            .Append(TextFooter(unsubscribeUrl, settingsUrl, language))
             .ToString();
 
         static string E(string value) => EmailLayout.Encode(value);
         var priceHtml =
-            $"""<span style="font-size:13px;font-weight:400;color:#4d6e8c;">Ultimul preț</span><br><span style="color:#4d6e8c;white-space:nowrap;">{E(lastPrice)}</span>""";
+            $"""<span style="font-size:13px;font-weight:400;color:#4d6e8c;">{E(lastPriceLabel)}</span><br><span style="color:#4d6e8c;white-space:nowrap;">{E(lastPrice)}</span>""";
         var content =
             EmailLayout.Heading(headline)
-            + EmailLayout.Paragraph($"Un anunț pe care l-ai salvat nu mai este disponibil. {E(reason)}")
-            + new ListingEmailCard(ended.Title, listingUrl, photoUrl, priceHtml, facts, location, Badge: StatusLabel(ended.Status)).LargeHtml()
-            + EmailLayout.Button("Vezi anunțuri asemănătoare", similarUrl)
-            + $"""<tr><td align="center" style="padding:0 28px 8px;font-size:14px;"><a href="{E(searchUrl)}" style="color:#4d6e8c;">Caută în aceeași zonă</a></td></tr>""";
+            + EmailLayout.Paragraph($"{E(intro)} {E(reason)}")
+            + new ListingEmailCard(ended.Title, listingUrl, photoUrl, priceHtml, facts, location, Badge: StatusLabel(ended.Status, language)).LargeHtml()
+            + EmailLayout.Button(similar, similarUrl)
+            + $"""<tr><td align="center" style="padding:0 28px 8px;font-size:14px;"><a href="{E(searchUrl)}" style="color:#4d6e8c;">{E(sameArea)}</a></td></tr>""";
 
-        return new EmailMessage(to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl)));
+        return new EmailMessage(
+            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language));
     }
 
-    // The 410 page's badge (EndedListing.status.* in the web app's ro.json).
-    public static string StatusLabel(string status) => status switch
+    // The 410 page's badge (EndedListing.status.* in the web app's messages).
+    public static string StatusLabel(string status, string language) => status switch
     {
-        "Sold" => "Vândut",
-        "Rented" => "Închiriat",
-        "Expired" => "Expirat",
-        _ => "Retras",
+        "Sold" => Languages.Pick(language, "Vândut", "Sold", "Продано"),
+        "Rented" => Languages.Pick(language, "Închiriat", "Rented", "Сдано"),
+        "Expired" => Languages.Pick(language, "Expirat", "Expired", "Истекло"),
+        _ => Languages.Pick(language, "Retras", "Withdrawn", "Снято"),
     };
 
-    // The 410 page's own words (EndedListing.reason.* in the web app's ro.json).
-    public static string Reason(string status) => status switch
+    // The 410 page's own words (EndedListing.reason.* in the web app's messages).
+    public static string Reason(string status, string language) => status switch
     {
-        "Sold" => "Proprietatea a fost vândută.",
-        "Rented" => "Proprietatea a fost închiriată.",
-        "Expired" => "Anunțul a expirat și nu a fost prelungit.",
-        _ => "Autorul a retras anunțul.",
+        "Sold" => Languages.Pick(language, "Proprietatea a fost vândută.", "The property has been sold.", "Недвижимость продана."),
+        "Rented" => Languages.Pick(
+            language, "Proprietatea a fost închiriată.", "The property has been rented out.", "Недвижимость сдана в аренду."),
+        "Expired" => Languages.Pick(
+            language,
+            "Anunțul a expirat și nu a fost prelungit.",
+            "The listing expired and wasn't renewed.",
+            "Срок объявления истёк, и оно не было продлено."),
+        _ => Languages.Pick(language, "Autorul a retras anunțul.", "The author took the listing down.", "Автор снял объявление."),
     };
 
-    private static string TextFooter(string unsubscribeUrl, string settingsUrl) =>
-        "Primești acest email pentru că ai salvat anunțul la favorite pe IMOVA.\n"
-        + $"Nu mai vrei emailuri despre anunțurile salvate? {unsubscribeUrl}\n"
-        + $"Setările notificărilor: {settingsUrl}\n";
+    private static string Why(string language) => Languages.Pick(
+        language,
+        "Primești acest email pentru că ai salvat anunțul la favorite pe IMOVA.",
+        "You're getting this email because you saved this listing to your favorites on IMOVA.",
+        "Вы получили это письмо, потому что добавили это объявление в избранное на IMOVA.");
 
-    private static string HtmlFooter(string unsubscribeUrl, string settingsUrl) =>
-        "Primești acest email pentru că ai salvat anunțul la favorite pe IMOVA. "
-        + $"""<a href="{EmailLayout.Encode(unsubscribeUrl)}" style="color:#4d6e8c;">Nu mai trimite emailuri despre anunțurile salvate</a> · """
-        + $"""<a href="{EmailLayout.Encode(settingsUrl)}" style="color:#4d6e8c;">Setările notificărilor</a>""";
+    private static string StopLabel(string language) => Languages.Pick(
+        language,
+        "Nu mai trimite emailuri despre anunțurile salvate",
+        "Stop emails about saved listings",
+        "Не присылать письма о сохранённых объявлениях");
+
+    private static string SettingsLabel(string language) =>
+        Languages.Pick(language, "Setările notificărilor", "Notification settings", "Настройки уведомлений");
+
+    private static string TextFooter(string unsubscribeUrl, string settingsUrl, string language) =>
+        $"{Why(language)}\n"
+        + Languages.Pick(
+            language,
+            "Nu mai vrei emailuri despre anunțurile salvate?",
+            "Don't want emails about saved listings any more?",
+            "Больше не хотите получать письма о сохранённых объявлениях?")
+        + $" {unsubscribeUrl}\n"
+        + $"{SettingsLabel(language)}: {settingsUrl}\n";
+
+    private static string HtmlFooter(string unsubscribeUrl, string settingsUrl, string language) =>
+        $"{EmailLayout.Encode(Why(language))} "
+        + $"""<a href="{EmailLayout.Encode(unsubscribeUrl)}" style="color:#4d6e8c;">{EmailLayout.Encode(StopLabel(language))}</a> · """
+        + $"""<a href="{EmailLayout.Encode(settingsUrl)}" style="color:#4d6e8c;">{EmailLayout.Encode(SettingsLabel(language))}</a>""";
 }

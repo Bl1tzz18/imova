@@ -23,10 +23,8 @@ export const MAP_PATH = "/map";
 export type SearchView = "list" | "map";
 
 export const TRANSACTION_TYPES = ["Sale", "Rent"] as const;
-export type TransactionTypeName = (typeof TRANSACTION_TYPES)[number];
 
 export const SORTS = ["Newest", "PriceAsc", "PriceDesc", "AreaAsc", "AreaDesc"] as const;
-export type SortName = (typeof SORTS)[number];
 
 // A filter on one TypeSpecificAttributes field — every field the listing form asks for the type
 // (ATTRIBUTE_SCHEMA) except free text. Named like the backend's AttributeFilterParser: a number
@@ -120,7 +118,7 @@ const PARAM_ORDER = [
 // Parameters -> their value(s). Only known, well-formed values ever get in.
 export type SearchState = Record<string, string[]>;
 
-export type RawSearchParams = Record<string, string | string[] | undefined> | URLSearchParams;
+type RawSearchParams = Record<string, string | string[] | undefined> | URLSearchParams;
 
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NUMBER = /^-?\d+(\.\d+)?$/;
@@ -270,7 +268,7 @@ export function activeFilterCount(state: SearchState): number {
 
 // The filters the search page's top bar shows directly (transaction, type, location, price); the
 // rest live in the "Mai multe filtre" drawer.
-export const BAR_PARAMS = [
+const BAR_PARAMS = [
   "transactionType",
   "propertyType",
   "raionId",

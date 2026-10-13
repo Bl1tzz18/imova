@@ -12,7 +12,7 @@ export const REPORT_REASONS: readonly ListingReportReason[] = [
 // Same limit as ListingReport.MaxDetailsLength / MaxNoteLength on the API.
 export const REPORT_TEXT_MAX = 1000;
 
-export type ReportFormProblem = "reasonRequired" | "detailsRequired" | "detailsTooLong";
+type ReportFormProblem = "reasonRequired" | "detailsRequired" | "detailsTooLong";
 
 // The report form's own check, before anything is sent — the same rules the API applies.
 export function reportFormProblem(reason: ListingReportReason | null, details: string): ReportFormProblem | null {
@@ -28,7 +28,7 @@ export function reportFormProblem(reason: ListingReportReason | null, details: s
 //  - "oftenDismissed": at least 3 dismissed, and half or more of all they filed — worth a second
 //    look (a competitor, or someone reporting in bulk);
 //  - null: nothing notable.
-export type ReporterSignal = "deleted" | "first" | "oftenDismissed" | null;
+type ReporterSignal = "deleted" | "first" | "oftenDismissed" | null;
 
 export function reporterSignal(reporter: ListingReporter): ReporterSignal {
   if (reporter.isDeleted) return "deleted";

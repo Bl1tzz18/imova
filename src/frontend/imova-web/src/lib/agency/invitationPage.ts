@@ -8,7 +8,7 @@ import type { Invitation } from "@/types/agency";
 // - signIn: sign in (or create an account) with the invited address, then come back.
 // - wrongAccount: signed in as someone else — switch accounts.
 // - ready: Accept / Decline.
-export type InvitationView = "notFound" | "expired" | "closed" | "signIn" | "wrongAccount" | "ready";
+type InvitationView = "notFound" | "expired" | "closed" | "signIn" | "wrongAccount" | "ready";
 
 export function invitationView(invitation: Invitation | null, signedInEmail: string | null): InvitationView {
   if (!invitation) return "notFound";

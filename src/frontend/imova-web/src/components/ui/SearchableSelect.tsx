@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils/cn";
 import { normalizeForSearch } from "@/lib/utils/search";
 import { inputClass } from "@/components/ui/Field";
 
-export type SearchableSelectOption = {
+type SearchableSelectOption = {
   id: string;
   label: string;
 };
