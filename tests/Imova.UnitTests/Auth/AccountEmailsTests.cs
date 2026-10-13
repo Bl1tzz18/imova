@@ -73,7 +73,7 @@ public class AccountEmailsTests
 
     [Theory]
     [InlineData("en", "Reset your password — IMOVA", ">Choose a new password</a>")]
-    [InlineData("ru", "Сброс пароля — IMOVA", ">Выбрать новый пароль</a>")]
+    [InlineData("ru", "Сброс пароля — IMOVA", ">Задать новый пароль</a>")]
     public void PasswordResetEmail_IsWrittenInTheUsersLanguage(string language, string subject, string button)
     {
         var email = AccountEmails.PasswordResetEmail("ana@example.com", Link, language);

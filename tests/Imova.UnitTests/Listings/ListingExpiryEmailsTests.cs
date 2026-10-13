@@ -36,8 +36,8 @@ public class ListingExpiryEmailsTests
     }
 
     [Theory]
-    [InlineData("en", "Your listing expires on 12.03.2027 — IMOVA", ">Renew the listing</a>", "6 months")]
-    [InlineData("ru", "Срок вашего объявления истекает 12.03.2027 — IMOVA", ">Продлить объявление</a>", "6 месяцев")]
+    [InlineData("en", "Your listing expires on 12.03.2027 — IMOVA", ">Renew listing</a>", "6 months")]
+    [InlineData("ru", "Срок действия вашего объявления истекает 12.03.2027 — IMOVA", ">Продлить объявление</a>", "6 месяцев")]
     public void Reminder_IsWrittenInTheOwnersLanguage(string language, string subject, string button, string period)
     {
         var expiresAt = new DateTimeOffset(2027, 3, 11, 22, 30, 0, TimeSpan.Zero);
@@ -51,8 +51,8 @@ public class ListingExpiryEmailsTests
     }
 
     [Theory]
-    [InlineData("en", "Your listing has expired — IMOVA", ">Reactivate the listing</a>")]
-    [InlineData("ru", "Срок вашего объявления истёк — IMOVA", ">Активировать объявление</a>")]
+    [InlineData("en", "Your listing has expired — IMOVA", ">Reactivate listing</a>")]
+    [InlineData("ru", "Срок действия вашего объявления истёк — IMOVA", ">Активировать объявление</a>")]
     public void Expired_IsWrittenInTheOwnersLanguage(string language, string subject, string button)
     {
         var email = ListingExpiryEmails.Expired("ana@example.com", "Garaj", MyListings, language);

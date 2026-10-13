@@ -47,8 +47,8 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
         var openBelow = T("Deschide linkul de mai jos:", "Open the link below:", "Откройте ссылку ниже:");
         var after = T(
             "După confirmare, anunțurile tale sunt trimise spre verificare și pot fi publicate. Linkul este valabil 24 de ore.",
-            "Once it's confirmed, your listings are sent for review and can be published. The link is valid for 24 hours.",
-            "После подтверждения ваши объявления отправляются на проверку и могут быть опубликованы. Ссылка действительна 24 часа.");
+            "Once it's confirmed, your listings will be sent for review and can be published. The link is valid for 24 hours.",
+            "После подтверждения ваши объявления будут отправлены на проверку и смогут быть опубликованы. Ссылка действительна в течение 24 часов.");
         var ignore = T(
             "Dacă nu tu ai creat acest cont, ignoră acest mesaj.",
             "If you didn't create this account, you can ignore this email.",
@@ -81,16 +81,16 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
         var choose = T(
             "Alege o parolă nouă folosind butonul de mai jos. Linkul este valabil 24 de ore și poate fi folosit o singură dată.",
             "Choose a new password with the button below. The link is valid for 24 hours and can be used only once.",
-            "Выберите новый пароль с помощью кнопки ниже. Ссылка действительна 24 часа и может быть использована только один раз.");
+            "Выберите новый пароль с помощью кнопки ниже. Ссылка действительна в течение 24 часов и может быть использована только один раз.");
         var chooseHere = T(
             "Alege o parolă nouă aici (linkul este valabil 24 de ore):",
             "Choose a new password here (the link is valid for 24 hours):",
-            "Выберите новый пароль здесь (ссылка действительна 24 часа):");
+            "Выберите новый пароль здесь (ссылка действительна в течение 24 часов):");
         var ignore = T(
             "Dacă nu tu ai cerut resetarea, ignoră acest mesaj — parola ta rămâne neschimbată.",
-            "If you didn't ask for this, ignore this email — your password stays the same.",
+            "If you didn't request this, ignore this email — your password stays the same.",
             "Если вы не запрашивали сброс, проигнорируйте это письмо — ваш пароль останется прежним.");
-        var button = T("Alege o parolă nouă", "Choose a new password", "Выбрать новый пароль");
+        var button = T("Alege o parolă nouă", "Choose a new password", "Задать новый пароль");
 
         var text = $"{intro}\n\n{chooseHere}\n\n{link}\n\n{ignore}\n";
         var html = EmailLayout.Page(

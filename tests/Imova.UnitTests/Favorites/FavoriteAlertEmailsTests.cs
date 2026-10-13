@@ -73,7 +73,7 @@ public class FavoriteAlertEmailsTests
     [Theory]
     [InlineData("ro", "Nu mai este disponibil: Casă — IMOVA", "Proprietatea a fost vândută.", ">Vândut<")]
     [InlineData("en", "No longer available: Casă — IMOVA", "The property has been sold.", ">Sold<")]
-    [InlineData("ru", "Больше не доступно: Casă — IMOVA", "Недвижимость продана.", ">Продано<")]
+    [InlineData("ru", "Больше недоступно: Casă — IMOVA", "Недвижимость продана.", ">Продано<")]
     public void Ended_SaysWhy_InTheUsersLanguage(string language, string subject, string reason, string badge)
     {
         var ended = new EndedListingDto(

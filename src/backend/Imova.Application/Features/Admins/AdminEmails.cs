@@ -28,7 +28,7 @@ public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
             "If you weren't expecting this, tell the IMOVA team right away.",
             "Если вы этого не ожидали, немедленно сообщите команде IMOVA.");
         var admins = T("Administratori", "Administrators", "Администраторы");
-        var button = T("Vezi administratorii", "See the administrators", "Посмотреть администраторов");
+        var button = T("Vezi administratorii", "View administrators", "Посмотреть администраторов");
 
         var text = $"{body}\n\n{admins}: {link}\n\n{notYou}\n";
         var html = EmailLayout.Page(
@@ -61,7 +61,7 @@ public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
             "Primești acest email pentru că ești administrator IMOVA.",
             "You're getting this email because you're an IMOVA administrator.",
             "Вы получили это письмо, потому что вы администратор IMOVA.");
-        var button = T("Vezi administratorii", "See the administrators", "Посмотреть администраторов");
+        var button = T("Vezi administratorii", "View administrators", "Посмотреть администраторов");
 
         var text = $"{body}\n\n{check}\n{link}\n";
         var html = EmailLayout.Page(

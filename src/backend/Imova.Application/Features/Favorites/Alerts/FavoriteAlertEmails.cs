@@ -62,7 +62,7 @@ public static class FavoriteAlertEmails
             "Anunțul pe care l-ai salvat și-a schimbat prețul.",
             "A listing you saved has changed its price.",
             "У сохранённого вами объявления изменилась цена.");
-        var view = T("Vezi anunțul", "See the listing", "Посмотреть объявление");
+        var view = T("Vezi anunțul", "View listing", "Посмотреть объявление");
 
         var text = new StringBuilder()
             .Append($"{intro.TrimEnd('.')}:\n\n{change.Title}\n{facts}\n")
@@ -108,11 +108,11 @@ public static class FavoriteAlertEmails
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
         var headline = T(
-            "Anunțul salvat nu mai este disponibil", "The listing you saved is no longer available", "Сохранённое объявление больше не доступно");
+            "Anunțul salvat nu mai este disponibil", "The listing you saved is no longer available", "Сохранённое объявление больше недоступно");
         var subject = T(
             $"Nu mai este disponibil: {ended.Title} — IMOVA",
             $"No longer available: {ended.Title} — IMOVA",
-            $"Больше не доступно: {ended.Title} — IMOVA");
+            $"Больше недоступно: {ended.Title} — IMOVA");
         var reason = Reason(ended.Status, language);
         var facts = ListingEmailText.Facts(ended.PropertyType, ended.TransactionType, ended.TotalAreaM2, language);
         var location = ListingEmailText.Location(ended.RaionName, ended.LocalitateName, ended.ChisinauSectorName);
@@ -120,9 +120,9 @@ public static class FavoriteAlertEmails
         var intro = T(
             "Un anunț pe care l-ai salvat nu mai este disponibil.",
             "A listing you saved is no longer available.",
-            "Объявление, которое вы сохранили, больше не доступно.");
+            "Объявление, которое вы сохранили, больше недоступно.");
         var lastPriceLabel = T("Ultimul preț", "Last price", "Последняя цена");
-        var similar = T("Vezi anunțuri asemănătoare", "See similar listings", "Посмотреть похожие объявления");
+        var similar = T("Vezi anunțuri asemănătoare", "View similar listings", "Посмотреть похожие объявления");
         var sameArea = T("Caută în aceeași zonă", "Search in the same area", "Искать в этом же районе");
 
         var text = new StringBuilder()

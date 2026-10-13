@@ -207,7 +207,7 @@ public class AgencyVerifiedEmail(IEmailSender emailSender, AppOptions appOptions
             heading,
             EmailLayout.Heading(heading)
             + EmailLayout.Paragraph(EmailLayout.Encode(body))
-            + EmailLayout.Button(T("Vezi pagina agenției", "See the agency's page", "Открыть страницу агентства"), link),
+            + EmailLayout.Button(T("Vezi pagina agenției", "View agency page", "Открыть страницу агентства"), link),
             EmailLayout.Encode(footer),
             language);
         return new EmailMessage(to, $"{heading} — IMOVA", text, html);

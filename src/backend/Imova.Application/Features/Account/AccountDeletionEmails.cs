@@ -45,12 +45,12 @@ public class AccountDeletionEmails(UserManager<ApplicationUser> userManager, IEm
             "The link is valid for 24 hours.",
             "Удаление необратимо: аккаунт, ваши объявления (с их фотографиями), избранное и сохранённые поиски " +
             "будут удалены без возможности восстановления. Откройте ссылку ниже и подтвердите на странице. " +
-            "Ссылка действительна 24 часа.");
+            "Ссылка действительна в течение 24 часов.");
         var ignore = T(
             "Dacă nu tu ai cerut ștergerea, ignoră acest mesaj — contul tău rămâne neschimbat.",
-            "If you didn't ask for this, ignore this email — your account stays as it is.",
+            "If you didn't request this, ignore this email — your account stays as it is.",
             "Если вы не запрашивали удаление, проигнорируйте это письмо — ваш аккаунт останется без изменений.");
-        var button = T("Continuă spre ștergerea contului", "Continue to delete the account", "Перейти к удалению аккаунта");
+        var button = T("Continuă spre ștergerea contului", "Delete my account", "Перейти к удалению аккаунта");
 
         var text = $"{greeting}\n\n{intro}\n\n{what}\n\n{link}\n\n{ignore}\n";
         var html = EmailLayout.Page(

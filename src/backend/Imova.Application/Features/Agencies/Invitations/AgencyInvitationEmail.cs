@@ -34,7 +34,7 @@ public class AgencyInvitationEmail(IEmailSender emailSender, AppOptions appOptio
         var expiry = T(
             "Invitația este valabilă 7 zile. Dacă nu te așteptai la ea, poți ignora acest email.",
             "The invitation is valid for 7 days. If you weren't expecting it, you can ignore this email.",
-            "Приглашение действительно 7 дней. Если вы его не ожидали, просто проигнорируйте это письмо.");
+            "Приглашение действительно в течение 7 дней. Если вы его не ожидали, просто проигнорируйте это письмо.");
         var accept = T("Acceptă invitația", "Accept the invitation", "Принять приглашение");
 
         var text = $"{heading}.\n\n{asRole}\n\n{accept}: {link}\n\n{expiry}\n";
@@ -42,7 +42,7 @@ public class AgencyInvitationEmail(IEmailSender emailSender, AppOptions appOptio
             T("Invitație într-o agenție", "Invitation to an agency", "Приглашение в агентство"),
             EmailLayout.Heading(heading)
             + EmailLayout.Paragraph(EmailLayout.Encode(asRole))
-            + EmailLayout.Button(T("Vezi invitația", "See the invitation", "Посмотреть приглашение"), link),
+            + EmailLayout.Button(T("Vezi invitația", "View invitation", "Посмотреть приглашение"), link),
             EmailLayout.Encode(expiry),
             language);
         return new EmailMessage(

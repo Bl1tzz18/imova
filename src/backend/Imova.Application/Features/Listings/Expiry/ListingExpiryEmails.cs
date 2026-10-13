@@ -36,27 +36,27 @@ public static class ListingExpiryEmails
         var subject = T(
             $"Anunțul tău expiră pe {date} — IMOVA",
             $"Your listing expires on {date} — IMOVA",
-            $"Срок вашего объявления истекает {date} — IMOVA");
+            $"Срок действия вашего объявления истекает {date} — IMOVA");
         var text = T(
             $"Anunțul tău „{title}” expiră pe {date}. După această dată nu mai apare în căutări.\n\n" +
             $"Dacă este încă disponibil, prelungește-l cu încă {period} din „{MyListings(language)}”:\n{myListingsUrl}\n",
             $"Your listing “{title}” expires on {date}. After that date it no longer shows up in searches.\n\n" +
             $"If it's still available, renew it for another {period} from “{MyListings(language)}”:\n{myListingsUrl}\n",
-            $"Срок вашего объявления «{title}» истекает {date}. После этой даты оно больше не будет показываться в поиске.\n\n" +
+            $"Срок действия вашего объявления «{title}» истекает {date}. После этой даты оно больше не будет показываться в поиске.\n\n" +
             $"Если оно ещё актуально, продлите его ещё на {period} в разделе «{MyListings(language)}»:\n{myListingsUrl}\n");
 
         var encodedTitle = EmailLayout.Encode(title);
         var content =
-            EmailLayout.Heading(T("Anunțul tău expiră în curând", "Your listing expires soon", "Срок вашего объявления скоро истекает"))
+            EmailLayout.Heading(T("Anunțul tău expiră în curând", "Your listing expires soon", "Срок действия вашего объявления скоро истекает"))
             + EmailLayout.Paragraph(T(
                 $"Anunțul <strong>„{encodedTitle}”</strong> expiră pe <strong>{date}</strong>. După această dată nu mai apare în căutări.",
                 $"The listing <strong>“{encodedTitle}”</strong> expires on <strong>{date}</strong>. After that date it no longer shows up in searches.",
-                $"Срок объявления <strong>«{encodedTitle}»</strong> истекает <strong>{date}</strong>. После этой даты оно больше не будет показываться в поиске."))
+                $"Срок действия объявления <strong>«{encodedTitle}»</strong> истекает <strong>{date}</strong>. После этой даты оно больше не будет показываться в поиске."))
             + EmailLayout.Paragraph(EmailLayout.Encode(T(
                 $"Dacă este încă disponibil, prelungește-l cu încă {period} — durează un click.",
                 $"If it's still available, renew it for another {period} — it takes one click.",
                 $"Если оно ещё актуально, продлите его ещё на {period} — это один клик.")))
-            + EmailLayout.Button(T("Prelungește anunțul", "Renew the listing", "Продлить объявление"), myListingsUrl);
+            + EmailLayout.Button(T("Prelungește anunțul", "Renew listing", "Продлить объявление"), myListingsUrl);
 
         return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language));
     }
@@ -65,27 +65,27 @@ public static class ListingExpiryEmails
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
-        var subject = T("Anunțul tău a expirat — IMOVA", "Your listing has expired — IMOVA", "Срок вашего объявления истёк — IMOVA");
+        var subject = T("Anunțul tău a expirat — IMOVA", "Your listing has expired — IMOVA", "Срок действия вашего объявления истёк — IMOVA");
         var text = T(
             $"Anunțul tău „{title}” a expirat și nu mai apare în căutări.\n\n" +
             $"Dacă este încă disponibil, îl poți reactiva din „{MyListings(language)}”, fără o nouă verificare:\n{myListingsUrl}\n",
             $"Your listing “{title}” has expired and no longer shows up in searches.\n\n" +
             $"If it's still available, you can reactivate it from “{MyListings(language)}”, with no new review:\n{myListingsUrl}\n",
-            $"Срок вашего объявления «{title}» истёк, и оно больше не показывается в поиске.\n\n" +
+            $"Срок действия вашего объявления «{title}» истёк, и оно больше не показывается в поиске.\n\n" +
             $"Если оно ещё актуально, его можно снова активировать в разделе «{MyListings(language)}» без повторной проверки:\n{myListingsUrl}\n");
 
         var encodedTitle = EmailLayout.Encode(title);
         var content =
-            EmailLayout.Heading(T("Anunțul tău a expirat", "Your listing has expired", "Срок вашего объявления истёк"))
+            EmailLayout.Heading(T("Anunțul tău a expirat", "Your listing has expired", "Срок действия вашего объявления истёк"))
             + EmailLayout.Paragraph(T(
                 $"Anunțul <strong>„{encodedTitle}”</strong> a expirat și nu mai apare în căutări.",
                 $"The listing <strong>“{encodedTitle}”</strong> has expired and no longer shows up in searches.",
-                $"Срок объявления <strong>«{encodedTitle}»</strong> истёк, и оно больше не показывается в поиске."))
+                $"Срок действия объявления <strong>«{encodedTitle}»</strong> истёк, и оно больше не показывается в поиске."))
             + EmailLayout.Paragraph(EmailLayout.Encode(T(
                 "Dacă este încă disponibil, îl poți reactiva oricând, fără o nouă verificare.",
                 "If it's still available, you can reactivate it at any time, with no new review.",
                 "Если оно ещё актуально, его можно снова активировать в любой момент без повторной проверки.")))
-            + EmailLayout.Button(T("Reactivează anunțul", "Reactivate the listing", "Активировать объявление"), myListingsUrl);
+            + EmailLayout.Button(T("Reactivează anunțul", "Reactivate listing", "Активировать объявление"), myListingsUrl);
 
         return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language));
     }

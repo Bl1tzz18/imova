@@ -70,7 +70,7 @@ public static class SavedSearchAlertEmail
         Languages.Pick(language, $"…și încă {more}.", $"…and {more} more.", $"…и ещё {more}.");
 
     private static string SeeAll(string language) =>
-        Languages.Pick(language, "Vezi toate rezultatele", "See all results", "Посмотреть все результаты");
+        Languages.Pick(language, "Vezi toate rezultatele", "View all results", "Посмотреть все результаты");
 
     private static string Text(
         string searchName, IReadOnlyList<AlertListing> listings, int more, string openUrl, string unsubscribeUrl, string language)
@@ -93,7 +93,7 @@ public static class SavedSearchAlertEmail
         text.Append($"{SeeAll(language)}: {openUrl}\n\n");
         text.Append(T(
             $"Nu mai vrei aceste emailuri? Oprește alertele pentru această căutare:\n{unsubscribeUrl}\n",
-            $"Don't want these emails any more? Turn off the alerts for this search:\n{unsubscribeUrl}\n",
+            $"Don't want these emails any more? Turn off alerts for this search:\n{unsubscribeUrl}\n",
             $"Больше не хотите получать эти письма? Отключите уведомления для этого поиска:\n{unsubscribeUrl}\n"));
         return text.ToString();
     }
@@ -137,7 +137,7 @@ public static class SavedSearchAlertEmail
             $"Вы получили это письмо, потому что сохранили поиск «{searchName}» на IMOVA с уведомлениями по почте.");
         var stop = T(
             "Oprește alertele pentru această căutare",
-            "Turn off the alerts for this search",
+            "Turn off alerts for this search",
             "Отключить уведомления для этого поиска");
         var footer = $"""{E(why)} <a href="{E(unsubscribeUrl)}" style="color:#4d6e8c;">{E(stop)}</a>.""";
 
