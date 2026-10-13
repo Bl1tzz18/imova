@@ -52,6 +52,13 @@ public static class ListingDtoLoader
             .Where(p => publisherIds.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, cancellationToken);
 
+        // A listing deleted by someone else between the caller's query and these (its Property goes with
+        // it — ListingRemoval) is left out of the answer, never a 500 for whoever was searching.
+        listings = listings
+            .Where(l => propertiesById.ContainsKey(l.PropertyId) && publishersById.ContainsKey(l.PublisherId))
+            .ToList();
+        listingIds = listings.Select(l => l.Id).ToList();
+
         // Contact details show the person behind each publisher (an agency's agent): their name and photo.
         var publisherUserIds = publishersById.Values.Select(p => p.UserId).Distinct().ToList();
         var peopleByUserId = includeContactDetails
