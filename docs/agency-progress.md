@@ -186,10 +186,32 @@ by hand; automating it waits until after launch.
   `mailto:` link). Fixed in passing: a date time bomb in
   `ImportRowParserTests`.
 
+## Done: cleanup and pre-launch polish (PR #37 `chore/cleanup`, PR #38 `feat/prelaunch-polish`)
+
+- **PR #37:** the dead code left by the agency import removed; polling file watchers for the
+  integration tests (no more inotify failures); `*.tsbuildinfo` untracked; a `ListingExpiry` build
+  warning.
+- **Moved here from "Known issues":** a rename racing another agency for the same slug now gets a 409
+  `agency.nameConflict` (translated, nothing saved) instead of a 500; a deactivated agency's listings
+  get neither the expiry reminder nor the "expired" email (they still expire; reactivated in time, the
+  reminder goes out). Also fixed: a double-clicked report amends the one open report instead of a 500.
+- **Moved here from "Open items":** `CLAUDE.md` "Current status" updated (agencies, PR #37/#38).
+- **Emails in the user's language** (ro/en/ru): the account keeps a language — set at sign-up
+  (Google too) from the site's language, changed when a signed-in user switches language; after a
+  sign-in the site goes to the account's language unless the visitor picked one on that device
+  first (then the account follows). Agency invitations: the invitee's language if the address has
+  an account, else the inviter's. Then corrections to the Russian and English texts.
+- **Nominatim/Photon** get an identifying User-Agent and a contact address from configuration
+  (`ServiceIdentity`), as their usage policies ask.
+- **Small cleanups:** the two xUnit warnings, unused or file-only exports (knip), `postcss` declared.
+
 ## Before launch
 
 - Change the import contact email (`IMPORT_CONTACT_EMAIL`, now `catalinfilip47@gmail.com`) to an
-  `@imova.md` address — „schimbă emailul de contact pentru import cu o adresă @imova.md”.
+  `@imova.md` address — „schimbă emailul de contact pentru import cu o adresă @imova.md”. The same
+  placeholder is `ServiceIdentity:ContactEmail` (API and Worker `appsettings.json`), the address
+  Nominatim and Photon see — change it together.
+- Have a native speaker check the Russian texts (emails and site).
 
 ## Decisions (made by the product owner in this session)
 
@@ -259,6 +281,15 @@ by hand; automating it waits until after launch.
 - Do NOT touch the sitemap or KAN-21 in this work; agency pages are added to the sitemap later, when
   KAN-21 is done separately.
 
+**Not done before launch (decided 2026-10-13)**
+- No UI for revoking the Admin role — it stays an SQL operation (granting has a UI, `/admin/admins`).
+- The client IP is not recorded in the agency verification audit entries (only who, when, which agency).
+- „Ține-mă minte” stays as it is. Note: today the box is **unticked** by default on the login page
+  (so a sign-in without it is a 24-hour session); the decision was worded as "rămâne bifat implicit"
+  — to be confirmed which of the two is wanted.
+- No Playwright end-to-end test for agencies (create agency → logo → publish as agency → public page);
+  the flows are covered by unit/integration tests and were checked by hand in the browser.
+
 **Process**
 - Four PRs: steps 1–5, 6–7, 8 (stats), 9 (import).
 - One commit per step; fixes to a step are folded into that step's commit while it's unpushed.
@@ -300,9 +331,8 @@ by hand; automating it waits until after launch.
 **Later PRs and wrap-up**
 - ~~PR 3: stats~~ — done (`feat/agency-stats`), without the weekly email (later, see above).
 - ~~PR 4: CSV import~~ — done (`feat/agency-import`), see above.
-- Playwright end-to-end path: create agency → upload logo → publish as agency → public page → back
-  from the listing's contact card.
-- Update `CLAUDE.md` "Current status" and the PR descriptions (every endpoint, migration and screen).
+- ~~Playwright end-to-end path~~ — not before launch (see "Decisions").
+- ~~Update `CLAUDE.md` "Current status"~~ — done in PR #38.
 
 ## Known issues and notes
 
@@ -323,8 +353,8 @@ by hand; automating it waits until after launch.
 - Integration tests use their own database but the dev Azurite container, so their uploads (agency
   logos, profile pictures) pile up there; clean by hand now and then (a Shared Key script against the
   public Azurite dev key was used on 2026-10-09).
-- Listing expiry reminders still go out for listings of a deactivated agency; its ended listings still
-  show their 410 summary page.
+- A deactivated agency's ended listings still show their 410 summary page. (Its expiry emails are
+  no longer sent — moved to "Done: cleanup and pre-launch polish".)
 - Verifying and unverifying an agency are written to `AdminAuditEntries` (since 2026-10-12: action
   `VerifyAgency` / `UnverifyAgency`, the admin, `TargetAgencyId`, the time — migration
   `AddAgencyVerificationAudit`; `TargetUserId` is now nullable). No UI reads them yet (SQL). The client
@@ -342,7 +372,6 @@ by hand; automating it waits until after launch.
   always the caller — `ListingEndpointsTests.CreateListing_IsAlwaysTheCallersOwn_WhateverPublisherTheBodyNames`.
 - `GET /api/v1/publishers/mine` and `lib/api/publishers.ts` still exist (the create form uses the
   caller's publisher for the contact step's phone default).
-- A rename that races another agency for the same new slug is not retried (create is); it would 500.
 - The per-agency hourly invitation count can't see repeated resends of one invitation; the 10-minute
   cooldown covers that (at most ~6 emails an hour to one address).
 - The step 2 commit message says "at least 200x200"; the rule is now the longer side (step 3 commit).
@@ -392,5 +421,8 @@ Anunțuri tab (`d9cbe5c`) before it.
 
 **k) ~~Import becomes a manual service~~** — 2026-10-12, branch `feat/admin-only-import` (see above).
 
-**l) Next — wrap-up:** the Playwright end-to-end path and the `CLAUDE.md` "Current status" update (see
-"Open items"), then the launch items (KAN-10, KAN-21, hosting, and "Before launch" above).
+**l) ~~Wrap-up~~** — PR #37 (cleanup) and PR #38 (pre-launch polish), see "Done: cleanup and
+pre-launch polish". The Playwright path is not done before launch (see "Decisions").
+
+**m) Next:** the launch items, in the order the product owner picks (KAN-5, 8, 10, 13, 14, 15, 16,
+21, 22, hosting) and "Before launch" above.
