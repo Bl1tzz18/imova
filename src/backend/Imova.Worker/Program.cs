@@ -67,11 +67,13 @@ builder.Services.AddScoped<FavoriteAlertUnsubscribeTokens>();
 // "Geocoding" settings as the API) and priced in EUR (the "ExchangeRates" settings).
 var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>() ?? new GeocodingOptions();
 builder.Services.AddSingleton(geocodingOptions);
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(ServiceIdentityOptions.SectionName).Get<ServiceIdentityOptions>() ?? new ServiceIdentityOptions());
 builder.Services.AddHttpClient<IGeocoderClient, NominatimGeocodingService>((sp, client) =>
 {
     var options = sp.GetRequiredService<GeocodingOptions>();
     client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(sp.GetRequiredService<ServiceIdentityOptions>().UserAgent);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 // The same shared cache and request slots as the API (GeocodedAddresses, GeocoderThrottle).

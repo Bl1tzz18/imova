@@ -7,12 +7,19 @@ using Microsoft.Extensions.Logging;
 namespace Imova.Infrastructure.Geocoding;
 
 // Looks addresses up at Nominatim (OpenStreetMap's free geocoding API). Registered as a typed
-// HttpClient (see Program.cs) with BaseAddress/User-Agent set from GeocodingOptions. No throttling or
-// caching here: every caller goes through SharedGeocodingService, which keeps all processes together
-// to Nominatim's 1 request a second and remembers answers. Never throws — a failure is
-// GeocodeOutcome.Failed (logged), told apart from "no such place" so only real answers are cached.
-public class NominatimGeocodingService(HttpClient httpClient, ILogger<NominatimGeocodingService> logger) : IGeocoderClient
+// HttpClient (see Program.cs) with BaseAddress from GeocodingOptions and the User-Agent from
+// ServiceIdentityOptions; the contact address also goes along as Nominatim's `email` parameter, as
+// its usage policy asks. No throttling or caching here: every caller goes through
+// SharedGeocodingService, which keeps all processes together to Nominatim's 1 request a second and
+// remembers answers. Never throws — a failure is GeocodeOutcome.Failed (logged), told apart from
+// "no such place" so only real answers are cached.
+public class NominatimGeocodingService(
+    HttpClient httpClient, ServiceIdentityOptions identity, ILogger<NominatimGeocodingService> logger) : IGeocoderClient
 {
+    public string RequestUri(string address) =>
+        $"search?q={Uri.EscapeDataString(address)}&format=json&limit=1&countrycodes=md"
+        + (string.IsNullOrWhiteSpace(identity.ContactEmail) ? string.Empty : $"&email={Uri.EscapeDataString(identity.ContactEmail)}");
+
     public async Task<GeocodeLookup> LookupAsync(string address, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(address))
@@ -22,8 +29,7 @@ public class NominatimGeocodingService(HttpClient httpClient, ILogger<NominatimG
 
         try
         {
-            var requestUri = $"search?q={Uri.EscapeDataString(address)}&format=json&limit=1&countrycodes=md";
-            using var response = await httpClient.GetAsync(requestUri, cancellationToken);
+            using var response = await httpClient.GetAsync(RequestUri(address), cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogWarning("Nominatim geocoding for \"{Address}\" returned {StatusCode}.", address, response.StatusCode);

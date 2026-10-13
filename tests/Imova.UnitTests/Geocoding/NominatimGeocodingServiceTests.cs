@@ -10,7 +10,10 @@ namespace Imova.UnitTests.Geocoding;
 public class NominatimGeocodingServiceTests
 {
     private static NominatimGeocodingService CreateService(FakeHttpMessageHandler handler) =>
-        new(new HttpClient(handler) { BaseAddress = new Uri("https://nominatim.test/") }, NullLogger<NominatimGeocodingService>.Instance);
+        new(
+            new HttpClient(handler) { BaseAddress = new Uri("https://nominatim.test/") },
+            new ServiceIdentityOptions(),
+            NullLogger<NominatimGeocodingService>.Instance);
 
     [Fact]
     public async Task AMatch_IsFound_WithParsedCoordinates()

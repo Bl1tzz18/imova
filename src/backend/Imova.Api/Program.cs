@@ -281,11 +281,15 @@ builder.Services.AddHttpClient<IExternalImageFetcher, ExternalImageFetcher>(clie
 var geocodingOptions = builder.Configuration.GetSection(GeocodingOptions.SectionName).Get<GeocodingOptions>()
     ?? new GeocodingOptions();
 builder.Services.AddSingleton(geocodingOptions);
+// The User-Agent (and Nominatim's contact address) the OSM services' usage policies ask for.
+var serviceIdentity = builder.Configuration.GetSection(ServiceIdentityOptions.SectionName).Get<ServiceIdentityOptions>()
+    ?? new ServiceIdentityOptions();
+builder.Services.AddSingleton(serviceIdentity);
 builder.Services.AddHttpClient<IGeocoderClient, NominatimGeocodingService>((sp, client) =>
 {
     var options = sp.GetRequiredService<GeocodingOptions>();
     client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(sp.GetRequiredService<ServiceIdentityOptions>().UserAgent);
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 // Every lookup through the shared cache and request slots (the Worker does the same), so the API
@@ -302,7 +306,7 @@ builder.Services.AddHttpClient<IStreetSuggestionService, PhotonStreetSuggestionS
 {
     var options = sp.GetRequiredService<PhotonOptions>();
     client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-    client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(sp.GetRequiredService<ServiceIdentityOptions>().UserAgent);
     client.Timeout = TimeSpan.FromSeconds(5);
 });
 

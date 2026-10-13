@@ -9,11 +9,7 @@ public class GeocodingOptions
 
     public string BaseUrl { get; set; } = "https://nominatim.openstreetmap.org";
 
-    // Nominatim's usage policy requires a descriptive User-Agent identifying the application so
-    // OSM can contact the operator if this integration ever causes trouble — a generic browser-ish
-    // User-Agent risks getting silently blocked. The default points at the live site, imova.md;
-    // configuration can still override it per environment.
-    public string UserAgent { get; set; } = "IMOVA/1.0 (+https://imova.md)";
+    // The User-Agent and contact address Nominatim's policy asks for: ServiceIdentityOptions.
 
     // Nominatim's policy caps usage at 1 request/second — for all of IMOVA together: SharedGeocodingService
     // reserves request slots this far apart in the database (GeocoderThrottle), shared by the API and the Worker.
