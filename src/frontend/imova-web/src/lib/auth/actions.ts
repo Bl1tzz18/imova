@@ -8,14 +8,9 @@ import { clearSessionCookies, getRefreshToken, getSessionToken, setSessionCookie
 import type { SessionTokens } from "@/lib/auth/sessionCookies";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { applySignInLocale } from "@/i18n/localeCookies";
+import { safeNextPath } from "@/lib/auth/nextPath";
 
 export type AuthFormState = { error?: string; success?: boolean };
-
-// Only ever redirect to a same-site path — formData/query values are attacker-controlled, and an
-// absolute URL here would make this an open redirect.
-function safeNext(next: FormDataEntryValue | string | null): string {
-  return typeof next === "string" && next.startsWith("/") ? next : "/";
-}
 
 type AuthResponseBody = SessionTokens & {
   user: { requiresPhoneNumber: boolean; preferredLanguage?: string };
@@ -55,7 +50,7 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
     }),
   });
 
-  return completeSignIn(res, safeNext(formData.get("next")));
+  return completeSignIn(res, safeNextPath(formData.get("next")));
 }
 
 export async function register(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -74,7 +69,7 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
     }),
   });
 
-  return completeSignIn(res, safeNext(formData.get("next")));
+  return completeSignIn(res, safeNextPath(formData.get("next")));
 }
 
 export async function googleLogin(idToken: string, next?: string): Promise<AuthFormState> {
@@ -95,9 +90,9 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   await startSession(session);
   const { user } = session;
 
-  const safeNextPath = safeNext(next ?? null);
+  const nextPath = safeNextPath(next);
   redirect(
-    user.requiresPhoneNumber ? `/complete-profile?next=${encodeURIComponent(safeNextPath)}` : safeNextPath,
+    user.requiresPhoneNumber ? `/complete-profile?next=${encodeURIComponent(nextPath)}` : nextPath,
   );
 }
 
@@ -121,7 +116,7 @@ export async function completePhoneNumber(
     return readAuthError(res);
   }
 
-  redirect(safeNext(formData.get("next")));
+  redirect(safeNextPath(formData.get("next")));
 }
 
 export async function updateProfile(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -291,8 +286,7 @@ export async function logout() {
 // "switch accounts", e.g. on an invitation sent to another address.
 export async function logoutTo(next: string) {
   await endSession();
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-  redirect(`/login?next=${encodeURIComponent(safeNext)}`);
+  redirect(`/login?next=${encodeURIComponent(safeNextPath(next))}`);
 }
 
 async function endSession() {

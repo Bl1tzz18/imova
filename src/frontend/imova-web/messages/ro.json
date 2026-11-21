@@ -1178,7 +1178,16 @@
     "archiveAction": "Arhivează",
     "viewListing": "Vezi anunțul",
     "deletedAccount": "Cont șters",
-    "deletedAccountNotice": "Această persoană și-a șters contul. Poți citi în continuare conversația, dar nu mai poți trimite mesaje."
+    "deletedAccountNotice": "Această persoană și-a șters contul. Poți citi în continuare conversația, dar nu mai poți trimite mesaje.",
+    "imageViewer": {
+      "open": "Deschide imaginea {number} din {total}",
+      "dialog": "Imagine din mesaj",
+      "close": "Închide",
+      "previous": "Imaginea anterioară",
+      "next": "Imaginea următoare",
+      "counter": "{current} din {total}",
+      "imageNumber": "Imaginea {number} din {total}"
+    }
   },
   "AdminMessaging": {
     "title": "Mesaje raportate",

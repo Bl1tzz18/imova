@@ -1178,7 +1178,16 @@
     "archiveAction": "Archive",
     "viewListing": "View listing",
     "deletedAccount": "Deleted account",
-    "deletedAccountNotice": "This person has deleted their account. You can still read the conversation, but you can't send new messages."
+    "deletedAccountNotice": "This person has deleted their account. You can still read the conversation, but you can't send new messages.",
+    "imageViewer": {
+      "open": "Open image {number} of {total}",
+      "dialog": "Image in message",
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "counter": "{current} of {total}",
+      "imageNumber": "Image {number} of {total}"
+    }
   },
   "AdminMessaging": {
     "title": "Reported messages",
