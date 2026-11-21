@@ -97,13 +97,14 @@
   },
   "Hero": {
     "title": "Find the place your heart calls home, right here.",
-    "mapLink": "Or search on the map",
+    "mapLink": "On the map",
     "photoCredit": "Photo: {author} / Unsplash",
     "searchCard": {
       "locationLabel": "Where do you want to live",
       "locationPlaceholder": "Type a town, village or district",
       "searchButton": "Search"
-    }
+    },
+    "quickLinks": "Quick search"
   },
   "Home": {
     "valueProps": {
@@ -130,26 +131,7 @@
     "ctaTitle": "Have a property to sell or rent?",
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
     "ctaButton": "Publish for free",
-    "browseByType": "Browse by type",
-    "newestListings": "New listings",
-    "intents": {
-      "label": "What do you want to do",
-      "buy": {
-        "title": "Buy a home",
-        "text": "Verified flats, houses and land, with the price per m² up front.",
-        "cta": "See listings"
-      },
-      "sell": {
-        "title": "Sell or rent out",
-        "text": "List for free in a few minutes. No commission, no duplicate listings.",
-        "cta": "Add a listing"
-      },
-      "rent": {
-        "title": "Rent",
-        "text": "Long-term, furnished or not. Write to the owner directly.",
-        "cta": "Find a rental"
-      }
-    }
+    "newestListings": "New listings"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"

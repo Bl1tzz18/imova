@@ -97,13 +97,14 @@
   },
   "Hero": {
     "title": "Găsește locul tău de suflet, aici – acasă.",
-    "mapLink": "Sau caută pe hartă",
+    "mapLink": "Pe hartă",
     "photoCredit": "Foto: {author} / Unsplash",
     "searchCard": {
       "locationLabel": "Unde vrei să locuiești",
       "locationPlaceholder": "Scrie un oraș, sat sau sector",
       "searchButton": "Caută"
-    }
+    },
+    "quickLinks": "Caută rapid"
   },
   "Home": {
     "valueProps": {
@@ -130,26 +131,7 @@
     "ctaTitle": "Ai o proprietate de vândut sau închiriat?",
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
     "ctaButton": "Publică anunț gratuit",
-    "browseByType": "Caută după tip",
-    "newestListings": "Anunțuri noi",
-    "intents": {
-      "label": "Ce vrei să faci",
-      "buy": {
-        "title": "Cumpără o casă",
-        "text": "Apartamente, case și terenuri verificate, cu prețul pe m² la vedere.",
-        "cta": "Vezi anunțurile"
-      },
-      "sell": {
-        "title": "Vinde sau dă în chirie",
-        "text": "Publică gratuit în câteva minute. Fără comision, fără anunțuri duble.",
-        "cta": "Adaugă anunț"
-      },
-      "rent": {
-        "title": "Închiriază",
-        "text": "Pe termen lung, mobilat sau nu. Scrie direct proprietarului.",
-        "cta": "Găsește o chirie"
-      }
-    }
+    "newestListings": "Anunțuri noi"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"

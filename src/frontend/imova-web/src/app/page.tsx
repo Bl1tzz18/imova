@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { HomeBrowse } from "@/components/home/HomeBrowse";
-import { HomeIntents } from "@/components/home/HomeIntents";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
@@ -47,41 +46,33 @@ export default async function Home() {
       <main className="flex-1">
         <Hero />
 
-        <HomeIntents />
-
         <HomeBrowse listings={listings} addListingLabel={tCommon("addListing")} />
 
-        <section className="border-b border-ink-100 bg-white">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 pb-10 pt-14 sm:px-6 sm:pt-16 md:grid-cols-4">
-            {valueProps.map((item) => (
-              <div key={item.key} className="flex flex-col items-start gap-2">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                    <path d={item.d} />
-                  </svg>
-                </span>
-                <p className="text-sm font-semibold text-ink-900">
-                  {t(`valueProps.${item.key}.title`)}
-                </p>
-                <p className="text-sm text-ink-500">
-                  {t(`valueProps.${item.key}.description`)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-          <div className="flex flex-col items-center gap-4 rounded-3xl bg-brand-900 px-6 py-14 text-center sm:px-16">
-            <h2 className="font-display text-2xl font-medium text-white sm:text-3xl">
-              {t("ctaTitle")}
-            </h2>
-            <p className="max-w-md text-sm text-brand-100 sm:text-base">
-              {t("ctaSubtitle")}
-            </p>
-            <LinkButton href="/properties/new" size="lg" className="mt-2">
-              {t("ctaButton")}
-            </LinkButton>
+        {/* For owners: one invitation, with the reasons to list here beside it. */}
+        <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20">
+          <div className="grid gap-8 rounded-3xl bg-brand-900 p-6 sm:p-10 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-14 lg:p-12">
+            <div>
+              <h2 className="text-balance font-display text-2xl font-medium text-white sm:text-3xl">{t("ctaTitle")}</h2>
+              <p className="mt-3 max-w-md text-sm text-brand-100 sm:text-base">{t("ctaSubtitle")}</p>
+              <LinkButton href="/properties/new" size="lg" className="mt-6">
+                {t("ctaButton")}
+              </LinkButton>
+            </div>
+            <ul className="grid gap-5 sm:grid-cols-2">
+              {valueProps.map((item) => (
+                <li key={item.key} className="flex gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-brand-200">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+                      <path d={item.d} />
+                    </svg>
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold text-white">{t(`valueProps.${item.key}.title`)}</span>
+                    <span className="mt-0.5 block text-sm text-brand-100/80">{t(`valueProps.${item.key}.description`)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>
