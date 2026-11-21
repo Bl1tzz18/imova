@@ -166,6 +166,11 @@ export function MapSpotPanel({ listings, onClose }: { listings: Listing[]; onClo
                 </span>
 
                 <span className="min-w-0 flex-1">
+                  {mixedKinds && (
+                    <span className="block truncate text-[11px] font-medium uppercase tracking-wide text-ink-500">
+                      {tType(listing.property.propertyType)} · {tListing(listing.transactionType)}
+                    </span>
+                  )}
                   <span className="flex flex-wrap items-baseline gap-x-2">
                     <span className="text-base font-semibold text-ink-950">
                       {formatPrice(listing.price.amount, listing.price.currency)}
@@ -186,14 +191,7 @@ export function MapSpotPanel({ listings, onClose }: { listings: Listing[]; onClo
                       })}
                     </span>
                   )}
-                  <span className="mt-1 block truncate text-[13px] font-medium text-ink-700">
-                    {mixedKinds && (
-                      <span className="text-ink-500">
-                        {tType(listing.property.propertyType)} · {tListing(listing.transactionType)} ·{" "}
-                      </span>
-                    )}
-                    {facts.join(" · ")}
-                  </span>
+                  <span className="mt-1 block truncate text-[13px] font-medium text-ink-700">{facts.join(" · ")}</span>
                 </span>
 
                 <svg
