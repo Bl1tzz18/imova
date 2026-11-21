@@ -98,7 +98,6 @@
   "Hero": {
     "title": "Find the place your heart calls home, right here.",
     "mapLink": "On the map",
-    "photoCredit": "Photo: {author} / Unsplash",
     "searchCard": {
       "locationLabel": "Where do you want to live",
       "locationPlaceholder": "Type a town, village or district",

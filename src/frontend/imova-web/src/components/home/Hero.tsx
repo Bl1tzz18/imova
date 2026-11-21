@@ -9,13 +9,9 @@ import { MAP_PATH, searchHref } from "@/lib/search/filters";
 // search box.
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 
-// The hero photo (Unsplash License: free for commercial use; we credit the photographer anyway).
-// Swap the file in public/images and these two lines to change it.
-const HERO_PHOTO = {
-  src: "/images/hero-home.jpg",
-  author: "Sebastian Schuster",
-  url: "https://unsplash.com/photos/-y8fNw9x9wc",
-};
+// The hero photo: Sebastian Schuster, https://unsplash.com/photos/-y8fNw9x9wc — Unsplash License,
+// free for commercial use with no credit required. Swap the file in public/images to change it.
+const HERO_PHOTO_SRC = "/images/hero-home.jpg";
 
 // The home page's first screen, the way the big portals do it: one warm, lived-in photo, one line,
 // one field ("where?"), and the property types as quick chips under it. Sized to its content
@@ -31,7 +27,7 @@ export async function Hero() {
   return (
     <section className="relative isolate flex min-h-[440px] items-end sm:items-center lg:min-h-[460px]">
       <Image
-        src={HERO_PHOTO.src}
+        src={HERO_PHOTO_SRC}
         alt=""
         fill
         priority
@@ -71,14 +67,6 @@ export async function Hero() {
         </div>
       </div>
 
-      <a
-        href={HERO_PHOTO.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute bottom-2 right-3 text-[11px] text-white/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)] hover:underline"
-      >
-        {t("photoCredit", { author: HERO_PHOTO.author })}
-      </a>
     </section>
   );
 }

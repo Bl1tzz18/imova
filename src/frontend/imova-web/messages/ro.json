@@ -98,7 +98,6 @@
   "Hero": {
     "title": "Găsește locul tău de suflet, aici – acasă.",
     "mapLink": "Pe hartă",
-    "photoCredit": "Foto: {author} / Unsplash",
     "searchCard": {
       "locationLabel": "Unde vrei să locuiești",
       "locationPlaceholder": "Scrie un oraș, sat sau sector",

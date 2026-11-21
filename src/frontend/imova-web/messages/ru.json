@@ -98,7 +98,6 @@
   "Hero": {
     "title": "Найдите место для души – здесь, дома.",
     "mapLink": "На карте",
-    "photoCredit": "Фото: {author} / Unsplash",
     "searchCard": {
       "locationLabel": "Где вы хотите жить",
       "locationPlaceholder": "Город, село или сектор",
