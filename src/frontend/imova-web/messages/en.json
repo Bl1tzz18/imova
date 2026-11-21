@@ -236,8 +236,18 @@
     "title": "Properties on the map",
     "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
     "viewListing": "View listing",
-    "pointListingsCount": "{count, plural, one {# listing at this point} other {# listings at this point}}",
-    "closePanel": "Close panel"
+    "closePanel": "Close panel",
+    "spotSameAddress": "Same address",
+    "spotSameSpot": "Same spot on the map",
+    "spotCount": "{count, plural, one {# listing} other {# listings}}",
+    "spotSortLabel": "Sort by",
+    "spotSort": {
+      "price": "Price",
+      "area": "Area",
+      "floor": "Floor"
+    },
+    "spotFloor": "floor {floor}",
+    "spotFloorOf": "floor {floor}/{totalFloors}"
   },
   "NewPropertyPage": {
     "title": "Add listing",

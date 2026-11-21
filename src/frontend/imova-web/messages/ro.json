@@ -236,8 +236,18 @@
     "title": "Proprietăți pe hartă",
     "resultsCount": "{count, plural, one {# anunț pe hartă} few {# anunțuri pe hartă} other {# de anunțuri pe hartă}}",
     "viewListing": "Vezi anunțul",
-    "pointListingsCount": "{count, plural, one {# anunț în acest punct} few {# anunțuri în acest punct} other {# de anunțuri în acest punct}}",
-    "closePanel": "Închide panoul"
+    "closePanel": "Închide panoul",
+    "spotSameAddress": "Aceeași adresă",
+    "spotSameSpot": "Același loc pe hartă",
+    "spotCount": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
+    "spotSortLabel": "Ordonează după",
+    "spotSort": {
+      "price": "Preț",
+      "area": "Suprafață",
+      "floor": "Etaj"
+    },
+    "spotFloor": "et. {floor}",
+    "spotFloorOf": "et. {floor}/{totalFloors}"
   },
   "NewPropertyPage": {
     "title": "Adaugă anunț",

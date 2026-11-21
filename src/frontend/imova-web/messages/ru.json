@@ -236,8 +236,18 @@
     "title": "Объекты на карте",
     "resultsCount": "{count, plural, one {# объявление на карте} few {# объявления на карте} many {# объявлений на карте} other {# объявления на карте}}",
     "viewListing": "Смотреть объявление",
-    "pointListingsCount": "{count, plural, one {# объявление в этой точке} few {# объявления в этой точке} many {# объявлений в этой точке} other {# объявления в этой точке}}",
-    "closePanel": "Закрыть панель"
+    "closePanel": "Закрыть панель",
+    "spotSameAddress": "Один адрес",
+    "spotSameSpot": "Одна точка на карте",
+    "spotCount": "{count, plural, one {# объявление} few {# объявления} many {# объявлений} other {# объявления}}",
+    "spotSortLabel": "Сортировать по",
+    "spotSort": {
+      "price": "Цена",
+      "area": "Площадь",
+      "floor": "Этаж"
+    },
+    "spotFloor": "эт. {floor}",
+    "spotFloorOf": "эт. {floor}/{totalFloors}"
   },
   "NewPropertyPage": {
     "title": "Добавить объявление",

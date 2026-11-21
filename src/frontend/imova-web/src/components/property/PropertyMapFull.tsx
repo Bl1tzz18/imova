@@ -102,7 +102,7 @@ function nextTierZoom(currentZoom: number, maxZoom: number) {
 // map's max zoom, stepping in further is impossible — if it's still a cluster at that point, its
 // markers must share the same (or a near-identical) coordinate and can never separate by zooming
 // alone, so the click instead reports the full list of listings at that point via
-// `onClusterOverflow`, for the caller to show as a side panel.
+// `onClusterOverflow`, for the caller to show in its "same address" panel (MapSpotPanel).
 function ClusteredPropertyMarkers({
   points,
   selectedId,
