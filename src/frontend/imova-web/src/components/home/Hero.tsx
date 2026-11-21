@@ -44,8 +44,13 @@ export async function Hero() {
           <div className="mt-5 max-w-[580px] sm:mt-6">
             <HeroSearchCard />
           </div>
-          <nav aria-label={t("quickLinks")} className="-mx-4 mt-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-            <ul className="flex gap-2 sm:flex-wrap">
+          {/* On a phone the chips scroll sideways: the right edge fades out (so the row reads as
+              "more this way", not as cut off) and a spacer lets the last chip clear the fade. */}
+          <nav
+            aria-label={t("quickLinks")}
+            className="-mx-4 mt-4 overflow-x-auto px-4 [mask-image:linear-gradient(90deg,#000_80%,transparent)] [scrollbar-width:none] sm:mx-0 sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <ul className="flex gap-2 after:w-24 after:shrink-0 after:content-[''] sm:flex-wrap sm:after:hidden">
               {PROPERTY_TYPES.map((type) => (
                 <li key={type}>
                   <Link href={searchHref({ propertyType: [type] })} className={chip}>
