@@ -1,11 +1,12 @@
+// One glyph per property type, distinct at a glance (the type row on the home page shows them side
+// by side): a block of flats, a house, a field under the sun, a storefront, a garage door, a bed.
 const paths: Record<string, string> = {
-  Apartment:
-    "M4 21V7l8-4 8 4v14M9 21v-6h6v6M9 11h.01M15 11h.01M9 15h.01M15 15h.01",
+  Apartment: "M5 21V4h14v17M3 21h18M9 8h2M13 8h2M9 12h2M13 12h2M10 21v-4h4v4",
   House: "M3 12 12 4l9 8M5 10.5V21h14V10.5M9 21v-6h6v6",
-  Land: "M3 20h18M5 20V9l7-5 7 5v11M9 20v-5h6v5",
-  Commercial: "M4 21V9l8-6 8 6v12M9 21v-5h6v5M8 12h.01M12 12h.01M16 12h.01",
-  Garage: "M4 21V10l8-6 8 6v11M4 21h16M7 21v-7h10v7",
-  Room: "M4 21V6.5L12 3l8 3.5V21M4 21h16M9 21v-6h6v6",
+  Land: "M3 17c3.5-3 6.5-3 9 0s5.5 3 9 0M3 21h18M16 10a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
+  Commercial: "M4 10v11h16V10M3 10l1.5-6h15L21 10ZM9 21v-6h6v6",
+  Garage: "M3 21V9l9-5 9 5v12M7 21v-9h10v9M7 15h10M7 18h10",
+  Room: "M3 19v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8M3 15h18M7 9V7.5A1.5 1.5 0 0 1 8.5 6h2A1.5 1.5 0 0 1 12 7.5V9M3 19v2M21 19v2",
 };
 
 export function PropertyIcon({

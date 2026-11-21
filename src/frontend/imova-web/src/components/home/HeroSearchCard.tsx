@@ -4,23 +4,17 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { locationParams, searchLocations, type LocationSuggestion } from "@/lib/api/locationSearch";
-import { PROPERTY_TYPES } from "@/lib/property/attributeSchema";
 import { searchHref, TRANSACTION_TYPES, type SearchState } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 
-const fieldLabelClass = "mb-1 block text-[11px] font-bold uppercase tracking-wide text-white/70 sm:mb-1.5 sm:text-xs";
-const fieldClass =
-  "h-11 w-full rounded-xl border border-white/20 bg-white/90 px-3.5 text-sm text-ink-900 outline-none transition-colors placeholder:text-ink-400 focus:border-white focus:bg-white focus:ring-2 focus:ring-white/30 sm:h-12";
-
-// The homepage's quick entry into search: buy/rent, a property type and a location — then the full
-// /search page (with every filter) takes over. Sits on the hero image, glass-styled to match.
+// The homepage's one question: buy or rent, and where. Everything else (type, price, rooms) is the
+// /search page's job — every extra field here would lose people before their first click. A white
+// bar on the hero's dark ground; on a phone the switch, the field and the button stack.
 export function HeroSearchCard() {
   const t = useTranslations("Hero.searchCard");
-  const tType = useTranslations("PropertyType");
   const router = useRouter();
   const [transactionType, setTransactionType] = useState<(typeof TRANSACTION_TYPES)[number]>("Sale");
-  const [propertyType, setPropertyType] = useState("");
   const [location, setLocation] = useState<LocationSuggestion | null>(null);
   const [locationText, setLocationText] = useState("");
   const [searching, setSearching] = useState(false);
@@ -32,7 +26,6 @@ export function HeroSearchCard() {
     const place = location ?? (locationText.trim().length >= 2 ? (await searchLocations(locationText))[0] ?? null : null);
     const state: SearchState = {
       transactionType: [transactionType],
-      ...(propertyType ? { propertyType: [propertyType] } : {}),
       ...(place ? locationParams(place) : {}),
     };
     router.push(searchHref(state));
@@ -41,9 +34,9 @@ export function HeroSearchCard() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-[22px] border border-white/15 bg-white/10 p-3.5 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-6"
+      className="flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-[0_24px_48px_-20px_rgba(0,0,0,0.55)] sm:flex-row sm:items-center"
     >
-      <div className="mb-3 inline-flex rounded-full border border-white/15 bg-white/10 p-1 sm:mb-4" role="radiogroup">
+      <div className="inline-flex shrink-0 self-start rounded-full bg-ink-100 p-1 sm:self-center" role="radiogroup" aria-label={t("transactionLabel")}>
         {TRANSACTION_TYPES.map((type) => (
           <button
             key={type}
@@ -52,8 +45,8 @@ export function HeroSearchCard() {
             aria-checked={transactionType === type}
             onClick={() => setTransactionType(type)}
             className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-semibold transition-colors sm:px-5 sm:py-2",
-              transactionType === type ? "bg-brand-500 text-white" : "text-white/70 hover:text-white",
+              "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+              transactionType === type ? "bg-white text-ink-950 shadow-sm" : "text-ink-500 hover:text-ink-900",
             )}
           >
             {type === "Sale" ? t("buyTab") : t("rentTab")}
@@ -61,42 +54,37 @@ export function HeroSearchCard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-[1fr_1.4fr_auto] lg:items-end">
-        <label className="block text-left">
-          <span className={fieldLabelClass}>{t("typeLabel")}</span>
-          <select className={fieldClass} value={propertyType} onChange={(e) => setPropertyType(e.target.value)}>
-            <option value="">{t("anyType")}</option>
-            {PROPERTY_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {tType(type)}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="block text-left" onInput={(e) => setLocationText((e.target as HTMLInputElement).value)}>
-          <span className={fieldLabelClass}>{t("locationLabel")}</span>
-          <LocationAutocomplete
-            value={location}
-            onChange={setLocation}
-            className={fieldClass}
-            placeholder={t("locationPlaceholder")}
-            ariaLabel={t("locationLabel")}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={searching}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-600 disabled:opacity-70 sm:col-span-2 sm:h-12 lg:col-span-1 lg:w-auto"
+      <div
+        className="relative min-w-0 flex-1 border-t border-ink-100 sm:border-l sm:border-t-0"
+        onInput={(e) => setLocationText((e.target as HTMLInputElement).value)}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-ink-400"
+          aria-hidden
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0" aria-hidden>
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" strokeLinecap="round" />
-          </svg>
-          {t("searchButton")}
-        </button>
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+        </svg>
+        <LocationAutocomplete
+          value={location}
+          onChange={setLocation}
+          className="h-12 w-full bg-transparent pl-10 pr-3 text-[15px] text-ink-900 outline-none placeholder:text-ink-400"
+          placeholder={t("locationPlaceholder")}
+          ariaLabel={t("locationLabel")}
+        />
       </div>
+
+      <button
+        type="submit"
+        disabled={searching}
+        className="flex h-12 shrink-0 items-center justify-center rounded-xl bg-accent-500 px-6 text-sm font-semibold text-white transition-colors hover:bg-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-70"
+      >
+        {t("searchButton")}
+      </button>
     </form>
   );
 }

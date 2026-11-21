@@ -1,56 +1,44 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { HeroSearchCard } from "@/components/home/HeroSearchCard";
-import { searchHref } from "@/lib/search/filters";
+import { MoldovaMap, type MoldovaMapSpot } from "@/components/home/MoldovaMap";
+import { MAP_PATH } from "@/lib/search/filters";
 
-// Single reference point for the hero background image — swap this path (and the file at
-// public/images/hero-bg.jpg) to change it without touching the component below.
-const HERO_IMAGE_SRC = "/images/hero-bg.jpg";
-
-// The stat pills, each linking to that category's search results.
-const STATS = [
-  { key: "houses", type: "House" },
-  { key: "apartments", type: "Apartment" },
-  { key: "commercial", type: "Commercial" },
-  { key: "land", type: "Land" },
-] as const;
-
-// countsByType: live listing counts per PropertyType (see the homepage).
-export async function Hero({ countsByType }: { countsByType: Record<string, number> }) {
+// The home page's first screen: Moldova itself, as a map of where the listings are, next to the
+// one search question (buy or rent, and where). Two ways in — type a place, or tap one on the map —
+// and nothing that only says "real estate" in general. On a phone the search comes first and the
+// map follows it.
+export async function Hero({ spots }: { spots: MoldovaMapSpot[] }) {
   const t = await getTranslations("Hero");
 
   return (
-    <section className="relative flex min-h-[680px] items-center overflow-hidden py-10 sm:min-h-[760px] lg:min-h-[840px]">
-      <Image src={HERO_IMAGE_SRC} alt="" fill priority sizes="100vw" className="object-cover" />
-      {/* Transparent at the top, deepening to near-black at the bottom, so white text stays
-          legible over any part of the underlying photo. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/55 to-black/90" />
+    <section className="bg-[radial-gradient(120%_90%_at_85%_40%,var(--color-brand-800),var(--color-brand-950)_70%)] text-white">
+      <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 pb-10 pt-10 sm:px-6 sm:pb-14 sm:pt-14 lg:grid-cols-[1.1fr_1fr] lg:gap-12 lg:py-16">
+        <div>
+          <h1 className="text-balance font-hero text-[30px] font-bold leading-[1.1] tracking-tight sm:text-4xl lg:text-[44px]">
+            {t.rich("title", {
+              accent: (chunks) => <span className="text-accent-300">{chunks}</span>,
+              br: () => <br />,
+            })}
+          </h1>
+          <p className="mt-4 max-w-[46ch] text-pretty text-[15px] text-white/75 sm:text-base">{t("subtitle")}</p>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-4 py-16 text-center sm:px-6">
-        <span className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-          {t("eyebrow")}
-        </span>
-        <h1 className="text-balance font-hero text-2xl font-bold leading-[1.2] text-white sm:text-3xl lg:text-4xl">
-          {t("title")}
-        </h1>
-        <p className="mt-3 max-w-lg text-balance text-sm text-white/80 sm:text-base">{t("subtitle")}</p>
+          <div className="mt-6 sm:mt-7">
+            <HeroSearchCard />
+          </div>
 
-        <div className="mt-5 flex w-full flex-wrap justify-center gap-2 sm:mt-7 sm:gap-3">
-          {STATS.map(({ key, type }) => (
-            <Link
-              key={key}
-              href={searchHref({ propertyType: [type] })}
-              className="flex flex-col items-center gap-0.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-sm transition-colors hover:border-white/35 hover:bg-white/20 sm:min-w-[110px] sm:px-4 sm:py-2.5"
-            >
-              <span className="font-hero text-lg font-bold text-brand-200 sm:text-2xl">{countsByType[type] ?? 0}</span>
-              <span className="text-[10px] font-medium text-white/75 sm:text-[11px]">{t(`stats.${key}`)}</span>
-            </Link>
-          ))}
+          {spots.length > 0 && (
+            <p className="mt-4 text-sm text-white/70">
+              {t("mapHint")}{" "}
+              <Link href={MAP_PATH} className="font-semibold text-white underline-offset-4 hover:underline">
+                {t("openMap")} →
+              </Link>
+            </p>
+          )}
         </div>
 
-        <div className="mt-5 w-full sm:mt-7">
-          <HeroSearchCard />
+        <div className="mx-auto w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[420px]">
+          <MoldovaMap spots={spots} ariaLabel={t("mapLabel")} />
         </div>
       </div>
     </section>

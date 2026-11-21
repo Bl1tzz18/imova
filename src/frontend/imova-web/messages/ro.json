@@ -96,23 +96,19 @@
     "statusUnavailable": "Indisponibil"
   },
   "Hero": {
-    "eyebrow": "Piața imobiliară din Moldova, într-un singur loc",
-    "title": "Găsește o locuință, nu doar un anunț.",
-    "subtitle": "Anunțuri moderate, actualizate zilnic și filtre care chiar funcționează — ca să nu mai pierzi timpul cu ce nu se potrivește.",
-    "stats": {
-      "houses": "Case",
-      "apartments": "Apartamente",
-      "commercial": "Com. și oficii",
-      "land": "Terenuri"
-    },
+    "title": "Toată Moldova.<br></br><accent>Un singur loc</accent> unde cauți casă.",
+    "subtitle": "Scrie unde vrei să locuiești sau alege un oraș pe hartă. Anunțuri verificate, de la proprietari și agenții.",
+    "mapHint": "Sau alege un oraș pe hartă.",
+    "openMap": "Deschide harta completă",
+    "mapLabel": "Harta Moldovei: anunțuri pe raioane",
+    "spotLabel": "{place}: {count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
     "searchCard": {
       "buyTab": "Cumpără",
       "rentTab": "Închiriază",
       "locationLabel": "Locație",
       "locationPlaceholder": "Oraș, sat sau sector",
-      "typeLabel": "Tip",
-      "anyType": "Orice tip",
-      "searchButton": "Caută"
+      "searchButton": "Caută",
+      "transactionLabel": "Cumpăr sau închiriez"
     }
   },
   "Home": {
@@ -134,15 +130,14 @@
         "description": "Anunțuri din toată Republica Moldova."
       }
     },
-    "recentListings": "Anunțuri recente",
     "listingsAvailable": "{count, plural, one {# anunț disponibil acum} few {# anunțuri disponibile acum} other {# de anunțuri disponibile acum}}",
-    "noListingsYet": "Momentan nu sunt anunțuri publicate",
     "viewAll": "Vezi toate anunțurile",
     "emptyStateText": "Fii primul care publică un anunț pe IMOVA.",
     "ctaTitle": "Ai o proprietate de vândut sau închiriat?",
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
     "ctaButton": "Publică anunț gratuit",
-    "browseByType": "Caută după tip"
+    "browseByType": "Caută după tip",
+    "newestListings": "Anunțuri noi"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"
@@ -226,11 +221,6 @@
     "mapEmptyTitle": "Niciun anunț pe hartă",
     "mapEmptyHint": "Niciun anunț cu locație exactă nu se potrivește filtrelor. Unele anunțuri nu au încă o locație pe hartă, dar apar în listă.",
     "mapEmptyShowList": "Vezi rezultatele în listă"
-  },
-  "MapPromo": {
-    "title": "Toate proprietățile pe hartă",
-    "subtitle": "Vezi rapid care sunt prețurile și cum arată proprietățile din jur.",
-    "cta": "Vezi harta"
   },
   "MapPage": {
     "title": "Proprietăți pe hartă",

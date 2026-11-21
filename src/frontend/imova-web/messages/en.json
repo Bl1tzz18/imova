@@ -96,23 +96,19 @@
     "statusUnavailable": "Unavailable"
   },
   "Hero": {
-    "eyebrow": "Moldova's real estate market, in one place",
-    "title": "Find a home, not just a listing.",
-    "subtitle": "Moderated listings, updated daily, and filters that actually work — so you stop wasting time on what doesn't fit.",
-    "stats": {
-      "houses": "Houses",
-      "apartments": "Apartments",
-      "commercial": "Commercial & offices",
-      "land": "Land plots"
-    },
+    "title": "All of Moldova.<br></br><accent>One place</accent> to find a home.",
+    "subtitle": "Type where you want to live, or pick a town on the map. Verified listings from owners and agencies.",
+    "mapHint": "Or pick a town on the map.",
+    "openMap": "Open the full map",
+    "mapLabel": "Map of Moldova: listings by district",
+    "spotLabel": "{place}: {count, plural, one {# listing} other {# listings}}",
     "searchCard": {
       "buyTab": "Buy",
       "rentTab": "Rent",
       "locationLabel": "Location",
       "locationPlaceholder": "Town, village or sector",
-      "typeLabel": "Type",
-      "anyType": "Any type",
-      "searchButton": "Search"
+      "searchButton": "Search",
+      "transactionLabel": "Buy or rent"
     }
   },
   "Home": {
@@ -134,15 +130,14 @@
         "description": "Listings from across the Republic of Moldova."
       }
     },
-    "recentListings": "Recent listings",
     "listingsAvailable": "{count, plural, one {# listing available now} other {# listings available now}}",
-    "noListingsYet": "No listings published yet",
     "viewAll": "View all listings",
     "emptyStateText": "Be the first to publish a listing on IMOVA.",
     "ctaTitle": "Have a property to sell or rent?",
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
     "ctaButton": "Publish for free",
-    "browseByType": "Browse by type"
+    "browseByType": "Browse by type",
+    "newestListings": "New listings"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"
@@ -226,11 +221,6 @@
     "mapEmptyTitle": "No listings on the map",
     "mapEmptyHint": "No listing with an exact location matches these filters. Some listings don't have a map location yet, but they still show in the list.",
     "mapEmptyShowList": "See the results as a list"
-  },
-  "MapPromo": {
-    "title": "All properties on the map",
-    "subtitle": "See at a glance where listings are and what prices look like around you.",
-    "cta": "View map"
   },
   "MapPage": {
     "title": "Properties on the map",

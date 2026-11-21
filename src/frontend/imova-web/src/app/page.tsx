@@ -1,11 +1,12 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
-import { PropertyCarousel } from "@/components/property/PropertyCarousel";
-import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
-import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
+import { HomeBrowse } from "@/components/home/HomeBrowse";
+import type { MoldovaMapSpot } from "@/components/home/MoldovaMap";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
+import { mapSpots } from "@/lib/home/moldovaMap";
+import { searchHref } from "@/lib/search/filters";
 import type { Listing } from "@/types/listing";
 
 async function getListings(): Promise<Listing[]> {
@@ -24,11 +25,22 @@ async function getListings(): Promise<Listing[]> {
 }
 
 export default async function Home() {
-  const [listings, t, tCommon] = await Promise.all([
+  const [listings, t, tCommon, tHero, locale] = await Promise.all([
     getListings(),
     getTranslations("Home"),
     getTranslations("Common"),
+    getTranslations("Hero"),
+    getLocale(),
   ]);
+
+  // The hero map: one spot per raion with listings, each a link to that raion's results.
+  const numbers = new Intl.NumberFormat(locale);
+  const spots: MoldovaMapSpot[] = mapSpots(listings).map((spot) => ({
+    ...spot,
+    href: searchHref({ raionId: [spot.raionId] }),
+    ariaLabel: tHero("spotLabel", { place: spot.raionName, count: spot.count }),
+    countText: numbers.format(spot.count),
+  }));
 
   const valueProps = [
     { key: "noCommission", d: "M12 3v18M17 7.5c0-1.7-2.2-3-5-3s-5 1.3-5 3 2.2 3 5 3 5 1.3 5 3-2.2 3-5 3-5-1.3-5-3" },
@@ -46,17 +58,9 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <Hero
-          countsByType={listings.reduce<Record<string, number>>((counts, l) => {
-            counts[l.property.propertyType] = (counts[l.property.propertyType] ?? 0) + 1;
-            return counts;
-          }, {})}
-        />
+        <Hero spots={spots} />
 
-        <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-          <h2 className="mb-5 font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("browseByType")}</h2>
-          <PropertyTypeStats listings={listings} />
-        </section>
+        <HomeBrowse listings={listings} addListingLabel={tCommon("addListing")} />
 
         <section className="border-b border-ink-100 bg-white">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 pb-10 pt-14 sm:px-6 sm:pt-16 md:grid-cols-4">
@@ -76,39 +80,6 @@ export default async function Home() {
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
-          <PropertyMapPromo listings={listings} />
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">
-                {t("recentListings")}
-              </h2>
-              <p className="mt-1 text-sm text-ink-500">
-                {listings.length > 0
-                  ? t("listingsAvailable", { count: listings.length })
-                  : t("noListingsYet")}
-              </p>
-            </div>
-            <LinkButton href="/search" variant="secondary" size="sm">
-              {t("viewAll")}
-            </LinkButton>
-          </div>
-
-          {listings.length > 0 ? (
-            <PropertyCarousel listings={listings} />
-          ) : (
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
-              <p className="text-sm text-ink-500">{t("emptyStateText")}</p>
-              <LinkButton href="/properties/new" size="sm">
-                {tCommon("addListing")}
-              </LinkButton>
-            </div>
-          )}
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
