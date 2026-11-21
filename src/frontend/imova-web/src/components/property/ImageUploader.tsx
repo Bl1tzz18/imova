@@ -155,7 +155,8 @@ export function ImageUploader({
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-7 w-7 text-ink-400">
           <path d="M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5M7 9l5-5 5 5M12 4v13" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="text-sm font-medium text-ink-700">{t("addPhotos")}</span>
+        <span className="text-sm font-medium text-ink-700">{t(items.length > 0 ? "addMorePhotos" : "addPhotos")}</span>
+        <span className="text-xs text-ink-500">{t("photoHintMany")}</span>
         <span className="text-xs text-ink-400">{t("photoHint")}</span>
         <input
           type="file"

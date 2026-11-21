@@ -6,8 +6,9 @@ import { MIN_LISTING_PHOTOS, RECOMMENDED_LISTING_PHOTOS, type PhotoRequirement }
 import { cn } from "@/lib/utils/cn";
 import type { Photo } from "@/types/listing";
 
-// The photos step. Every listing needs MIN_LISTING_PHOTOS photos: a live counter says how many are
-// there and how many are missing; the form won't go on (or save) before — `showError` is set when it
+// The photos step. Any number of photos, at least MIN_LISTING_PHOTOS — the wording says both, so the
+// minimum doesn't read as the number to add. A live counter says how many are there and how many are
+// missing; the form won't go on (or save) before — `showError` is set when it
 // tried, and the message is announced next to the photos, not in a toast.
 export function StepPhotos({
   listingId,
@@ -33,19 +34,33 @@ export function StepPhotos({
       <p className="mt-1 text-sm text-ink-500">{t("photosRule", { min: MIN_LISTING_PHOTOS })}</p>
 
       <div className="mt-4 flex items-center gap-3" aria-live="polite">
-        <div className="flex gap-1" aria-hidden>
-          {Array.from({ length: MIN_LISTING_PHOTOS }, (_, i) => (
-            <span key={i} className={cn("h-1.5 w-8 rounded-full", i < filled ? "bg-brand-600" : "bg-ink-200")} />
-          ))}
-        </div>
+        {requirement.missing > 0 ? (
+          // Progress towards the minimum only — once it's reached the bar gives way to a tick, so
+          // three full segments never read as "all the slots are used".
+          <div className="flex gap-1" aria-hidden>
+            {Array.from({ length: MIN_LISTING_PHOTOS }, (_, i) => (
+              <span key={i} className={cn("h-1.5 w-8 rounded-full", i < filled ? "bg-brand-600" : "bg-ink-200")} />
+            ))}
+          </div>
+        ) : (
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+              <path d="m5 12 5 5 9-10" />
+            </svg>
+          </span>
+        )}
         <p className={cn("text-sm font-medium", requirement.missing === 0 ? "text-brand-700" : "text-ink-700")}>
           {requirement.missing === 0
             ? t("photosEnough", { count: requirement.count })
             : t("photosMissing", { count: requirement.count, min: MIN_LISTING_PHOTOS, missing: requirement.missing })}
         </p>
       </div>
-      {requirement.missing === 0 && requirement.count < RECOMMENDED_LISTING_PHOTOS && (
-        <p className="mt-1 text-xs text-ink-500">{t("photosRecommend", { recommended: RECOMMENDED_LISTING_PHOTOS })}</p>
+      {requirement.missing === 0 && (
+        <p className="mt-1 text-xs text-ink-500">
+          {requirement.count < RECOMMENDED_LISTING_PHOTOS
+            ? t("photosRecommend", { recommended: RECOMMENDED_LISTING_PHOTOS })
+            : t("photosMore")}
+        </p>
       )}
 
       {showError && !requirement.met && (
