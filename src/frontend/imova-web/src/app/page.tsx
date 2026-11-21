@@ -1,12 +1,10 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { HomeBrowse } from "@/components/home/HomeBrowse";
-import type { MoldovaMapSpot } from "@/components/home/MoldovaMap";
+import { HomeIntents } from "@/components/home/HomeIntents";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
-import { mapSpots } from "@/lib/home/moldovaMap";
-import { searchHref } from "@/lib/search/filters";
 import type { Listing } from "@/types/listing";
 
 async function getListings(): Promise<Listing[]> {
@@ -25,22 +23,11 @@ async function getListings(): Promise<Listing[]> {
 }
 
 export default async function Home() {
-  const [listings, t, tCommon, tHero, locale] = await Promise.all([
+  const [listings, t, tCommon] = await Promise.all([
     getListings(),
     getTranslations("Home"),
     getTranslations("Common"),
-    getTranslations("Hero"),
-    getLocale(),
   ]);
-
-  // The hero map: one spot per raion with listings, each a link to that raion's results.
-  const numbers = new Intl.NumberFormat(locale);
-  const spots: MoldovaMapSpot[] = mapSpots(listings).map((spot) => ({
-    ...spot,
-    href: searchHref({ raionId: [spot.raionId] }),
-    ariaLabel: tHero("spotLabel", { place: spot.raionName, count: spot.count }),
-    countText: numbers.format(spot.count),
-  }));
 
   const valueProps = [
     { key: "noCommission", d: "M12 3v18M17 7.5c0-1.7-2.2-3-5-3s-5 1.3-5 3 2.2 3 5 3 5 1.3 5 3-2.2 3-5 3-5-1.3-5-3" },
@@ -58,7 +45,9 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <Hero spots={spots} />
+        <Hero />
+
+        <HomeIntents />
 
         <HomeBrowse listings={listings} addListingLabel={tCommon("addListing")} />
 

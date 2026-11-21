@@ -96,19 +96,13 @@
     "statusUnavailable": "Indisponibil"
   },
   "Hero": {
-    "title": "Toată Moldova.<br></br><accent>Un singur loc</accent> unde cauți casă.",
-    "subtitle": "Scrie unde vrei să locuiești sau alege un oraș pe hartă. Anunțuri verificate, de la proprietari și agenții.",
-    "mapHint": "Sau alege un oraș pe hartă.",
-    "openMap": "Deschide harta completă",
-    "mapLabel": "Harta Moldovei: anunțuri pe raioane",
-    "spotLabel": "{place}: {count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
+    "title": "Găsește locul tău de suflet, aici – acasă.",
+    "mapLink": "Sau caută pe hartă",
+    "photoCredit": "Foto: {author} / Unsplash",
     "searchCard": {
-      "buyTab": "Cumpără",
-      "rentTab": "Închiriază",
-      "locationLabel": "Locație",
-      "locationPlaceholder": "Oraș, sat sau sector",
-      "searchButton": "Caută",
-      "transactionLabel": "Cumpăr sau închiriez"
+      "locationLabel": "Unde vrei să locuiești",
+      "locationPlaceholder": "Scrie un oraș, sat sau sector",
+      "searchButton": "Caută"
     }
   },
   "Home": {
@@ -137,7 +131,25 @@
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
     "ctaButton": "Publică anunț gratuit",
     "browseByType": "Caută după tip",
-    "newestListings": "Anunțuri noi"
+    "newestListings": "Anunțuri noi",
+    "intents": {
+      "label": "Ce vrei să faci",
+      "buy": {
+        "title": "Cumpără o casă",
+        "text": "Apartamente, case și terenuri verificate, cu prețul pe m² la vedere.",
+        "cta": "Vezi anunțurile"
+      },
+      "sell": {
+        "title": "Vinde sau dă în chirie",
+        "text": "Publică gratuit în câteva minute. Fără comision, fără anunțuri duble.",
+        "cta": "Adaugă anunț"
+      },
+      "rent": {
+        "title": "Închiriază",
+        "text": "Pe termen lung, mobilat sau nu. Scrie direct proprietarului.",
+        "cta": "Găsește o chirie"
+      }
+    }
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"

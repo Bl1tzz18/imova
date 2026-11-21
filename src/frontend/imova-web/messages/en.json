@@ -96,19 +96,13 @@
     "statusUnavailable": "Unavailable"
   },
   "Hero": {
-    "title": "All of Moldova.<br></br><accent>One place</accent> to find a home.",
-    "subtitle": "Type where you want to live, or pick a town on the map. Verified listings from owners and agencies.",
-    "mapHint": "Or pick a town on the map.",
-    "openMap": "Open the full map",
-    "mapLabel": "Map of Moldova: listings by district",
-    "spotLabel": "{place}: {count, plural, one {# listing} other {# listings}}",
+    "title": "Find the place your heart calls home, right here.",
+    "mapLink": "Or search on the map",
+    "photoCredit": "Photo: {author} / Unsplash",
     "searchCard": {
-      "buyTab": "Buy",
-      "rentTab": "Rent",
-      "locationLabel": "Location",
-      "locationPlaceholder": "Town, village or sector",
-      "searchButton": "Search",
-      "transactionLabel": "Buy or rent"
+      "locationLabel": "Where do you want to live",
+      "locationPlaceholder": "Type a town, village or district",
+      "searchButton": "Search"
     }
   },
   "Home": {
@@ -137,7 +131,25 @@
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
     "ctaButton": "Publish for free",
     "browseByType": "Browse by type",
-    "newestListings": "New listings"
+    "newestListings": "New listings",
+    "intents": {
+      "label": "What do you want to do",
+      "buy": {
+        "title": "Buy a home",
+        "text": "Verified flats, houses and land, with the price per m² up front.",
+        "cta": "See listings"
+      },
+      "sell": {
+        "title": "Sell or rent out",
+        "text": "List for free in a few minutes. No commission, no duplicate listings.",
+        "cta": "Add a listing"
+      },
+      "rent": {
+        "title": "Rent",
+        "text": "Long-term, furnished or not. Write to the owner directly.",
+        "cta": "Find a rental"
+      }
+    }
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"
