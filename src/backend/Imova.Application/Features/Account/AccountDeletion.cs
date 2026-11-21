@@ -7,6 +7,7 @@ using Imova.Application.Features.Agencies.Members;
 using Imova.Application.Features.Listings;
 using Imova.Domain.Agencies;
 using Imova.Application.Features.Media.Sizes;
+using Imova.Application.Features.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -111,9 +112,11 @@ public class AccountDeletion(
 
         // Message images uploaded but never sent — anything under the user's prefix that no
         // remaining message uses.
+        // A kept image keeps its display copies too (MessageImageSizes).
+        var keptWithCopies = keptAttachmentBlobs.SelectMany(MessageImageSizes.AllBlobNames).ToHashSet(StringComparer.Ordinal);
         attachmentBlobs.UnionWith(
             (await blobStorageService.ListMessageAttachmentBlobNamesAsync($"messages/{userId}/", cancellationToken))
-            .Where(name => !keptAttachmentBlobs.Contains(name)));
+            .Where(name => !keptWithCopies.Contains(name)));
 
         dbContext.Users.Remove(user);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -189,7 +192,7 @@ public class AccountDeletion(
             .Include(m => m.Attachments)
             .Where(m => orphanedIds.Contains(m.ConversationId))
             .ToListAsync(cancellationToken);
-        attachmentBlobs.UnionWith(orphanedMessages.SelectMany(m => m.Attachments).Select(a => a.BlobName));
+        attachmentBlobs.UnionWith(orphanedMessages.SelectMany(m => m.Attachments).SelectMany(a => MessageImageSizes.AllBlobNames(a.BlobName)));
         dbContext.Messages.RemoveRange(orphanedMessages);
         dbContext.ConversationReports.RemoveRange(await dbContext.ConversationReports
             .Where(r => orphanedIds.Contains(r.ConversationId))

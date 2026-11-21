@@ -266,6 +266,7 @@ builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 // Display sizes of listing photos, made when an upload is confirmed (see PhotoSizes).
 builder.Services.AddSingleton<IPhotoResizer, MagickPhotoResizer>();
 builder.Services.AddScoped<PhotoSizeGenerator>();
+builder.Services.AddScoped<MessageImageCopies>();
 
 // Typed HttpClient for downloading external images (currently just Google profile pictures on
 // new-account sign-in — see GoogleLoginHandler). A short timeout since this is a synchronous

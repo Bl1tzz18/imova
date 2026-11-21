@@ -1,11 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { attachmentExtension, attachmentSrc, MAX_ATTACHMENT_BYTES, pickAttachments } from "@/lib/messaging/attachments";
+import { attachmentExtension, attachmentSizeParam, attachmentSrc, MAX_ATTACHMENT_BYTES, pickAttachments } from "@/lib/messaging/attachments";
 
 const file = (type: string, size = 1000) => ({ type, size });
 
 describe("attachmentSrc", () => {
   it("points at the site's access-checked proxy, not at storage", () => {
     expect(attachmentSrc("3f2a")).toBe("/message-attachments/3f2a");
+  });
+
+  it("asks for a resized copy when given a size", () => {
+    expect(attachmentSrc("3f2a", "thumbnail")).toBe("/message-attachments/3f2a?size=thumbnail");
+    expect(attachmentSrc("3f2a", "large")).toBe("/message-attachments/3f2a?size=large");
+  });
+});
+
+describe("attachmentSizeParam", () => {
+  it("passes on only the sizes the API knows", () => {
+    expect(attachmentSizeParam("thumbnail")).toBe("thumbnail");
+    expect(attachmentSizeParam("large")).toBe("large");
+    expect(attachmentSizeParam("huge")).toBeNull();
+    expect(attachmentSizeParam("large&x=1")).toBeNull();
+    expect(attachmentSizeParam(null)).toBeNull();
   });
 });
 

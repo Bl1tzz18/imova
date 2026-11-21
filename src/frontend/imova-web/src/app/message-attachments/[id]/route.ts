@@ -1,18 +1,22 @@
 import { getSessionToken } from "@/lib/auth/session";
+import { attachmentSizeParam } from "@/lib/messaging/attachments";
 
 // Same-origin proxy for message images: the API only serves one to the conversation's two
 // participants (or an admin), and needs the caller's identity to decide — which an <img> tag
 // pointing at the API couldn't send (the session token is an httpOnly cookie here). So the image
 // is fetched server-side with that token and streamed back; the API's 401/404 pass through.
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+// ?size=thumbnail|large asks the API for a resized copy (lib/messaging/attachments.ts).
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const size = attachmentSizeParam(new URL(request.url).searchParams.get("size"));
   const token = await getSessionToken();
   if (!token) {
     return new Response(null, { status: 401 });
   }
 
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
-  const res = await fetch(`${apiUrl}/api/v1/messaging/attachments/${encodeURIComponent(id)}`, {
+  const query = size ? `?size=${size}` : "";
+  const res = await fetch(`${apiUrl}/api/v1/messaging/attachments/${encodeURIComponent(id)}${query}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

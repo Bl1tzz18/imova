@@ -35,6 +35,10 @@ public interface IBlobStorageService
 
     Task DeleteMessageAttachmentAsync(string blobName, CancellationToken cancellationToken);
 
+    // Writes (or overwrites) a file in the message-attachments container — the display copies of a
+    // message image (MessageImageCopies). Uploads by users go through the SAS URL instead.
+    Task UploadMessageAttachmentAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken);
+
     // --- Other private files: the same private container, under their own prefix ---
 
     // An agency's uploaded import CSV: "imports/{agencyId}/{guid}.csv" (kept ListingImportJob.KeepFileFor).

@@ -114,6 +114,10 @@ public sealed class BlobStorageService : IBlobStorageService
     // access, read only by the Worker.
     public string GenerateImportFileBlobName(Guid agencyId) => $"imports/{agencyId:N}/{Guid.NewGuid():N}.csv";
 
+    public async Task UploadMessageAttachmentAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken) =>
+        await _messageAttachmentsClient.GetBlobClient(blobName).UploadAsync(
+            content, new BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = contentType } }, cancellationToken);
+
     public async Task UploadPrivateAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken) =>
         await _messageAttachmentsClient.GetBlobClient(blobName).UploadAsync(
             content, new BlobUploadOptions { HttpHeaders = new BlobHttpHeaders { ContentType = contentType } }, cancellationToken);

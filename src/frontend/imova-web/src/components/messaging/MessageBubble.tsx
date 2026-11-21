@@ -30,7 +30,12 @@ export function MessageBubble({
     setOpenIndex(null);
     opener.current?.focus();
   }, []);
-  const images = message.attachments.map((a) => ({ id: a.id, src: attachmentSrc(a.id), thumbnailSrc: attachmentSrc(a.id) }));
+  // Resized copies: the conversation shows the small one, the viewer the large one.
+  const images = message.attachments.map((a) => ({
+    id: a.id,
+    src: attachmentSrc(a.id, "large"),
+    thumbnailSrc: attachmentSrc(a.id, "thumbnail"),
+  }));
   const corners = mine ? "rounded-[16px_16px_4px_16px]" : "rounded-[16px_16px_16px_4px]";
 
   return (
@@ -49,7 +54,7 @@ export function MessageBubble({
               className={cn("block h-36 w-48 cursor-zoom-in overflow-hidden border border-line bg-bubble", corners)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- private image via the access-checked proxy */}
-              <img src={image.src} alt="" className="h-full w-full object-cover" />
+              <img src={image.thumbnailSrc} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

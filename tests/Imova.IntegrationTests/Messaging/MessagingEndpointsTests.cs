@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using ImageMagick;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Messaging;
 using Imova.IntegrationTests.TestSupport;
@@ -208,6 +209,43 @@ public class MessagingEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/v1/admin/messaging/flagged-messages/{messageId}/reopen", null)).StatusCode);
         Assert.Contains(await ListAsync(false), f => f.Message.Id == messageId);
         Assert.Equal(HttpStatusCode.NotFound, (await admin.PostAsync($"/api/v1/admin/messaging/flagged-messages/{Guid.NewGuid()}/resolve", null)).StatusCode);
+    }
+
+    [Fact]
+    public async Task MessageImage_ComesInResizedCopies_ForTheParticipantsOnly()
+    {
+        var (seller, visitor, _, _, listing) = await SetUpAsync();
+        var (stranger, _) = await ListingApi.RegisterAsync(_factory);
+        var photo = new MagickImage(MagickColors.SteelBlue, 2400, 1200).ToByteArray(MagickFormat.Png);
+
+        var target = (await (await visitor.PostAsJsonAsync("/api/v1/messaging/attachments/upload-url", new { fileExtension = ".png" }))
+            .Content.ReadFromJsonAsync<AttachmentUploadUrlDto>())!;
+        using var storage = new HttpClient();
+        using var put = new HttpRequestMessage(HttpMethod.Put, target.UploadUrl) { Content = new ByteArrayContent(photo) };
+        put.Headers.Add("x-ms-blob-type", "BlockBlob");
+        (await storage.SendAsync(put)).EnsureSuccessStatusCode();
+        var started = (await (await visitor.PostAsJsonAsync("/api/v1/messaging/conversations", new
+            {
+                listingId = listing.Id, body = "Planul", attachmentBlobNames = new[] { target.BlobName },
+            })).Content.ReadFromJsonAsync<StartConversationResultDto>())!;
+        var url = Assert.Single(started.Message.Attachments).Url;
+
+        // Made on the first request (the recipient's thumbnail), stored, then served from storage.
+        foreach (var (size, longestSide) in new[] { ("thumbnail", 800), ("large", 1600), ("thumbnail", 800) })
+        {
+            var response = await seller.GetAsync($"{url}?size={size}");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("image/jpeg", response.Content.Headers.ContentType!.MediaType);
+            using var image = new MagickImage(await response.Content.ReadAsByteArrayAsync());
+            Assert.Equal((uint)longestSide, Math.Max(image.Width, image.Height));
+        }
+
+        var original = await visitor.GetAsync(url);
+        Assert.Equal("image/png", original.Content.Headers.ContentType!.MediaType);
+        Assert.Equal(photo, await original.Content.ReadAsByteArrayAsync());
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await visitor.GetAsync($"{url}?size=huge")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await stranger.GetAsync($"{url}?size=thumbnail")).StatusCode);
     }
 
     [Fact]
