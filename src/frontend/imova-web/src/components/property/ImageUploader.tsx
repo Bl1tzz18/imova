@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { uploadFileToBlob } from "@/lib/api/media";
 import { confirmPhotoUpload, deleteListingPhoto, requestPhotoUploadUrl } from "@/lib/property/actions";
+import { MAX_LISTING_PHOTOS, photoRoom, takeWhatFits } from "@/lib/property/photos";
 import type { Photo } from "@/types/listing";
 
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif"];
@@ -21,6 +22,9 @@ function getAllowedExtension(fileName: string): string | null {
   const ext = match[0].toLowerCase();
   return ALLOWED_EXTENSIONS.includes(ext) ? ext : null;
 }
+
+// A refusal from the API, already in the visitor's language (apiErrorMessage) — shown as it is.
+class ApiRefusal extends Error {}
 
 type UploadItem = {
   id: string;
@@ -78,10 +82,18 @@ export function ImageUploader({
     onCountChange?.(doneCount, uploading);
   }, [doneCount, uploading, onCountChange]);
 
+  // Uploaded or on the way — what the server counts against MAX_LISTING_PHOTOS (failed ones aren't rows).
+  const onListing = items.filter((item) => item.status !== "error").length;
+  const room = photoRoom(onListing, pendingDeleteIds.length);
+  const [skippedCount, setSkippedCount] = useState(0);
+
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
 
-    for (const file of Array.from(files)) {
+    const { accepted, skipped } = takeWhatFits(Array.from(files), room);
+    setSkippedCount(skipped);
+
+    for (const file of accepted) {
       const extension = getAllowedExtension(file.name);
       const id = crypto.randomUUID();
 
@@ -107,15 +119,15 @@ export function ImageUploader({
       void (async () => {
         try {
           const requested = await requestPhotoUploadUrl(listingId, extension);
-          if (requested.error !== undefined) throw new Error(requested.error);
+          if (requested.error !== undefined) throw new ApiRefusal(requested.error);
           await uploadFileToBlob(requested.data.uploadUrl, file);
           const confirmed = await confirmPhotoUpload(listingId, requested.data.blobName);
-          if (confirmed.error !== undefined) throw new Error(confirmed.error);
+          if (confirmed.error !== undefined) throw new ApiRefusal(confirmed.error);
           setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: "done", mediaId: confirmed.data.id } : it)));
-        } catch {
-          setItems((prev) =>
-            prev.map((it) => (it.id === id ? { ...it, status: "error", error: t("photoUploadFailed") } : it))
-          );
+        } catch (e) {
+          // The API's own (translated) reason when it gave one — e.g. the listing is full — else generic.
+          const reason = e instanceof ApiRefusal ? e.message : t("photoUploadFailed");
+          setItems((prev) => prev.map((it) => (it.id === id ? { ...it, status: "error", error: reason } : it)));
         }
       })();
     }
@@ -151,24 +163,39 @@ export function ImageUploader({
 
   return (
     <div>
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ink-300 bg-ink-50/50 px-4 py-8 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/40">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-7 w-7 text-ink-400">
-          <path d="M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5M7 9l5-5 5 5M12 4v13" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="text-sm font-medium text-ink-700">{t(items.length > 0 ? "addMorePhotos" : "addPhotos")}</span>
-        <span className="text-xs text-ink-500">{t("photoHintMany")}</span>
-        <span className="text-xs text-ink-400">{t("photoHint")}</span>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif"
-          multiple
-          className="sr-only"
-          onChange={(e) => {
-            handleFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      </label>
+      {room > 0 ? (
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ink-300 bg-ink-50/50 px-4 py-8 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/40">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-7 w-7 text-ink-400">
+            <path d="M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5M7 9l5-5 5 5M12 4v13" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-sm font-medium text-ink-700">{t(items.length > 0 ? "addMorePhotos" : "addPhotos")}</span>
+          <span className="text-xs text-ink-500">{t("photoHintMany", { max: MAX_LISTING_PHOTOS })}</span>
+          <span className="text-xs text-ink-400">{t("photoHint")}</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.heic,.heif"
+            multiple
+            className="sr-only"
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      ) : (
+        // Full: no picker, just why — and, while editing, when removed photos make room again.
+        <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-ink-200 bg-ink-50 px-4 py-6 text-center">
+          <span className="text-sm font-medium text-ink-700">
+            {pendingDeleteIds.length > 0 ? t("photosFullPendingRemoval") : t("photosFull", { max: MAX_LISTING_PHOTOS })}
+          </span>
+        </div>
+      )}
+
+      {skippedCount > 0 && (
+        <p role="status" className="mt-3 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
+          {t("photosSkipped", { skipped: skippedCount, max: MAX_LISTING_PHOTOS })}
+        </p>
+      )}
 
       {items.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">

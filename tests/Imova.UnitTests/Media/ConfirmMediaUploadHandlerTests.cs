@@ -1,6 +1,7 @@
 using FluentValidation;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Common;
+using Imova.Application.Features.Listings;
 using Imova.Application.Features.Media.ConfirmMediaUpload;
 using Imova.Application.Features.Media.Sizes;
 using Imova.Domain.Listings;
@@ -210,4 +211,55 @@ public class ConfirmMediaUploadHandlerTests
         Assert.Equal(original, result.CardUrl);
         Assert.Equal(original, result.ThumbnailUrl);
     }
+
+    [Fact]
+    public async Task Handle_WhenTheListingHasTheMostPhotosAllowed_RefusesTheUploadAndDeletesTheFile()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var blobStorage = new FakeBlobStorageService
+        {
+            BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
+        };
+        var handler = NewHandler(dbContext, blobStorage);
+        var listingId = Guid.NewGuid();
+        await AddPhotosAsync(dbContext, listingId, ListingPhotoRules.MaxPhotos);
+        var blobName = $"{listingId}/{Guid.NewGuid()}.jpg";
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() =>
+            handler.Handle(new ConfirmMediaUploadCommand(listingId, blobName, Uploader, false), CancellationToken.None));
+
+        var failure = Assert.Single(ex.Errors);
+        Assert.Equal(ErrorCodes.UploadTooManyPhotos, failure.ErrorCode);
+        Assert.Equal(ListingPhotoRules.MaxPhotos, dbContext.Photos.Count());
+        Assert.Contains(blobName, blobStorage.DeletedBlobNames);
+    }
+
+    [Fact]
+    public async Task Handle_OneBelowTheMostPhotosAllowed_StillTakesTheUpload()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var blobStorage = new FakeBlobStorageService
+        {
+            BlobInfoToReturn = new UploadedBlobInfo(1024, "image/png", PngHeader),
+        };
+        var handler = NewHandler(dbContext, blobStorage);
+        var listingId = Guid.NewGuid();
+        await AddPhotosAsync(dbContext, listingId, ListingPhotoRules.MaxPhotos - 1);
+
+        await handler.Handle(new ConfirmMediaUploadCommand(listingId, $"{listingId}/{Guid.NewGuid()}.jpg", Uploader, false), CancellationToken.None);
+
+        Assert.Equal(ListingPhotoRules.MaxPhotos, dbContext.Photos.Count());
+    }
+
+    internal static async Task AddPhotosAsync(ImovaDbContext dbContext, Guid listingId, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            dbContext.Photos.Add(Photo.Create(listingId, $"{listingId}/{Guid.NewGuid()}.jpg", "image/jpeg", 1024, i, isPrimary: i == 0, uploadedByUserId: Uploader));
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    internal static Guid UploaderId => Uploader;
 }

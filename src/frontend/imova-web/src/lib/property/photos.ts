@@ -4,6 +4,9 @@
 
 export const MIN_LISTING_PHOTOS = 3;
 
+// And at most MAX_LISTING_PHOTOS — the API's ListingPhotoRules.MaxPhotos.
+export const MAX_LISTING_PHOTOS = 40;
+
 // What the form suggests beyond the minimum (no data behind it beyond common sense: every room,
 // the outside, the view).
 export const RECOMMENDED_LISTING_PHOTOS = 8;
@@ -33,7 +36,7 @@ export type PhotoMeter = {
   // Where the "minimum" and "recommended" marks sit along the bar, 0–100.
   minPercent: number;
   recommendedPercent: number;
-  stage: "belowMinimum" | "enough" | "plenty";
+  stage: "belowMinimum" | "enough" | "plenty" | "full";
 };
 
 export function photoMeter(count: number): PhotoMeter {
@@ -42,6 +45,26 @@ export function photoMeter(count: number): PhotoMeter {
     fillPercent: percent(count),
     minPercent: percent(MIN_LISTING_PHOTOS),
     recommendedPercent: percent(RECOMMENDED_LISTING_PHOTOS),
-    stage: count < MIN_LISTING_PHOTOS ? "belowMinimum" : count < RECOMMENDED_LISTING_PHOTOS ? "enough" : "plenty",
+    stage:
+      count < MIN_LISTING_PHOTOS
+        ? "belowMinimum"
+        : count < RECOMMENDED_LISTING_PHOTOS
+          ? "enough"
+          : count < MAX_LISTING_PHOTOS
+            ? "plenty"
+            : "full",
   };
+}
+
+// How many more photos the uploader may start. `onListing` counts every photo that is (or is about
+// to be) a row on the server — uploaded or still uploading; `awaitingRemoval` the ones removed in
+// the edit form, which are only deleted when it's saved, so the server still counts them until then.
+export function photoRoom(onListing: number, awaitingRemoval = 0): number {
+  return Math.max(0, MAX_LISTING_PHOTOS - onListing - awaitingRemoval);
+}
+
+// Picked files beyond the room left are skipped (in the order picked), not uploaded and then refused.
+export function takeWhatFits<T>(files: readonly T[], room: number): { accepted: T[]; skipped: number } {
+  const accepted = files.slice(0, Math.max(0, room));
+  return { accepted, skipped: files.length - accepted.length };
 }

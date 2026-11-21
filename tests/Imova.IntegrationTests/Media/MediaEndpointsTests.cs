@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using ImageMagick;
 using Imova.Application.Features.Listings;
 using Imova.Contracts.Listings;
@@ -56,6 +57,24 @@ public class MediaEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await owner.PostAsJsonAsync("/api/v1/listings", body);
         Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
         return (await response.Content.ReadFromJsonAsync<ListingDto>())!;
+    }
+
+    [Fact]
+    public async Task AListing_TakesAtMostFortyPhotos()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var listingId = Guid.NewGuid();
+        await ListingApi.AddPhotosAsync(owner, listingId, ListingPhotoRules.MaxPhotos - 1);
+
+        // The fortieth still goes in, through the real upload.
+        Assert.Equal(HttpStatusCode.OK, (await UploadPhotoAsync(owner, listingId)).StatusCode);
+
+        var refused = await RequestUploadUrlAsync(owner, listingId);
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        using var body = JsonDocument.Parse(await refused.Content.ReadAsStringAsync());
+        var error = body.RootElement.GetProperty("errorCodes")[0];
+        Assert.Equal("upload.tooManyPhotos", error.GetProperty("code").GetString());
+        Assert.Equal(ListingPhotoRules.MaxPhotos, error.GetProperty("params").GetProperty("max").GetInt32());
     }
 
     [Fact]

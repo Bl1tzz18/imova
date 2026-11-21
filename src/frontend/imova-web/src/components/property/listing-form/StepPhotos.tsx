@@ -2,11 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { ImageUploader } from "@/components/property/ImageUploader";
-import { MIN_LISTING_PHOTOS, RECOMMENDED_LISTING_PHOTOS, photoMeter, type PhotoRequirement } from "@/lib/property/photos";
+import { MAX_LISTING_PHOTOS, MIN_LISTING_PHOTOS, RECOMMENDED_LISTING_PHOTOS, photoMeter, type PhotoRequirement } from "@/lib/property/photos";
 import { cn } from "@/lib/utils/cn";
 import type { Photo } from "@/types/listing";
 
-// The photos step. Any number of photos, at least MIN_LISTING_PHOTOS. People skim here, so the
+// The photos step. At least MIN_LISTING_PHOTOS, up to MAX_LISTING_PHOTOS. People skim here, so the
 // minimum is shown as a mark on an open-ended meter (photoMeter), next to a running count and one
 // status line — never as a fixed number of slots. The form won't go on (or save) below the minimum;
 // `showError` is set when it tried, and the message is announced next to the photos, not in a toast.
@@ -34,7 +34,7 @@ export function StepPhotos({
         <h2 className="font-hero text-xl font-bold text-ink-950">{t("step3Heading")}</h2>
         <span className="shrink-0 text-sm font-medium tabular-nums text-ink-500">{t("photosAdded", { count: requirement.count })}</span>
       </div>
-      <p className="mt-1 text-sm text-ink-500">{t("photosIntro")}</p>
+      <p className="mt-1 text-sm text-ink-500">{t("photosIntro", { max: MAX_LISTING_PHOTOS })}</p>
 
       {/* Open-ended meter: the minimum and the recommendation are marks along a bar that fades out
           past its end, so "3" reads as a threshold to pass, never as the number of slots. */}
@@ -77,7 +77,9 @@ export function StepPhotos({
           ? t("photosStatusBelow", { missing: requirement.missing })
           : meter.stage === "enough"
             ? t("photosStatusEnough")
-            : t("photosStatusPlenty")}
+            : meter.stage === "plenty"
+              ? t("photosStatusPlenty", { max: MAX_LISTING_PHOTOS })
+              : t("photosStatusFull")}
       </p>
 
       {showError && !requirement.met && (

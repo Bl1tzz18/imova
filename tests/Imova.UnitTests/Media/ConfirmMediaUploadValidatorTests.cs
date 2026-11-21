@@ -11,9 +11,28 @@ public class ConfirmMediaUploadValidatorTests
     {
         var listingId = Guid.NewGuid();
 
-        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{listingId}/photo.jpg", Guid.NewGuid(), false));
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, $"{listingId}/{Guid.NewGuid()}.jpg", Guid.NewGuid(), false));
 
         Assert.True(result.IsValid);
+    }
+
+    // Only the exact shape RequestUploadUrl hands out: a prefix check alone would let a path step out
+    // of the listing (confirm may delete a refused upload).
+    [Theory]
+    [InlineData("{0}/photo.jpg")]
+    [InlineData("{0}/../{1}/{1}.jpg")]
+    [InlineData("{0}/{1}/{1}.jpg")]
+    [InlineData("{0}/{1}.jpg/")]
+    [InlineData("{0}/{1}")]
+    [InlineData("{0}//{1}.jpg")]
+    public void Validate_WithANameRequestUploadUrlNeverHandsOut_HasError(string shape)
+    {
+        var listingId = Guid.NewGuid();
+        var blobName = string.Format(shape, listingId, Guid.NewGuid());
+
+        var result = _validator.Validate(new ConfirmMediaUploadCommand(listingId, blobName, Guid.NewGuid(), false));
+
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(ConfirmMediaUploadCommand.BlobName));
     }
 
     [Fact]
