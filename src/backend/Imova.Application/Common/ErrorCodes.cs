@@ -64,6 +64,7 @@ public static class ErrorCodes
     public const string UploadTooLarge = "upload.tooLarge";
     public const string UploadNotAnImage = "upload.notAnImage";
     public const string UploadNotYours = "upload.notYours";
+    public const string UploadTooManyPhotos = "upload.tooManyPhotos";
 
     // --- Messaging ---
     public const string MessagingBanned = "messaging.banned";

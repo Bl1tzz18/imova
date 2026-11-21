@@ -1,10 +1,17 @@
+"use client";
+
+import { useCallback, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { ImageViewer } from "@/components/ui/ImageViewer";
 import { attachmentSrc } from "@/lib/messaging/attachments";
 import { cn } from "@/lib/utils/cn";
 import type { Message } from "@/types/messaging";
 
 // Mine: brand orange on the right, sharp bottom-right corner. Theirs: light gray on the left, sharp
 // bottom-left corner. Images sit above the text as thumbnails with the same corner shape; the time
-// (and, for mine, the Sent/Delivered/Read ticks) goes under the bubble.
+// (and, for mine, the Sent/Delivered/Read ticks) goes under the bubble. Tapping an image opens it
+// full size in the ImageViewer (Esc, the close button or the backdrop closes it again), stepping
+// through the message's other images.
 export function MessageBubble({
   message,
   mine,
@@ -16,23 +23,39 @@ export function MessageBubble({
   time: string;
   statusLabel: string;
 }) {
+  const t = useTranslations("Messages.imageViewer");
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const opener = useRef<HTMLElement | null>(null);
+  const close = useCallback(() => {
+    setOpenIndex(null);
+    opener.current?.focus();
+  }, []);
+  // Resized copies: the conversation shows the small one, the viewer the large one.
+  const images = message.attachments.map((a) => ({
+    id: a.id,
+    src: attachmentSrc(a.id, "large"),
+    thumbnailSrc: attachmentSrc(a.id, "thumbnail"),
+  }));
   const corners = mine ? "rounded-[16px_16px_4px_16px]" : "rounded-[16px_16px_16px_4px]";
 
   return (
     <div className={cn("flex flex-col gap-1", mine ? "items-end" : "items-start")}>
       {message.attachments.length > 0 && (
         <div className={cn("flex max-w-[min(80%,36rem)] flex-wrap gap-1.5", mine ? "justify-end" : "justify-start")}>
-          {message.attachments.map((a) => (
-            <a
-              key={a.id}
-              href={attachmentSrc(a.id)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn("block h-36 w-48 overflow-hidden border border-line bg-bubble", corners)}
+          {images.map((image, i) => (
+            <button
+              key={image.id}
+              type="button"
+              onClick={(e) => {
+                opener.current = e.currentTarget;
+                setOpenIndex(i);
+              }}
+              aria-label={t("open", { number: i + 1, total: images.length })}
+              className={cn("block h-36 w-48 cursor-zoom-in overflow-hidden border border-line bg-bubble", corners)}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- private image via the access-checked proxy */}
-              <img src={attachmentSrc(a.id)} alt="" className="h-full w-full object-cover" />
-            </a>
+              <img src={image.thumbnailSrc} alt="" className="h-full w-full object-cover" />
+            </button>
           ))}
         </div>
       )}
@@ -46,6 +69,22 @@ export function MessageBubble({
         >
           {message.body}
         </p>
+      )}
+      {openIndex !== null && (
+        <ImageViewer
+          images={images}
+          index={openIndex}
+          onIndexChange={setOpenIndex}
+          onClose={close}
+          alt={t("dialog")}
+          labels={{
+            close: t("close"),
+            previous: t("previous"),
+            next: t("next"),
+            counter: (current, total) => t("counter", { current, total }),
+            imageNumber: (number, total) => t("imageNumber", { number, total }),
+          }}
+        />
       )}
       <p className="flex items-center gap-1 px-1 text-[11px] text-ink-400">
         {time}

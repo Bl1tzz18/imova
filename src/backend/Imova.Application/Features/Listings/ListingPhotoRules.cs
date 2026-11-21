@@ -19,6 +19,12 @@ public static class ListingPhotoRules
 {
     public const int MinPhotos = 3;
 
+    // And at most MaxPhotos — generous (a big house has a dozen rooms, plus outside and views), but a
+    // ceiling, so one listing can't fill the storage. Checked when an upload URL is asked for and
+    // again when the upload is confirmed; two uploads confirmed at the same instant at 39 can still
+    // end at 41, which is fine for a cap that only exists against abuse.
+    public const int MaxPhotos = 40;
+
     // While a listing is in one of these, removing a photo may not take it under MinPhotos.
     private static readonly HashSet<ListingStatus> GuardedWhileIn = [ListingStatus.PendingReview, ListingStatus.Active];
 
@@ -45,6 +51,22 @@ public static class ListingPhotoRules
                     $"A listing needs at least {MinPhotos} photos ({count} so far).",
                     ErrorCodes.ListingNotEnoughPhotos,
                     CodedFailure.Params(("min", MinPhotos), ("count", count))),
+            ]);
+        }
+    }
+
+    // 400 upload.tooManyPhotos ({max}) when the listing already has MaxPhotos photos.
+    public static async Task EnsureRoomForAnotherAsync(IApplicationDbContext dbContext, Guid listingId, string field, CancellationToken cancellationToken)
+    {
+        if (await CountAsync(dbContext, listingId, cancellationToken) >= MaxPhotos)
+        {
+            throw new ValidationException(
+            [
+                CodedFailure.Of(
+                    field,
+                    $"A listing can have at most {MaxPhotos} photos.",
+                    ErrorCodes.UploadTooManyPhotos,
+                    CodedFailure.Params(("max", MaxPhotos))),
             ]);
         }
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MIN_LISTING_PHOTOS, photoRequirement } from "./photos";
+import { MAX_LISTING_PHOTOS, MIN_LISTING_PHOTOS, photoMeter, photoRequirement, photoRoom, takeWhatFits } from "./photos";
 
 describe("photoRequirement", () => {
   it("asks for three photos, the same as the API", () => {
@@ -16,5 +16,51 @@ describe("photoRequirement", () => {
   it("waits for photos still uploading", () => {
     expect(photoRequirement(3, true).met).toBe(false);
     expect(photoRequirement(3, true).missing).toBe(0);
+  });
+});
+
+describe("photoMeter", () => {
+  it("marks the minimum and the recommendation as points along the bar, not its end", () => {
+    const meter = photoMeter(0);
+    expect(meter.minPercent).toBe(30);
+    expect(meter.recommendedPercent).toBe(80);
+    expect(meter.fillPercent).toBe(0);
+  });
+
+  it("goes from below the minimum, to enough, to plenty, to full", () => {
+    expect(photoMeter(2)).toMatchObject({ fillPercent: 20, stage: "belowMinimum" });
+    expect(photoMeter(3)).toMatchObject({ fillPercent: 30, stage: "enough" });
+    expect(photoMeter(7).stage).toBe("enough");
+    expect(photoMeter(8)).toMatchObject({ fillPercent: 80, stage: "plenty" });
+    expect(photoMeter(39).stage).toBe("plenty");
+    expect(photoMeter(40).stage).toBe("full");
+  });
+
+  it("stays within the bar however many photos there are", () => {
+    expect(photoMeter(25).fillPercent).toBe(100);
+    expect(photoMeter(-1).fillPercent).toBe(0);
+  });
+});
+
+describe("photoRoom", () => {
+  it("allows up to forty photos, the same as the API", () => {
+    expect(MAX_LISTING_PHOTOS).toBe(40);
+    expect(photoRoom(0)).toBe(40);
+    expect(photoRoom(37)).toBe(3);
+    expect(photoRoom(40)).toBe(0);
+    expect(photoRoom(45)).toBe(0);
+  });
+
+  it("still counts photos removed in the edit form until it's saved", () => {
+    expect(photoRoom(36, 4)).toBe(0);
+    expect(photoRoom(30, 4)).toBe(6);
+  });
+});
+
+describe("takeWhatFits", () => {
+  it("keeps the first files that fit and says how many it skipped", () => {
+    expect(takeWhatFits(["a", "b", "c", "d"], 2)).toEqual({ accepted: ["a", "b"], skipped: 2 });
+    expect(takeWhatFits(["a"], 5)).toEqual({ accepted: ["a"], skipped: 0 });
+    expect(takeWhatFits(["a", "b"], 0)).toEqual({ accepted: [], skipped: 2 });
   });
 });

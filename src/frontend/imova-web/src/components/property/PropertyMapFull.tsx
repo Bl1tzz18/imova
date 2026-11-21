@@ -7,7 +7,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvent } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import type { LeafletMouseEvent, MarkerCluster } from "leaflet";
+import { point, type LeafletMouseEvent, type MarkerCluster } from "leaflet";
+import { clusterClickZoom } from "@/lib/map/clusterZoom";
 import { createClusterIcon, createPropertyMarkerIcon, createPropertyPricePinIcon } from "@/lib/map/propertyMarkerIcon";
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
@@ -71,8 +72,7 @@ function pointKey(lat: number, lng: number) {
   return `${lat.toFixed(6)},${lng.toFixed(6)}`;
 }
 
-// Zoom levels a cluster click jumps to (see ClusteredPropertyMarkers' onClick below) and the
-// boundaries maxClusterRadius steps down at (see clusterRadiusForZoom) — roughly 3 cluster
+// The zooms maxClusterRadius steps down at (see clusterRadiusForZoom) — roughly 3 cluster
 // "tiers" instead of a smooth/gradual breakdown across every zoom level: wide (city/region,
 // below tier[0]), medium (neighborhood/street, between the two), and tight (building/point at
 // maxZoom — only markers sharing the same or a near-identical coordinate still merge there).
@@ -82,27 +82,23 @@ function pointKey(lat: number, lng: number) {
 // coordinate.
 const ZOOM_TIERS = [13, 18];
 
+// Room kept around a clicked cluster's listings when zooming to them, in px (both sides together),
+// so their price pills aren't cut off at the map's edge.
+const CLUSTER_FIT_PADDING = 120;
+
 function clusterRadiusForZoom(zoom: number) {
   if (zoom < ZOOM_TIERS[0]) return 100;
   if (zoom < ZOOM_TIERS[1]) return 50;
   return 20;
 }
 
-function nextTierZoom(currentZoom: number, maxZoom: number) {
-  const next = ZOOM_TIERS.find((zoom) => zoom > currentZoom);
-  return Math.min(next ?? maxZoom, maxZoom);
-}
-
 // /map explorer only: groups nearby listings into a count cluster, breaking apart into smaller
-// clusters or individual price pills as the user zooms in. `zoomToBoundsOnClick` is turned off
-// (its default "fit bounds of this cluster's children" jump can be unpredictable — anywhere from
-// barely zooming to leaping straight to individual markers) in favor of a custom handler that
-// jumps to the next zoom tier, so a couple of clicks gets from a city-wide view down to
-// individual listings instead of needing many one-level-at-a-time clicks. Once already at the
-// map's max zoom, stepping in further is impossible — if it's still a cluster at that point, its
-// markers must share the same (or a near-identical) coordinate and can never separate by zooming
-// alone, so the click instead reports the full list of listings at that point via
-// `onClusterOverflow`, for the caller to show as a side panel.
+// clusters or individual price pills as the user zooms in. A click on a cluster zooms to its own
+// listings — centred on them, as close as still shows all of them (clusterClickZoom), at least one
+// level in. (It used to jump to a fixed zoom around the click point, which could leave every pin of
+// a spread-out cluster off screen.) When zooming can't separate them — already at the max zoom, or
+// every listing on the very same spot — the click reports them via `onClusterOverflow` instead,
+// for the caller to show in its "same address" panel (MapSpotPanel).
 function ClusteredPropertyMarkers({
   points,
   selectedId,
@@ -126,14 +122,18 @@ function ClusteredPropertyMarkers({
       zoomToBoundsOnClick={false}
       iconCreateFunction={createClusterIcon}
       onClick={(e: LeafletMouseEvent) => {
-        if (map.getZoom() >= map.getMaxZoom()) {
-          const cluster = (e as unknown as { layer: MarkerCluster }).layer;
-          const childKeys = new Set(cluster.getAllChildMarkers().map((m) => pointKey(m.getLatLng().lat, m.getLatLng().lng)));
+        const cluster = (e as unknown as { layer: MarkerCluster }).layer;
+        const childKeys = new Set(cluster.getAllChildMarkers().map((m) => pointKey(m.getLatLng().lat, m.getLatLng().lng)));
+        const maxZoom = map.getMaxZoom();
+        if (map.getZoom() >= maxZoom || childKeys.size === 1) {
+          if (map.getZoom() < maxZoom) map.setView(cluster.getLatLng(), maxZoom);
           onClusterOverflow(points.filter((p) => childKeys.has(pointKey(p.lat, p.lng))));
           return;
         }
         onClusterOverflow(null);
-        map.setView(e.latlng, nextTierZoom(map.getZoom(), map.getMaxZoom()));
+        const bounds = cluster.getBounds();
+        const fitZoom = map.getBoundsZoom(bounds, false, point(CLUSTER_FIT_PADDING, CLUSTER_FIT_PADDING));
+        map.setView(bounds.getCenter(), clusterClickZoom(map.getZoom(), fitZoom, maxZoom));
       }}
     >
       {points.map((point) => (

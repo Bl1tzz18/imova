@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ClusterOverflowPanel } from "@/components/property/ClusterOverflowPanel";
+import { MapSpotPanel } from "@/components/property/MapSpotPanel";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { cn } from "@/lib/utils/cn";
 import { formatPrice } from "@/lib/utils/format";
@@ -37,6 +37,8 @@ export function PropertyMapExplorer({ listings, totalCount, listHref }: { listin
   );
 
   const hasOverflow = overflowPoints != null && overflowPoints.length > 0;
+  // Stable, so the panel's Esc handler and focus aren't redone on every render.
+  const closeOverflow = useCallback(() => setOverflowPoints(null), []);
 
   const listingList = (
     <>
@@ -95,8 +97,8 @@ export function PropertyMapExplorer({ listings, totalCount, listHref }: { listin
           {listingList}
         </aside>
 
-        {/* Cluster-overflow panel always overlays the map itself here (never the aside above),
-            at every width — see ClusterOverflowPanel.tsx for its own responsive positioning. */}
+        {/* The "same address" panel always overlays the map itself here (never the aside above),
+            at every width — see MapSpotPanel.tsx for its own responsive positioning. */}
         <div className="relative h-full flex-1">
           <PropertyMapFull
             points={points}
@@ -119,16 +121,11 @@ export function PropertyMapExplorer({ listings, totalCount, listHref }: { listin
           )}
           {hasOverflow && (
             <>
-              {/* Dimmed backdrop behind the bottom-sheet panel below lg, so it visibly reads as
-                  a floating overlay above the map rather than plain stacked content — without
-                  it, a full-coverage panel with no visible depth cue looked identical to inline
-                  flow. Not needed at lg+, where the panel is a partial-width side panel with the
-                  map and sidebar still visible. */}
-              <div
-                className="absolute inset-0 z-[999] bg-ink-950/40 lg:hidden"
-                onClick={() => setOverflowPoints(null)}
-              />
-              <ClusterOverflowPanel points={overflowPoints} onClose={() => setOverflowPoints(null)} />
+              {/* Dimmed backdrop behind the bottom sheet below lg, so it reads as a layer above
+                  the map; a tap on it closes the sheet. Not needed at lg+, where the panel is a
+                  small floating card with the map still usable around it. */}
+              <div className="absolute inset-0 z-[999] bg-ink-950/40 lg:hidden" onClick={closeOverflow} />
+              <MapSpotPanel listings={overflowPoints.map((p) => p.listing)} onClose={closeOverflow} />
             </>
           )}
         </div>

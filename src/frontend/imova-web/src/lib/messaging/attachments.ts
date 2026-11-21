@@ -5,10 +5,20 @@ export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 
 const EXTENSIONS: Record<string, string> = { "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
 
+// A resized JPEG copy the API makes of a message image: "thumbnail" (≤800 px, the picture in a
+// conversation) or "large" (≤1600 px, the full-screen viewer). Without one, the original upload.
+export type AttachmentSize = "thumbnail" | "large";
+
 // Where the browser loads a message image: the site's own access-checked proxy
 // (app/message-attachments/[id]/route.ts), never a storage URL — the images are private.
-export function attachmentSrc(attachmentId: string): string {
-  return `/message-attachments/${encodeURIComponent(attachmentId)}`;
+export function attachmentSrc(attachmentId: string, size?: AttachmentSize): string {
+  const path = `/message-attachments/${encodeURIComponent(attachmentId)}`;
+  return size ? `${path}?size=${size}` : path;
+}
+
+// The proxy passes on only a size the API knows; anything else means the original.
+export function attachmentSizeParam(value: string | null): AttachmentSize | null {
+  return value === "thumbnail" || value === "large" ? value : null;
 }
 
 export function attachmentExtension(file: { type: string }): string | null {

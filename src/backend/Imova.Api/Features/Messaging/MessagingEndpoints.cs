@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Imova.Api.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Messaging;
 using Imova.Application.Features.Messaging.Admin;
 using Imova.Application.Features.Messaging.GetConversationIdForListing;
 using Imova.Application.Features.Messaging.GetConversations;
@@ -99,19 +100,25 @@ public static class MessagingEndpoints
 
         // A message image, streamed from the private container — only to the conversation's two
         // participants or an admin; everyone else gets the same 404 as for an unknown id.
+        // ?size=thumbnail|large: a resized JPEG copy (MessageImageCopies); absent: the original.
         group.MapGet("/attachments/{id:guid}", async (
-            Guid id, ClaimsPrincipal user, ISender sender, IBlobStorageService blobStorageService, HttpContext http, CancellationToken ct) =>
+            Guid id, string? size, ClaimsPrincipal user, ISender sender, MessageImageCopies copies, HttpContext http, CancellationToken ct) =>
         {
+            if (!MessageImageSizes.TryParse(size, out var imageSize))
+            {
+                return Results.BadRequest();
+            }
+
             var file = await sender.Send(new GetMessageAttachmentQuery(user.GetUserId(), user.IsInRole(Roles.Admin), id), ct);
-            var content = file is null ? null : await blobStorageService.OpenMessageAttachmentAsync(file.BlobName, ct);
-            if (content is null)
+            var image = file is null ? null : await copies.OpenAsync(file.BlobName, file.ContentType, imageSize, ct);
+            if (image is null)
             {
                 return Results.NotFound();
             }
 
             // Private: browsers may cache it, shared caches (proxies/CDNs) must not.
             http.Response.Headers.CacheControl = "private, max-age=3600";
-            return Results.Stream(content, file!.ContentType);
+            return Results.Stream(image.Content, image.ContentType);
         });
 
         group.MapPost("/attachments/upload-url", async (AttachmentUploadUrlRequest request, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>

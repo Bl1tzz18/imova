@@ -9,30 +9,16 @@ import { coverPhoto, numberAttribute, photoSrcSet } from "@/lib/listing/view";
 import { formatPercentChange } from "@/lib/listing/priceHistory";
 import type { Listing } from "@/types/listing";
 
-export function PropertyCard({
-  listing,
-  showFloor = false,
-  hidePerMonthSuffix = false,
-}: {
-  listing: Listing;
-  // Extra bits the cluster-overflow map panel wants (ClusterOverflowPanel.tsx) that the
-  // regular search/saved-listings grids don't — kept optional so this stays the one card
-  // implementation everywhere instead of a near-duplicate compact card.
-  showFloor?: boolean;
-  hidePerMonthSuffix?: boolean;
-}) {
+export function PropertyCard({ listing }: { listing: Listing }) {
   const tType = useTranslations("PropertyType");
   const tListing = useTranslations("ListingType");
-  const tDetail = useTranslations("PropertyDetail");
   const tCard = useTranslations("PropertyCard");
   const tPrice = useTranslations("PriceHistory");
   const location = formatLocation(listing.property.location);
   const isUnavailable = listing.status !== "Active";
   const reduction = isUnavailable ? null : listing.priceReduction;
-  // Rooms/floors live in the per-type attributes now — only some property types have them.
+  // Rooms live in the per-type attributes now — only some property types have them.
   const rooms = numberAttribute(listing, "rooms");
-  const floor = numberAttribute(listing, "floor");
-  const totalFloors = numberAttribute(listing, "totalFloors");
   const cover = coverPhoto(listing);
 
   return (
@@ -86,7 +72,7 @@ export function PropertyCard({
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="font-display text-xl font-medium text-ink-950">
             {formatPrice(listing.price.amount, listing.price.currency)}
-            {listing.transactionType === "Rent" && !hidePerMonthSuffix && (
+            {listing.transactionType === "Rent" && (
               <span className="ml-1 text-sm font-normal text-ink-500">{tCard("perMonth")}</span>
             )}
           </p>
@@ -114,12 +100,6 @@ export function PropertyCard({
             <>
               <span className="h-1 w-1 rounded-full bg-ink-300" />
               <span>{tCard("rooms", { count: rooms })}</span>
-            </>
-          )}
-          {showFloor && floor != null && (
-            <>
-              <span className="h-1 w-1 rounded-full bg-ink-300" />
-              <span>{totalFloors != null ? tDetail("floorOf", { floor, totalFloors }) : floor}</span>
             </>
           )}
         </div>

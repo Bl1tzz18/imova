@@ -1,25 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import { swipeDirection } from "@/lib/listing/swipe";
+import { ImageViewer } from "@/components/ui/ImageViewer";
 import { photoSrcSet } from "@/lib/listing/view";
 import type { Photo } from "@/types/listing";
 
-function ChevronIcon({ direction, className }: { direction: "left" | "right"; className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d={direction === "left" ? "m15 18-6-6 6-6" : "m9 18 6-6-6-6"} />
-    </svg>
-  );
-}
-
-// Hero image + thumbnail strip on the property detail page, backed by a full-screen lightbox
-// for stepping through every photo at full size — arrows, keyboard (← → Esc) and, on a phone,
-// swiping. Opening it moves focus into it (the close button) and closing returns focus to the photo
-// that opened it; the photos either side of the current one are preloaded. Client-only because it
-// needs click/keyboard state — the page itself stays a Server Component and passes the media down.
+// Hero image + thumbnail strip on the property detail page, backed by the full-screen ImageViewer
+// for stepping through every photo at full size. Closing it returns focus to the photo that opened
+// it. Client-only because it needs click/keyboard state — the page itself stays a Server Component
+// and passes the media down.
 export function PropertyGallery({
   media,
   title,
@@ -36,8 +27,6 @@ export function PropertyGallery({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const t = useTranslations("PropertyDetail");
   const opener = useRef<HTMLElement | null>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const open = useCallback((index: number, from: HTMLElement) => {
     opener.current = from;
@@ -47,38 +36,10 @@ export function PropertyGallery({
     setOpenIndex(null);
     opener.current?.focus();
   }, []);
-  const showPrev = useCallback(
-    () => setOpenIndex((i) => (i === null ? null : (i - 1 + media.length) % media.length)),
-    [media.length]
+  const viewerImages = useMemo(
+    () => media.map((p) => ({ id: p.id, src: p.url, thumbnailSrc: p.thumbnailUrl })),
+    [media]
   );
-  const showNext = useCallback(
-    () => setOpenIndex((i) => (i === null ? null : (i + 1) % media.length)),
-    [media.length]
-  );
-
-  const isOpen = openIndex !== null;
-  useEffect(() => {
-    if (isOpen) closeButton.current?.focus();
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (openIndex === null) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") showPrev();
-      if (e.key === "ArrowRight") showNext();
-    };
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [openIndex, close, showPrev, showNext]);
 
   const corner = actions && <div className="absolute right-3 top-3 z-10 flex gap-2">{actions}</div>;
 
@@ -144,109 +105,20 @@ export function PropertyGallery({
       )}
 
       {openIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/95 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label={title}
-          onClick={close}
-          onTouchStart={(e) => {
-            const touch = e.touches[0];
-            touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+        <ImageViewer
+          images={viewerImages}
+          index={openIndex}
+          onIndexChange={setOpenIndex}
+          onClose={close}
+          alt={title}
+          labels={{
+            close: t("closeGallery"),
+            previous: t("previousPhoto"),
+            next: t("nextPhoto"),
+            counter: (current, total) => t("photoCounter", { current, total }),
+            imageNumber: (number, total) => t("photoNumber", { number, total }),
           }}
-          onTouchEnd={(e) => {
-            const start = touchStart.current;
-            const touch = e.changedTouches[0];
-            touchStart.current = null;
-            if (!start || !touch || media.length < 2) return;
-            const direction = swipeDirection(touch.clientX - start.x, touch.clientY - start.y);
-            if (direction === "next") showNext();
-            if (direction === "previous") showPrev();
-          }}
-        >
-          <div className="flex shrink-0 items-center justify-between px-2 text-sm text-white/70">
-            <span>{t("photoCounter", { current: openIndex + 1, total: media.length })}</span>
-            <button
-              ref={closeButton}
-              type="button"
-              onClick={close}
-              aria-label={t("closeGallery")}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-4 w-4">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-            {media.length > 1 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  showPrev();
-                }}
-                aria-label={t("previousPhoto")}
-                className="absolute left-0 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-4 sm:h-12 sm:w-12"
-              >
-                <ChevronIcon direction="left" className="h-5 w-5" />
-              </button>
-            )}
-
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={media[openIndex].url}
-              alt={title}
-              className="max-h-full max-w-full select-none object-contain"
-              draggable={false}
-              onClick={(e) => e.stopPropagation()}
-            />
-            {/* The neighbours, loaded ahead so the next swipe shows its photo at once. */}
-            {media.length > 1 &&
-              [media[(openIndex + 1) % media.length], media[(openIndex - 1 + media.length) % media.length]].map((p) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={p.id} src={p.url} alt="" aria-hidden className="hidden" />
-              ))}
-
-            {media.length > 1 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  showNext();
-                }}
-                aria-label={t("nextPhoto")}
-                className="absolute right-0 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-4 sm:h-12 sm:w-12"
-              >
-                <ChevronIcon direction="right" className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-
-          {media.length > 1 && (
-            <div className="flex shrink-0 justify-center gap-2 overflow-x-auto px-2 pt-3">
-              {media.map((item, i) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenIndex(i);
-                  }}
-                  aria-label={t("photoNumber", { number: i + 1, total: media.length })}
-                  aria-current={i === openIndex ? "true" : undefined}
-                  className={`h-12 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-opacity ${
-                    i === openIndex ? "border-white opacity-100" : "border-transparent opacity-50 hover:opacity-80"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        />
       )}
     </>
   );

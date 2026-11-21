@@ -236,8 +236,18 @@
     "title": "Proprietăți pe hartă",
     "resultsCount": "{count, plural, one {# anunț pe hartă} few {# anunțuri pe hartă} other {# de anunțuri pe hartă}}",
     "viewListing": "Vezi anunțul",
-    "pointListingsCount": "{count, plural, one {# anunț în acest punct} few {# anunțuri în acest punct} other {# de anunțuri în acest punct}}",
-    "closePanel": "Închide panoul"
+    "closePanel": "Închide panoul",
+    "spotSameAddress": "Aceeași adresă",
+    "spotSameSpot": "Același loc pe hartă",
+    "spotCount": "{count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}",
+    "spotSortLabel": "Ordonează după",
+    "spotSort": {
+      "price": "Preț",
+      "area": "Suprafață",
+      "floor": "Etaj"
+    },
+    "spotFloor": "et. {floor}",
+    "spotFloorOf": "et. {floor}/{totalFloors}"
   },
   "NewPropertyPage": {
     "title": "Adaugă anunț",
@@ -292,15 +302,24 @@
     "saving": "Se salvează...",
     "sectionPhotos": "Fotografii",
     "addPhotos": "Adaugă fotografii",
+    "addMorePhotos": "Adaugă mai multe fotografii",
     "photoHint": "JPEG, PNG, WebP, GIF, BMP sau HEIC, max. 10MB per fotografie",
+    "photoHintMany": "Până la {max} · poți selecta mai multe deodată",
     "photoInvalidType": "Format neacceptat",
     "photoTooLarge": "Fișier prea mare (max. 10MB)",
     "photoUploadFailed": "Încărcare eșuată",
     "removePhoto": "Elimină fotografia",
-    "photosRule": "Fiecare anunț de pe IMOVA are cel puțin {min} fotografii reale ale proprietății.",
-    "photosMissing": "{count} din {min} · {missing, plural, one {mai adaugă # fotografie} few {mai adaugă # fotografii} other {mai adaugă # de fotografii}}",
-    "photosEnough": "{count, plural, one {# fotografie} few {# fotografii} other {# de fotografii}} · gata",
-    "photosRecommend": "Recomandăm cel puțin {recommended}: fațada, fiecare cameră, bucătăria, baia și priveliștea.",
+    "photosIntro": "Adaugă până la {max} de fotografii — cu cât mai multe, cu atât mai bine.",
+    "photosAdded": "{count, plural, one {# adăugată} few {# adăugate} other {# adăugate}}",
+    "photosMarkMin": "minim {min}",
+    "photosMarkIdeal": "ideal {recommended}+",
+    "photosStatusBelow": "{missing, plural, one {Mai adaugă # fotografie ca să poți continua.} few {Mai adaugă # fotografii ca să poți continua.} other {Mai adaugă # de fotografii ca să poți continua.}}",
+    "photosStatusEnough": "Gata de publicare. Mai multe fotografii aduc mai multe vizite — fațada, fiecare cameră, bucătăria, baia.",
+    "photosStatusPlenty": "Excelent! Poți adăuga până la {max} de fotografii.",
+    "photosStatusFull": "Excelent!",
+    "photosFull": "Ai adăugat numărul maxim de fotografii ({max}).",
+    "photosFullPendingRemoval": "Fotografiile eliminate dispar când salvezi anunțul; după aceea poți adăuga altele.",
+    "photosSkipped": "{skipped, plural, one {# fotografie nu a fost adăugată} few {# fotografii nu au fost adăugate} other {# de fotografii nu au fost adăugate}}: un anunț poate avea cel mult {max} de fotografii.",
     "photosNeeded": "Adaugă cel puțin {min} fotografii ca să continui ({missing, plural, one {mai lipsește #} few {mai lipsesc #} other {mai lipsesc #}}).",
     "photosStillUploading": "Așteaptă să se încarce fotografiile, apoi continuă.",
     "tipsHeading": "Sfaturi pentru un anunț de succes",
@@ -1178,7 +1197,16 @@
     "archiveAction": "Arhivează",
     "viewListing": "Vezi anunțul",
     "deletedAccount": "Cont șters",
-    "deletedAccountNotice": "Această persoană și-a șters contul. Poți citi în continuare conversația, dar nu mai poți trimite mesaje."
+    "deletedAccountNotice": "Această persoană și-a șters contul. Poți citi în continuare conversația, dar nu mai poți trimite mesaje.",
+    "imageViewer": {
+      "open": "Deschide imaginea {number} din {total}",
+      "dialog": "Imagine din mesaj",
+      "close": "Închide",
+      "previous": "Imaginea anterioară",
+      "next": "Imaginea următoare",
+      "counter": "{current} din {total}",
+      "imageNumber": "Imaginea {number} din {total}"
+    }
   },
   "AdminMessaging": {
     "title": "Mesaje raportate",
@@ -1267,7 +1295,8 @@
         "notFound": "Fișierul nu a ajuns pe server. Încearcă să-l încarci din nou.",
         "tooLarge": "Fișierul depășește limita de {maxMb} MB.",
         "notAnImage": "Fișierul nu este o imagine acceptată (JPEG, PNG, WebP, GIF, BMP, HEIC).",
-        "notYours": "Una dintre imagini nu îți aparține."
+        "notYours": "Una dintre imagini nu îți aparține.",
+        "tooManyPhotos": "Un anunț poate avea cel mult {max} de fotografii."
       },
       "messaging": {
         "banned": "Nu mai poți trimite mesaje: contul tău a fost restricționat.",

@@ -2,6 +2,7 @@ using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
 using Imova.Application.Features.Account;
+using Imova.Application.Features.Messaging;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
 using Imova.Domain.Messaging;
@@ -179,7 +180,7 @@ public class AccountDeletionTests
         Assert.False(await _f.Db.Conversations.AnyAsync());
         Assert.False(await _f.Db.Messages.AnyAsync());
         Assert.False(await _f.Db.ConversationReports.AnyAsync());
-        Assert.Contains(image, _f.Blobs.DeletedMessageAttachmentNames);
+        Assert.All(MessageImageSizes.AllBlobNames(image), name => Assert.Contains(name, _f.Blobs.DeletedMessageAttachmentNames));
     }
 
     [Fact]
@@ -188,11 +189,16 @@ public class AccountDeletionTests
         var sent = _f.UploadedImage(_f.Visitor.Id);
         var neverSent = _f.UploadedImage(_f.Visitor.Id);
         await _f.StartAsync(attachments: [sent]);
+        // Both were viewed, so their display copies exist too (MessageImageCopies).
+        foreach (var name in MessageImageSizes.AllBlobNames(sent).Concat(MessageImageSizes.AllBlobNames(neverSent)))
+        {
+            _f.Blobs.StoredMessageAttachmentNames.Add(name);
+        }
 
         await DeleteAsync(_f.Visitor.Id);
 
-        Assert.Contains(neverSent, _f.Blobs.DeletedMessageAttachmentNames);
-        Assert.DoesNotContain(sent, _f.Blobs.DeletedMessageAttachmentNames);
+        Assert.All(MessageImageSizes.AllBlobNames(neverSent), name => Assert.Contains(name, _f.Blobs.DeletedMessageAttachmentNames));
+        Assert.All(MessageImageSizes.AllBlobNames(sent), name => Assert.DoesNotContain(name, _f.Blobs.DeletedMessageAttachmentNames));
     }
 
     [Fact]

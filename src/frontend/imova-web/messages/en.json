@@ -236,8 +236,18 @@
     "title": "Properties on the map",
     "resultsCount": "{count, plural, one {# listing on the map} other {# listings on the map}}",
     "viewListing": "View listing",
-    "pointListingsCount": "{count, plural, one {# listing at this point} other {# listings at this point}}",
-    "closePanel": "Close panel"
+    "closePanel": "Close panel",
+    "spotSameAddress": "Same address",
+    "spotSameSpot": "Same spot on the map",
+    "spotCount": "{count, plural, one {# listing} other {# listings}}",
+    "spotSortLabel": "Sort by",
+    "spotSort": {
+      "price": "Price",
+      "area": "Area",
+      "floor": "Floor"
+    },
+    "spotFloor": "floor {floor}",
+    "spotFloorOf": "floor {floor}/{totalFloors}"
   },
   "NewPropertyPage": {
     "title": "Add listing",
@@ -292,15 +302,24 @@
     "saving": "Saving...",
     "sectionPhotos": "Photos",
     "addPhotos": "Add photos",
+    "addMorePhotos": "Add more photos",
     "photoHint": "JPEG, PNG, WebP, GIF, BMP or HEIC, max 10MB per photo",
+    "photoHintMany": "Up to {max} · pick several at once",
     "photoInvalidType": "Unsupported format",
     "photoTooLarge": "File too large (max 10MB)",
     "photoUploadFailed": "Upload failed",
     "removePhoto": "Remove photo",
-    "photosRule": "Every listing on IMOVA has at least {min} real photos of the property.",
-    "photosMissing": "{count} of {min} · {missing, plural, one {add # more photo} other {add # more photos}}",
-    "photosEnough": "{count, plural, one {# photo} other {# photos}} · done",
-    "photosRecommend": "We recommend at least {recommended}: the outside, every room, the kitchen, the bathroom and the view.",
+    "photosIntro": "Add up to {max} photos — the more, the better.",
+    "photosAdded": "{count} added",
+    "photosMarkMin": "minimum {min}",
+    "photosMarkIdeal": "ideal {recommended}+",
+    "photosStatusBelow": "{missing, plural, one {Add # more photo to continue.} other {Add # more photos to continue.}}",
+    "photosStatusEnough": "Ready to publish. More photos bring more views — the outside, every room, the kitchen, the bathroom.",
+    "photosStatusPlenty": "Great! You can add up to {max} photos.",
+    "photosStatusFull": "Great!",
+    "photosFull": "You've added the most photos a listing can have ({max}).",
+    "photosFullPendingRemoval": "Photos you removed go when you save the listing; then you can add others.",
+    "photosSkipped": "{skipped, plural, one {# photo wasn't added} other {# photos weren't added}}: a listing can have at most {max} photos.",
     "photosNeeded": "Add at least {min} photos to continue ({missing} still missing).",
     "photosStillUploading": "Wait for the photos to finish uploading, then continue.",
     "tipsHeading": "Tips for a successful listing",
@@ -1178,7 +1197,16 @@
     "archiveAction": "Archive",
     "viewListing": "View listing",
     "deletedAccount": "Deleted account",
-    "deletedAccountNotice": "This person has deleted their account. You can still read the conversation, but you can't send new messages."
+    "deletedAccountNotice": "This person has deleted their account. You can still read the conversation, but you can't send new messages.",
+    "imageViewer": {
+      "open": "Open image {number} of {total}",
+      "dialog": "Image in message",
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "counter": "{current} of {total}",
+      "imageNumber": "Image {number} of {total}"
+    }
   },
   "AdminMessaging": {
     "title": "Reported messages",
@@ -1267,7 +1295,8 @@
         "notFound": "The file didn't reach the server. Try uploading it again.",
         "tooLarge": "The file exceeds the {maxMb} MB limit.",
         "notAnImage": "The file isn't a supported image (JPEG, PNG, WebP, GIF, BMP, HEIC).",
-        "notYours": "One of the images doesn't belong to you."
+        "notYours": "One of the images doesn't belong to you.",
+        "tooManyPhotos": "A listing can have at most {max} photos."
       },
       "messaging": {
         "banned": "You can no longer send messages: your account has been restricted.",

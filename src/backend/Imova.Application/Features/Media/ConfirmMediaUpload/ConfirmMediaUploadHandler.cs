@@ -37,6 +37,18 @@ public class ConfirmMediaUploadHandler(
             return existing.ToDto(blobStorageService);
         }
 
+        // Checked again here: several upload URLs may have been handed out before the cap was reached.
+        // The refused file is removed right away — no Photo row will ever point at it.
+        try
+        {
+            await ListingPhotoRules.EnsureRoomForAnotherAsync(dbContext, request.ListingId, nameof(ConfirmMediaUploadCommand.BlobName), cancellationToken);
+        }
+        catch (ValidationException)
+        {
+            await DeleteRefusedUploadAsync(request.BlobName, cancellationToken);
+            throw;
+        }
+
         var blobInfo = await blobStorageService.TryGetUploadedBlobInfoAsync(request.BlobName, cancellationToken);
 
         if (blobInfo is null)
@@ -96,6 +108,18 @@ public class ConfirmMediaUploadHandler(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return photo.ToDto(blobStorageService);
+    }
+
+    private async Task DeleteRefusedUploadAsync(string blobName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await blobStorageService.DeleteAsync(blobName, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not delete the refused upload {BlobName}.", blobName);
+        }
     }
 
     private static ValidationException ValidationErrorFor(string message, string code, IReadOnlyDictionary<string, object>? parameters = null) =>

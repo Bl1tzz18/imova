@@ -36,8 +36,38 @@ internal sealed class FakeBlobStorageService : IBlobStorageService
     public Task<UploadedBlobInfo?> TryGetMessageAttachmentInfoAsync(string blobName, CancellationToken cancellationToken) =>
         Task.FromResult(MessageAttachmentInfoByName.GetValueOrDefault(blobName));
 
-    public Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken) =>
-        Task.FromResult<Stream?>(MessageAttachmentInfoByName.ContainsKey(blobName) ? new MemoryStream([1, 2, 3]) : null);
+    // Files written into the message-attachments container (display copies), by name.
+    public Dictionary<string, byte[]> MessageAttachmentContent { get; } = [];
+
+    public int MessageAttachmentOpens { get; private set; }
+
+    public Task<Stream?> OpenMessageAttachmentAsync(string blobName, CancellationToken cancellationToken)
+    {
+        MessageAttachmentOpens++;
+        if (MessageAttachmentContent.TryGetValue(blobName, out var bytes))
+        {
+            return Task.FromResult<Stream?>(new MemoryStream(bytes));
+        }
+
+        return Task.FromResult<Stream?>(MessageAttachmentInfoByName.ContainsKey(blobName) ? new MemoryStream([1, 2, 3]) : null);
+    }
+
+    // Storing a copy fails, like an unreachable storage account.
+    public bool FailMessageAttachmentUploads { get; set; }
+
+    public Task UploadMessageAttachmentAsync(string blobName, Stream content, string contentType, CancellationToken cancellationToken)
+    {
+        if (FailMessageAttachmentUploads)
+        {
+            throw new InvalidOperationException("Storage unreachable.");
+        }
+
+        using var copy = new MemoryStream();
+        content.CopyTo(copy);
+        MessageAttachmentContent[blobName] = copy.ToArray();
+        StoredMessageAttachmentNames.Add(blobName);
+        return Task.CompletedTask;
+    }
 
     // Blob names that exist in each container, for the List*/Open calls.
     public HashSet<string> StoredBlobNames { get; } = [];
