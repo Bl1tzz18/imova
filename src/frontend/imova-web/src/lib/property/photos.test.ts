@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MIN_LISTING_PHOTOS, photoRequirement } from "./photos";
+import { MIN_LISTING_PHOTOS, photoMeter, photoRequirement } from "./photos";
 
 describe("photoRequirement", () => {
   it("asks for three photos, the same as the API", () => {
@@ -16,5 +16,26 @@ describe("photoRequirement", () => {
   it("waits for photos still uploading", () => {
     expect(photoRequirement(3, true).met).toBe(false);
     expect(photoRequirement(3, true).missing).toBe(0);
+  });
+});
+
+describe("photoMeter", () => {
+  it("marks the minimum and the recommendation as points along the bar, not its end", () => {
+    const meter = photoMeter(0);
+    expect(meter.minPercent).toBe(30);
+    expect(meter.recommendedPercent).toBe(80);
+    expect(meter.fillPercent).toBe(0);
+  });
+
+  it("goes from below the minimum, to enough, to plenty", () => {
+    expect(photoMeter(2)).toMatchObject({ fillPercent: 20, stage: "belowMinimum" });
+    expect(photoMeter(3)).toMatchObject({ fillPercent: 30, stage: "enough" });
+    expect(photoMeter(7).stage).toBe("enough");
+    expect(photoMeter(8)).toMatchObject({ fillPercent: 80, stage: "plenty" });
+  });
+
+  it("stays within the bar however many photos there are", () => {
+    expect(photoMeter(25).fillPercent).toBe(100);
+    expect(photoMeter(-1).fillPercent).toBe(0);
   });
 });
