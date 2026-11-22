@@ -52,4 +52,24 @@ public class SearchLocationsTests
         Assert.Equal(8, (await handler.Handle(new SearchLocationsQuery("sat"), CancellationToken.None)).Count);
         Assert.Equal(20, (await handler.Handle(new SearchLocationsQuery("sat", Limit: 99), CancellationToken.None)).Count);
     }
+
+    [Fact]
+    public async Task Handle_LeavesOutChisinausAdministrativeSectorLocalities_SoASectorIsListedOnce()
+    {
+        var db = TestDbContextFactory.Create();
+        var chisinau = Raion.Create(Guid.NewGuid(), "0100", "Chișinău", null, LocalityLabel.Sector);
+        db.Raioane.Add(chisinau);
+        db.Localitati.AddRange(
+            Localitate.Create(Guid.NewGuid(), chisinau.Id, null, "0110", "Sectorul Botanica", null),
+            Localitate.Create(Guid.NewGuid(), chisinau.Id, null, "0111", "Băcioi", null));
+        db.ChisinauSectors.Add(ChisinauSector.Create("Botanica"));
+        await db.SaveChangesAsync();
+        var handler = new SearchLocationsHandler(db, new MemoryCache(new MemoryCacheOptions()));
+
+        var botanica = await handler.Handle(new SearchLocationsQuery("bota"), CancellationToken.None);
+        var bacioi = await handler.Handle(new SearchLocationsQuery("baci"), CancellationToken.None);
+
+        Assert.Equal([("Sector", "Botanica")], botanica.Select(m => (m.Kind, m.Name)));
+        Assert.Equal(["Băcioi"], bacioi.Select(m => m.Name));
+    }
 }

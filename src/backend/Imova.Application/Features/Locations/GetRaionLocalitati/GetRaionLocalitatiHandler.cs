@@ -1,5 +1,6 @@
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Locations;
+using Imova.Domain.Locations;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -30,6 +31,8 @@ public class GetRaionLocalitatiHandler(IApplicationDbContext dbContext, IMemoryC
         var result = await dbContext.Localitati
             .AsNoTracking()
             .Where(l => l.RaionId == request.RaionId)
+            // Chișinău's "Sectorul …" rows repeat its sector list — see Localitate.
+            .Where(l => !l.NameRo.StartsWith(Localitate.AdministrativeSectorPrefix))
             .OrderBy(l => l.NameRo)
             .Select(l => new LocalitateDto(l.Id, l.Code, l.NameRo, l.NameRu))
             .ToListAsync(cancellationToken);
