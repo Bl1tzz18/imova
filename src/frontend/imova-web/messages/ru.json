@@ -14,14 +14,16 @@
     "account": "Аккаунт",
     "savedListings": "Сохранённые объявления",
     "myListings": "Мои объявления",
-    "moderationQueue": "Очередь модерации",
+    "moderationQueue": "Модерация объявлений",
     "accountSettings": "Настройки аккаунта",
     "messages": "Сообщения",
     "messagingReports": "Жалобы на сообщения",
     "savedSearches": "Сохранённые поиски",
     "administrators": "Администраторы",
     "agencyVerification": "Проверка агентств",
-    "agencies": "Агентства"
+    "agencies": "Агентства",
+    "administration": "Администрирование",
+    "adminWaiting": "{count, plural, one {# задача ждёт} few {# задачи ждут} many {# задач ждут} other {# задачи ждут}}"
   },
   "Footer": {
     "tagline": "Платформа недвижимости для Молдовы — объявления от частных лиц и агентств.",

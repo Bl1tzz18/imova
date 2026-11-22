@@ -14,14 +14,16 @@
     "account": "Cont",
     "savedListings": "Anunțuri salvate",
     "myListings": "Anunțurile mele",
-    "moderationQueue": "Coadă de moderare",
+    "moderationQueue": "Moderare anunțuri",
     "accountSettings": "Setările contului",
     "messages": "Mesaje",
     "messagingReports": "Mesaje raportate",
     "savedSearches": "Căutări salvate",
     "administrators": "Administratori",
     "agencyVerification": "Verificare agenții",
-    "agencies": "Agenții"
+    "agencies": "Agenții",
+    "administration": "Administrare",
+    "adminWaiting": "{count, plural, one {# lucru în așteptare} few {# lucruri în așteptare} other {# de lucruri în așteptare}}"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",

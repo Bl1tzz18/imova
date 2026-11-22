@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using Imova.Api.Common;
+using Imova.Application.Common.Identity;
+using Imova.Application.Features.Admins.GetAdminSummary;
 using Imova.Application.Features.Admins.GetAdmins;
 using Imova.Application.Features.Admins.GrantAdmin;
 using MediatR;
@@ -14,6 +16,11 @@ public static class AdminEndpoints
     {
         app.MapGet("/api/v1/admin/admins", async (ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
             Results.Ok(await sender.Send(new GetAdminsQuery(user.GetUserId()), cancellationToken)))
+            .RequireAdmin();
+
+        // What's waiting, per admin area — the count on the account menu's "Administrare" entry.
+        app.MapGet("/api/v1/admin/summary", async (ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
+            Results.Ok(await sender.Send(new GetAdminSummaryQuery(user.IsInRole(Roles.Admin)), cancellationToken)))
             .RequireAdmin();
 
         // Role-gated at the route, re-checked against the database, password-confirmed, rate

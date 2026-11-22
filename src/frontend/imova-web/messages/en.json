@@ -14,14 +14,16 @@
     "account": "Account",
     "savedListings": "Saved listings",
     "myListings": "My listings",
-    "moderationQueue": "Moderation queue",
+    "moderationQueue": "Listing moderation",
     "accountSettings": "Account settings",
     "messages": "Messages",
     "messagingReports": "Reported messages",
     "savedSearches": "Saved searches",
     "administrators": "Administrators",
     "agencyVerification": "Agency verification",
-    "agencies": "Agencies"
+    "agencies": "Agencies",
+    "administration": "Administration",
+    "adminWaiting": "{count, plural, one {# item waiting} other {# items waiting}}"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",

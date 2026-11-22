@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { ModerationQueue } from "@/components/admin/ModerationQueue";
@@ -114,6 +115,7 @@ export default async function AdminModerationPage({
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+          <AdminNav current="moderation" />
           <h1 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("title")}</h1>
           <p className="mt-1 text-sm text-ink-500">
             {tab === "reports"
