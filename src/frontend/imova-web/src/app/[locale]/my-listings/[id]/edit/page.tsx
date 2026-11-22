@@ -1,0 +1,102 @@
+import { notFound } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
+import { getTranslations } from "next-intl/server";
+import { Footer } from "@/components/layout/Footer";
+import { LinkButton } from "@/components/ui/Button";
+import { PropertyForm } from "@/app/[locale]/properties/new/PropertyForm";
+import { listingEditRights } from "@/lib/agency/publishAs";
+import { getMyAgencies } from "@/lib/api/agencies";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { getSessionToken } from "@/lib/auth/session";
+import type { Listing } from "@/types/listing";
+
+async function getListing(id: string, token: string): Promise<Listing | null> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const res = await fetch(`${apiUrl}/api/v1/listings/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (res.status === 404) {
+    return null;
+  }
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch listing: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+// ?step=photos opens the form on its photos step ("Adaugă fotografii" in "Anunțurile mele").
+export default async function EditListingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ step?: string }>;
+}) {
+  const [{ id }, { step }] = await Promise.all([params, searchParams]);
+  const token = await getSessionToken();
+  if (!token) {
+    return redirectTo(`/login?next=${encodeURIComponent(`/my-listings/${id}/edit`)}`);
+  }
+
+  const [listing, profile, agencies, t] = await Promise.all([
+    getListing(id, token),
+    getCurrentUserProfile(),
+    getMyAgencies(token),
+    getTranslations("EditListingPage"),
+  ]);
+
+  if (!listing) {
+    notFound();
+  }
+
+  // Its author, a site admin, or an Owner/Admin of its agency. Taking it out of its agency is for that
+  // agency's Owners/Admins; putting it under another agency only for its author (so only the author
+  // is offered their agencies).
+  const rights = profile
+    ? listingEditRights({
+        userId: profile.id,
+        isSiteAdmin: profile.roles.includes("Admin"),
+        authorUserId: listing.publisher.userId,
+        listingAgencyId: listing.agency?.id ?? null,
+        agencies,
+      })
+    : { canEdit: false, canChangeAgency: false, isAuthor: false };
+  const isOwner = rights.canEdit;
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <div className="mx-auto max-w-[1040px] px-4 py-10 sm:px-6 sm:py-14">
+          <LinkButton href="/my-listings" variant="ghost" size="sm" className="!px-0 !justify-start">
+            ← {t("backToMyListings")}
+          </LinkButton>
+
+          <h1 className="mt-4 font-hero text-2xl font-extrabold text-ink-950 sm:text-3xl">{t("title")}</h1>
+
+          {isOwner ? (
+            <>
+              <p className="mt-2 text-sm text-ink-500">{t("subtitle")}</p>
+              <div className="mt-8">
+                <PropertyForm
+                  listing={listing}
+                  agencies={rights.isAuthor ? agencies : []}
+                  canChangeAgency={rights.canChangeAgency}
+                  initialStep={step === "photos" ? "photos" : undefined}
+                />
+              </div>
+            </>
+          ) : (
+            <p className="mt-4 rounded-xl border border-accent-100 bg-accent-100/60 px-4 py-3 text-sm text-accent-700">
+              {t("forbiddenText")}
+            </p>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}

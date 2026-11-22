@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { getSessionToken } from "@/lib/auth/session";
 
@@ -10,7 +10,7 @@ import { getSessionToken } from "@/lib/auth/session";
 export async function setAgencyVerified(agencyId: string, verified: boolean): Promise<{ error?: string }> {
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/agencies");
+    return redirectTo("/login?next=/admin/agencies");
   }
 
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
@@ -31,7 +31,7 @@ export async function setAgencyVerified(agencyId: string, verified: boolean): Pr
 export async function adminDeleteAgency(agencyId: string, confirmName: string, reason: string): Promise<{ error?: string }> {
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/agencies");
+    return redirectTo("/login?next=/admin/agencies");
   }
 
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";

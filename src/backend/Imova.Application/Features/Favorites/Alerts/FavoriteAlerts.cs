@@ -180,9 +180,9 @@ public class FavoriteAlerts(
                 card?.AreaM2 ?? 0,
                 card?.Location,
                 card?.PhotoUrl),
-            listingUrl: appOptions.WebUrl($"/property/{listing.Id}"),
-            UnsubscribeUrl(favorite.UserId),
-            SettingsUrl,
+            listingUrl: appOptions.WebUrl($"/property/{listing.Number}", to.Language),
+            UnsubscribeUrl(favorite.UserId, to.Language),
+            SettingsUrl(to.Language),
             to.Language);
 
     // The listing's own link now shows its 410 page: the summary, then "Anunțuri asemănătoare".
@@ -190,17 +190,18 @@ public class FavoriteAlerts(
         FavoriteAlertEmails.Ended(
             to.Email,
             ended,
-            listingUrl: appOptions.WebUrl($"/property/{ended.Id}"),
-            similarUrl: appOptions.WebUrl($"/property/{ended.Id}#similar-listings-title"),
+            listingUrl: appOptions.WebUrl($"/property/{ended.Number}", to.Language),
+            similarUrl: appOptions.WebUrl($"/property/{ended.Number}#similar-listings-title", to.Language),
             searchUrl: appOptions.WebUrl(
-                $"/search?transactionType={ended.TransactionType}&propertyType={ended.PropertyType}&raionId={ended.RaionId}"),
-            UnsubscribeUrl(userId),
-            SettingsUrl,
+                $"/search?transactionType={ended.TransactionType}&propertyType={ended.PropertyType}&raionId={ended.RaionId}",
+                to.Language),
+            UnsubscribeUrl(userId, to.Language),
+            SettingsUrl(to.Language),
             to.Language,
             card?.PhotoUrl);
 
-    private string UnsubscribeUrl(Guid userId) =>
-        appOptions.WebUrl($"/favorites/unsubscribe?user={userId}&token={Uri.EscapeDataString(unsubscribeTokens.Create(userId))}");
+    private string UnsubscribeUrl(Guid userId, string language) =>
+        appOptions.WebUrl($"/favorites/unsubscribe?user={userId}&token={Uri.EscapeDataString(unsubscribeTokens.Create(userId))}", language);
 
-    private string SettingsUrl => appOptions.WebUrl("/account?tab=notifications");
+    private string SettingsUrl(string language) => appOptions.WebUrl("/account?tab=notifications", language);
 }

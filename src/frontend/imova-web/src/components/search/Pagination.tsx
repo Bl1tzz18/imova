@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { searchHref, updateSearch, type SearchState } from "@/lib/search/filters";
 import { pageWindow } from "@/lib/search/pagination";

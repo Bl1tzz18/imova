@@ -1,6 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/config";
+import { localizedPath } from "@/i18n/localePaths";
 import { buttonClassName } from "@/components/ui/Button";
 import { DeleteAccountSection } from "@/components/account/DeleteAccountSection";
 import type { AccountDataSummary } from "@/lib/account/deletion";
@@ -35,7 +37,7 @@ export function PrivacyPanel({
         )}
 
         {/* A plain <a> to the route handler: next/link would prefetch it (and build an export). */}
-        <a href="/account/data-export" className={buttonClassName({ variant: "secondary", className: "mt-1 self-start" })}>
+        <a href={localizedPath(useLocale() as Locale, "/account/data-export")} className={buttonClassName({ variant: "secondary", className: "mt-1 self-start" })}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden>
             <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

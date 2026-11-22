@@ -96,7 +96,8 @@ public class TelegramBotUpdatesTests
         Assert.Empty(_dbContext.TelegramLinkCodes);
         var reply = Assert.Single(_bot.Sent);
         Assert.StartsWith("Ссылка для подключения устарела", reply.Html);
-        Assert.Equal("https://imova.md/account?tab=notifications", Assert.Single(reply.Buttons).Url);
+        // In the chat's language, like the text: the Russian site.
+        Assert.Equal("https://imova.md/ru/account?tab=notifications", Assert.Single(reply.Buttons).Url);
     }
 
     [Theory]

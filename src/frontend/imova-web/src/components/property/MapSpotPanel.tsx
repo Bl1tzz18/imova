@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
@@ -12,6 +12,7 @@ import { unitPrice } from "@/lib/listing/price";
 import { formatPercentChange } from "@/lib/listing/priceHistory";
 import { availableSorts, priceRange, sharedStreetAddress, sortSpotListings, type SpotSort } from "@/lib/map/spotListings";
 import type { Listing } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
@@ -153,7 +154,7 @@ export function MapSpotPanel({ listings, onClose }: { listings: Listing[]; onClo
           return (
             <li key={listing.id}>
               <Link
-                href={`/property/${listing.id}`}
+                href={listingPath(listing)}
                 className="group flex items-center gap-3.5 rounded-2xl p-2.5 transition-colors hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
               >
                 <span className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600">

@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectInLocale, redirectTo } from "@/i18n/redirect";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
@@ -16,10 +16,11 @@ type AuthResponseBody = SessionTokens & {
   user: { requiresPhoneNumber: boolean; preferredLanguage?: string };
 };
 
-// Stores the session, then puts the site in the account's language (see applySignInLocale).
+// Stores the session, then puts the site in the account's language (see applySignInLocale) —
+// returned, so the redirect that follows lands on that language's address.
 async function startSession(session: AuthResponseBody) {
   await setSessionCookies(session);
-  await applySignInLocale(session.user.preferredLanguage, session.token);
+  return applySignInLocale(session.user.preferredLanguage, session.token);
 }
 
 // Translated into the current UI language from the API's error code (see lib/api/problem.ts).
@@ -32,8 +33,8 @@ async function completeSignIn(res: Response, next: string): Promise<AuthFormStat
     return readAuthError(res);
   }
 
-  await startSession((await res.json()) as AuthResponseBody);
-  redirect(next);
+  const locale = await startSession((await res.json()) as AuthResponseBody);
+  return redirectInLocale(next, locale);
 }
 
 export async function login(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
@@ -87,12 +88,13 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   }
 
   const session = (await res.json()) as AuthResponseBody;
-  await startSession(session);
+  const locale = await startSession(session);
   const { user } = session;
 
   const nextPath = safeNextPath(next);
-  redirect(
+  return redirectInLocale(
     user.requiresPhoneNumber ? `/complete-profile?next=${encodeURIComponent(nextPath)}` : nextPath,
+    locale,
   );
 }
 
@@ -103,7 +105,7 @@ export async function completePhoneNumber(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login");
+    return redirectTo("/login");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/auth/phone`, {
@@ -116,14 +118,14 @@ export async function completePhoneNumber(
     return readAuthError(res);
   }
 
-  redirect(safeNextPath(formData.get("next")));
+  return redirectTo(safeNextPath(formData.get("next")));
 }
 
 export async function updateProfile(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login");
+    return redirectTo("/login");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/auth/profile`, {
@@ -147,7 +149,7 @@ export async function changePassword(_prevState: AuthFormState, formData: FormDa
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login");
+    return redirectTo("/login");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/auth/password`, {
@@ -176,7 +178,7 @@ export async function signOutOtherSessions(_prevState: AuthFormState): Promise<A
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login");
+    return redirectTo("/login");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/auth/sign-out-other-sessions`, {
@@ -229,7 +231,7 @@ export async function resetPassword(_prevState: AuthFormState, formData: FormDat
     return readAuthError(res);
   }
 
-  redirect("/login?reset=1");
+  return redirectTo("/login?reset=1");
 }
 
 // Called while rendering /confirm-email (the emailed link) rather than from a form: opening the
@@ -257,7 +259,7 @@ export async function resendEmailConfirmation(): Promise<AuthFormState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login");
+    return redirectTo("/login");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/auth/resend-confirmation`, {
@@ -279,14 +281,14 @@ export async function resendEmailConfirmation(): Promise<AuthFormState> {
 // Best effort: the cookies go either way.
 export async function logout() {
   await endSession();
-  redirect("/");
+  return redirectTo("/");
 }
 
 // Signs out, then straight to the sign-in page, which comes back to `next` (a path on this site) —
 // "switch accounts", e.g. on an invitation sent to another address.
 export async function logoutTo(next: string) {
   await endSession();
-  redirect(`/login?next=${encodeURIComponent(safeNextPath(next))}`);
+  return redirectTo(`/login?next=${encodeURIComponent(safeNextPath(next))}`);
 }
 
 async function endSession() {

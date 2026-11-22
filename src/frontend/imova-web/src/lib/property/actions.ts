@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { getSessionToken } from "@/lib/auth/session";
@@ -12,7 +12,7 @@ export async function setFavorite(listingId: string, saved: boolean, next: strin
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect(`/login?next=${encodeURIComponent(next)}`);
+    return redirectTo(`/login?next=${encodeURIComponent(next)}`);
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/favorite`, {
@@ -35,7 +35,7 @@ async function postListingStatusAction(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/my-listings");
+    return redirectTo("/login?next=/my-listings");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/${action}`, {
@@ -48,7 +48,7 @@ async function postListingStatusAction(
   }
 
   revalidatePath("/my-listings");
-  revalidatePath(`/property/${listingId}`);
+  revalidatePath("/[locale]/property/[slug]", "page");
   return {};
 }
 
@@ -103,7 +103,7 @@ export async function updateListingDetails(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect(`/login?next=${encodeURIComponent(`/my-listings/${listingId}/edit`)}`);
+    return redirectTo(`/login?next=${encodeURIComponent(`/my-listings/${listingId}/edit`)}`);
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}`, {
@@ -132,7 +132,7 @@ export async function updateListingDetails(
 
   revalidatePath("/my-listings");
   revalidatePath(`/my-listings/${listingId}/edit`);
-  revalidatePath(`/property/${listingId}`);
+  revalidatePath("/[locale]/property/[slug]", "page");
   return { success: true, savedAt: Date.now(), status: saved.status, priceReduction: saved.priceReduction ?? null };
 }
 

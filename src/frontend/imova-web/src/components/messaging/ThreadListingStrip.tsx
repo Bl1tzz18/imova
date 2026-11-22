@@ -1,9 +1,10 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { canOpenListing } from "@/lib/messaging/listingStrip";
 import { formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { ConversationListingDetails } from "@/types/messaging";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 // The listing a conversation is about, under the thread header: photo, title and key facts. The
 // whole strip opens the listing (with a "Vezi anunțul →" pill as the visible cue) when the viewer
@@ -73,7 +74,7 @@ export function ThreadListingStrip({
 
   const row = "flex items-center gap-3 border-b border-line px-5 py-3";
   return openable ? (
-    <Link href={`/property/${listing.id}`} aria-label={`${t("viewListing")}: ${listing.title}`} className={cn(row, "group transition-colors hover:bg-bubble")}>
+    <Link href={listingPath(listing)} aria-label={`${t("viewListing")}: ${listing.title}`} className={cn(row, "group transition-colors hover:bg-bubble")}>
       {content}
     </Link>
   ) : (

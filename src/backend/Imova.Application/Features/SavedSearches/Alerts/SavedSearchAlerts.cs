@@ -91,7 +91,7 @@ public class SavedSearchAlerts(
 
                 if (total > 0)
                 {
-                    var listings = await LoadListingsAsync(ids, cancellationToken);
+                    var listings = await LoadListingsAsync(ids, candidate.PreferredLanguage, cancellationToken);
                     var failed = 0;
 
                     if (byTelegram)
@@ -162,7 +162,7 @@ public class SavedSearchAlerts(
 
     // The same data the site's cards show (main photo URL, location names), via the shared loader,
     // in the search's order; a listing removed in the meantime is simply left out.
-    private async Task<List<AlertListing>> LoadListingsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken)
+    private async Task<List<AlertListing>> LoadListingsAsync(IReadOnlyList<Guid> ids, string language, CancellationToken cancellationToken)
     {
         var byId = await dbContext.Listings.AsNoTracking()
             .Where(l => ids.Contains(l.Id))
@@ -186,7 +186,7 @@ public class SavedSearchAlerts(
                 l.Property.TotalAreaM2,
                 location,
                 photo?.CardUrl,
-                appOptions.WebUrl($"/property/{l.Id}"));
+                appOptions.WebUrl($"/property/{l.Number}", language));
         }).ToList();
     }
 
@@ -197,9 +197,10 @@ public class SavedSearchAlerts(
             savedSearch.Name,
             listings,
             total,
-            openUrl: appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open"),
+            openUrl: appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open", language),
             unsubscribeUrl: appOptions.WebUrl(
-                $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}"),
+                $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}",
+                language),
             language);
     }
 }

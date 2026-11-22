@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useMemo, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { MapSpotPanel } from "@/components/property/MapSpotPanel";
 import { PropertyIcon } from "@/components/property/PropertyIcon";

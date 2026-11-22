@@ -149,7 +149,7 @@ public class SavedSearchEndpointsTests : IClassFixture<WebApplicationFactory<Pro
 
         // (Registration also emailed this address its confirmation link.)
         var email = Assert.Single(_email.SentTo(user.Email), m => m.Subject.Contains("„Chirii test”"));
-        Assert.Contains($"/property/{listing.Id}", email.TextBody);
+        Assert.Contains($"/property/{listing.Number}\n", email.TextBody);
 
         var body = email.TextBody;
         var unsubscribeLink = new Uri(body[body.IndexOf("http://localhost:3000/saved-searches/unsubscribe", StringComparison.Ordinal)..].Trim());

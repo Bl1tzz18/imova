@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
@@ -16,7 +16,7 @@ export async function deleteAccount(_prevState: AccountDeletionState, formData: 
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/account?tab=privacy");
+    return redirectTo("/login?next=/account?tab=privacy");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/users/me`, {
@@ -30,7 +30,7 @@ export async function deleteAccount(_prevState: AccountDeletionState, formData: 
   }
 
   await clearSessionCookies();
-  redirect("/account-deleted");
+  return redirectTo("/account-deleted");
 }
 
 // For an account without a password (Google sign-up): it confirms from the emailed link instead.
@@ -38,7 +38,7 @@ export async function requestAccountDeletionLink(_prevState: AccountDeletionStat
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/account?tab=privacy");
+    return redirectTo("/login?next=/account?tab=privacy");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/users/me/deletion-link`, {
@@ -76,7 +76,7 @@ export async function confirmAccountDeletion(_prevState: AccountDeletionState, f
     await clearSessionCookies();
   }
 
-  redirect("/account-deleted");
+  return redirectTo("/account-deleted");
 }
 
 // The Notifications tab's switches: saves right away, returns what the API stored.
@@ -86,7 +86,7 @@ export async function updateEmailPreferences(
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/account?tab=notifications");
+    return redirectTo("/login?next=/account?tab=notifications");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/users/me/email-preferences`, {
@@ -123,7 +123,7 @@ export async function startTelegramLink(): Promise<{ link: TelegramLinkStart } |
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/account?tab=notifications");
+    return redirectTo("/login?next=/account?tab=notifications");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/users/me/telegram/link`, {
@@ -141,7 +141,7 @@ export async function disconnectTelegram(): Promise<{ ok: true } | { error: stri
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/account?tab=notifications");
+    return redirectTo("/login?next=/account?tab=notifications");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/users/me/telegram`, {

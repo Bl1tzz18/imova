@@ -183,6 +183,52 @@ the reminder, `now() - interval '1 minute'` to expire it) and wait a minute.
 - Run it outside Docker with `dotnet run --project src/backend/Imova.Worker` and a
   `ConnectionStrings:Default` pointing at the compose Postgres.
 
+## Languages in the address and SEO
+
+The site's language is part of every page address: Romanian has no prefix (`/search`), Russian
+and English do (`/ru/search`, `/en/search`). Search engines never send cookies, so this is what lets
+them index all three. Every page lives under `src/app/[locale]/`; `src/middleware.ts` maps the
+address onto that segment (next-intl, `src/i18n/routing.ts`), after renewing the session.
+
+- **Links and redirects:** use `Link`, `useRouter` and `usePathname` from `@/i18n/navigation`
+  (never `next/link` or next/navigation's router), and on the server `return redirectTo(path)` /
+  `permanentRedirectTo(path)` from `@/i18n/redirect`. They keep the visitor in their language.
+  `notFound` and `useSearchParams` still come from `next/navigation`. A plain `<a>` (downloads,
+  route handlers) needs `localizedPath(locale, path)` from `@/i18n/localePaths`.
+- **The cookie** (`NEXT_LOCALE`) only steers an unprefixed *page visit*: someone whose language is
+  Russian or English who opens `/search` (an old link, a bookmark) is sent to `/ru/search`. Opening
+  a prefixed page sets the cookie; the language switcher sets it and moves to the same page in the
+  other language. The browser's Accept-Language is ignored on purpose.
+- **hreflang:** every page answers with a `Link` header naming its address in all three languages
+  (built from `SITE_URL`); listing, agency, search and home pages also set a per-language canonical.
+- **Listing addresses:** `/property/100015-apartament-2-camere-botanica` — the short number finds
+  it (`GET /api/v1/listings/by-number/{n}`), the words come from the title
+  (`lib/listing/listingUrl.ts`, Romanian diacritics and Cyrillic in Latin letters). Any other
+  words, or an old `/property/<guid>` link, get a permanent redirect to that address.
+- **Sitemap and robots:** `/sitemap.xml` is an index of `/sitemaps/pages.xml` (home, agencies,
+  search per transaction × type, agency pages) and `/sitemaps/listings-N.xml` (10 000 public
+  listings each, from `GET /api/v1/sitemap/listings?page=N`), each page once per language with
+  its hreflang alternates. `/robots.txt` keeps private pages out in every language. Both are
+  built per request — `SITE_URL` must be the real domain in production.
+- **Search pages:** only plain searches (transaction, one type, a place, page 1) are indexed;
+  anything narrower is `noindex, follow` (`lib/search/indexing.ts`).
+- **Emails and Telegram** link to the recipient's language (`AppOptions.WebUrl(path, language)`).
+- **Share card:** pages without their own image use `public/images/og-default.jpg` (1200×630).
+
+### After launch: search engines
+
+Tracked as Jira **KAN-33**. On launch day, once `https://imova.md` is live (`SITE_URL` and
+`App:WebBaseUrl` = `https://imova.md`):
+
+1. Check `https://imova.md/robots.txt` ends with `Sitemap: https://imova.md/sitemap.xml` (localhost
+   there means `SITE_URL` isn't set) and that `/sitemap.xml` opens.
+2. **Google Search Console** — add a *Domain* property `imova.md`, verify with the DNS TXT record at
+   the registrar, then *Sitemaps* → submit `sitemap.xml`.
+3. **Bing Webmaster Tools** — *Import from Google Search Console*.
+4. **Yandex Webmaster** — add `https://imova.md`, verify, add the sitemap.
+5. A week later: Search Console → *Pages* shows listings being indexed (about 3 × the active
+   listings — one per language).
+
 ## Telegram bot
 
 Alerts can also go to Telegram. The bot runs in the **Worker** (`TelegramUpdatePoller`,

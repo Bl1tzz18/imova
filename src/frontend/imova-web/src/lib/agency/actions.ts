@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { getSessionToken } from "@/lib/auth/session";
 import { invitationPath } from "@/lib/agency/invitationPage";
@@ -18,7 +18,7 @@ export async function respondToInvitation(
   const session = await getSessionToken();
 
   if (answer === "accept" && !session) {
-    redirect(`/login?next=${encodeURIComponent(invitationPath(token))}`);
+    return redirectTo(`/login?next=${encodeURIComponent(invitationPath(token))}`);
   }
 
   const res = await fetch(`${apiUrl}/api/v1/invitations/${encodeURIComponent(token)}/${answer}`, {

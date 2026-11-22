@@ -17,7 +17,7 @@ public class AccountDeletionEmails(UserManager<ApplicationUser> userManager, IEm
     public async Task SendConfirmationLinkAsync(ApplicationUser user, CancellationToken cancellationToken)
     {
         var token = await userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, AccountDeletion.TokenPurpose);
-        var link = appOptions.WebUrl($"/delete-account?userId={user.Id}&token={AccountTokens.Encode(token)}");
+        var link = appOptions.WebUrl($"/delete-account?userId={user.Id}&token={AccountTokens.Encode(token)}", user.PreferredLanguage);
         await emailSender.SendAsync(
             ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage), cancellationToken);
     }

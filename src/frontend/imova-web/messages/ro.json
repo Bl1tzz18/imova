@@ -2140,5 +2140,13 @@
     "deleteConfirm": "Șterge agenția",
     "deleting": "Se șterge…",
     "empty": "Nicio agenție nu corespunde căutării."
+  },
+  "Meta": {
+    "siteTitle": "IMOVA — Imobiliare în Moldova",
+    "siteDescription": "Apartamente, case, terenuri și spații comerciale de vânzare și de închiriat în Moldova — de la proprietari și agenții.",
+    "ogImageAlt": "IMOVA — imobiliare în Moldova",
+    "notFoundTitle": "Pagina nu a fost găsită",
+    "notFoundText": "Linkul este greșit sau pagina nu mai există.",
+    "backHome": "Înapoi la prima pagină"
   }
 }

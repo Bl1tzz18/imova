@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { getSessionToken } from "@/lib/auth/session";
 import { agencyManagePath, MY_AGENCIES_HREF, NEW_AGENCY_HREF } from "@/lib/agency/manage";
@@ -21,7 +21,7 @@ function apiUrl(): string {
 async function send(path: string, init: RequestInit & { json?: unknown }, loginNext: string): Promise<Response> {
   const token = await getSessionToken();
   if (!token) {
-    redirect(`/login?next=${encodeURIComponent(loginNext)}`);
+    return redirectTo(`/login?next=${encodeURIComponent(loginNext)}`);
   }
   const { json, ...rest } = init;
   return fetch(`${apiUrl()}${path}`, {
@@ -61,7 +61,7 @@ export async function createAgency(_prev: AgencyProfileState, formData: FormData
   }
   const agency = (await res.json()) as { id: string };
   revalidatePath("/account");
-  redirect(`${agencyManagePath(agency.id)}?created=1`);
+  return redirectTo(`${agencyManagePath(agency.id)}?created=1`);
 }
 
 export async function updateAgency(_prev: AgencyProfileState, formData: FormData): Promise<AgencyProfileState> {
@@ -105,7 +105,7 @@ export async function deleteAgency(agencyId: string, confirmName: string): Promi
     return { error: await apiErrorMessage(res) };
   }
   revalidatePath("/account");
-  redirect(MY_AGENCIES_HREF);
+  return redirectTo(MY_AGENCIES_HREF);
 }
 
 // --- Members ---

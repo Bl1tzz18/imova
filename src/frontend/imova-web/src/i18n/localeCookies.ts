@@ -24,8 +24,9 @@ export async function saveAccountLanguage(locale: Locale, token: string) {
 
 // Right after a sign-in (password, Google or registration): the site switches to the account's
 // language, unless the visitor chose one on this device while signed out — then that one stays
-// and the account follows it. The choice is used up either way.
-export async function applySignInLocale(accountLanguage: string | undefined, token: string) {
+// and the account follows it. The choice is used up either way. Returns the language the visitor
+// continues in (the sign-in then redirects to that language's address).
+export async function applySignInLocale(accountLanguage: string | undefined, token: string): Promise<Locale> {
   const cookieStore = await cookies();
   const chosen = cookieStore.get(localeChosenCookieName)
     ? cookieStore.get(localeCookieName)?.value
@@ -37,4 +38,5 @@ export async function applySignInLocale(accountLanguage: string | undefined, tok
   if (saveToAccount) {
     await saveAccountLanguage(locale, token);
   }
+  return locale;
 }

@@ -56,7 +56,7 @@ public class ListingExpiry(
 
             if (email is not null && !(listing.AgencyId is { } agencyId && hiddenAgencyIds.Contains(agencyId)))
             {
-                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl, language), listing.Id, cancellationToken);
+                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl(language), language), listing.Id, cancellationToken);
             }
         }
 
@@ -82,7 +82,7 @@ public class ListingExpiry(
             if (email is not null)
             {
                 if (!await TrySendAsync(
-                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl, language), listing.Id, cancellationToken))
+                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl(language), language), listing.Id, cancellationToken))
                 {
                     continue; // Retried next run.
                 }
@@ -98,7 +98,7 @@ public class ListingExpiry(
         return sent;
     }
 
-    private string MyListingsUrl => appOptions.WebUrl("/my-listings");
+    private string MyListingsUrl(string language) => appOptions.WebUrl("/my-listings", language);
 
     // The owner is the user behind the listing's publisher (see ListingAccess); emails go in their language.
     private async Task<List<(Listing Listing, string? Email, string Language)>> WithOwnerEmailsAsync(

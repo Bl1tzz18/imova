@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/config";
+import { localizedPath } from "@/i18n/localePaths";
 import { Button, buttonClassName } from "@/components/ui/Button";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { deleteSavedSearch, updateSavedSearch } from "@/lib/savedSearches/actions";
@@ -40,6 +42,7 @@ export function SavedSearchList({
 
 function SavedSearchItem({ row, email, telegram }: { row: SavedSearchRow; email: string; telegram: TelegramChannelStatus }) {
   const t = useTranslations("SavedSearches");
+  const locale = useLocale() as Locale;
   const [name, setName] = useState(row.name);
   const [frequency, setFrequency] = useState<AlertFrequency>(row.alertFrequency);
   const [channels, setChannels] = useState<AlertChannels>(alertChannels(row));
@@ -103,7 +106,7 @@ function SavedSearchItem({ row, email, telegram }: { row: SavedSearchRow; email:
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               {/* Plain <a>, not next/link: the open route marks the search viewed, and a prefetch would too. */}
-              <a href={openSavedSearchHref(row.id)} className="truncate font-semibold text-ink-950 hover:text-brand-700">
+              <a href={localizedPath(locale, openSavedSearchHref(row.id))} className="truncate font-semibold text-ink-950 hover:text-brand-700">
                 {name}
               </a>
               {row.newListingsCount > 0 && (
@@ -133,7 +136,7 @@ function SavedSearchItem({ row, email, telegram }: { row: SavedSearchRow; email:
               ))}
             </SelectInput>
           </label>
-          <a href={openSavedSearchHref(row.id)} className={buttonClassName({ size: "sm" })}>
+          <a href={localizedPath(locale, openSavedSearchHref(row.id))} className={buttonClassName({ size: "sm" })}>
             {t("open")}
           </a>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { login, type AuthFormState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/Button";

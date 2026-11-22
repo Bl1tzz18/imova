@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils/cn";
 import { coverPhoto } from "@/lib/listing/view";
 import { listingExpiry } from "@/lib/listing/expiry";
 import type { Listing } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 // "accent" is this app's alert/attention color (same tone used for validation and error
 // banners elsewhere), so it's reserved for statuses that need the owner to act — Rejected and
@@ -240,7 +241,7 @@ export function OwnerListingRow({
     <li className="rounded-2xl border border-ink-100 bg-white p-3 sm:p-4">
       <div className="flex gap-3 sm:gap-4">
         <Link
-          href={`/property/${listing.id}`}
+          href={listingPath(listing)}
           className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600 sm:h-[72px] sm:w-24"
         >
           {cover ? (
@@ -254,7 +255,7 @@ export function OwnerListingRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <Link
-              href={`/property/${listing.id}`}
+              href={listingPath(listing)}
               className="line-clamp-2 text-sm font-medium leading-5 text-ink-900 hover:underline"
             >
               {listing.title}

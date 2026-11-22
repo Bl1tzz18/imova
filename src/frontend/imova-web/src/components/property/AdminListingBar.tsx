@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ListingStats } from "@/components/property/ListingStats";
 import { moderationHref, type ListingTab } from "@/lib/admin/moderationTabs";

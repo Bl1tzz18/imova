@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { getAdminSummary } from "@/lib/admin/summaryApi";
 import { getCurrentUserProfile } from "@/lib/auth/profile";

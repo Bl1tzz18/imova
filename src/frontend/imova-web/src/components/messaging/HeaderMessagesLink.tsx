@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { unreadBadgeLabel } from "@/lib/messaging/thread";
 import { useRealtime } from "./RealtimeProvider";

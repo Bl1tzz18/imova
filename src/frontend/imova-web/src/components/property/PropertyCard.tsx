@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/Badge";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils/cn";
 import { coverPhoto, numberAttribute, photoSrcSet } from "@/lib/listing/view";
 import { formatPercentChange } from "@/lib/listing/priceHistory";
 import type { Listing } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 export function PropertyCard({ listing }: { listing: Listing }) {
   const tType = useTranslations("PropertyType");
@@ -23,7 +24,7 @@ export function PropertyCard({ listing }: { listing: Listing }) {
 
   return (
     <Link
-      href={`/property/${listing.id}`}
+      href={listingPath(listing)}
       className="group flex flex-col overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]"
     >
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-gradient-to-br from-brand-800 to-brand-600">

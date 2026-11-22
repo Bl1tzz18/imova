@@ -86,7 +86,7 @@ public class MessageDelivery(
             .Select(l => l.Title)
             .FirstOrDefaultAsync(cancellationToken);
         var preview = message.Body.Length > 300 ? message.Body[..300] + "…" : message.Body;
-        var link = appOptions.WebUrl($"/messages/{conversation.Id}");
+        var link = appOptions.WebUrl($"/messages/{conversation.Id}", recipient.PreferredLanguage);
 
         await emailSender.SendAsync(
             NewMessageEmail(recipient.Email, senderName, title, preview, link, recipient.PreferredLanguage), cancellationToken);

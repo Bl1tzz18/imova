@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
@@ -13,6 +13,7 @@ import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
 import { authorLabel } from "@/lib/listing/contactCard";
 import type { Listing } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 // One list for every moderation tab: the review queue (approve / reject with a reason), Active
 // listings (suspend with a reason) and Suspended ones (shows the reason; reinstate).
@@ -77,7 +78,7 @@ export function ModerationQueue({ listings, tab = "pending" }: { listings: Listi
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link
-                href={`/property/${listing.id}`}
+                href={listingPath(listing)}
                 className="flex h-[68px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600"
               >
                 {cover ? (
@@ -94,7 +95,7 @@ export function ModerationQueue({ listings, tab = "pending" }: { listings: Listi
 
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/property/${listing.id}`}
+                  href={listingPath(listing)}
                   className="block truncate text-sm font-medium text-ink-900 hover:underline"
                 >
                   {listing.title}

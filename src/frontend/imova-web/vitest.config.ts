@@ -11,5 +11,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // next-intl imports "next/navigation" without an extension, which plain Node ESM can't resolve;
+    // bundling it through Vite (as Next does) resolves it.
+    server: { deps: { inline: ["next-intl"] } },
   },
 });

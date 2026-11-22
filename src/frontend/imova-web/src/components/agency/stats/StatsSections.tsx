@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
@@ -7,6 +7,7 @@ import { attentionFix, change, contactRate, type Change } from "@/lib/agency/sta
 import { formatDate } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import type { AgencyStats } from "@/types/agency";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 const number = new Intl.NumberFormat("ru-RU");
 
@@ -117,7 +118,7 @@ export async function TopListings({ stats }: { stats: AgencyStats }) {
           <li key={l.listingId} className="flex gap-3 py-3">
             <Thumb url={l.thumbnailUrl} />
             <div className="min-w-0 flex-1">
-              <Link href={`/property/${l.listingId}`} className="line-clamp-2 text-sm font-medium text-ink-900 hover:underline">
+              <Link href={listingPath({ id: l.listingId, number: l.number, title: l.title })} className="line-clamp-2 text-sm font-medium text-ink-900 hover:underline">
                 {l.title}
               </Link>
               <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-500">
@@ -154,7 +155,7 @@ export async function TopListings({ stats }: { stats: AgencyStats }) {
                     <div className="flex items-center gap-3">
                       <Thumb url={l.thumbnailUrl} />
                       <div className="min-w-0">
-                        <Link href={`/property/${l.listingId}`} className="line-clamp-1 font-medium text-ink-900 hover:underline">
+                        <Link href={listingPath({ id: l.listingId, number: l.number, title: l.title })} className="line-clamp-1 font-medium text-ink-900 hover:underline">
                           {l.title}
                         </Link>
                         <p className="mt-0.5 flex items-center gap-2 text-xs text-ink-500">
@@ -206,7 +207,7 @@ export async function NeedsAttentionList({ stats, locale }: { stats: AgencyStats
           return (
             <li key={`${item.listingId}-${item.reason}`} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
               <div className="min-w-0 flex-1 basis-56">
-                <Link href={`/property/${item.listingId}`} className="line-clamp-1 text-sm font-medium text-ink-900 hover:underline">
+                <Link href={listingPath({ id: item.listingId, number: item.number, title: item.title })} className="line-clamp-1 text-sm font-medium text-ink-900 hover:underline">
                   {item.title}
                 </Link>
                 <p className="mt-0.5 text-sm text-ink-600">

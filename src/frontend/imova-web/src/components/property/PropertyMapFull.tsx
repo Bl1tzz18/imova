@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvent } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
@@ -13,6 +13,7 @@ import { createClusterIcon, createPropertyMarkerIcon, createPropertyPricePinIcon
 import { formatLocation, formatPrice } from "@/lib/utils/format";
 import { coverPhoto } from "@/lib/listing/view";
 import type { Listing } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 const MOLDOVA_CENTER: [number, number] = [47.1, 28.6];
 
@@ -36,7 +37,7 @@ function PropertyPopupContent({ listing }: { listing: Listing }) {
   const cover = coverPhoto(listing);
 
   return (
-    <Link href={`/property/${listing.id}`} className="flex w-52 flex-col gap-1">
+    <Link href={listingPath(listing)} className="flex w-52 flex-col gap-1">
       <div className="-mx-3 -mt-3 mb-1 flex aspect-[16/10] items-center justify-center overflow-hidden bg-brand-800">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
