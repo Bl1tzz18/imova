@@ -1,4 +1,5 @@
 using Imova.Application.Common.Identity;
+using Imova.Application.Features.Telegram;
 using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
 using Imova.Domain.Listings;
@@ -78,6 +79,10 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
 
     DbSet<AdminAuditEntry> AdminAuditEntries { get; }
+
+    DbSet<TelegramLink> TelegramLinks { get; }
+
+    DbSet<TelegramLinkCode> TelegramLinkCodes { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 

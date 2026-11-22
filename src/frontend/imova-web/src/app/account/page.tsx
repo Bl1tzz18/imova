@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getAccountDataSummary } from "@/lib/account/summary";
 import { getEmailPreferences } from "@/lib/account/emailPreferences";
+import { getTelegramConnection } from "@/lib/account/actions";
 import { getMyAgencies, getMyInvitations } from "@/lib/api/agencies";
 import { getSessionToken } from "@/lib/auth/session";
 import { AccountSettings, type AccountTab } from "@/components/account/AccountSettings";
@@ -26,9 +27,10 @@ export default async function AccountPage({
   const initialTab = TABS.find((tab) => tab === params.tab) ?? "profile";
   const exportStatus = params.export === "tooSoon" || params.export === "failed" ? params.export : undefined;
   const token = await getSessionToken();
-  const [summary, emailPreferences, agencies, invitations] = await Promise.all([
+  const [summary, emailPreferences, telegram, agencies, invitations] = await Promise.all([
     getAccountDataSummary(),
     getEmailPreferences(),
+    getTelegramConnection(),
     // A failure only empties that tab (it says the list couldn't be loaded).
     token ? getMyAgencies(token).catch(() => null) : null,
     token ? getMyInvitations(token).catch(() => null) : null,
@@ -41,6 +43,7 @@ export default async function AccountPage({
         profile={profile}
         summary={summary}
         emailPreferences={emailPreferences}
+        telegram={telegram}
         agencies={agencies}
         invitations={invitations}
         initialTab={initialTab}

@@ -6,10 +6,19 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils/cn";
 import { updateEmailPreferences } from "@/lib/account/actions";
 import type { EmailPreferences } from "@/lib/account/emailPreferences";
+import type { TelegramConnection } from "@/lib/account/telegram";
+import { TelegramConnectionCard } from "@/components/account/TelegramConnectionCard";
 
-// The "Notifications" tab of /account: the optional emails, each a switch that saves right away.
-// Saved-search alerts are set per search on /saved-searches, so this only links there.
-export function NotificationsPanel({ initial }: { initial: EmailPreferences | null }) {
+// The "Notifications" tab of /account: the optional emails, each a switch that saves right away,
+// and the Telegram connection (when the site has a bot). Saved-search alerts are set per search on
+// /saved-searches, so this only links there.
+export function NotificationsPanel({
+  initial,
+  telegram = null,
+}: {
+  initial: EmailPreferences | null;
+  telegram?: TelegramConnection | null;
+}) {
   const t = useTranslations("Account");
   const [preferences, setPreferences] = useState(initial);
   const [status, setStatus] = useState<{ kind: "saved" | "error"; text: string } | null>(null);
@@ -86,6 +95,8 @@ export function NotificationsPanel({ initial }: { initial: EmailPreferences | nu
           </span>
         </button>
       </div>
+
+      {telegram?.available && <TelegramConnectionCard initial={telegram} />}
 
       <p className="border-t border-ink-100 pt-5 text-sm text-ink-500">
         {t.rich("savedSearchAlertsHint", {

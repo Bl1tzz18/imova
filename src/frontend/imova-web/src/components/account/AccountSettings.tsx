@@ -11,6 +11,7 @@ import { OtherSessionsPanel } from "@/components/account/OtherSessionsPanel";
 import { PrivacyPanel, type ExportStatus } from "@/components/account/PrivacyPanel";
 import { NotificationsPanel } from "@/components/account/NotificationsPanel";
 import type { EmailPreferences } from "@/lib/account/emailPreferences";
+import type { TelegramConnection } from "@/lib/account/telegram";
 import { AgenciesPanel } from "@/components/account/AgenciesPanel";
 import type { Invitation, MyAgency } from "@/types/agency";
 
@@ -53,6 +54,7 @@ export function AccountSettings({
   profile,
   summary = null,
   emailPreferences = null,
+  telegram = null,
   agencies = null,
   invitations = null,
   initialTab = "profile",
@@ -61,6 +63,7 @@ export function AccountSettings({
   profile: UserProfile;
   summary?: AccountDataSummary | null;
   emailPreferences?: EmailPreferences | null;
+  telegram?: TelegramConnection | null;
   agencies?: MyAgency[] | null;
   invitations?: Invitation[] | null;
   initialTab?: AccountTab;
@@ -134,7 +137,7 @@ export function AccountSettings({
               <OtherSessionsPanel />
             </>
           ) : tab === "notifications" ? (
-            <NotificationsPanel initial={emailPreferences} />
+            <NotificationsPanel initial={emailPreferences} telegram={telegram} />
           ) : (
             <PrivacyPanel
               email={profile.email}

@@ -604,12 +604,25 @@
     "accountDeletedHome": "Go to the home page",
     "privacyRights": "These rights — to access your data, to take it with you, to correct it and to have it erased — are guaranteed by the personal data protection law of the Republic of Moldova and, if you live in the European Union, by the General Data Protection Regulation (GDPR).",
     "notificationsTab": "Notifications",
-    "notificationsTitle": "Email notifications",
-    "notificationsBody": "Choose which optional emails you get. Account emails (confirmation, password reset) are always sent.",
+    "notificationsTitle": "Notifications",
+    "notificationsBody": "Choose which optional notifications you get, and where. Account emails (confirmation, password reset) are always sent.",
     "favoriteUpdatesLabel": "Saved listings",
     "favoriteUpdatesHint": "An email when a listing in your favorites changes price (at most one a day per listing) or is no longer available.",
     "notificationsSaved": "Saved.",
     "notificationsUnavailable": "We couldn't load your notification settings. Please try again later.",
+    "telegramTitle": "Telegram alerts",
+    "telegramHint": "Get the alerts for your saved searches right in Telegram, as soon as new listings appear.",
+    "telegramConnect": "Connect Telegram",
+    "telegramOpen": "Open Telegram",
+    "telegramCancel": "Cancel",
+    "telegramWaiting": "Open Telegram and press “Start”. This page updates by itself once it’s done — the link works for 15 minutes.",
+    "telegramExpired": "The link has expired. Press “Connect Telegram” again.",
+    "telegramConnected": "Connected",
+    "telegramConnectedAs": "Connected as {name}",
+    "telegramConnectedSince": "since {date}",
+    "telegramConnectedNow": "Done! Telegram is connected.",
+    "telegramDisconnect": "Disconnect",
+    "telegramDisconnected": "Telegram has been disconnected.",
     "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>."
   },
   "SavedListingsPage": {
@@ -1409,6 +1422,9 @@
         "ownListing": "You can't report your own listing.",
         "limitReached": "You can report at most {max} listings a day. Please try again tomorrow.",
         "noneOpen": "This listing's reports were already handled (perhaps by another admin). Reload the page."
+      },
+      "telegram": {
+        "unavailable": "Telegram isn’t available right now."
       }
     },
     "validation": {

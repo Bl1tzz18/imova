@@ -10,6 +10,8 @@ using Imova.Application.Features.Media.Cleanup;
 using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.SavedSearches;
 using Imova.Application.Features.SavedSearches.Alerts;
+using Imova.Application.Features.Telegram;
+using Imova.Application.Features.Telegram.Bot;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Geocoding;
@@ -17,13 +19,14 @@ using Imova.Infrastructure.Imports;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Storage;
+using Imova.Infrastructure.Telegram;
 using Imova.Worker;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 
 // Background jobs, separate from the API: saved-search alert emails, saved-listing (favorite) alert emails, listing expiry (with the
 // reminder emails), the display sizes of older photos (PhotoSizeBackfill), and the cleanup of photos from abandoned add-listing forms and of ended
-// sessions. Uses the same database, email and data-protection setup as the API (the key ring is
+// sessions; and the Telegram bot's inbox (TelegramUpdatePoller). Uses the same database, email and data-protection setup as the API (the key ring is
 // shared so unsubscribe links made here verify in the API). Never runs migrations — the API does that on startup.
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -97,5 +100,22 @@ builder.Services.AddScheduledJob<AbandonedPhotoCleanup>(builder.Configuration, "
 builder.Services.AddScheduledJob<RefreshTokenCleanup>(builder.Configuration, "SessionCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<ListingVisitorMarkCleanup>(builder.Configuration, "ListingVisitorCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<ListingImports>(builder.Configuration, "ListingImports", defaultIntervalSeconds: 15);
+
+// The Telegram bot (TelegramUpdatePoller): only with a "Telegram:BotToken". The token is in every
+// Bot API URL, so this HttpClient logs nothing.
+var telegramOptions = builder.Configuration.GetSection(TelegramOptions.SectionName).Get<TelegramOptions>() ?? new TelegramOptions();
+builder.Services.AddSingleton(telegramOptions);
+if (!string.IsNullOrWhiteSpace(telegramOptions.BotToken))
+{
+    builder.Services.AddHttpClient<ITelegramBot, TelegramBotClient>(client =>
+        {
+            client.BaseAddress = new Uri($"https://api.telegram.org/bot{telegramOptions.BotToken.Trim()}/");
+            // Longer than the long-poll wait (TelegramUpdatePoller.PollSeconds).
+            client.Timeout = TimeSpan.FromSeconds(90);
+        })
+        .RemoveAllLoggers();
+    builder.Services.AddScoped<TelegramBotUpdates>();
+    builder.Services.AddHostedService<TelegramUpdatePoller>();
+}
 
 builder.Build().Run();

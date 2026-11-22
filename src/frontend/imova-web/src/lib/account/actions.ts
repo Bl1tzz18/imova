@@ -6,6 +6,7 @@ import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { clearSessionCookies, getSessionToken } from "@/lib/auth/session";
 import type { EmailPreferences } from "@/lib/account/emailPreferences";
+import type { TelegramConnection, TelegramLinkStart } from "@/lib/account/telegram";
 
 export type AccountDeletionState = { error?: string; linkSent?: boolean };
 
@@ -99,4 +100,53 @@ export async function updateEmailPreferences(
   }
 
   return { preferences: (await res.json()) as EmailPreferences };
+}
+
+// The account's Telegram connection — for the /account render, and polled by the Notifications tab
+// while the user presses Start in Telegram. null when signed out or the API can't answer.
+export async function getTelegramConnection(): Promise<TelegramConnection | null> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    return null;
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/telegram`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  return res.ok ? ((await res.json()) as TelegramConnection) : null;
+}
+
+// "Conectează Telegram": a fresh t.me link with a one-time code (each one replaces the last).
+export async function startTelegramLink(): Promise<{ link: TelegramLinkStart } | { error: string }> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login?next=/account?tab=notifications");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/telegram/link`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    return { error: await apiErrorMessage(res) };
+  }
+
+  return { link: (await res.json()) as TelegramLinkStart };
+}
+
+export async function disconnectTelegram(): Promise<{ ok: true } | { error: string }> {
+  const apiUrl = process.env.API_URL ?? "http://localhost:8080";
+  const token = await getSessionToken();
+  if (!token) {
+    redirect("/login?next=/account?tab=notifications");
+  }
+
+  const res = await fetch(`${apiUrl}/api/v1/users/me/telegram`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.ok ? { ok: true } : { error: await apiErrorMessage(res) };
 }

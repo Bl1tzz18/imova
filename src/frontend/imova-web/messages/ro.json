@@ -604,12 +604,25 @@
     "accountDeletedHome": "Mergi la pagina principală",
     "privacyRights": "Aceste drepturi — de acces la date, de portabilitate, de rectificare și de ștergere — îți sunt garantate de legislația Republicii Moldova privind protecția datelor cu caracter personal și, dacă locuiești în Uniunea Europeană, de Regulamentul general privind protecția datelor (GDPR).",
     "notificationsTab": "Notificări",
-    "notificationsTitle": "Notificări pe email",
-    "notificationsBody": "Alege ce emailuri opționale primești. Emailurile despre cont (confirmare, resetarea parolei) se trimit mereu.",
+    "notificationsTitle": "Notificări",
+    "notificationsBody": "Alege ce notificări opționale primești și unde. Emailurile despre cont (confirmare, resetarea parolei) se trimit mereu.",
     "favoriteUpdatesLabel": "Anunțurile salvate",
     "favoriteUpdatesHint": "Un email când un anunț salvat la favorite își schimbă prețul (cel mult unul pe zi pentru fiecare anunț) sau nu mai este disponibil.",
     "notificationsSaved": "Salvat.",
     "notificationsUnavailable": "Nu am putut încărca setările notificărilor. Încearcă din nou mai târziu.",
+    "telegramTitle": "Alerte pe Telegram",
+    "telegramHint": "Primești alertele pentru căutările salvate direct în Telegram, imediat ce apar anunțurile noi.",
+    "telegramConnect": "Conectează Telegram",
+    "telegramOpen": "Deschide Telegram",
+    "telegramCancel": "Anulează",
+    "telegramWaiting": "Deschide Telegram și apasă „Start”. Pagina se actualizează singură când e gata — linkul e valabil 15 minute.",
+    "telegramExpired": "Linkul a expirat. Apasă din nou „Conectează Telegram”.",
+    "telegramConnected": "Conectat",
+    "telegramConnectedAs": "Conectat ca {name}",
+    "telegramConnectedSince": "din {date}",
+    "telegramConnectedNow": "Gata! Telegramul e conectat.",
+    "telegramDisconnect": "Deconectează",
+    "telegramDisconnected": "Telegramul a fost deconectat.",
     "savedSearchAlertsHint": "Alertele pentru căutările salvate se setează separat, pentru fiecare căutare, în <link>Căutări salvate</link>."
   },
   "SavedListingsPage": {
@@ -1409,6 +1422,9 @@
         "ownListing": "Nu poți raporta propriul anunț.",
         "limitReached": "Poți raporta cel mult {max} anunțuri pe zi. Încearcă din nou mâine.",
         "noneOpen": "Raportările acestui anunț au fost deja tratate (poate de alt administrator). Reîncarcă pagina."
+      },
+      "telegram": {
+        "unavailable": "Telegram nu e disponibil momentan."
       }
     },
     "validation": {

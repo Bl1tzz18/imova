@@ -19,7 +19,8 @@ namespace Imova.Application.Features.Account;
 //
 // What goes, in one SaveChanges (so either all of it or none of it):
 // - the account row itself, and with it (database cascade) its roles, external logins, refresh
-//   tokens, favorites and saved searches — removed explicitly too, for providers without cascades;
+//   tokens, favorites, saved searches and Telegram connection — removed explicitly too, for providers
+//   without cascades;
 // - its publisher and its private listings, with the listings' photos, favorites and (when nothing
 //   else uses it) the property and its location — see ListingRemoval;
 // - agencies it is the only member of, with their listings; from any other agency it leaves, and
@@ -96,6 +97,8 @@ public class AccountDeletion(
         dbContext.Favorites.RemoveRange(await dbContext.Favorites.Where(f => f.UserId == userId).ToListAsync(cancellationToken));
         dbContext.SavedSearches.RemoveRange(await dbContext.SavedSearches.Where(s => s.UserId == userId).ToListAsync(cancellationToken));
         dbContext.RefreshTokens.RemoveRange(await dbContext.RefreshTokens.Where(t => t.UserId == userId).ToListAsync(cancellationToken));
+        dbContext.TelegramLinks.RemoveRange(await dbContext.TelegramLinks.Where(l => l.UserId == userId).ToListAsync(cancellationToken));
+        dbContext.TelegramLinkCodes.RemoveRange(await dbContext.TelegramLinkCodes.Where(c => c.UserId == userId).ToListAsync(cancellationToken));
         dbContext.UserBlocks.RemoveRange(await dbContext.UserBlocks
             .Where(b => b.BlockerUserId == userId || b.BlockedUserId == userId)
             .ToListAsync(cancellationToken));
