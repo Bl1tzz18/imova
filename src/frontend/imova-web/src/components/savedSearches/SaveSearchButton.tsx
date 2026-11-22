@@ -8,6 +8,7 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { AlertChannelRows } from "@/components/savedSearches/AlertChannelRows";
 import { useTelegramConnect } from "@/components/account/useTelegramConnect";
+import { TelegramLinkQr } from "@/components/account/TelegramLinkQr";
 import { getTelegramConnection } from "@/lib/account/actions";
 import { telegramDisplayName } from "@/lib/account/telegram";
 import { saveSearch } from "@/lib/savedSearches/actions";
@@ -181,6 +182,7 @@ export function SaveSearchButton({
                     <div className="mt-3 rounded-xl bg-ink-50 p-3 text-sm" aria-live="polite">
                       <p className="font-medium text-ink-900">{t("connectTitle")}</p>
                       <p className="mt-1 text-ink-600">{t("connectSteps")}</p>
+                      <TelegramLinkQr url={telegram.link.url} className="mt-3" />
                       {/* Telegram's own blue, so it doesn't compete with "Salvează" (the panel's main action). */}
                       <a
                         href={telegram.link.url}

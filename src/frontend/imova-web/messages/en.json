@@ -623,7 +623,10 @@
     "telegramConnectedNow": "Done! Telegram is connected.",
     "telegramDisconnect": "Disconnect",
     "telegramDisconnected": "Telegram has been disconnected.",
-    "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>."
+    "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>.",
+    "telegramQrLabel": "QR code to connect Telegram",
+    "telegramQrTitle": "Scan with your phone",
+    "telegramQrHint": "Telegram opens on your phone — press “Start” there."
   },
   "SavedListingsPage": {
     "title": "Saved listings",

@@ -623,7 +623,10 @@
     "telegramConnectedNow": "Gata! Telegramul e conectat.",
     "telegramDisconnect": "Deconectează",
     "telegramDisconnected": "Telegramul a fost deconectat.",
-    "savedSearchAlertsHint": "Alertele pentru căutările salvate se setează separat, pentru fiecare căutare, în <link>Căutări salvate</link>."
+    "savedSearchAlertsHint": "Alertele pentru căutările salvate se setează separat, pentru fiecare căutare, în <link>Căutări salvate</link>.",
+    "telegramQrLabel": "Cod QR pentru conectarea Telegram",
+    "telegramQrTitle": "Scanează cu telefonul",
+    "telegramQrHint": "Telegram se deschide pe telefon — apasă „Start” acolo."
   },
   "SavedListingsPage": {
     "title": "Anunțuri salvate",

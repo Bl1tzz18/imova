@@ -623,7 +623,10 @@
     "telegramConnectedNow": "Готово! Telegram подключён.",
     "telegramDisconnect": "Отключить",
     "telegramDisconnected": "Telegram отключён.",
-    "savedSearchAlertsHint": "Уведомления о сохранённых поисках настраиваются отдельно для каждого поиска в разделе <link>Сохранённые поиски</link>."
+    "savedSearchAlertsHint": "Уведомления о сохранённых поисках настраиваются отдельно для каждого поиска в разделе <link>Сохранённые поиски</link>.",
+    "telegramQrLabel": "QR-код для подключения Telegram",
+    "telegramQrTitle": "Отсканируйте телефоном",
+    "telegramQrHint": "Telegram откроется на телефоне — нажмите там «Запустить»."
   },
   "SavedListingsPage": {
     "title": "Сохранённые объявления",

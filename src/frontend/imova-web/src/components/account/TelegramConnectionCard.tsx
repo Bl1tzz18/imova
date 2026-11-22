@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { siTelegram } from "simple-icons";
 import { Button, buttonClassName } from "@/components/ui/Button";
 import { useTelegramConnect } from "@/components/account/useTelegramConnect";
+import { TelegramLinkQr } from "@/components/account/TelegramLinkQr";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format";
 import { disconnectTelegram } from "@/lib/account/actions";
@@ -71,6 +72,7 @@ export function TelegramConnectionCard({ initial }: { initial: TelegramConnectio
                   ? t("telegramExpired")
                   : t("telegramHint")}
           </p>
+          {telegram.link && <TelegramLinkQr url={telegram.link.url} className="mt-3" />}
           <p
             role="status"
             aria-live="polite"
