@@ -41,7 +41,7 @@ public class SavedSearchTests
         var search = Create(AlertFrequency.Daily);
         Assert.True(search.IsAlertDue(Now));
 
-        search.RecordAlertRun(Now, emailSent: true, Now);
+        search.RecordAlertRun(Now, alertSent: true, Now);
         Assert.False(search.IsAlertDue(Now.AddHours(12)));
         Assert.True(search.IsAlertDue(Now.AddHours(23)));
     }
@@ -51,7 +51,7 @@ public class SavedSearchTests
     {
         var search = Create(AlertFrequency.Daily);
 
-        search.RecordAlertRun(Now, emailSent: false, Now);
+        search.RecordAlertRun(Now, alertSent: false, Now);
 
         Assert.True(search.IsAlertDue(Now.AddMinutes(5)));
     }
@@ -61,8 +61,8 @@ public class SavedSearchTests
     {
         var search = Create();
 
-        search.RecordAlertRun(Now.AddHours(1), emailSent: false, Now.AddHours(1));
-        search.RecordAlertRun(Now.AddMinutes(30), emailSent: false, Now.AddHours(2));
+        search.RecordAlertRun(Now.AddHours(1), alertSent: false, Now.AddHours(1));
+        search.RecordAlertRun(Now.AddMinutes(30), alertSent: false, Now.AddHours(2));
 
         Assert.Equal(Now.AddHours(1), search.LastAlertedUpTo);
     }

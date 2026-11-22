@@ -3,7 +3,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common;
 using Imova.Application.Features.SavedSearches.Alerts;
+using Imova.Application.Features.Telegram;
+using Imova.Application.Features.Telegram.Bot;
 using Imova.Contracts.Listings;
 using Imova.Contracts.SavedSearches;
 using Imova.IntegrationTests.TestSupport;
@@ -160,6 +163,47 @@ public class SavedSearchEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         var unsubscribed = await anonymous.PostAsJsonAsync("/api/v1/saved-searches/unsubscribe", new { id = query["id"], token = query["token"] });
         Assert.Equal(HttpStatusCode.OK, unsubscribed.StatusCode);
         Assert.Equal("Off", (await OnlySavedSearchAsync(watcher)).AlertFrequency);
+    }
+
+    [Fact]
+    public async Task ASearchSetToTelegram_SendsTheNewListingToTheConnectedChat_NotByEmail()
+    {
+        var price = UniquePrice();
+        var (watcher, user) = await ListingApi.RegisterAsync(_factory);
+        var chatId = Random.Shared.NextInt64(1_000_000, long.MaxValue);
+        await using (var db = ListingApi.NewDbContext())
+        {
+            db.TelegramLinks.Add(new TelegramLink { UserId = user.Id, ChatId = chatId, LinkedAt = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+        }
+
+        var response = await watcher.PostAsJsonAsync("/api/v1/saved-searches",
+            new { name = "Chirii pe Telegram", queryString = SearchFor(price), alertFrequency = "Instant", alertByEmail = false });
+        var saved = (await response.Content.ReadFromJsonAsync<SavedSearchDto>())!;
+        Assert.Equal((false, true), (saved.AlertByEmail, saved.AlertByTelegram));
+        await PublishListingAsync(price);
+
+        var bot = new RecordingTelegramBot();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var later = new OffsetTimeProvider(SavedSearchAlerts.SettleDelay + TimeSpan.FromSeconds(5));
+            var telegramAlert = new SavedSearchTelegramAlert(
+                bot, scope.ServiceProvider.GetRequiredService<IBlobStorageService>(), new AppOptions { WebBaseUrl = "https://imova.md" },
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<SavedSearchTelegramAlert>.Instance);
+            var alerts = ActivatorUtilities.CreateInstance<SavedSearchAlerts>(
+                scope.ServiceProvider, (TimeProvider)later, telegramAlert, new TelegramOptions { BotToken = "123:test" });
+            await alerts.RunAsync(CancellationToken.None);
+        }
+
+        var message = Assert.Single(bot.Sent.Where(m => m.ChatId == chatId).Select(m => (m.Html, m.Buttons))
+            .Concat(bot.Photos.Where(p => p.ChatId == chatId).Select(p => (Html: p.Caption, p.Buttons))));
+        Assert.Contains("Chirii pe Telegram", message.Html);
+        // The site here is http://localhost:3000, which Telegram can't link to: the listing's link is
+        // left out and only "Oprește alerta" stays a button.
+        Assert.Contains("Apartament", message.Html);
+        Assert.DoesNotContain("localhost", message.Html);
+        Assert.Equal(TelegramBotUpdates.StopAlertData(saved.Id), Assert.Single(message.Buttons).CallbackData);
+        Assert.DoesNotContain(_email.SentTo(user.Email), m => m.Subject.Contains("Chirii pe Telegram"));
     }
 
     private sealed class OffsetTimeProvider(TimeSpan offset) : TimeProvider

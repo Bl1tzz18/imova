@@ -119,4 +119,48 @@ public class SavedSearchHandlersTests
         Assert.Equal("Case", result!.Name);
         Assert.Equal(AlertFrequency.Off, Assert.Single(_db.SavedSearches).AlertFrequency);
     }
+
+    [Fact]
+    public async Task Create_AlertsByEmail_PlusTelegramWhenTheAccountHasItConnected()
+    {
+        Assert.Equal((true, false), Channels(await CreateAsync("transactionType=Rent")));
+
+        _db.TelegramLinks.Add(new Imova.Application.Features.Telegram.TelegramLink { UserId = _userId, ChatId = 5, LinkedAt = _clock.GetUtcNow() });
+        await _db.SaveChangesAsync();
+        Assert.Equal((true, true), Channels(await CreateAsync("transactionType=Sale")));
+
+        // Saving the first one again keeps where its alerts go.
+        Assert.Equal((true, false), Channels(await CreateAsync("transactionType=Rent")));
+    }
+
+    [Fact]
+    public async Task Create_AndUpdate_TakeTheChannelsAsked_AndKeepThemWhenLeftOut()
+    {
+        var created = await new CreateSavedSearchHandler(_db, _clock).Handle(
+            new CreateSavedSearchCommand(_userId, "T", "transactionType=Rent", AlertFrequency.Instant, AlertByEmail: false, AlertByTelegram: true),
+            CancellationToken.None);
+        Assert.Equal((false, true), Channels(created));
+
+        var handler = new UpdateSavedSearchHandler(_db, new FakeListingSearch([]));
+        var renamed = await handler.Handle(new UpdateSavedSearchCommand(_userId, created.Id, "Nou", AlertFrequency.Daily), CancellationToken.None);
+        Assert.Equal((false, true), Channels(renamed!));
+
+        var both = await handler.Handle(
+            new UpdateSavedSearchCommand(_userId, created.Id, "Nou", AlertFrequency.Daily, AlertByEmail: true), CancellationToken.None);
+        Assert.Equal((true, true), Channels(both!));
+    }
+
+    [Fact]
+    public async Task NeitherChannel_IsRefused()
+    {
+        var created = await CreateAsync("transactionType=Rent");
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => new UpdateSavedSearchHandler(_db, new FakeListingSearch([])).Handle(
+            new UpdateSavedSearchCommand(_userId, created.Id, "X", AlertFrequency.Daily, AlertByEmail: false, AlertByTelegram: false),
+            CancellationToken.None));
+        Assert.Equal("savedSearch.noChannel", Assert.Single(ex.Errors).ErrorCode);
+    }
+
+    private static (bool Email, bool Telegram) Channels(SavedSearchDto dto) => (dto.AlertByEmail, dto.AlertByTelegram);
 }
+

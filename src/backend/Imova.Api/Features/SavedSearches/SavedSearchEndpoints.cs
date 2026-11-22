@@ -23,13 +23,13 @@ public static class SavedSearchEndpoints
         group.MapPost("", async (CreateSavedSearchRequest body, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
         {
             var created = await sender.Send(
-                new CreateSavedSearchCommand(user.GetUserId(), body.Name, body.QueryString, body.AlertFrequency), cancellationToken);
+                new CreateSavedSearchCommand(user.GetUserId(), body.Name, body.QueryString, body.AlertFrequency, body.AlertByEmail, body.AlertByTelegram), cancellationToken);
             return Results.Ok(created);
         }).RequireAuthorization();
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateSavedSearchRequest body, ClaimsPrincipal user, ISender sender, CancellationToken cancellationToken) =>
         {
-            var updated = await sender.Send(new UpdateSavedSearchCommand(user.GetUserId(), id, body.Name, body.AlertFrequency), cancellationToken);
+            var updated = await sender.Send(new UpdateSavedSearchCommand(user.GetUserId(), id, body.Name, body.AlertFrequency, body.AlertByEmail, body.AlertByTelegram), cancellationToken);
             return updated is null ? Results.NotFound() : Results.Ok(updated);
         }).RequireAuthorization();
 
@@ -55,6 +55,8 @@ public static class SavedSearchEndpoints
     }
 }
 
-public record CreateSavedSearchRequest(string Name, string QueryString, AlertFrequency AlertFrequency);
+// AlertByEmail/AlertByTelegram are optional (see the commands).
+public record CreateSavedSearchRequest(
+    string Name, string QueryString, AlertFrequency AlertFrequency, bool? AlertByEmail = null, bool? AlertByTelegram = null);
 
-public record UpdateSavedSearchRequest(string Name, AlertFrequency AlertFrequency);
+public record UpdateSavedSearchRequest(string Name, AlertFrequency AlertFrequency, bool? AlertByEmail = null, bool? AlertByTelegram = null);

@@ -34,7 +34,10 @@ public class GetSavedSearchesHandler(IApplicationDbContext dbContext, IListingSe
     }
 }
 
-public record UpdateSavedSearchCommand(Guid UserId, Guid Id, string Name, AlertFrequency AlertFrequency) : IRequest<SavedSearchDto?>;
+// AlertByEmail/AlertByTelegram left out: unchanged.
+public record UpdateSavedSearchCommand(
+    Guid UserId, Guid Id, string Name, AlertFrequency AlertFrequency, bool? AlertByEmail = null, bool? AlertByTelegram = null)
+    : IRequest<SavedSearchDto?>;
 
 public class UpdateSavedSearchValidator : AbstractValidator<UpdateSavedSearchCommand>
 {
@@ -59,6 +62,7 @@ public class UpdateSavedSearchHandler(IApplicationDbContext dbContext, IListingS
 
         savedSearch.Rename(request.Name);
         savedSearch.ChangeAlertFrequency(request.AlertFrequency);
+        savedSearch.ChangeAlertChannels(SavedSearchRules.Channels(request.AlertByEmail, request.AlertByTelegram, savedSearch.AlertChannels));
         await dbContext.SaveChangesAsync(cancellationToken);
         return savedSearch.ToDto(await SavedSearchMatches.CountNewAsync(listingSearch, savedSearch, cancellationToken));
     }

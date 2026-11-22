@@ -18,7 +18,7 @@ public class ExportPersonalDataHandler(
     TimeProvider timeProvider) : IRequestHandler<ExportPersonalDataQuery, PersonalDataExport>
 {
     // Bumped whenever the shape of imova-data.json changes in a way a reader would notice.
-    public const string Format = "imova.personal-data.v3";
+    public const string Format = "imova.personal-data.v4";
 
     public async Task<PersonalDataExport> Handle(ExportPersonalDataQuery request, CancellationToken cancellationToken)
     {
@@ -50,10 +50,17 @@ public class ExportPersonalDataHandler(
             await ReportsAsync(userId, cancellationToken),
             await ListingReportsAsync(userId, cancellationToken),
             await ListingImportsAsync(userId, cancellationToken),
+            await TelegramAsync(userId, cancellationToken),
             MissingFiles: []);
 
         return new PersonalDataExport(data, files);
     }
+
+    private async Task<ExportedTelegramDto?> TelegramAsync(Guid userId, CancellationToken cancellationToken) =>
+        await dbContext.TelegramLinks.AsNoTracking()
+            .Where(l => l.UserId == userId)
+            .Select(l => new ExportedTelegramDto(l.ChatId, l.TelegramUsername, l.TelegramFirstName, l.LinkedAt))
+            .FirstOrDefaultAsync(cancellationToken);
 
     private async Task<List<ExportedListingImportDto>> ListingImportsAsync(Guid userId, CancellationToken cancellationToken) =>
         (await (

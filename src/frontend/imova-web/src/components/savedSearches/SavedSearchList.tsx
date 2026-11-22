@@ -5,10 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button, buttonClassName } from "@/components/ui/Button";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { deleteSavedSearch, updateSavedSearch } from "@/lib/savedSearches/actions";
+import { AlertChannelRows, type TelegramChannelStatus } from "@/components/savedSearches/AlertChannelRows";
 import {
   ALERT_FREQUENCIES,
+  alertChannels,
   isAlertFrequency,
   openSavedSearchHref,
+  type AlertChannels,
   type AlertFrequency,
   type SavedSearch,
 } from "@/lib/savedSearches/savedSearch";
@@ -16,28 +19,38 @@ import {
 // One saved search plus what the page computed about it on the server (its title, filter count).
 export type SavedSearchRow = SavedSearch & { summary: string };
 
-export function SavedSearchList({ rows }: { rows: SavedSearchRow[] }) {
+// email/telegram: the account's, for "Primește alertele pe" (see AlertChannelRows).
+export function SavedSearchList({
+  rows,
+  email,
+  telegram,
+}: {
+  rows: SavedSearchRow[];
+  email: string;
+  telegram: TelegramChannelStatus;
+}) {
   return (
     <ul className="flex flex-col gap-3">
       {rows.map((row) => (
-        <SavedSearchItem key={row.id} row={row} />
+        <SavedSearchItem key={row.id} row={row} email={email} telegram={telegram} />
       ))}
     </ul>
   );
 }
 
-function SavedSearchItem({ row }: { row: SavedSearchRow }) {
+function SavedSearchItem({ row, email, telegram }: { row: SavedSearchRow; email: string; telegram: TelegramChannelStatus }) {
   const t = useTranslations("SavedSearches");
   const [name, setName] = useState(row.name);
   const [frequency, setFrequency] = useState<AlertFrequency>(row.alertFrequency);
+  const [channels, setChannels] = useState<AlertChannels>(alertChannels(row));
   const [renaming, setRenaming] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function save(nextName: string, nextFrequency: AlertFrequency) {
+  function save(nextName: string, nextFrequency: AlertFrequency, nextChannels?: AlertChannels) {
     startTransition(async () => {
-      const result = await updateSavedSearch(row.id, nextName, nextFrequency);
+      const result = await updateSavedSearch(row.id, nextName, nextFrequency, nextChannels);
       if (result.error !== undefined) {
         setError(result.error);
         return;
@@ -45,9 +58,12 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
       setError(null);
       setName(result.savedSearch.name);
       setFrequency(result.savedSearch.alertFrequency);
+      setChannels(alertChannels(result.savedSearch));
       setRenaming(false);
     });
   }
+
+
 
   function remove() {
     startTransition(async () => {
@@ -98,6 +114,7 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
             </div>
           )}
           <p className="mt-1 text-sm text-ink-500">{row.summary}</p>
+
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -121,6 +138,20 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
           </a>
         </div>
       </div>
+
+      {/* Its own line under the header: beside the controls it would be squeezed. */}
+      {frequency !== "Off" && (
+        <div className="mt-4 max-w-md">
+          <AlertChannelRows
+            channels={channels}
+            onChange={(next) => save(name, frequency, next)}
+            email={email}
+            telegram={telegram}
+            connectHref="/account?tab=notifications"
+            disabled={pending}
+          />
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         {/* While a delete waits for confirmation, only that question and its two answers show. */}

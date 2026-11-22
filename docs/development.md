@@ -183,6 +183,38 @@ the reminder, `now() - interval '1 minute'` to expire it) and wait a minute.
 - Run it outside Docker with `dotnet run --project src/backend/Imova.Worker` and a
   `ConnectionStrings:Default` pointing at the compose Postgres.
 
+## Telegram bot
+
+Alerts can also go to Telegram. The bot runs in the **Worker** (`TelegramUpdatePoller`,
+long polling — no webhook, no public endpoint); the API only builds the "Conectează Telegram"
+link and never sees the token.
+
+- **One bot per environment.** Telegram lets only one process poll a bot (a second gets 409), so
+  local work uses its own dev bot, never the production one. Create bots with @BotFather (`/newbot`).
+- **Locally:** put the dev bot in `.env` — `TELEGRAM_BOT_TOKEN` (`1234567890:` + 35 characters,
+  plain ASCII, no quotes or spaces) and `TELEGRAM_BOT_USERNAME` (without the @). Compose passes the
+  username to the backend and both to the worker. Without a username the account page shows no
+  Telegram block; without a token the worker doesn't start the bot. Outside Docker:
+  `dotnet user-secrets set "Telegram:BotToken" "<token>" --project src/backend/Imova.Worker`.
+- **Production:** the live bot's token goes in Key Vault, only for the Worker.
+- **Connecting:** /account → Notificări → "Conectează Telegram" gives a `t.me/<bot>?start=<code>`
+  link (one-time code, 15 minutes, stored as a SHA-256 hash). Pressing Start connects that
+  Telegram account (one chat per account, one account per chat); `/stop` or "Deconectează"
+  disconnects; a chat that blocks the bot is dropped. Commands: `/cautari` (saved searches), `/stop`.
+- On start the worker sets the bot's command menu and descriptions (ro default, en, ru).
+- **Saved-search alerts:** each search has `AlertChannels` (Email, Telegram or both; set on
+  /saved-searches). A new search gets Telegram too when the account has it connected. The alert job
+  (`SavedSearchAlerts`, every 60 s) sends one Telegram message per listing (photo, price, place,
+  "Vezi anunțul" + "Oprește alerta", max 5, then "and N more"); a Telegram-only search whose chat is
+  gone falls back to email. Photos on a URL Telegram can't reach (local Azurite) are uploaded instead.
+- To see an alert locally without publishing anything, move a saved search's watermark back:
+  `update "SavedSearches" set "AlertFrequency"=2, "LastAlertedUpTo"=now()-interval '90 days' where "Id"='…';`
+  — within a minute its existing matches arrive as new.
+- Telegram won't link to `localhost` (a button to it rejects the message, a text link is dropped), so
+  locally the "Vezi anunțul" / saved-search links are simply left out; on the real domain they're there.
+- The HttpClient for the Bot API logs nothing (the token is in every request path) — keep it that way.
+- A 404 from every Bot API call means the token is wrong.
+
 ## Photo sizes
 
 Every listing photo is shown from JPEG copies made from the upload, never from the original:

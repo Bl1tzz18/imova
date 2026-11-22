@@ -43,6 +43,8 @@ using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.Messaging;
 using Imova.Application.Features.Favorites.Alerts;
 using Imova.Application.Features.SavedSearches;
+using Imova.Application.Features.SavedSearches.Alerts;
+using Imova.Application.Features.Telegram;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Agencies;
 using Imova.Infrastructure.Email;
@@ -52,6 +54,7 @@ using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Locations;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
+using Imova.Infrastructure.Telegram;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
@@ -118,6 +121,13 @@ builder.Services.AddDataProtection()
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = AccountEmails.LinkLifetime);
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AppOptions.SectionName).Get<AppOptions>() ?? new AppOptions());
+// Telegram: the API only builds "Conectează Telegram" links (the bot's username); the bot token
+// stays with the Worker.
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(TelegramOptions.SectionName).Get<TelegramOptions>() ?? new TelegramOptions());
+// Never used by the API itself — lets the Worker's alert job be built from this container (tests).
+builder.Services.AddSingleton<ITelegramBot, UnavailableTelegramBot>();
+builder.Services.AddScoped<SavedSearchTelegramAlert>();
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddScoped<AccountDeletion>();
 builder.Services.AddScoped<AccountDeletionEmails>();
@@ -424,6 +434,7 @@ app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapAccountEndpoints();
 app.MapEmailPreferencesEndpoints();
+app.MapTelegramEndpoints();
 app.MapAdminEndpoints();
 app.MapFavoriteEndpoints();
 app.MapLocationsEndpoints();

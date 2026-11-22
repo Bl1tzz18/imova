@@ -9,6 +9,9 @@ public record SavedSearchDto(
     string QueryString,
     string AlertFrequency,
     int NewListingsCount,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    // Where the alerts go — at least one is true.
+    bool AlertByEmail,
+    bool AlertByTelegram);
 
 public record SavedSearchUnsubscribedDto(string Name);

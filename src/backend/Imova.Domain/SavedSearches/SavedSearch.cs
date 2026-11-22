@@ -13,6 +13,17 @@ public enum AlertFrequency
     Instant = 2,
 }
 
+// Where a saved search's alerts go — one or both, never neither (turning alerts off is
+// AlertFrequency.Off). Existing searches are Email.
+[Flags]
+public enum AlertChannels
+{
+    None = 0,
+    Email = 1,
+    Telegram = 2,
+    Both = Email | Telegram,
+}
+
 // A search a user saved to come back to — stored as the /search page's own query string (see
 // SearchQueryString in Application), so it always means exactly what the page showed. Optionally
 // emails new matches (AlertFrequency); LastAlertedUpTo is the publication time up to which matches
@@ -30,6 +41,7 @@ public sealed class SavedSearch : Entity
         Name = name;
         QueryString = queryString;
         AlertFrequency = alertFrequency;
+        AlertChannels = AlertChannels.Email;
         CreatedAt = createdAt;
         LastViewedAt = createdAt;
         LastAlertedUpTo = createdAt;
@@ -43,16 +55,20 @@ public sealed class SavedSearch : Entity
 
     public AlertFrequency AlertFrequency { get; private set; }
 
+    public AlertChannels AlertChannels { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset LastViewedAt { get; private set; }
 
     public DateTimeOffset LastAlertedUpTo { get; private set; }
 
-    // When the last alert *email* went out — what "once a day" is measured from.
+    // When the last alert went out (email or Telegram) — what "once a day" is measured from.
     public DateTimeOffset? LastAlertSentAt { get; private set; }
 
-    public static SavedSearch Create(Guid userId, string name, string queryString, AlertFrequency alertFrequency, DateTimeOffset now)
+    public static SavedSearch Create(
+        Guid userId, string name, string queryString, AlertFrequency alertFrequency, DateTimeOffset now,
+        AlertChannels alertChannels = AlertChannels.Email)
     {
         if (userId == Guid.Empty)
         {
@@ -64,12 +80,19 @@ public sealed class SavedSearch : Entity
             throw new ArgumentException($"QueryString can be at most {MaxQueryLength} characters.", nameof(queryString));
         }
 
-        return new SavedSearch(Guid.NewGuid(), userId, ValidName(name), queryString, ValidFrequency(alertFrequency), now);
+        var savedSearch = new SavedSearch(Guid.NewGuid(), userId, ValidName(name), queryString, ValidFrequency(alertFrequency), now);
+        savedSearch.ChangeAlertChannels(alertChannels);
+        return savedSearch;
     }
 
     public void Rename(string name) => Name = ValidName(name);
 
     public void ChangeAlertFrequency(AlertFrequency alertFrequency) => AlertFrequency = ValidFrequency(alertFrequency);
+
+    public void ChangeAlertChannels(AlertChannels alertChannels) =>
+        AlertChannels = alertChannels is AlertChannels.Email or AlertChannels.Telegram or AlertChannels.Both
+            ? alertChannels
+            : throw new ArgumentOutOfRangeException(nameof(alertChannels), "Alerts go by email, Telegram or both.");
 
     public void MarkViewed(DateTimeOffset now) => LastViewedAt = now;
 
@@ -81,15 +104,15 @@ public sealed class SavedSearch : Entity
         _ => false,
     };
 
-    // Matches published up to `upTo` have been dealt with (emailed, or there were none).
-    public void RecordAlertRun(DateTimeOffset upTo, bool emailSent, DateTimeOffset now)
+    // Matches published up to `upTo` have been dealt with (sent, or there were none).
+    public void RecordAlertRun(DateTimeOffset upTo, bool alertSent, DateTimeOffset now)
     {
         if (upTo > LastAlertedUpTo)
         {
             LastAlertedUpTo = upTo;
         }
 
-        if (emailSent)
+        if (alertSent)
         {
             LastAlertSentAt = now;
         }

@@ -58,6 +58,7 @@ export default async function MapPage({ searchParams }: PageProps) {
                       queryString={queryToSave(state)}
                       defaultName={title}
                       signedIn={profile !== null}
+                      email={profile?.email}
                       returnTo={searchHref(state, "map")}
                     />
                   }

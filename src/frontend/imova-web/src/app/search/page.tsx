@@ -63,6 +63,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                       queryString={queryToSave(state)}
                       defaultName={title}
                       signedIn={profile !== null}
+                      email={profile?.email}
                       returnTo={searchHref(state)}
                     />
                   }

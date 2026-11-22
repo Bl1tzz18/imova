@@ -85,6 +85,10 @@ public static class ErrorCodes
 
     // --- Saved searches ---
     public const string SavedSearchLimit = "savedSearch.limitReached";
+    public const string SavedSearchNoChannel = "savedSearch.noChannel";
+
+    // --- Telegram (TelegramConnection) ---
+    public const string TelegramUnavailable = "telegram.unavailable";
 
     // --- Agencies ---
     public const string AgencyWebsiteInvalid = "agency.websiteInvalid";

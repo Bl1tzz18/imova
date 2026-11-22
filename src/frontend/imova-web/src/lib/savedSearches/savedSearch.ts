@@ -13,7 +13,28 @@ export type SavedSearch = {
   alertFrequency: AlertFrequency;
   newListingsCount: number;
   createdAt: string;
+  // Where the alerts go — at least one is true.
+  alertByEmail: boolean;
+  alertByTelegram: boolean;
 };
+
+export type AlertChannels = { email: boolean; telegram: boolean };
+
+export function alertChannels(search: Pick<SavedSearch, "alertByEmail" | "alertByTelegram">): AlertChannels {
+  return { email: search.alertByEmail, telegram: search.alertByTelegram };
+}
+
+// Turning one channel on or off; null when that would leave none (no alerts at all is "Off").
+export function toggleAlertChannel(channels: AlertChannels, channel: keyof AlertChannels): AlertChannels | null {
+  const next = { ...channels, [channel]: !channels[channel] };
+  return next.email || next.telegram ? next : null;
+}
+
+// Which "where" text describes the channels (SavedSearches.where.*).
+export function alertChannelsKey(channels: AlertChannels): "email" | "telegram" | "both" {
+  if (channels.email && channels.telegram) return "both";
+  return channels.telegram ? "telegram" : "email";
+}
 
 export const SAVED_SEARCHES_PATH = "/saved-searches";
 

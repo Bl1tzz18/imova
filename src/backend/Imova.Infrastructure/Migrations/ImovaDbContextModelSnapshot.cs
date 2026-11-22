@@ -197,6 +197,63 @@ namespace Imova.Infrastructure.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Imova.Application.Features.Telegram.TelegramLink", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("LinkedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TelegramFirstName")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("TelegramUsername")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("ChatId")
+                        .IsUnique();
+
+                    b.ToTable("TelegramLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Imova.Application.Features.Telegram.TelegramLinkCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodeHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TelegramLinkCodes", (string)null);
+                });
+
             modelBuilder.Entity("Imova.Domain.Agencies.Agency", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1782,6 +1839,9 @@ namespace Imova.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AlertChannels")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AlertFrequency")
                         .HasColumnType("integer");
 
@@ -2013,6 +2073,24 @@ namespace Imova.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("Imova.Application.Common.Identity.RefreshToken", b =>
+                {
+                    b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Application.Features.Telegram.TelegramLink", b =>
+                {
+                    b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Imova.Application.Features.Telegram.TelegramLinkCode", b =>
                 {
                     b.HasOne("Imova.Application.Common.Identity.ApplicationUser", null)
                         .WithMany()

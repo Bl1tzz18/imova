@@ -18,6 +18,8 @@ public class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
         builder.Property(s => s.Name).IsRequired().HasMaxLength(SavedSearch.MaxNameLength);
         builder.Property(s => s.QueryString).IsRequired().HasMaxLength(SavedSearch.MaxQueryLength);
         builder.Property(s => s.AlertFrequency).IsRequired();
+        // Flags (Email = 1, Telegram = 2); searches saved before Telegram existed are Email (the migration's default).
+        builder.Property(s => s.AlertChannels).IsRequired();
 
         // The alert job's scan: every search with alerts on.
         builder.HasIndex(s => s.AlertFrequency);

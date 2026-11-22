@@ -1,5 +1,6 @@
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Features.Telegram;
 using Imova.Domain.Agencies;
 using Imova.Domain.Amenities;
 using Imova.Domain.Favorites;
@@ -92,6 +93,10 @@ public class ImovaDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Gu
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<AdminAuditEntry> AdminAuditEntries => Set<AdminAuditEntry>();
+
+    public DbSet<TelegramLink> TelegramLinks => Set<TelegramLink>();
+
+    public DbSet<TelegramLinkCode> TelegramLinkCodes => Set<TelegramLinkCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

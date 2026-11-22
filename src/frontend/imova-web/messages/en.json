@@ -604,13 +604,29 @@
     "accountDeletedHome": "Go to the home page",
     "privacyRights": "These rights — to access your data, to take it with you, to correct it and to have it erased — are guaranteed by the personal data protection law of the Republic of Moldova and, if you live in the European Union, by the General Data Protection Regulation (GDPR).",
     "notificationsTab": "Notifications",
-    "notificationsTitle": "Email notifications",
-    "notificationsBody": "Choose which optional emails you get. Account emails (confirmation, password reset) are always sent.",
+    "notificationsTitle": "Notifications",
+    "notificationsBody": "Choose which optional notifications you get, and where. Account emails (confirmation, password reset) are always sent.",
     "favoriteUpdatesLabel": "Saved listings",
     "favoriteUpdatesHint": "An email when a listing in your favorites changes price (at most one a day per listing) or is no longer available.",
     "notificationsSaved": "Saved.",
     "notificationsUnavailable": "We couldn't load your notification settings. Please try again later.",
-    "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>."
+    "telegramTitle": "Telegram alerts",
+    "telegramHint": "Get the alerts for your saved searches right in Telegram, as soon as new listings appear.",
+    "telegramConnect": "Connect Telegram",
+    "telegramOpen": "Open Telegram",
+    "telegramCancel": "Cancel",
+    "telegramWaiting": "Open Telegram and press “Start”. This page updates by itself once it’s done — the link works for 15 minutes.",
+    "telegramExpired": "The link has expired. Press “Connect Telegram” again.",
+    "telegramConnected": "Connected",
+    "telegramConnectedAs": "Connected as {name}",
+    "telegramConnectedSince": "since {date}",
+    "telegramConnectedNow": "Done! Telegram is connected.",
+    "telegramDisconnect": "Disconnect",
+    "telegramDisconnected": "Telegram has been disconnected.",
+    "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>.",
+    "telegramQrLabel": "QR code to connect Telegram",
+    "telegramQrTitle": "Scan with your phone",
+    "telegramQrHint": "Telegram opens on your phone — press “Start” there."
   },
   "SavedListingsPage": {
     "title": "Saved listings",
@@ -1307,7 +1323,8 @@
         "detailsRequired": "Describe the problem."
       },
       "savedSearch": {
-        "limitReached": "You can save at most {max} searches. Delete one to save another."
+        "limitReached": "You can save at most {max} searches. Delete one to save another.",
+        "noChannel": "Choose at least one place for alerts: email or Telegram."
       },
       "agency": {
         "websiteInvalid": "Enter the website's full address, for example https://agency.md.",
@@ -1409,6 +1426,9 @@
         "ownListing": "You can't report your own listing.",
         "limitReached": "You can report at most {max} listings a day. Please try again tomorrow.",
         "noneOpen": "This listing's reports were already handled (perhaps by another admin). Reload the page."
+      },
+      "telegram": {
+        "unavailable": "Telegram isn’t available right now."
       }
     },
     "validation": {
@@ -1459,7 +1479,7 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "nameLabel": "Name",
-    "alertLabel": "Email alerts",
+    "alertLabel": "Alerts",
     "frequency": {
       "Off": "No alerts",
       "Daily": "Once a day",
@@ -1468,12 +1488,12 @@
     "saved": "Search saved.",
     "savedNoAlerts": "You'll find it anytime in your saved searches.",
     "savedWithAlerts": {
-      "Daily": "We'll email you new listings once a day.",
-      "Instant": "We'll email you new listings as soon as they appear."
+      "Daily": "We’ll send you new listings {where}, once a day.",
+      "Instant": "We’ll send you new listings {where}, as soon as they appear."
     },
     "viewAll": "View saved searches",
     "title": "Saved searches",
-    "subtitle": "Come back to your searches and get new listings by email.",
+    "subtitle": "Come back to your searches and get new listings by email or on Telegram.",
     "emptyTitle": "You have no saved searches",
     "emptyBody": "Search for listings and press “Save this search” to come back to them and get alerts for new listings.",
     "startSearching": "Search listings",
@@ -1491,7 +1511,27 @@
     "unsubscribeGoneBody": "This saved search was deleted, so you won't get emails for it anymore.",
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn alerts off from your saved searches page.",
-    "manage": "Manage saved searches"
+    "manage": "Manage saved searches",
+    "channelsLabel": "Get alerts by",
+    "channelEmail": "Email",
+    "channelTelegram": "Telegram",
+    "channelsAtLeastOne": "Pick at least one. To stop alerts, choose “No alerts”.",
+    "where": {
+      "email": "by email",
+      "telegram": "on Telegram",
+      "both": "by email and on Telegram"
+    },
+    "connectTitle": "Get the alerts on Telegram too",
+    "connectSteps": "Open Telegram and press “Start”, then come back here — it ticks itself.",
+    "openTelegram": "Open Telegram",
+    "connectWaiting": "Waiting for you to press “Start”…",
+    "telegramConnectedHere": "Telegram connected. Alerts will go there too.",
+    "connectExpired": "The link has expired. Press “Connect” again.",
+    "notNow": "Not now",
+    "channelEmailHint": "At your account’s address",
+    "channelTelegramPitch": "Instantly, on your phone",
+    "channelTelegramConnected": "Connected",
+    "channelConnect": "Connect"
   },
   "AdminAdminsPage": {
     "title": "Administrators",

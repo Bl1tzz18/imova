@@ -34,7 +34,12 @@ public record PersonalDataExportDto(
     IReadOnlyList<ExportedReportDto> ReportsYouFiled,
     IReadOnlyList<ExportedListingReportDto> ListingReportsYouFiled,
     IReadOnlyList<ExportedListingImportDto> ListingImportsYouUploaded,
+    // The Telegram chat alerts go to, if one is connected.
+    ExportedTelegramDto? Telegram,
     IReadOnlyList<string> MissingFiles);
+
+// The connected Telegram chat: its id (= the Telegram user id) and the name Telegram gave us.
+public record ExportedTelegramDto(long ChatId, string? Username, string? FirstName, DateTimeOffset ConnectedAt);
 
 // A CSV import the account uploaded for an agency: the file's name and what came of it (the file
 // itself isn't kept beyond 30 days, nor included — its rows are the agency's listings).
