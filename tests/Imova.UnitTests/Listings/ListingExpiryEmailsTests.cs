@@ -13,7 +13,7 @@ public class ListingExpiryEmailsTests
         // 22:30 UTC on 11 March is already 12 March in Chișinău (UTC+2).
         var expiresAt = new DateTimeOffset(2027, 3, 11, 22, 30, 0, TimeSpan.Zero);
 
-        var email = ListingExpiryEmails.Reminder("ana@example.com", "Casă <nouă> & grădină", expiresAt, MyListings, Languages.Romanian);
+        var email = ListingExpiryEmails.Reminder("ana@example.com", "Casă <nouă> & grădină", expiresAt, MyListings, Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Anunțul tău expiră pe 12.03.2027 — IMOVA", email.Subject);
         Assert.Contains("„Casă &lt;nouă&gt; &amp; grădină”", email.HtmlBody);
@@ -27,7 +27,7 @@ public class ListingExpiryEmailsTests
     [Fact]
     public void Expired_SaysItCanBeReactivated()
     {
-        var email = ListingExpiryEmails.Expired("ana@example.com", "Garaj Botanica", MyListings, Languages.Romanian);
+        var email = ListingExpiryEmails.Expired("ana@example.com", "Garaj Botanica", MyListings, Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Anunțul tău a expirat — IMOVA", email.Subject);
         Assert.Contains(">Reactivează anunțul</a>", email.HtmlBody);
@@ -42,7 +42,7 @@ public class ListingExpiryEmailsTests
     {
         var expiresAt = new DateTimeOffset(2027, 3, 11, 22, 30, 0, TimeSpan.Zero);
 
-        var email = ListingExpiryEmails.Reminder("ana@example.com", "Garaj", expiresAt, MyListings, language);
+        var email = ListingExpiryEmails.Reminder("ana@example.com", "Garaj", expiresAt, MyListings, language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(button, email.HtmlBody);
@@ -55,7 +55,7 @@ public class ListingExpiryEmailsTests
     [InlineData("ru", "Срок действия вашего объявления истёк — IMOVA", ">Активировать объявление</a>")]
     public void Expired_IsWrittenInTheOwnersLanguage(string language, string subject, string button)
     {
-        var email = ListingExpiryEmails.Expired("ana@example.com", "Garaj", MyListings, language);
+        var email = ListingExpiryEmails.Expired("ana@example.com", "Garaj", MyListings, language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(button, email.HtmlBody);

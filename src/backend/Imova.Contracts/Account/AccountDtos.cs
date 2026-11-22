@@ -68,7 +68,12 @@ public record ExportedAccountDto(
     IReadOnlyList<string> Roles,
     bool IsBannedFromMessaging,
     // Emails about saved listings (price changes, no longer available) — on unless turned off.
-    bool EmailFavoriteUpdates);
+    bool EmailFavoriteUpdates,
+    // The site's language, which emails to the account are written in (ro/en/ru).
+    string PreferredLanguage,
+    // When and which version of the Terms of use + Privacy policy were accepted (null: before 2026-11).
+    DateTimeOffset? TermsAcceptedAt,
+    string? TermsVersion);
 
 // One login session (a device/browser). EndedAt: signed out or revoked.
 public record ExportedSessionDto(

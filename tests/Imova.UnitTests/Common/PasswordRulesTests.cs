@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Features.Auth.ChangePassword;
 using Imova.Application.Features.Auth.Register;
 using Imova.Application.Features.Auth.ResetPassword;
@@ -22,7 +23,7 @@ public class PasswordRulesTests
     [InlineData("Ștefănescu#1")]
     public void AcceptedPasswords_PassEveryValidator(string password)
     {
-        Assert.True(new RegisterValidator().Validate(new RegisterCommand("a@example.com", password, null, "+373 69 123 456")).IsValid);
+        Assert.True(new RegisterValidator().Validate(new RegisterCommand("a@example.com", password, null, "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion)).IsValid);
         Assert.True(new ChangePasswordValidator().Validate(new ChangePasswordCommand(Guid.NewGuid(), null, password)).IsValid);
         Assert.True(new ResetPasswordValidator().Validate(new ResetPasswordCommand("a@example.com", "dG9rZW4", password)).IsValid);
     }
@@ -32,7 +33,7 @@ public class PasswordRulesTests
     public void RejectedPasswords_FailEveryValidator_WithAMessageAndACodeSayingWhy(
         string password, string expectedMessagePart, string expectedCode)
     {
-        var register = new RegisterValidator().Validate(new RegisterCommand("a@example.com", password, null, "+373 69 123 456"));
+        var register = new RegisterValidator().Validate(new RegisterCommand("a@example.com", password, null, "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion));
         var change = new ChangePasswordValidator().Validate(new ChangePasswordCommand(Guid.NewGuid(), null, password));
         var reset = new ResetPasswordValidator().Validate(new ResetPasswordCommand("a@example.com", "dG9rZW4", password));
 

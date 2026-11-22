@@ -19,4 +19,7 @@ public class AppOptions
         var normalized = Languages.Normalize(language);
         return WebUrl(normalized == Languages.Default ? pathAndQuery : $"/{normalized}{pathAndQuery}");
     }
+
+    // The privacy policy page, linked at the bottom of every email (EmailLayout.Page).
+    public string PrivacyUrl(string? language) => WebUrl("/privacy", language);
 }

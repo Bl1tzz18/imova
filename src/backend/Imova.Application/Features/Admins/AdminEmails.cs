@@ -9,12 +9,12 @@ namespace Imova.Application.Features.Admins;
 public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
 {
     public Task SendWelcomeAsync(string to, string grantedBy, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(WelcomeEmail(to, grantedBy, appOptions.WebUrl("/admin/admins", language), language), cancellationToken);
+        emailSender.SendAsync(WelcomeEmail(to, grantedBy, appOptions.WebUrl("/admin/admins", language), language, appOptions.PrivacyUrl(language)), cancellationToken);
 
     public Task SendNoticeAsync(string to, string newAdmin, string grantedBy, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(NoticeEmail(to, newAdmin, grantedBy, appOptions.WebUrl("/admin/admins", language), language), cancellationToken);
+        emailSender.SendAsync(NoticeEmail(to, newAdmin, grantedBy, appOptions.WebUrl("/admin/admins", language), language, appOptions.PrivacyUrl(language)), cancellationToken);
 
-    public static EmailMessage WelcomeEmail(string to, string grantedBy, string link, string language)
+    public static EmailMessage WelcomeEmail(string to, string grantedBy, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -37,7 +37,7 @@ public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
             + EmailLayout.Paragraph(EmailLayout.Encode(body))
             + EmailLayout.Button(button, link),
             EmailLayout.Encode(notYou),
-            language);
+            language, privacyUrl);
         return new EmailMessage(
             to,
             T("Ai primit drepturi de administrator — IMOVA", "You've been made an administrator — IMOVA", "Вам выданы права администратора — IMOVA"),
@@ -45,7 +45,7 @@ public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
             html);
     }
 
-    public static EmailMessage NoticeEmail(string to, string newAdmin, string grantedBy, string link, string language)
+    public static EmailMessage NoticeEmail(string to, string newAdmin, string grantedBy, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -71,7 +71,7 @@ public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
             + EmailLayout.Paragraph(EmailLayout.Encode(check))
             + EmailLayout.Button(button, link),
             EmailLayout.Encode(footer),
-            language);
+            language, privacyUrl);
         return new EmailMessage(
             to,
             T($"Administrator nou: {newAdmin} — IMOVA", $"New administrator: {newAdmin} — IMOVA", $"Новый администратор: {newAdmin} — IMOVA"),

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Listings;
@@ -68,6 +69,7 @@ internal static class ListingApi
             password = "SuperSecret1!",
             displayName = "Listing Test User",
             phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
         });
         response.EnsureSuccessStatusCode();
 

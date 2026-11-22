@@ -19,6 +19,7 @@ public class GoogleLoginHandler(
     IExternalImageFetcher externalImageFetcher,
     IBlobStorageService blobStorageService,
     IApplicationDbContext dbContext,
+    TimeProvider timeProvider,
     ILogger<GoogleLoginHandler> logger) : IRequestHandler<GoogleLoginCommand, AuthResultDto>
 {
     public async Task<AuthResultDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
@@ -32,6 +33,15 @@ public class GoogleLoginHandler(
         var user = await userManager.FindByEmailAsync(googleUser.Email);
         if (user is null)
         {
+            if (request.AcceptedTermsVersion != LegalTerms.CurrentVersion)
+            {
+                throw new ValidationException([
+                    new FluentValidation.Results.ValidationFailure(
+                        nameof(GoogleLoginCommand.AcceptedTermsVersion), "The current Terms of use and Privacy policy must be accepted.")
+                    { ErrorCode = ErrorCodes.TermsNotAccepted },
+                ]);
+            }
+
             user = new ApplicationUser
             {
                 Id = Guid.NewGuid(),
@@ -40,6 +50,8 @@ public class GoogleLoginHandler(
                 EmailConfirmed = true,
                 DisplayName = googleUser.Name,
                 PreferredLanguage = Languages.Normalize(request.Language),
+                TermsAcceptedAt = timeProvider.GetUtcNow(),
+                TermsVersion = LegalTerms.CurrentVersion,
             };
 
             // No password set — this account can only sign in via Google, never via the

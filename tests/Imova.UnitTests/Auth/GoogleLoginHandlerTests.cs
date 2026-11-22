@@ -1,3 +1,5 @@
+using FluentValidation;
+using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Auth.GoogleLogin;
@@ -26,6 +28,7 @@ public class GoogleLoginHandlerTests
             imageFetcher ?? new FakeExternalImageFetcher(),
             blobStorageService ?? new FakeBlobStorageService(),
             db,
+            TimeProvider.System,
             NullLogger<GoogleLoginHandler>.Instance);
     }
 
@@ -40,7 +43,7 @@ public class GoogleLoginHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var handler = CreateHandler(store, validator, dbContext: dbContext);
 
-        await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         var publisher = Assert.Single(dbContext.Publishers);
         Assert.Equal(Assert.Single(store.Users).Id, publisher.UserId);
@@ -62,7 +65,7 @@ public class GoogleLoginHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
         var handler = CreateHandler(store, validator, dbContext: dbContext);
 
-        await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Empty(dbContext.Publishers);
     }
@@ -77,7 +80,7 @@ public class GoogleLoginHandlerTests
         };
         var handler = CreateHandler(store, validator);
 
-        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         var created = Assert.Single(store.Users);
         Assert.Equal("new.user@example.com", created.Email);
@@ -99,9 +102,9 @@ public class GoogleLoginHandlerTests
         var validator = new FakeGoogleTokenValidator { UserToReturn = new GoogleUserInfo("new@example.com", "New", null) };
         var handler = CreateHandler(store, validator);
 
-        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru"), CancellationToken.None);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru", LegalTerms.CurrentVersion), CancellationToken.None);
         validator.UserToReturn = new GoogleUserInfo("existing@example.com", "Existing", null);
-        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru"), CancellationToken.None);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", "ru", LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Equal("ru", store.Users.Single(u => u.Email == "new@example.com").PreferredLanguage);
         Assert.Equal("en", existing.PreferredLanguage);
@@ -121,7 +124,7 @@ public class GoogleLoginHandlerTests
         };
         var handler = CreateHandler(store, validator);
 
-        await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.True(existing.EmailConfirmed);
         Assert.Single(store.Users);
@@ -138,7 +141,7 @@ public class GoogleLoginHandlerTests
         };
         var handler = CreateHandler(store, validator);
 
-        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Single(store.Users);
         Assert.True(existing.EmailConfirmed);
@@ -174,7 +177,7 @@ public class GoogleLoginHandlerTests
         var blobStorage = new FakeBlobStorageService();
         var handler = CreateHandler(store, validator, imageFetcher, blobStorage);
 
-        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.True(blobStorage.UploadCalled);
         Assert.Equal("image/png", blobStorage.UploadedContentType);
@@ -194,9 +197,54 @@ public class GoogleLoginHandlerTests
         var imageFetcher = new FakeExternalImageFetcher { BytesToReturn = null };
         var handler = CreateHandler(store, validator, imageFetcher);
 
-        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+        var result = await handler.Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Single(store.Users);
         Assert.Null(result.User.ProfilePictureUrl);
+    }
+
+    [Fact]
+    public async Task Handle_ANewAccount_RecordsTheAcceptedTermsVersion()
+    {
+        var store = new FakeUserStore();
+        var validator = new FakeGoogleTokenValidator { UserToReturn = new GoogleUserInfo("new.user@example.com", "New User", null) };
+
+        await CreateHandler(store, validator).Handle(
+            new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
+
+        var user = Assert.Single(store.Users);
+        Assert.Equal(LegalTerms.CurrentVersion, user.TermsVersion);
+        Assert.NotNull(user.TermsAcceptedAt);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("2020-01-01")]
+    public async Task Handle_ANewAccount_WithoutTheCurrentTermsVersion_IsRefusedAndNothingIsCreated(string? version)
+    {
+        var store = new FakeUserStore();
+        var validator = new FakeGoogleTokenValidator { UserToReturn = new GoogleUserInfo("new.user@example.com", "New User", null) };
+
+        var ex = await Assert.ThrowsAsync<ValidationException>(
+            () => CreateHandler(store, validator).Handle(new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: version), CancellationToken.None));
+
+        Assert.Contains(ex.Errors, e => e.ErrorCode == ErrorCodes.TermsNotAccepted);
+        Assert.Empty(store.Users);
+    }
+
+    [Fact]
+    public async Task Handle_AnExistingAccount_SignsInWithoutATermsVersion_AndKeepsItsOwn()
+    {
+        var store = new FakeUserStore();
+        var validator = new FakeGoogleTokenValidator { UserToReturn = new GoogleUserInfo("new.user@example.com", "New User", null) };
+        await CreateHandler(store, validator).Handle(
+            new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
+        var acceptedAt = Assert.Single(store.Users).TermsAcceptedAt;
+
+        await CreateHandler(store, validator).Handle(new GoogleLoginCommand("valid-id-token"), CancellationToken.None);
+
+        var user = Assert.Single(store.Users);
+        Assert.Equal(acceptedAt, user.TermsAcceptedAt);
+        Assert.Equal(LegalTerms.CurrentVersion, user.TermsVersion);
     }
 }

@@ -15,6 +15,10 @@ public sealed class Listing : AggregateRoot
     // Every way into Active starts a fresh period: approval, the owner's re-publish and Renew().
     public const int ActiveMonths = 6;
 
+    // How long a listing that has ended (sold, rented, expired, archived by its owner) is kept after
+    // its last change before the Worker deletes it (DataRetentionCleanup) — stated in the privacy policy.
+    public static readonly TimeSpan EndedKeepFor = TimeSpan.FromDays(365);
+
     // For EF Core materialization only.
     private Listing()
         : base(Guid.Empty)

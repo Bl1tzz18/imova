@@ -19,7 +19,7 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var link = appOptions.WebUrl($"/confirm-email?userId={user.Id}&token={AccountTokens.Encode(token)}", user.PreferredLanguage);
         await emailSender.SendAsync(
-            ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage), cancellationToken);
+            ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage, appOptions.PrivacyUrl(user.PreferredLanguage)), cancellationToken);
     }
 
     public async Task SendPasswordResetAsync(ApplicationUser user, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
         var link = appOptions.WebUrl(
             $"/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={AccountTokens.Encode(token)}",
             user.PreferredLanguage);
-        await emailSender.SendAsync(PasswordResetEmail(user.Email!, link, user.PreferredLanguage), cancellationToken);
+        await emailSender.SendAsync(PasswordResetEmail(user.Email!, link, user.PreferredLanguage, appOptions.PrivacyUrl(user.PreferredLanguage)), cancellationToken);
     }
 
     // "Bună, Ana!" / "Hello, Ana!" / "Здравствуйте, Ana!" — plain when there's no name.
@@ -36,7 +36,7 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
         ? Languages.Pick(language, "Bună!", "Hello!", "Здравствуйте!")
         : Languages.Pick(language, $"Bună, {displayName}!", $"Hello, {displayName}!", $"Здравствуйте, {displayName}!");
 
-    public static EmailMessage ConfirmationEmail(string to, string? displayName, string link, string language)
+    public static EmailMessage ConfirmationEmail(string to, string? displayName, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -65,12 +65,12 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
             + EmailLayout.Paragraph(EmailLayout.Encode(after))
             + EmailLayout.LinkFallback(link, language),
             EmailLayout.Encode(ignore),
-            language);
+            language, privacyUrl);
 
         return new EmailMessage(to, $"{title} — IMOVA", text, html);
     }
 
-    public static EmailMessage PasswordResetEmail(string to, string link, string language)
+    public static EmailMessage PasswordResetEmail(string to, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -102,7 +102,7 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
             + EmailLayout.Button(button, link)
             + EmailLayout.LinkFallback(link, language),
             EmailLayout.Encode(ignore),
-            language);
+            language, privacyUrl);
 
         return new EmailMessage(to, $"{title} — IMOVA", text, html);
     }

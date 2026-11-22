@@ -21,7 +21,18 @@ export function Footer() {
             {t("publishListing")}
           </Link>
         </div>
-        <p className="pt-4 text-xs text-ink-400">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-ink-500">
+          <Link href="/terms" className="hover:text-ink-950">
+            {t("terms")}
+          </Link>
+          <Link href="/privacy" className="hover:text-ink-950">
+            {t("privacy")}
+          </Link>
+          <Link href="/privacy#cookies" className="hover:text-ink-950">
+            {t("cookies")}
+          </Link>
+        </div>
+        <p className="pt-2 text-xs text-ink-400">
           © {new Date().getFullYear()} IMOVA. {t("inDevelopment")}
         </p>
       </div>

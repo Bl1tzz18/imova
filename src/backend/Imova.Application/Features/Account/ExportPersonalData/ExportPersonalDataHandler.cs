@@ -18,7 +18,7 @@ public class ExportPersonalDataHandler(
     TimeProvider timeProvider) : IRequestHandler<ExportPersonalDataQuery, PersonalDataExport>
 {
     // Bumped whenever the shape of imova-data.json changes in a way a reader would notice.
-    public const string Format = "imova.personal-data.v4";
+    public const string Format = "imova.personal-data.v5";
 
     public async Task<PersonalDataExport> Handle(ExportPersonalDataQuery request, CancellationToken cancellationToken)
     {
@@ -119,7 +119,10 @@ public class ExportPersonalDataHandler(
             providers,
             (await userManager.GetRolesAsync(user)).ToList(),
             user.IsBannedFromMessaging,
-            user.EmailFavoriteUpdates);
+            user.EmailFavoriteUpdates,
+            user.PreferredLanguage,
+            user.TermsAcceptedAt,
+            user.TermsVersion);
     }
 
     // A session is a chain of refresh tokens sharing a SessionId (see RefreshToken) — only its

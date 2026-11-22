@@ -26,7 +26,7 @@ public record AlertListing(
 public static class SavedSearchAlertEmail
 {
     public static EmailMessage Build(
-        string to, string searchName, IReadOnlyList<AlertListing> listings, int total, string openUrl, string unsubscribeUrl, string language)
+        string to, string searchName, IReadOnlyList<AlertListing> listings, int total, string openUrl, string unsubscribeUrl, string language, string privacyUrl)
     {
         var headline = Headline(total, language);
         var subject = Languages.Pick(
@@ -40,7 +40,7 @@ public static class SavedSearchAlertEmail
             to,
             subject,
             Text(searchName, listings, more, openUrl, unsubscribeUrl, language),
-            Html(headline, searchName, listings, more, openUrl, unsubscribeUrl, language));
+            Html(headline, searchName, listings, more, openUrl, unsubscribeUrl, language, privacyUrl));
     }
 
     // "Un anunț nou" / "12 anunțuri noi" / "20 de anunțuri noi"; "1 new listing"; "1 новое объявление" /
@@ -99,7 +99,7 @@ public static class SavedSearchAlertEmail
     }
 
     private static string Html(
-        string headline, string searchName, IReadOnlyList<AlertListing> listings, int more, string openUrl, string unsubscribeUrl, string language)
+        string headline, string searchName, IReadOnlyList<AlertListing> listings, int more, string openUrl, string unsubscribeUrl, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
         static string E(string value) => EmailLayout.Encode(value);
@@ -141,6 +141,6 @@ public static class SavedSearchAlertEmail
             "Отключить уведомления для этого поиска");
         var footer = $"""{E(why)} <a href="{E(unsubscribeUrl)}" style="color:#4d6e8c;">{E(stop)}</a>.""";
 
-        return EmailLayout.Page(headline, content, footer, language);
+        return EmailLayout.Page(headline, content, footer, language, privacyUrl);
     }
 }

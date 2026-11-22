@@ -201,6 +201,6 @@ public class SavedSearchAlerts(
             unsubscribeUrl: appOptions.WebUrl(
                 $"/saved-searches/unsubscribe?id={savedSearch.Id}&token={Uri.EscapeDataString(unsubscribeTokens.Create(savedSearch.Id))}",
                 language),
-            language);
+            language, appOptions.PrivacyUrl(language));
     }
 }

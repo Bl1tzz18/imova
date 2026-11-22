@@ -11,13 +11,15 @@ import {
 } from "./sitemap";
 
 describe("sitePages", () => {
-  it("has home, the agencies and search per transaction and property type", () => {
+  it("has home, the agencies, the legal pages and search per transaction and property type", () => {
     const paths = sitePages().map((p) => p.path);
     expect(paths).toContain("/");
     expect(paths).toContain("/agencies");
     expect(paths).toContain("/search?transactionType=Sale");
     expect(paths).toContain("/search?transactionType=Rent&propertyType=Apartment");
-    expect(paths).toHaveLength(2 + 2 * 7);
+    expect(paths).toContain("/terms");
+    expect(paths).toContain("/privacy");
+    expect(paths).toHaveLength(4 + 2 * 7);
   });
 });
 

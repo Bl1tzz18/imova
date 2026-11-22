@@ -44,7 +44,7 @@ public static class FavoriteAlertEmails
     }
 
     public static EmailMessage PriceChanged(
-        string to, PriceChange change, string listingUrl, string unsubscribeUrl, string settingsUrl, string language)
+        string to, PriceChange change, string listingUrl, string unsubscribeUrl, string settingsUrl, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -90,7 +90,7 @@ public static class FavoriteAlertEmails
             + EmailLayout.Button(view, listingUrl);
 
         return new EmailMessage(
-            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language));
+            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language, privacyUrl));
     }
 
     // The 410 page's summary (EndedListingDto): what it was, where, its last price, and why it's gone.
@@ -102,7 +102,7 @@ public static class FavoriteAlertEmails
         string searchUrl,
         string unsubscribeUrl,
         string settingsUrl,
-        string language,
+        string language, string privacyUrl,
         string? photoUrl = null)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
@@ -146,7 +146,7 @@ public static class FavoriteAlertEmails
             + $"""<tr><td align="center" style="padding:0 28px 8px;font-size:14px;"><a href="{E(searchUrl)}" style="color:#4d6e8c;">{E(sameArea)}</a></td></tr>""";
 
         return new EmailMessage(
-            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language));
+            to, subject, text, EmailLayout.Page(headline, content, HtmlFooter(unsubscribeUrl, settingsUrl, language), language, privacyUrl));
     }
 
     // The 410 page's badge (EndedListing.status.* in the web app's messages).

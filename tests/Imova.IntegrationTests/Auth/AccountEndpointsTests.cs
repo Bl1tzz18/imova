@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
 using Imova.Contracts.Listings;
@@ -138,6 +139,7 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
             password = Password,
             displayName = "Again",
             phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -146,6 +148,37 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal("identity.DuplicateEmail", error.GetProperty("code").GetString());
         Assert.Equal("Email", error.GetProperty("field").GetString());
         Assert.Single(problem.GetProperty("errors").GetProperty("Email").EnumerateArray());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("2020-01-01")]
+    public async Task Register_WithoutTheCurrentTermsVersion_Is400_TermsNotAccepted(string? version)
+    {
+        var response = await _factory.CreateClient().PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = $"no-terms-{Guid.NewGuid():N}@example.com",
+            password = Password,
+            displayName = "No Terms",
+            phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = version,
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains(problem.GetProperty("errorCodes").EnumerateArray(), e => e.GetProperty("code").GetString() == "legal.termsNotAccepted");
+    }
+
+    [Fact]
+    public async Task Register_RecordsTheAcceptedTermsVersion()
+    {
+        var (_, user) = await ListingApi.RegisterAsync(_factory);
+
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Imova.Application.Common.Identity.ApplicationUser>>();
+        var stored = (await userManager.FindByIdAsync(user.Id.ToString()))!;
+        Assert.Equal(LegalTerms.CurrentVersion, stored.TermsVersion);
+        Assert.NotNull(stored.TermsAcceptedAt);
     }
 
     [Fact]
@@ -176,6 +209,7 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
             email = $"no-phone-{Guid.NewGuid():N}@example.com",
             password = Password,
             displayName = "No Phone",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -193,6 +227,7 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
             password,
             displayName = "Weak Password",
             phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

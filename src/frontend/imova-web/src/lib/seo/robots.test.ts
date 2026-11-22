@@ -14,7 +14,7 @@ describe("robotsRules", () => {
 
   it("leaves the public pages open and points at the sitemap", () => {
     expect(rules.allow).toBe("/");
-    for (const path of ["/search", "/property", "/agencies", "/map", "/ru/search"]) {
+    for (const path of ["/search", "/property", "/agencies", "/map", "/ru/search", "/terms", "/privacy", "/en/privacy"]) {
       expect(rules.disallow).not.toContain(path);
     }
     expect(robots.sitemap).toBe("https://imova.md/sitemap.xml");

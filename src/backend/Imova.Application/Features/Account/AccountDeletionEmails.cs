@@ -19,14 +19,14 @@ public class AccountDeletionEmails(UserManager<ApplicationUser> userManager, IEm
         var token = await userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, AccountDeletion.TokenPurpose);
         var link = appOptions.WebUrl($"/delete-account?userId={user.Id}&token={AccountTokens.Encode(token)}", user.PreferredLanguage);
         await emailSender.SendAsync(
-            ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage), cancellationToken);
+            ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage, appOptions.PrivacyUrl(user.PreferredLanguage)), cancellationToken);
     }
 
     // The account row is gone by now: the caller keeps its address, name and language from before.
     public Task SendDeletedAsync(string email, string? displayName, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(DeletedEmail(email, displayName, language), cancellationToken);
+        emailSender.SendAsync(DeletedEmail(email, displayName, language, appOptions.PrivacyUrl(language)), cancellationToken);
 
-    public static EmailMessage ConfirmationEmail(string to, string? displayName, string link, string language)
+    public static EmailMessage ConfirmationEmail(string to, string? displayName, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -61,12 +61,12 @@ public class AccountDeletionEmails(UserManager<ApplicationUser> userManager, IEm
             + EmailLayout.Button(button, link)
             + EmailLayout.LinkFallback(link, language),
             EmailLayout.Encode(ignore),
-            language);
+            language, privacyUrl);
 
         return new EmailMessage(to, $"{title} — IMOVA", text, html);
     }
 
-    public static EmailMessage DeletedEmail(string to, string? displayName, string language)
+    public static EmailMessage DeletedEmail(string to, string? displayName, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -95,7 +95,7 @@ public class AccountDeletionEmails(UserManager<ApplicationUser> userManager, IEm
             + EmailLayout.Paragraph(EmailLayout.Encode(done))
             + EmailLayout.Paragraph(EmailLayout.Encode(messages)),
             EmailLayout.Encode(notYou),
-            language);
+            language, privacyUrl);
 
         return new EmailMessage(
             to, T("Contul tău IMOVA a fost șters", "Your IMOVA account has been deleted", "Ваш аккаунт IMOVA удалён"), text, html);

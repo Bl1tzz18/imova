@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils/cn";
 import type { MyAgency } from "@/types/agency";
 import type { Listing, Publisher } from "@/types/listing";
 import { DealTypeTabs } from "./DealTypeTabs";
+import { legalLinks } from "@/components/legal/LegalLinks";
 
 // Step 5: who visitors should contact and how. "Eu" (Self) is the listing's publisher — their
 // name/email come from the account, only the phone is asked (it may differ from the account's);
@@ -173,6 +174,11 @@ export function StepContact({
           <p className="rounded-xl border border-accent-100 bg-accent-100/40 px-3.5 py-3 text-xs text-ink-700 sm:col-span-2">
             {t("otherContactMessagesNotice")}
           </p>
+        )}
+
+        {!isSelf && (
+          // Their name and phone go on a public page: the Terms make the publisher answer for having their permission.
+          <p className="text-xs text-ink-500 sm:col-span-2">{t.rich("otherContactConsent", { terms: legalLinks.terms })}</p>
         )}
 
         {!isSelf && (

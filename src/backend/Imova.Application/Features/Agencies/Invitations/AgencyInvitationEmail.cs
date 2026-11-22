@@ -12,9 +12,9 @@ public class AgencyInvitationEmail(IEmailSender emailSender, AppOptions appOptio
     public Task SendAsync(
         string to, string inviterName, string agencyName, AgencyRole role, string token, string language, CancellationToken cancellationToken) =>
         emailSender.SendAsync(
-            Build(to, inviterName, agencyName, role, appOptions.WebUrl($"/invitations/{token}", language), language), cancellationToken);
+            Build(to, inviterName, agencyName, role, appOptions.WebUrl($"/invitations/{token}", language), language, appOptions.PrivacyUrl(language)), cancellationToken);
 
-    public static EmailMessage Build(string to, string inviterName, string agencyName, AgencyRole role, string link, string language)
+    public static EmailMessage Build(string to, string inviterName, string agencyName, AgencyRole role, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -44,7 +44,7 @@ public class AgencyInvitationEmail(IEmailSender emailSender, AppOptions appOptio
             + EmailLayout.Paragraph(EmailLayout.Encode(asRole))
             + EmailLayout.Button(T("Vezi invitația", "View invitation", "Посмотреть приглашение"), link),
             EmailLayout.Encode(expiry),
-            language);
+            language, privacyUrl);
         return new EmailMessage(
             to,
             T($"Invitație: agenția {agencyName} — IMOVA", $"Invitation: the agency {agencyName} — IMOVA", $"Приглашение: агентство {agencyName} — IMOVA"),

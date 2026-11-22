@@ -281,9 +281,9 @@ public class AdminDeleteAgencyHandler(
 public class AgencyDeletedEmail(IEmailSender emailSender, AppOptions appOptions)
 {
     public Task SendAsync(string to, string agencyName, string reason, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(Build(to, agencyName, reason, appOptions.WebUrl("/my-listings", language), language), cancellationToken);
+        emailSender.SendAsync(Build(to, agencyName, reason, appOptions.WebUrl("/my-listings", language), language, appOptions.PrivacyUrl(language)), cancellationToken);
 
-    public static EmailMessage Build(string to, string agencyName, string reason, string link, string language)
+    public static EmailMessage Build(string to, string agencyName, string reason, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -314,7 +314,7 @@ public class AgencyDeletedEmail(IEmailSender emailSender, AppOptions appOptions)
             + EmailLayout.Paragraph(EmailLayout.Encode(listings))
             + EmailLayout.Button(T("Anunțurile mele", "My listings", "Мои объявления"), link),
             EmailLayout.Encode(footer),
-            language);
+            language, privacyUrl);
         return new EmailMessage(to, $"{heading} — IMOVA", text, html);
     }
 }
@@ -324,9 +324,9 @@ public class AgencyVerifiedEmail(IEmailSender emailSender, AppOptions appOptions
 {
     public Task SendAsync(string to, string agencyName, string slug, string language, CancellationToken cancellationToken) =>
         emailSender.SendAsync(
-            Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}", language), language), cancellationToken);
+            Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}", language), language, appOptions.PrivacyUrl(language)), cancellationToken);
 
-    public static EmailMessage Build(string to, string agencyName, string link, string language)
+    public static EmailMessage Build(string to, string agencyName, string link, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -351,7 +351,7 @@ public class AgencyVerifiedEmail(IEmailSender emailSender, AppOptions appOptions
             + EmailLayout.Paragraph(EmailLayout.Encode(body))
             + EmailLayout.Button(T("Vezi pagina agenției", "View agency page", "Открыть страницу агентства"), link),
             EmailLayout.Encode(footer),
-            language);
+            language, privacyUrl);
         return new EmailMessage(to, $"{heading} — IMOVA", text, html);
     }
 }

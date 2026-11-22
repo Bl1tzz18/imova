@@ -12,6 +12,7 @@ public class RegisterHandlerTests
 {
     private readonly FakeUserStore _store = new();
     private readonly FakeEmailSender _email = new();
+    private readonly ManualTimeProvider _time = new(new DateTimeOffset(2026, 11, 22, 10, 0, 0, TimeSpan.Zero));
 
     private RegisterHandler Handler(ImovaDbContext dbContext)
     {
@@ -19,6 +20,7 @@ public class RegisterHandlerTests
         return new RegisterHandler(
             userManager,
             TestSessions.For(userManager, dbContext),
+            _time,
             dbContext,
             new AccountEmails(userManager, _email, new AppOptions { WebBaseUrl = "https://imova.test" }),
             NullLogger<RegisterHandler>.Instance);
@@ -30,7 +32,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         var user = Assert.Single(_store.Users);
         Assert.Equal(user.Id, result.User.Id);
@@ -47,7 +49,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         await Handler(dbContext).Handle(
-            new RegisterCommand("ana.rusu@example.com", "SuperSecret1!", null, "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana.rusu@example.com", "SuperSecret1!", null, "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Equal("ana.rusu", Assert.Single(dbContext.Publishers).DisplayName);
     }
@@ -58,7 +60,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.False(result.User.EmailConfirmed);
         var email = Assert.Single(_email.Sent);
@@ -78,7 +80,7 @@ public class RegisterHandlerTests
         await using var dbContext = TestDbContextFactory.Create();
 
         await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", sent), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", sent, LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Equal(stored, Assert.Single(_store.Users).PreferredLanguage);
         Assert.Equal(subject, Assert.Single(_email.Sent).Subject);
@@ -91,9 +93,23 @@ public class RegisterHandlerTests
         _email.Fail = true;
 
         var result = await Handler(dbContext).Handle(
-            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456"), CancellationToken.None);
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
 
         Assert.Equal(Assert.Single(_store.Users).Id, result.User.Id);
         Assert.False(string.IsNullOrEmpty(result.Token));
+    }
+
+    [Fact]
+    public async Task Handle_RecordsWhenAndWhichTermsVersionWasAccepted()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+
+        await Handler(dbContext).Handle(
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion),
+            CancellationToken.None);
+
+        var user = Assert.Single(_store.Users);
+        Assert.Equal(LegalTerms.CurrentVersion, user.TermsVersion);
+        Assert.Equal(_time.GetUtcNow(), user.TermsAcceptedAt);
     }
 }

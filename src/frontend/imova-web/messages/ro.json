@@ -30,7 +30,10 @@
     "searchListings": "Caută anunțuri",
     "publishListing": "Publică un anunț",
     "agencies": "Agenții imobiliare",
-    "inDevelopment": "Proiect în dezvoltare."
+    "inDevelopment": "Proiect în dezvoltare.",
+    "terms": "Termeni de utilizare",
+    "privacy": "Confidențialitate",
+    "cookies": "Cookie-uri"
   },
   "Agencies": {
     "verified": "Verificată",
@@ -335,6 +338,7 @@
     "publishAsLabel": "Publică în numele",
     "contactPersonLabel": "Persoana de contact",
     "otherContactMessagesNotice": "Mesajele trimise prin platformă vor ajunge în căsuța ta de mesaje, nu la această persoană (ea nu are cont IMOVA) — transmite-i-le tu dacă e nevoie.",
+    "otherContactConsent": "Confirmi că această persoană a fost de acord ca numele și datele ei de contact să apară pe anunț (vezi <terms>Termenii</terms>). Ea ne poate cere oricând să le ștergem.",
     "contactSelf": "Eu",
     "contactOther": "Altă persoană",
     "contactSelfHint": "Numele și emailul sunt preluate din contul tău.",
@@ -530,7 +534,8 @@
     "passwordRuleMinLength": "Cel puțin 8 caractere",
     "passwordRuleNumber": "Cel puțin o cifră",
     "passwordRuleSpecial": "Cel puțin un caracter special (ex. ! ? # @)",
-    "passwordsMatch": "Parolele coincid"
+    "passwordsMatch": "Parolele coincid",
+    "googleTermsNotice": "Continuând cu Google, accepți <terms>Termenii</terms> și <privacy>Politica de confidențialitate</privacy>."
   },
   "Account": {
     "settingsTitle": "Setările contului",
@@ -626,7 +631,8 @@
     "savedSearchAlertsHint": "Alertele pentru căutările salvate se setează separat, pentru fiecare căutare, în <link>Căutări salvate</link>.",
     "telegramQrLabel": "Cod QR pentru conectarea Telegram",
     "telegramQrTitle": "Scanează cu telefonul",
-    "telegramQrHint": "Telegram se deschide pe telefon — apasă „Start” acolo."
+    "telegramQrHint": "Telegram se deschide pe telefon — apasă „Start” acolo.",
+    "privacyPolicyLink": "Cum folosim datele tale: Politica de confidențialitate"
   },
   "SavedListingsPage": {
     "title": "Anunțuri salvate",
@@ -1429,6 +1435,9 @@
       },
       "telegram": {
         "unavailable": "Telegram nu e disponibil momentan."
+      },
+      "legal": {
+        "termsNotAccepted": "Trebuie să accepți Termenii și Politica de confidențialitate ca să-ți creezi un cont."
       }
     },
     "validation": {
@@ -2148,5 +2157,15 @@
     "notFoundTitle": "Pagina nu a fost găsită",
     "notFoundText": "Linkul este greșit sau pagina nu mai există.",
     "backHome": "Înapoi la prima pagină"
+  },
+  "Legal": {
+    "termsTitle": "Termeni de utilizare",
+    "termsDescription": "Regulile de folosire a IMOVA: contul, anunțurile, mesajele, moderarea și răspunderea.",
+    "privacyTitle": "Politica de confidențialitate",
+    "privacyDescription": "Ce date personale prelucrează IMOVA, de ce, cât timp le păstrăm, cookie-urile și drepturile tale.",
+    "updated": "Ultima actualizare: {date}",
+    "contents": "Cuprins",
+    "draftNotice": "Versiune preliminară, în curs de verificare juridică. Câmpurile evidențiate vor fi completate înainte de lansare.",
+    "translationNotice": "Aceasta este versiunea în limba română, care prevalează asupra traducerilor."
   }
 }

@@ -10,7 +10,7 @@ public class AccountEmailsTests
     [Fact]
     public void ConfirmationEmail_HasTheLinkOnAButtonAndSpelledOut_InTheSharedLayout()
     {
-        var email = AccountEmails.ConfirmationEmail("ana@example.com", "Ana Rusu", Link, Languages.Romanian);
+        var email = AccountEmails.ConfirmationEmail("ana@example.com", "Ana Rusu", Link, Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Confirmă adresa de email — IMOVA", email.Subject);
         Assert.NotNull(email.HtmlBody);
@@ -26,9 +26,9 @@ public class AccountEmailsTests
     [Fact]
     public void ConfirmationEmail_WithoutAName_GreetsPlainly_AndEncodesAName()
     {
-        Assert.Contains("Bună!", AccountEmails.ConfirmationEmail("ana@example.com", null, Link, Languages.Romanian).HtmlBody);
+        Assert.Contains("Bună!", AccountEmails.ConfirmationEmail("ana@example.com", null, Link, Languages.Romanian, privacyUrl: "https://imova.test/privacy").HtmlBody);
 
-        var html = AccountEmails.ConfirmationEmail("ana@example.com", "<b>Ana</b>", Link, Languages.Romanian).HtmlBody!;
+        var html = AccountEmails.ConfirmationEmail("ana@example.com", "<b>Ana</b>", Link, Languages.Romanian, privacyUrl: "https://imova.test/privacy").HtmlBody!;
         Assert.DoesNotContain("<b>Ana</b>", html);
         Assert.Contains("&lt;b&gt;Ana&lt;/b&gt;", html);
     }
@@ -38,7 +38,7 @@ public class AccountEmailsTests
     [InlineData("ru", "Подтвердите адрес электронной почты — IMOVA", "Здравствуйте, Ana!", "Если кнопка не работает")]
     public void ConfirmationEmail_IsWrittenInTheUsersLanguage(string language, string subject, string greeting, string fallback)
     {
-        var email = AccountEmails.ConfirmationEmail("ana@example.com", "Ana", Link, language);
+        var email = AccountEmails.ConfirmationEmail("ana@example.com", "Ana", Link, language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(greeting, email.TextBody);
@@ -51,7 +51,7 @@ public class AccountEmailsTests
     [Fact]
     public void AnUnknownLanguage_FallsBackToRomanian()
     {
-        var email = AccountEmails.PasswordResetEmail("ana@example.com", Link, "de");
+        var email = AccountEmails.PasswordResetEmail("ana@example.com", Link, "de", privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Resetează parola — IMOVA", email.Subject);
         Assert.Contains("<html lang=\"ro\">", email.HtmlBody);
@@ -62,7 +62,7 @@ public class AccountEmailsTests
     {
         const string link = "https://imova.test/reset-password?email=ana%40example.com&token=xyz";
 
-        var email = AccountEmails.PasswordResetEmail("ana@example.com", link, Languages.Romanian);
+        var email = AccountEmails.PasswordResetEmail("ana@example.com", link, Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Resetează parola — IMOVA", email.Subject);
         Assert.Contains(">Alege o parolă nouă</a>", email.HtmlBody);
@@ -76,7 +76,7 @@ public class AccountEmailsTests
     [InlineData("ru", "Сброс пароля — IMOVA", ">Задать новый пароль</a>")]
     public void PasswordResetEmail_IsWrittenInTheUsersLanguage(string language, string subject, string button)
     {
-        var email = AccountEmails.PasswordResetEmail("ana@example.com", Link, language);
+        var email = AccountEmails.PasswordResetEmail("ana@example.com", Link, language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(button, email.HtmlBody);
