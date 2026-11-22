@@ -41,6 +41,14 @@ public sealed class Localitate : Entity
 
     public string? NameRu { get; private set; }
 
+    // Chișinău's CUATM list includes its five administrative sectors ("Sectorul Botanica", …) as
+    // localities. IMOVA keeps Chișinău's sectors as their own list (ChisinauSector), so these rows
+    // would only repeat those under a second name: the location lists and the place search leave
+    // them out. Only Chișinău has such rows.
+    public const string AdministrativeSectorPrefix = "Sectorul ";
+
+    public bool IsChisinauAdministrativeSector => NameRo.StartsWith(AdministrativeSectorPrefix, StringComparison.Ordinal);
+
     public static Localitate Create(
         Guid sourceId,
         Guid raionId,

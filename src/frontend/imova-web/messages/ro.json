@@ -14,14 +14,16 @@
     "account": "Cont",
     "savedListings": "Anunțuri salvate",
     "myListings": "Anunțurile mele",
-    "moderationQueue": "Coadă de moderare",
+    "moderationQueue": "Moderare anunțuri",
     "accountSettings": "Setările contului",
     "messages": "Mesaje",
     "messagingReports": "Mesaje raportate",
     "savedSearches": "Căutări salvate",
     "administrators": "Administratori",
     "agencyVerification": "Verificare agenții",
-    "agencies": "Agenții"
+    "agencies": "Agenții",
+    "administration": "Administrare",
+    "adminWaiting": "{count, plural, one {# lucru în așteptare} few {# lucruri în așteptare} other {# de lucruri în așteptare}}"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -96,24 +98,13 @@
     "statusUnavailable": "Indisponibil"
   },
   "Hero": {
-    "eyebrow": "Piața imobiliară din Moldova, într-un singur loc",
-    "title": "Găsește o locuință, nu doar un anunț.",
-    "subtitle": "Anunțuri moderate, actualizate zilnic și filtre care chiar funcționează — ca să nu mai pierzi timpul cu ce nu se potrivește.",
-    "stats": {
-      "houses": "Case",
-      "apartments": "Apartamente",
-      "commercial": "Com. și oficii",
-      "land": "Terenuri"
-    },
+    "title": "Găsește locul tău de suflet, aici – acasă.",
     "searchCard": {
-      "buyTab": "Cumpără",
-      "rentTab": "Închiriază",
-      "locationLabel": "Locație",
-      "locationPlaceholder": "Oraș, sat sau sector",
-      "typeLabel": "Tip",
-      "anyType": "Orice tip",
+      "locationLabel": "Unde vrei să locuiești",
+      "locationPlaceholder": "Scrie un oraș, sat sau sector",
       "searchButton": "Caută"
-    }
+    },
+    "quickLinks": "Caută rapid"
   },
   "Home": {
     "valueProps": {
@@ -134,15 +125,21 @@
         "description": "Anunțuri din toată Republica Moldova."
       }
     },
-    "recentListings": "Anunțuri recente",
     "listingsAvailable": "{count, plural, one {# anunț disponibil acum} few {# anunțuri disponibile acum} other {# de anunțuri disponibile acum}}",
-    "noListingsYet": "Momentan nu sunt anunțuri publicate",
     "viewAll": "Vezi toate anunțurile",
     "emptyStateText": "Fii primul care publică un anunț pe IMOVA.",
     "ctaTitle": "Ai o proprietate de vândut sau închiriat?",
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
     "ctaButton": "Publică anunț gratuit",
-    "browseByType": "Caută după tip"
+    "newestListings": "Anunțuri noi"
+  },
+  "HomeMap": {
+    "kicker": "Caută pe hartă",
+    "title": "Vezi anunțurile din fiecare oraș",
+    "text": "Toată Moldova pe o hartă, cu prețul pe fiecare anunț. Apasă pe un oraș și vezi ce e în zonă.",
+    "button": "Deschide harta",
+    "mapLabel": "Harta Moldovei: anunțuri pe raioane",
+    "spotLabel": "{place}: {count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"
@@ -226,11 +223,6 @@
     "mapEmptyTitle": "Niciun anunț pe hartă",
     "mapEmptyHint": "Niciun anunț cu locație exactă nu se potrivește filtrelor. Unele anunțuri nu au încă o locație pe hartă, dar apar în listă.",
     "mapEmptyShowList": "Vezi rezultatele în listă"
-  },
-  "MapPromo": {
-    "title": "Toate proprietățile pe hartă",
-    "subtitle": "Vezi rapid care sunt prețurile și cum arată proprietățile din jur.",
-    "cta": "Vezi harta"
   },
   "MapPage": {
     "title": "Proprietăți pe hartă",
@@ -1334,6 +1326,7 @@
         "invitationClosed": "Invitația nu mai este valabilă.",
         "invitationWrongAccount": "Invitația a fost trimisă pe altă adresă de email. Intră în contul cu acea adresă ca s-o accepți.",
         "confirmNameMismatch": "Scrie numele agenției exact cum apare, ca să confirmi ștergerea.",
+        "deleteReasonRequired": "Scrie motivul ștergerii — membrii agenției îl primesc pe email.",
         "nameConflict": "O altă agenție tocmai a primit aceeași adresă. Nu s-a salvat nimic — apasă din nou pe „Salvează modificările”."
       },
       "account": {
@@ -2095,6 +2088,17 @@
     "unverifyBody": "Semnul „Agenție verificată” dispare de pe pagina și anunțurile ei. Proprietarii nu primesc niciun email.",
     "saving": "Se salvează…",
     "cancel": "Anulează",
+    "delete": "Șterge",
+    "deleteTitle": "Ștergi agenția {name}?",
+    "deleteMembers": "{count, plural, one {Singurul membru își pierde accesul la agenție și primește pe email motivul de mai jos.} few {Cei # membri își pierd accesul la agenție și primesc pe email motivul de mai jos.} other {Cei # de membri își pierd accesul la agenție și primesc pe email motivul de mai jos.}}",
+    "deleteListings": "{count, plural, =0 {Anunțurile agenției nu se șterg} one {Anunțurile agenției (# activ acum) nu se șterg} few {Anunțurile agenției (# active acum) nu se șterg} other {Anunțurile agenției (# de active acum) nu se șterg}}: rămân publicate ca anunțuri personale ale celor care le-au publicat.",
+    "deleteOther": "Se șterg pagina agenției, logo-ul, invitațiile și importurile CSV.",
+    "deleteIrreversible": "Ștergerea nu se poate anula.",
+    "deleteReasonLabel": "Motivul ștergerii",
+    "deleteReasonHint": "Membrii agenției îl primesc pe email, așa cum îl scrii.",
+    "deleteNameLabel": "Scrie numele agenției ca să confirmi: {name}",
+    "deleteConfirm": "Șterge agenția",
+    "deleting": "Se șterge…",
     "empty": "Nicio agenție nu corespunde căutării."
   }
 }

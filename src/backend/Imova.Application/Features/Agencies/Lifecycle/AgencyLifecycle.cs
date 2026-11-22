@@ -5,6 +5,7 @@ using Imova.Application.Common.Interfaces;
 using Imova.Application.Common.Validation;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Contracts.Agencies;
+using Imova.Domain.Agencies;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -78,6 +79,33 @@ public class DeleteAgencyHandler(
             ]);
         }
 
+        var removal = await AgencyRemoval.StageAsync(dbContext, agency, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Agency {AgencyId} deleted by user {UserId}; {ListingCount} listings became private.",
+            agency.Id,
+            request.UserId,
+            removal.ListingCount);
+
+        await AgencyRemoval.DeleteFilesAsync(blobStorageService, removal, logger, cancellationToken);
+        return true;
+    }
+}
+
+// What deleting an agency does, shared by an Owner's delete (DeleteAgencyHandler) and a site admin's
+// (AdminDeleteAgencyHandler) so the two can't drift apart. StageAsync marks everything for removal
+// in the caller's unit of work: its listings stay, as private listings of their authors (AgencyId and
+// the agency's ExternalRef cleared) — favorites, conversations, views and price history untouched;
+// its invitations, former slugs and the agency go, and with it (cascade) its members, phone-reveal
+// marks and CSV import jobs + rows. User accounts are never touched. After the caller's save,
+// DeleteFilesAsync removes the logo and the kept import files, best effort.
+public static class AgencyRemoval
+{
+    public sealed record Staged(Guid AgencyId, int ListingCount, IReadOnlyList<string> LogoBlobNames, IReadOnlyList<string> ImportFiles);
+
+    public static async Task<Staged> StageAsync(IApplicationDbContext dbContext, Agency agency, CancellationToken cancellationToken)
+    {
         var listings = await dbContext.Listings.Where(l => l.AgencyId == agency.Id).ToListAsync(cancellationToken);
         foreach (var listing in listings)
         {
@@ -95,16 +123,19 @@ public class DeleteAgencyHandler(
         dbContext.AgencyFormerSlugs.RemoveRange(
             await dbContext.AgencyFormerSlugs.Where(s => s.AgencyId == agency.Id).ToListAsync(cancellationToken));
         dbContext.Agencies.Remove(agency);
-        await dbContext.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation(
-            "Agency {AgencyId} deleted by user {UserId}; {ListingCount} listings became private.",
+        return new Staged(
             agency.Id,
-            request.UserId,
-            listings.Count);
+            listings.Count,
+            agency.LogoBlobName is { } logo ? AgencyLogo.AllBlobNames(logo).ToList() : [],
+            importFiles);
+    }
 
-        // After the save, best effort: a leftover file is harmless, a missing row isn't.
-        foreach (var blobName in agency.LogoBlobName is { } logo ? AgencyLogo.AllBlobNames(logo) : [])
+    // After the save: a leftover file is harmless, a missing row isn't.
+    public static async Task DeleteFilesAsync(
+        IBlobStorageService blobStorageService, Staged removal, ILogger logger, CancellationToken cancellationToken)
+    {
+        foreach (var blobName in removal.LogoBlobNames)
         {
             try
             {
@@ -112,11 +143,11 @@ public class DeleteAgencyHandler(
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogWarning(ex, "Couldn't delete the logo file {BlobName} of deleted agency {AgencyId}.", blobName, agency.Id);
+                logger.LogWarning(ex, "Couldn't delete the logo file {BlobName} of deleted agency {AgencyId}.", blobName, removal.AgencyId);
             }
         }
 
-        foreach (var blobName in importFiles)
+        foreach (var blobName in removal.ImportFiles)
         {
             try
             {
@@ -124,10 +155,8 @@ public class DeleteAgencyHandler(
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogWarning(ex, "Couldn't delete the import file {BlobName} of deleted agency {AgencyId}.", blobName, agency.Id);
+                logger.LogWarning(ex, "Couldn't delete the import file {BlobName} of deleted agency {AgencyId}.", blobName, removal.AgencyId);
             }
         }
-
-        return true;
     }
 }

@@ -7,6 +7,8 @@ import { AccountMenu } from "@/components/layout/AccountMenu";
 import { HeaderMessagesLink } from "@/components/messaging/HeaderMessagesLink";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { searchHref } from "@/lib/search/filters";
+import { adminWaitingTotal } from "@/lib/admin/adminSections";
+import { getAdminSummary } from "@/lib/admin/summaryApi";
 
 // On a phone (down to 360 px) everything sits on one row: the logo never shrinks, the language is a
 // compact select, "Autentificare" is a person icon, and "Adaugă anunț" stays on one line. The links
@@ -17,6 +19,8 @@ export async function Header() {
     getTranslations("Common"),
     getCurrentUserProfile(),
   ]);
+  // Admins only: how many things wait in the admin area (the count on "Administrare").
+  const adminWaiting = profile?.roles.includes("Admin") ? adminWaitingTotal(await getAdminSummary()) : 0;
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink-100 bg-ink-50/85 backdrop-blur">
@@ -41,7 +45,7 @@ export async function Header() {
           <LanguageSwitcher />
           {profile && <HeaderMessagesLink />}
           {profile ? (
-            <AccountMenu profile={profile} />
+            <AccountMenu profile={profile} adminWaiting={adminWaiting} />
           ) : (
             <Link
               href="/login"

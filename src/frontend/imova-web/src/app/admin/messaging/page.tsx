@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
@@ -58,6 +59,7 @@ export default async function AdminMessagingPage({ searchParams }: { searchParam
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+          <AdminNav current="messaging" />
           <h1 className="font-hero text-3xl font-extrabold text-ink-950">{t("title")}</h1>
 
           <nav className="mt-6 flex gap-1 rounded-full border border-ink-100 bg-ink-50 p-1 sm:inline-flex" aria-label={t("title")}>

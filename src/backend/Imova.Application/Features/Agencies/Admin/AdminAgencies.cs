@@ -3,6 +3,8 @@ using Imova.Application.Common;
 using Imova.Application.Common.Emails;
 using Imova.Application.Common.Identity;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Validation;
+using Imova.Application.Features.Agencies.Lifecycle;
 using Imova.Application.Features.Agencies.Logos;
 using Imova.Contracts.Agencies;
 using Imova.Contracts.Common;
@@ -174,6 +176,146 @@ public class SetAgencyVerifiedHandler(
         }
 
         return true;
+    }
+}
+
+// A site admin deletes an agency (the route is admin-only), typing its exact name and giving a reason.
+// Exactly what an Owner's delete does (AgencyRemoval: its listings stay as their authors' private
+// listings, nothing outside the agency is touched), plus: an AdminAuditEntry in the same save, a
+// warning in the log with the reason, and an email to every member (confirmed addresses, best effort,
+// in their language) saying who deleted it, why, and that their listings stay. False when there's
+// no such agency (404).
+public record AdminDeleteAgencyCommand(Guid AgencyId, Guid AdminUserId, string? ConfirmName, string? Reason, string? IpAddress)
+    : IRequest<bool>
+{
+    public const int MaxReasonLength = 1000;
+}
+
+public class AdminDeleteAgencyValidator : AbstractValidator<AdminDeleteAgencyCommand>
+{
+    public AdminDeleteAgencyValidator()
+    {
+        RuleFor(x => x.Reason)
+            .Must(r => !string.IsNullOrWhiteSpace(r))
+            .WithMessage("Say why the agency is being deleted.")
+            .WithErrorCode(ErrorCodes.AgencyDeleteReasonRequired);
+        RuleFor(x => x.Reason).MaximumLength(AdminDeleteAgencyCommand.MaxReasonLength);
+    }
+}
+
+public class AdminDeleteAgencyHandler(
+    IApplicationDbContext dbContext,
+    IBlobStorageService blobStorageService,
+    AgencyDeletedEmail email,
+    TimeProvider timeProvider,
+    ILogger<AdminDeleteAgencyHandler> logger) : IRequestHandler<AdminDeleteAgencyCommand, bool>
+{
+    public async Task<bool> Handle(AdminDeleteAgencyCommand request, CancellationToken cancellationToken)
+    {
+        var agency = await dbContext.Agencies.Include(a => a.Members)
+            .FirstOrDefaultAsync(a => a.Id == request.AgencyId, cancellationToken);
+        if (agency is null)
+        {
+            return false;
+        }
+
+        if (!string.Equals(request.ConfirmName?.Trim(), agency.Name, StringComparison.Ordinal))
+        {
+            throw new ValidationException(
+            [
+                CodedFailure.Of(
+                    nameof(AdminDeleteAgencyCommand.ConfirmName),
+                    "Type the agency's exact name to delete it.",
+                    ErrorCodes.AgencyConfirmNameMismatch),
+            ]);
+        }
+
+        // Read before the delete: the members go with the agency.
+        var memberIds = agency.Members.Select(m => m.UserId).ToList();
+        var recipients = await dbContext.Users.AsNoTracking()
+            .Where(u => memberIds.Contains(u.Id) && u.EmailConfirmed && u.Email != null)
+            .Select(u => new { Email = u.Email!, u.PreferredLanguage })
+            .ToListAsync(cancellationToken);
+        var agencyName = agency.Name;
+        var reason = request.Reason!.Trim();
+
+        var removal = await AgencyRemoval.StageAsync(dbContext, agency, cancellationToken);
+        dbContext.AdminAuditEntries.Add(new AdminAuditEntry
+        {
+            Id = Guid.NewGuid(),
+            Action = AdminAuditEntry.DeleteAgency,
+            ActorUserId = request.AdminUserId,
+            TargetAgencyId = agency.Id,
+            CreatedAt = timeProvider.GetUtcNow(),
+            IpAddress = request.IpAddress,
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogWarning(
+            "Agency {AgencyId} deleted by admin {AdminUserId}; {ListingCount} listings became private. Reason: {Reason}",
+            removal.AgencyId,
+            request.AdminUserId,
+            removal.ListingCount,
+            reason);
+
+        await AgencyRemoval.DeleteFilesAsync(blobStorageService, removal, logger, cancellationToken);
+
+        foreach (var recipient in recipients)
+        {
+            try
+            {
+                await email.SendAsync(recipient.Email, agencyName, reason, recipient.PreferredLanguage, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Couldn't send the deletion email for agency {AgencyId}.", removal.AgencyId);
+            }
+        }
+
+        return true;
+    }
+}
+
+// "Agenția {Agency} a fost ștearsă" (HTML + text, in the member's language): by the IMOVA team, the
+// admin's reason quoted, and that the member's listings stay as personal ones — button to them.
+public class AgencyDeletedEmail(IEmailSender emailSender, AppOptions appOptions)
+{
+    public Task SendAsync(string to, string agencyName, string reason, string language, CancellationToken cancellationToken) =>
+        emailSender.SendAsync(Build(to, agencyName, reason, appOptions.WebUrl("/my-listings"), language), cancellationToken);
+
+    public static EmailMessage Build(string to, string agencyName, string reason, string link, string language)
+    {
+        string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
+
+        var heading = T(
+            $"Agenția {agencyName} a fost ștearsă",
+            $"The agency {agencyName} has been deleted",
+            $"Агентство {agencyName} удалено");
+        var body = T(
+            "Echipa IMOVA a șters agenția de pe site. Pagina ei nu mai există, iar membrii nu mai au acces la ea.",
+            "The IMOVA team has deleted the agency from the site. Its page no longer exists and its members no longer have access to it.",
+            "Команда IMOVA удалила агентство с сайта. Его страницы больше нет, и у участников больше нет к нему доступа.");
+        var reasonLabel = T("Motivul", "The reason", "Причина");
+        var listings = T(
+            "Anunțurile pe care le-ai publicat în agenție nu au fost șterse: rămân publicate ca anunțuri personale și le găsești în „Anunțurile mele”.",
+            "The listings you published in the agency haven't been deleted: they stay published as your personal listings, in “My listings”.",
+            "Объявления, которые вы опубликовали в агентстве, не удалены: они остаются опубликованными как ваши личные объявления в разделе «Мои объявления».");
+        var footer = T(
+            "Ai primit acest email pentru că erai membru al agenției pe IMOVA.",
+            "You're getting this email because you were a member of the agency on IMOVA.",
+            "Вы получили это письмо, потому что были участником агентства на IMOVA.");
+
+        var text = $"{heading}.\n\n{body}\n\n{reasonLabel}: {reason}\n\n{listings}\n\n{link}\n";
+        var html = EmailLayout.Page(
+            heading,
+            EmailLayout.Heading(heading)
+            + EmailLayout.Paragraph(EmailLayout.Encode(body))
+            + EmailLayout.Paragraph($"<strong>{EmailLayout.Encode(reasonLabel)}:</strong> {EmailLayout.Encode(reason)}")
+            + EmailLayout.Paragraph(EmailLayout.Encode(listings))
+            + EmailLayout.Button(T("Anunțurile mele", "My listings", "Мои объявления"), link),
+            EmailLayout.Encode(footer),
+            language);
+        return new EmailMessage(to, $"{heading} — IMOVA", text, html);
     }
 }
 

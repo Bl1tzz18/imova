@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { AdminNav } from "@/components/admin/AdminNav";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
+import { AgencyAdminDeleteButton } from "@/components/admin/AgencyAdminDeleteButton";
 import { AgencyVerifyButton } from "@/components/admin/AgencyVerifyButton";
 import { AutoSubmitForm } from "@/components/agency/AutoSubmitForm";
 import { LinkPagination } from "@/components/agency/LinkPagination";
@@ -63,6 +65,7 @@ export default async function AdminAgenciesPage({
   return (
     <div className="flex min-h-screen flex-col">
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">
+        <AdminNav current="agencies" />
         <h1 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("title")}</h1>
         <p className="mt-1 text-sm text-ink-500">{t("subtitle")}</p>
 
@@ -135,6 +138,12 @@ export default async function AdminAgenciesPage({
                         {t("csvImport")}
                       </Link>
                       <AgencyVerifyButton agencyId={agency.id} agencyName={agency.name} verified={agency.isVerified} />
+                      <AgencyAdminDeleteButton
+                        agencyId={agency.id}
+                        agencyName={agency.name}
+                        memberCount={agency.memberCount}
+                        activeListingCount={agency.activeListingCount}
+                      />
                     </div>
                   </li>
                 ))}

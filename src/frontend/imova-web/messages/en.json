@@ -14,14 +14,16 @@
     "account": "Account",
     "savedListings": "Saved listings",
     "myListings": "My listings",
-    "moderationQueue": "Moderation queue",
+    "moderationQueue": "Listing moderation",
     "accountSettings": "Account settings",
     "messages": "Messages",
     "messagingReports": "Reported messages",
     "savedSearches": "Saved searches",
     "administrators": "Administrators",
     "agencyVerification": "Agency verification",
-    "agencies": "Agencies"
+    "agencies": "Agencies",
+    "administration": "Administration",
+    "adminWaiting": "{count, plural, one {# item waiting} other {# items waiting}}"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -96,24 +98,13 @@
     "statusUnavailable": "Unavailable"
   },
   "Hero": {
-    "eyebrow": "Moldova's real estate market, in one place",
-    "title": "Find a home, not just a listing.",
-    "subtitle": "Moderated listings, updated daily, and filters that actually work — so you stop wasting time on what doesn't fit.",
-    "stats": {
-      "houses": "Houses",
-      "apartments": "Apartments",
-      "commercial": "Commercial & offices",
-      "land": "Land plots"
-    },
+    "title": "Find the place your heart calls home, right here.",
     "searchCard": {
-      "buyTab": "Buy",
-      "rentTab": "Rent",
-      "locationLabel": "Location",
-      "locationPlaceholder": "Town, village or sector",
-      "typeLabel": "Type",
-      "anyType": "Any type",
+      "locationLabel": "Where do you want to live",
+      "locationPlaceholder": "Type a town, village or district",
       "searchButton": "Search"
-    }
+    },
+    "quickLinks": "Quick search"
   },
   "Home": {
     "valueProps": {
@@ -134,15 +125,21 @@
         "description": "Listings from across the Republic of Moldova."
       }
     },
-    "recentListings": "Recent listings",
     "listingsAvailable": "{count, plural, one {# listing available now} other {# listings available now}}",
-    "noListingsYet": "No listings published yet",
     "viewAll": "View all listings",
     "emptyStateText": "Be the first to publish a listing on IMOVA.",
     "ctaTitle": "Have a property to sell or rent?",
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
     "ctaButton": "Publish for free",
-    "browseByType": "Browse by type"
+    "newestListings": "New listings"
+  },
+  "HomeMap": {
+    "kicker": "Search on the map",
+    "title": "See the listings in every town",
+    "text": "All of Moldova on one map, with the price on every listing. Tap a town to see what's in the area.",
+    "button": "Open the map",
+    "mapLabel": "Map of Moldova: listings by district",
+    "spotLabel": "{place}: {count, plural, one {# listing} other {# listings}}"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"
@@ -226,11 +223,6 @@
     "mapEmptyTitle": "No listings on the map",
     "mapEmptyHint": "No listing with an exact location matches these filters. Some listings don't have a map location yet, but they still show in the list.",
     "mapEmptyShowList": "See the results as a list"
-  },
-  "MapPromo": {
-    "title": "All properties on the map",
-    "subtitle": "See at a glance where listings are and what prices look like around you.",
-    "cta": "View map"
   },
   "MapPage": {
     "title": "Properties on the map",
@@ -1334,6 +1326,7 @@
         "invitationClosed": "This invitation is no longer valid.",
         "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it.",
         "confirmNameMismatch": "Type the agency's name exactly as it appears to confirm the deletion.",
+        "deleteReasonRequired": "Write why the agency is being deleted — its members get it by email.",
         "nameConflict": "Another agency just got the same address. Nothing was saved — press “Save changes” again."
       },
       "account": {
@@ -2095,6 +2088,17 @@
     "unverifyBody": "The “Verified agency” mark disappears from its page and listings. The owners aren't emailed.",
     "saving": "Saving…",
     "cancel": "Cancel",
+    "delete": "Delete",
+    "deleteTitle": "Delete the agency {name}?",
+    "deleteMembers": "{count, plural, one {Its only member loses access to the agency and gets the reason below by email.} other {Its # members lose access to the agency and get the reason below by email.}}",
+    "deleteListings": "{count, plural, =0 {The agency's listings aren't deleted} one {The agency's listings (# active now) aren't deleted} other {The agency's listings (# active now) aren't deleted}}: they stay published as personal listings of whoever published them.",
+    "deleteOther": "The agency's page, logo, invitations and CSV imports are deleted.",
+    "deleteIrreversible": "This can't be undone.",
+    "deleteReasonLabel": "Reason for deleting",
+    "deleteReasonHint": "The agency's members get it by email, as you write it.",
+    "deleteNameLabel": "Type the agency's name to confirm: {name}",
+    "deleteConfirm": "Delete agency",
+    "deleting": "Deleting…",
     "empty": "No agency matches the search."
   }
 }

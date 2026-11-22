@@ -1,9 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
-import { PropertyCarousel } from "@/components/property/PropertyCarousel";
-import { PropertyMapPromo } from "@/components/property/PropertyMapPromo";
-import { PropertyTypeStats } from "@/components/property/PropertyTypeStats";
+import { HomeBrowse } from "@/components/home/HomeBrowse";
+import { HomeMapSection } from "@/components/home/HomeMapSection";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
@@ -46,82 +45,37 @@ export default async function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <Hero
-          countsByType={listings.reduce<Record<string, number>>((counts, l) => {
-            counts[l.property.propertyType] = (counts[l.property.propertyType] ?? 0) + 1;
-            return counts;
-          }, {})}
-        />
+        <Hero />
 
-        <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-          <h2 className="mb-5 font-display text-2xl font-medium text-ink-950 sm:text-3xl">{t("browseByType")}</h2>
-          <PropertyTypeStats listings={listings} />
-        </section>
+        <HomeBrowse listings={listings} addListingLabel={tCommon("addListing")} />
 
-        <section className="border-b border-ink-100 bg-white">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 pb-10 pt-14 sm:px-6 sm:pt-16 md:grid-cols-4">
-            {valueProps.map((item) => (
-              <div key={item.key} className="flex flex-col items-start gap-2">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                    <path d={item.d} />
-                  </svg>
-                </span>
-                <p className="text-sm font-semibold text-ink-900">
-                  {t(`valueProps.${item.key}.title`)}
-                </p>
-                <p className="text-sm text-ink-500">
-                  {t(`valueProps.${item.key}.description`)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <HomeMapSection listings={listings} />
 
-        <section className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
-          <PropertyMapPromo listings={listings} />
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        {/* For owners: one invitation, with the reasons to list here beside it. */}
+        <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20">
+          <div className="grid gap-8 rounded-3xl bg-brand-900 p-6 sm:p-10 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-14 lg:p-12">
             <div>
-              <h2 className="font-display text-2xl font-medium text-ink-950 sm:text-3xl">
-                {t("recentListings")}
-              </h2>
-              <p className="mt-1 text-sm text-ink-500">
-                {listings.length > 0
-                  ? t("listingsAvailable", { count: listings.length })
-                  : t("noListingsYet")}
-              </p>
-            </div>
-            <LinkButton href="/search" variant="secondary" size="sm">
-              {t("viewAll")}
-            </LinkButton>
-          </div>
-
-          {listings.length > 0 ? (
-            <PropertyCarousel listings={listings} />
-          ) : (
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-200 bg-white px-6 py-16 text-center">
-              <p className="text-sm text-ink-500">{t("emptyStateText")}</p>
-              <LinkButton href="/properties/new" size="sm">
-                {tCommon("addListing")}
+              <h2 className="text-balance font-display text-2xl font-medium text-white sm:text-3xl">{t("ctaTitle")}</h2>
+              <p className="mt-3 max-w-md text-sm text-brand-100 sm:text-base">{t("ctaSubtitle")}</p>
+              <LinkButton href="/properties/new" size="lg" className="mt-6">
+                {t("ctaButton")}
               </LinkButton>
             </div>
-          )}
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-          <div className="flex flex-col items-center gap-4 rounded-3xl bg-brand-900 px-6 py-14 text-center sm:px-16">
-            <h2 className="font-display text-2xl font-medium text-white sm:text-3xl">
-              {t("ctaTitle")}
-            </h2>
-            <p className="max-w-md text-sm text-brand-100 sm:text-base">
-              {t("ctaSubtitle")}
-            </p>
-            <LinkButton href="/properties/new" size="lg" className="mt-2">
-              {t("ctaButton")}
-            </LinkButton>
+            <ul className="grid gap-5 sm:grid-cols-2">
+              {valueProps.map((item) => (
+                <li key={item.key} className="flex gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-brand-200">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+                      <path d={item.d} />
+                    </svg>
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold text-white">{t(`valueProps.${item.key}.title`)}</span>
+                    <span className="mt-0.5 block text-sm text-brand-100/80">{t(`valueProps.${item.key}.description`)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </main>

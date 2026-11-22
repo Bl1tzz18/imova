@@ -52,7 +52,7 @@ public class SearchLocationsHandler(IApplicationDbContext dbContext, IMemoryCach
 
         var entries = raioane
             .Select(r => new LocationSuggestionDto("Raion", r.Id, r.NameRo, r.Id, r.NameRo))
-            .Concat(localitati.Select(l => new LocationSuggestionDto(
+            .Concat(localitati.Where(l => !l.IsChisinauAdministrativeSector).Select(l => new LocationSuggestionDto(
                 "Localitate", l.Id, l.NameRo, l.RaionId, raionNames.GetValueOrDefault(l.RaionId) ?? string.Empty)))
             .Concat(chisinau is null
                 ? []

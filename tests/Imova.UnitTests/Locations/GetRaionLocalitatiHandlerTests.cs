@@ -86,4 +86,22 @@ public class GetRaionLocalitatiHandlerTests
 
         Assert.False(cache.TryGetValue($"locations:raioane:{unknownRaionId}:localitati", out _));
     }
+
+    [Fact]
+    public async Task Handle_ForChisinau_LeavesOutItsAdministrativeSectors()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+        var chisinau = Raion.Create(Guid.NewGuid(), "0100", "Chișinău", null, LocalityLabel.Sector);
+        dbContext.Raioane.Add(chisinau);
+        dbContext.Localitati.AddRange(
+            Localitate.Create(Guid.NewGuid(), chisinau.Id, null, "0110", "Sectorul Botanica", null),
+            Localitate.Create(Guid.NewGuid(), chisinau.Id, null, "0111", "Băcioi", null),
+            Localitate.Create(Guid.NewGuid(), chisinau.Id, null, "0112", "Codru", null));
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetRaionLocalitatiHandler(dbContext, new MemoryCache(new MemoryCacheOptions()));
+        var result = await handler.Handle(new GetRaionLocalitatiQuery(chisinau.Id), CancellationToken.None);
+
+        Assert.Equal(["Băcioi", "Codru"], result!.Select(l => l.NameRo));
+    }
 }
