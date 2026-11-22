@@ -69,7 +69,8 @@ public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Progra
     }
 
     [Fact]
-    public async Task GetRaionLocalitati_ForChisinau_IncludesSectorsAndSuburbs()
+    // Chișinău's CUATM "Sectorul …" rows are left out (the sectors are their own list); its suburbs stay.
+    public async Task GetRaionLocalitati_ForChisinau_IncludesSuburbs_NotTheAdministrativeSectorRows()
     {
         var client = _factory.CreateClient();
         var raioane = await client.GetFromJsonAsync<List<RaionDto>>("/api/v1/locations/raioane");
@@ -79,7 +80,7 @@ public class LocationsEndpointTests : IClassFixture<WebApplicationFactory<Progra
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var localitati = await response.Content.ReadFromJsonAsync<List<LocalitateDto>>();
-        Assert.Contains(localitati!, l => l.NameRo == "Sectorul Botanica");
+        Assert.DoesNotContain(localitati!, l => l.NameRo.StartsWith("Sectorul "));
         Assert.Contains(localitati!, l => l.NameRo == "Durlești");
     }
 
