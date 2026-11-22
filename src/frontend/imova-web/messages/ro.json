@@ -97,7 +97,6 @@
   },
   "Hero": {
     "title": "Găsește locul tău de suflet, aici – acasă.",
-    "mapLink": "Pe hartă",
     "searchCard": {
       "locationLabel": "Unde vrei să locuiești",
       "locationPlaceholder": "Scrie un oraș, sat sau sector",
@@ -131,6 +130,14 @@
     "ctaSubtitle": "Publică anunțul tău gratuit și ajunge la cumpărători și chiriași din toată Moldova.",
     "ctaButton": "Publică anunț gratuit",
     "newestListings": "Anunțuri noi"
+  },
+  "HomeMap": {
+    "kicker": "Caută pe hartă",
+    "title": "Vezi anunțurile din fiecare oraș",
+    "text": "Toată Moldova pe o hartă, cu prețul pe fiecare anunț. Apasă pe un oraș și vezi ce e în zonă.",
+    "button": "Deschide harta",
+    "mapLabel": "Harta Moldovei: anunțuri pe raioane",
+    "spotLabel": "{place}: {count, plural, one {# anunț} few {# anunțuri} other {# de anunțuri}}"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# anunț găsit} few {# anunțuri găsite} other {# de anunțuri găsite}}"

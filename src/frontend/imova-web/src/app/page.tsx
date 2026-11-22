@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { HomeBrowse } from "@/components/home/HomeBrowse";
+import { HomeMapSection } from "@/components/home/HomeMapSection";
 import { LinkButton } from "@/components/ui/Button";
 import { getSessionToken } from "@/lib/auth/session";
 import type { Listing } from "@/types/listing";
@@ -47,6 +48,8 @@ export default async function Home() {
         <Hero />
 
         <HomeBrowse listings={listings} addListingLabel={tCommon("addListing")} />
+
+        <HomeMapSection listings={listings} />
 
         {/* For owners: one invitation, with the reasons to list here beside it. */}
         <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-20">

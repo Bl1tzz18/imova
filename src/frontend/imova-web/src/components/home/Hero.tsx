@@ -3,75 +3,72 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { HeroSearchCard } from "@/components/home/HeroSearchCard";
 import { PropertyIcon } from "@/components/property/PropertyIcon";
-import { MAP_PATH, searchHref } from "@/lib/search/filters";
+import { searchHref } from "@/lib/search/filters";
 
-// One tap from the hero into a type's results — the quick filters the big portals put under their
-// search box.
+// One tap from the home page into a type's results.
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 
 // The hero photo: Sebastian Schuster, https://unsplash.com/photos/-y8fNw9x9wc — Unsplash License,
 // free for commercial use with no credit required. Swap the file in public/images to change it.
 const HERO_PHOTO_SRC = "/images/hero-home.jpg";
 
-// The home page's first screen, the way the big portals do it: one warm, lived-in photo, one line,
-// one field ("where?"), and the property types as quick chips under it. Sized to its content
-// (about 440 px on a desktop) so the newest listings start within the first screen; on a phone the
-// search lands in the first screen. Text sits on a soft shade over the photo — from the left on
-// wide screens, from the bottom on phones.
+// The home page's first screen, the way the big portals do it: one warm, lived-in photo, one line
+// and one field ("where?"). The property types sit right under the photo as tiles that overlap its
+// bottom edge (Airbnb/Booking's "browse by type"): on white, large enough for the icons to help —
+// small icons on translucent chips over the photo read as noise. Sized to its content so the newest
+// listings start soon after; on a phone the search lands in the first screen. Text sits on a soft
+// shade over the photo — from the left on wide screens, from the bottom on phones.
 export async function Hero() {
   const t = await getTranslations("Hero");
   const tSearch = await getTranslations("Search");
-  const chip =
-    "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/25 bg-black/25 px-3 py-1.5 text-[13px] font-medium text-white backdrop-blur-sm transition-colors hover:border-white/60 hover:bg-black/40";
+  const tile =
+    "group flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-white px-2 py-3.5 text-center text-[13px] font-semibold leading-tight text-ink-900 shadow-card transition-[border-color,box-shadow] hover:border-accent-300 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 sm:py-4 sm:text-sm";
+  const tileIcon =
+    "h-7 w-7 text-accent-500 transition-transform group-hover:-translate-y-0.5 motion-reduce:transition-none sm:h-8 sm:w-8";
 
   return (
-    <section className="relative isolate flex min-h-[440px] items-end sm:items-center lg:min-h-[460px]">
-      <Image
-        src={HERO_PHOTO_SRC}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="-z-20 object-cover object-[60%_30%]"
-      />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/65 via-black/25 to-black/0 sm:bg-gradient-to-r sm:from-black/55 sm:via-black/25 sm:to-black/0" />
+    <>
+      {/* Layers: the photo and its shade at the bottom, the type tiles (overlapping the photo) above
+          them, and the headline + search above the tiles — so the place suggestions drop over the
+          tiles. The section itself must not form a stacking context (no isolate/z-index), or
+          everything in it would sit under the tiles. */}
+      <section className="relative flex min-h-[420px] items-end sm:items-center">
+        <Image
+          src={HERO_PHOTO_SRC}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="z-0 object-cover object-[60%_30%]"
+        />
+        <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/65 via-black/25 to-black/0 sm:bg-gradient-to-r sm:from-black/55 sm:via-black/25 sm:to-black/0" />
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-8 pt-24 sm:px-6 sm:py-14">
-        <div>
+        {/* The bottom padding leaves room for the tiles that overlap the photo's lower edge. */}
+        <div className="relative z-20 mx-auto w-full max-w-6xl px-4 pb-16 pt-24 sm:px-6 sm:pb-20 sm:pt-14">
           <h1 className="max-w-[580px] text-balance font-hero text-[30px] font-extrabold leading-[1.08] tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)] sm:text-[40px] lg:text-[44px]">
             {t("title")}
           </h1>
           <div className="mt-5 max-w-[580px] sm:mt-6">
             <HeroSearchCard />
           </div>
-          {/* On a phone the chips scroll sideways: the right edge fades out (so the row reads as
-              "more this way", not as cut off) and a spacer lets the last chip clear the fade. */}
-          <nav
-            aria-label={t("quickLinks")}
-            className="-mx-4 mt-4 overflow-x-auto px-4 [mask-image:linear-gradient(90deg,#000_80%,transparent)] [scrollbar-width:none] sm:mx-0 sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden"
-          >
-            <ul className="flex gap-2 after:w-24 after:shrink-0 after:content-[''] sm:flex-wrap sm:after:hidden">
-              {PROPERTY_TYPES.map((type) => (
-                <li key={type}>
-                  <Link href={searchHref({ propertyType: [type] })} className={chip}>
-                    <PropertyIcon type={type} className="h-4 w-4" />
-                    {tSearch(`typePlural.${type}`)}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href={MAP_PATH} className={chip}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
-                    <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2ZM9 4v14M15 6v14" />
-                  </svg>
-                  {t("mapLink")}
-                </Link>
-              </li>
-            </ul>
-          </nav>
         </div>
-      </div>
+      </section>
 
-    </section>
+      {/* Six types: a 3×2 grid on a phone (both rows as tall as the taller one, since "Spații
+          comerciale" wraps), one row from a tablet up. The map has its own section further down
+          (HomeMapSection) — it's a way of looking, not a kind of property. */}
+      <nav aria-label={t("quickLinks")} className="relative z-10 mx-auto -mt-9 w-full max-w-6xl px-4 sm:-mt-11 sm:px-6">
+        <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-6 sm:gap-3">
+          {PROPERTY_TYPES.map((type) => (
+            <li key={type} className="grid">
+              <Link href={searchHref({ propertyType: [type] })} className={tile}>
+                <PropertyIcon type={type} className={tileIcon} />
+                {tSearch(`typePlural.${type}`)}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </>
   );
 }

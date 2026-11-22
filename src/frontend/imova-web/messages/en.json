@@ -97,7 +97,6 @@
   },
   "Hero": {
     "title": "Find the place your heart calls home, right here.",
-    "mapLink": "On the map",
     "searchCard": {
       "locationLabel": "Where do you want to live",
       "locationPlaceholder": "Type a town, village or district",
@@ -131,6 +130,14 @@
     "ctaSubtitle": "Publish your listing for free and reach buyers and renters across Moldova.",
     "ctaButton": "Publish for free",
     "newestListings": "New listings"
+  },
+  "HomeMap": {
+    "kicker": "Search on the map",
+    "title": "See the listings in every town",
+    "text": "All of Moldova on one map, with the price on every listing. Tap a town to see what's in the area.",
+    "button": "Open the map",
+    "mapLabel": "Map of Moldova: listings by district",
+    "spotLabel": "{place}: {count, plural, one {# listing} other {# listings}}"
   },
   "SearchPage": {
     "resultsCount": "{count, plural, one {# listing found} other {# listings found}}"
