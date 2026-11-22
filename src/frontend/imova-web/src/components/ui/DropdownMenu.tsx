@@ -11,22 +11,29 @@ type DropdownItem = {
   href?: string;
   external?: boolean;
   onSelect?: () => void;
+  // For a "pick one" menu (the language): the current choice, ticked and announced as selected.
+  checked?: boolean;
+  // Small text at the end of the row (e.g. the language code).
+  hint?: string;
 };
 
 // A button that opens a small menu under it. Opening moves focus to the first item; Escape (back to
-// the button) or a click outside closes it. Used for the owner's "⋯" actions and for sharing.
+// the button) or a click outside closes it. Used for the owner's "⋯" actions, for sharing and for
+// the language.
 export function DropdownMenu({
   label,
   trigger,
   triggerClassName,
   items,
   disabled = false,
+  menuMinWidth = "min-w-52",
 }: {
   label: string;
   trigger: ReactNode;
   triggerClassName: string;
   items: DropdownItem[];
   disabled?: boolean;
+  menuMinWidth?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -34,7 +41,10 @@ export function DropdownMenu({
 
   useEffect(() => {
     if (!open) return;
-    root.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    // Focus the current choice in a pick-one menu, else the first item.
+    root.current
+      ?.querySelector<HTMLElement>('[aria-checked="true"], [role="menuitem"], [role="menuitemradio"]')
+      ?.focus();
     function onPointerDown(e: PointerEvent) {
       if (!root.current?.contains(e.target as Node)) setOpen(false);
     }
@@ -74,7 +84,7 @@ export function DropdownMenu({
         <div
           role="menu"
           aria-label={label}
-          className="absolute right-0 top-full z-20 mt-1.5 min-w-52 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-[var(--shadow-card-hover)]"
+          className={cn("absolute right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-[var(--shadow-card-hover)]", menuMinWidth)}
         >
           {items.map((item) =>
             item.href ? (
@@ -94,15 +104,23 @@ export function DropdownMenu({
               <button
                 key={item.id}
                 type="button"
-                role="menuitem"
+                role={item.checked === undefined ? "menuitem" : "menuitemradio"}
+                aria-checked={item.checked}
                 onClick={() => {
                   setOpen(false);
                   item.onSelect?.();
                 }}
-                className={cn(itemClass)}
+                className={cn(itemClass, item.checked && "bg-accent-100/60 font-semibold text-accent-700 hover:bg-accent-100 focus:bg-accent-100")}
               >
                 {item.icon}
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.checked ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                    <path d="m5 12.5 4.5 4.5L19 7.5" />
+                  </svg>
+                ) : (
+                  item.hint && <span className="text-xs font-semibold text-ink-400">{item.hint}</span>
+                )}
               </button>
             ),
           )}
