@@ -1,15 +1,15 @@
 import { getTranslations } from "next-intl/server";
-import { PropertyCard } from "@/components/property/PropertyCard";
+import { PropertyCarousel } from "@/components/property/PropertyCarousel";
 import { LinkButton } from "@/components/ui/Button";
 import { SEARCH_PATH } from "@/lib/search/filters";
 import type { Listing } from "@/types/listing";
 
-// How many of the newest listings the home page shows: two rows of four on a desktop. A phone shows
-// the first PHONE_COUNT, then the "see all" button — eight full-width cards would be a long scroll.
-const NEWEST_COUNT = 8;
-const PHONE_COUNT = 4;
+// How many of the newest listings the home page's row holds: three desktop views of four.
+const NEWEST_COUNT = 12;
 
-// Right under the hero: the newest listings, so the first scroll already shows real homes.
+// Right under the hero: the newest listings as one swipeable row (PropertyCarousel, like "Anunțuri
+// asemănătoare" on a listing page), so the first scroll already shows real homes without a long
+// block of cards — on a phone a stack of full-width cards would push everything else far down.
 // `listings` come newest first.
 export async function HomeBrowse({ listings, addListingLabel }: { listings: Listing[]; addListingLabel: string }) {
   const t = await getTranslations("Home");
@@ -35,13 +35,7 @@ export async function HomeBrowse({ listings, addListingLabel }: { listings: List
 
       {newest.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {newest.map((listing, i) => (
-              <div key={listing.id} className={i >= PHONE_COUNT ? "hidden sm:grid" : "grid"}>
-                <PropertyCard listing={listing} />
-              </div>
-            ))}
-          </div>
+          <PropertyCarousel listings={newest} desktopPerView={4} />
           <div className="mt-6 sm:hidden">
             <LinkButton href={SEARCH_PATH} variant="secondary" className="w-full">
               {t("viewAll")}
