@@ -122,16 +122,17 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-4 text-sm">
-        {!renaming && (
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        {/* While a delete waits for confirmation, only that question and its two answers show. */}
+        {!renaming && !confirmingDelete && (
           <button type="button" onClick={() => setRenaming(true)} className="font-medium text-ink-500 hover:text-ink-900">
             {t("rename")}
           </button>
         )}
         {confirmingDelete ? (
-          <span className="flex items-center gap-3">
-            <span className="text-ink-600">{t("deleteConfirm")}</span>
-            <button type="button" onClick={remove} disabled={pending} className="font-medium text-accent-700 hover:text-accent-600">
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="whitespace-nowrap text-ink-600">{t("deleteConfirm")}</span>
+            <button type="button" onClick={remove} disabled={pending} className={buttonClassName({ variant: "danger", size: "sm", className: "whitespace-nowrap" })}>
               {t("deleteYes")}
             </button>
             <button type="button" onClick={() => setConfirmingDelete(false)} className="font-medium text-ink-500 hover:text-ink-900">
@@ -139,7 +140,7 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
             </button>
           </span>
         ) : (
-          <button type="button" onClick={() => setConfirmingDelete(true)} className="font-medium text-ink-500 hover:text-accent-700">
+          <button type="button" onClick={() => setConfirmingDelete(true)} className="font-medium text-red-600 hover:text-red-700">
             {t("delete")}
           </button>
         )}
