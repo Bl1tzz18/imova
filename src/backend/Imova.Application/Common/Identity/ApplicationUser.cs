@@ -30,4 +30,11 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     // it. Set at sign-up from the language the site was in, then whenever they switch language while
     // signed in.
     public string PreferredLanguage { get; set; } = Languages.Default;
+
+    // When and which version (LegalTerms.CurrentVersion) of the Terms of use + Privacy policy the
+    // user accepted — at registration, or by the first Google sign-in that created the account.
+    // Null for accounts made before acceptance was recorded (2026-11).
+    public DateTimeOffset? TermsAcceptedAt { get; set; }
+
+    public string? TermsVersion { get; set; }
 }

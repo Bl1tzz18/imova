@@ -27,7 +27,7 @@ public static class ListingExpiryEmails
 
     private static string MyListings(string language) => Languages.Pick(language, "Anunțurile mele", "My listings", "Мои объявления");
 
-    public static EmailMessage Reminder(string to, string title, DateTimeOffset expiresAt, string myListingsUrl, string language)
+    public static EmailMessage Reminder(string to, string title, DateTimeOffset expiresAt, string myListingsUrl, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -58,10 +58,10 @@ public static class ListingExpiryEmails
                 $"Если оно ещё актуально, продлите его ещё на {period} — это один клик.")))
             + EmailLayout.Button(T("Prelungește anunțul", "Renew listing", "Продлить объявление"), myListingsUrl);
 
-        return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language));
+        return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language, privacyUrl));
     }
 
-    public static EmailMessage Expired(string to, string title, string myListingsUrl, string language)
+    public static EmailMessage Expired(string to, string title, string myListingsUrl, string language, string privacyUrl)
     {
         string T(string ro, string en, string ru) => Languages.Pick(language, ro, en, ru);
 
@@ -87,7 +87,7 @@ public static class ListingExpiryEmails
                 "Если оно ещё актуально, его можно снова активировать в любой момент без повторной проверки.")))
             + EmailLayout.Button(T("Reactivează anunțul", "Reactivate listing", "Активировать объявление"), myListingsUrl);
 
-        return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language));
+        return new EmailMessage(to, subject, text, EmailLayout.Page(subject, content, Footer(language), language, privacyUrl));
     }
 
     public static string FormatDate(DateTimeOffset value) =>

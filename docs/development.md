@@ -171,6 +171,7 @@ simply retries a failed run on its next tick.
 | `ListingExpiry` | `ListingExpiry:IntervalSeconds` (3600) | Active listings live 6 months (`Listing.ActiveMonths`); reminder email 7 days before, then Expired + email |
 | `AbandonedPhotoCleanup` | `PhotoCleanup:IntervalSeconds` (21600) | deletes photos (blob + row) whose listing was never created, after 7 days |
 | `PhotoSizeBackfill` | `PhotoSizes:IntervalSeconds` (300) | makes the display sizes of photos that lack the current `PhotoSizes.CurrentVersion` (100 per run, newest first) |
+| `DataRetentionCleanup` | `DataRetention:IntervalSeconds` (86400) | the retention limits the privacy policy states: ended listings 12 months after their last change (`Listing.EndedKeepFor`), conversations 24 months after the last message unless a report is open (`Conversation.InactiveKeepFor`), the IP on admin audit entries after 12 months (`AdminAuditEntry.IpKeepFor`) |
 
 Compose sets these to 60 seconds so they're quick to try; emails land in Mailpit. To see
 expiry locally, move a listing's `ExpiresAt` in the database (e.g. `now() + interval '3 days'` for
@@ -228,6 +229,37 @@ Tracked as Jira **KAN-33**. On launch day, once `https://imova.md` is live (`SIT
 4. **Yandex Webmaster** — add `https://imova.md`, verify, add the sitemap.
 5. A week later: Search Console → *Pages* shows listings being indexed (about 3 × the active
    listings — one per language).
+
+## Terms of use and Privacy policy
+
+`/terms` and `/privacy` (KAN-10). The text lives in `src/frontend/imova-web/src/content/legal/`,
+one file per document and language (`terms.ro.ts`, `privacy.en.ts`, …), as data: sections of
+paragraphs, lists and tables, with three inline marks — `[label](/path)`, `**bold**` and `{{…}}`
+for a placeholder still to fill in (`lib/legal/document.ts`; while any `{{…}}` is left the page
+shows a "preliminary version" notice — none are left now). The operator is named only as "IMOVA
+(imova.md), Republic of Moldova" with contact@imova.md, until a company exists: then add its name,
+IDNO and address to the "operator" section of the Terms and the "controller" section of the policy
+(all three languages) and bump the version. The policy promises database backups kept ≤7 days and
+server logs ≤90 days — configure production to match. The Romanian text prevails; Vitest
+(`content/legal/legal.test.ts`) checks that all three languages have the same sections and blocks
+and that every link points at a real page.
+
+Registration (and a Google sign-in that creates the account) must send the current version
+(`acceptedTermsVersion`), stored as `TermsVersion` + `TermsAcceptedAt` on the account; anything
+else is a 400 `legal.termsNotAccepted`. **When the text changes in substance, bump both
+`LEGAL_VERSION` (`src/lib/legal/version.ts`) and `LegalTerms.CurrentVersion` (Application)** — a
+test fails if they differ. Asking existing users to accept a new version isn't built yet.
+
+Every HTML email links to the policy at the bottom: `EmailLayout.Page` takes a required
+`privacyUrl` (`AppOptions.PrivacyUrl(language)`), so a new email can't forget it.
+
+**Keep the texts true.** Any change that adds personal data, a new outside service, a cookie or
+storage key, a new kind of email or message, a changed retention period, new access to user data,
+new user rules or paid features must update the Terms/Privacy (all three languages) in the same
+branch — the full trigger list is in CLAUDE.md ("Terms, Privacy and cookies must stay true").
+
+The retention periods in the privacy policy are real: when you change one (`DataRetentionCleanup`,
+the visitor marks, sessions, …) change the policy's table too.
 
 ## Telegram bot
 

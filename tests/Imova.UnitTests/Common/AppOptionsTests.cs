@@ -23,4 +23,12 @@ public class AppOptionsTests
     {
         Assert.Equal(expected, _options.WebUrl("/messages/1", language));
     }
+
+    [Theory]
+    [InlineData("ro", "https://imova.md/privacy")]
+    [InlineData("ru", "https://imova.md/ru/privacy")]
+    public void PrivacyUrl_IsThePolicyInTheReadersLanguage(string language, string expected)
+    {
+        Assert.Equal(expected, _options.PrivacyUrl(language));
+    }
 }

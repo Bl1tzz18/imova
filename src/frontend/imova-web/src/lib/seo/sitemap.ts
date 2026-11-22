@@ -18,14 +18,14 @@ export type SitemapAgency = { slug: string; lastModified: string };
 
 export const PAGES_FILE = "pages.xml";
 
-// The site's own entry points: home, the agency directory, and search for each transaction — on
-// its own and per property type (what people search for: "apartamente de vânzare").
+// The site's own entry points: home, the agency directory, the legal pages, and search for each
+// transaction — on its own and per property type (what people search for: "apartamente de vânzare").
 export function sitePages(): SitemapEntry[] {
   const searches = TRANSACTION_TYPES.flatMap((transactionType) => [
     searchHref({ transactionType: [transactionType] }),
     ...PROPERTY_TYPES.map((propertyType) => searchHref({ transactionType: [transactionType], propertyType: [propertyType] })),
   ]);
-  return ["/", "/agencies", ...searches].map((path) => ({ path }));
+  return ["/", "/agencies", "/terms", "/privacy", ...searches].map((path) => ({ path }));
 }
 
 export function agencyEntries(agencies: SitemapAgency[]): SitemapEntry[] {

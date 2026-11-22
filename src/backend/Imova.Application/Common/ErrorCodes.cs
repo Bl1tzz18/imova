@@ -24,6 +24,9 @@ public static class ErrorCodes
     public const string PasswordNoSpecial = "password.noSpecial";
     public const string CurrentPasswordRequired = "password.currentRequired";
 
+    // A new account must accept the current Terms of use + Privacy policy (LegalTerms.CurrentVersion).
+    public const string TermsNotAccepted = "legal.termsNotAccepted";
+
     // Deleting the account (see AccountDeletion).
     public const string AccountPasswordRequired = "account.passwordRequired";
     public const string AccountWrongPassword = "account.wrongPassword";

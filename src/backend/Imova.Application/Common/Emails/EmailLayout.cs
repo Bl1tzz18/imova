@@ -42,7 +42,9 @@ public static class EmailLayout
         """;
 
     // `language` (see Languages) is the page's lang attribute — mail apps and screen readers use it.
-    public static string Page(string title, string content, string footerHtml, string language) =>
+    // `privacyUrl` = the privacy policy in the reader's language (AppOptions.PrivacyUrl): every email
+    // ends with a link to it, under the email's own footer.
+    public static string Page(string title, string content, string footerHtml, string language, string privacyUrl) =>
         $"""
         <!DOCTYPE html>
         <html lang="{Languages.Normalize(language)}">
@@ -53,7 +55,7 @@ public static class EmailLayout
               <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:16px;font-family:Arial,Helvetica,sans-serif;color:#0b1620;">
                 <tr><td style="padding:24px 28px 4px;font-size:22px;font-weight:800;letter-spacing:0.5px;color:#e86a33;">IMOVA</td></tr>
                 {content}
-                <tr><td style="padding:16px 28px 24px;border-top:1px solid #e5edf3;font-size:12px;line-height:1.5;color:#7592ac;">{footerHtml}</td></tr>
+                <tr><td style="padding:16px 28px 24px;border-top:1px solid #e5edf3;font-size:12px;line-height:1.5;color:#7592ac;">{footerHtml}<br><a href="{Encode(privacyUrl)}" style="color:#7592ac;">{Encode(Languages.Pick(language, "Politica de confidențialitate", "Privacy policy", "Политика конфиденциальности"))}</a></td></tr>
               </table>
             </td></tr>
           </table>

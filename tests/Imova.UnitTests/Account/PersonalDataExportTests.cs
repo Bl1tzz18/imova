@@ -63,6 +63,8 @@ public class PersonalDataExportTests
     {
         _f.Seller.PhoneNumber = "+373 69 123 456";
         _f.Seller.ProfilePictureUrl = $"https://blob.test/profile-pictures/{_f.Seller.Id}/me.png";
+        _f.Seller.TermsAcceptedAt = _f.Clock.Now;
+        _f.Seller.TermsVersion = "2026-11-22";
         var second = AddPhoto(_f.Listing.Id, sortOrder: 1);
         var first = AddPhoto(_f.Listing.Id, sortOrder: 0);
         await _f.Db.SaveChangesAsync();
@@ -77,6 +79,9 @@ public class PersonalDataExportTests
         Assert.Equal("+373 69 123 456", data.Account.PhoneNumber);
         Assert.Equal("profile/picture.png", data.Account.ProfilePictureFile);
         Assert.False(data.Account.HasPassword);
+        Assert.Equal(_f.Clock.Now, data.Account.TermsAcceptedAt);
+        Assert.Equal("2026-11-22", data.Account.TermsVersion);
+        Assert.Equal("ro", data.Account.PreferredLanguage);
 
         Assert.Equal(_f.Listing.PublisherId, Assert.Single(data.Publishers).Id);
         Assert.Empty(data.Agencies);

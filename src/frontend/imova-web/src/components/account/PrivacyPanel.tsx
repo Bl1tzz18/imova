@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/config";
 import { localizedPath } from "@/i18n/localePaths";
+import { Link } from "@/i18n/navigation";
 import { buttonClassName } from "@/components/ui/Button";
 import { DeleteAccountSection } from "@/components/account/DeleteAccountSection";
 import type { AccountDataSummary } from "@/lib/account/deletion";
@@ -49,7 +50,12 @@ export function PrivacyPanel({
 
       <DeleteAccountSection email={email} hasPassword={hasPassword} summary={summary} />
 
-      <p className="border-t border-ink-100 pt-5 text-xs leading-relaxed text-ink-400">{t("privacyRights")}</p>
+      <div className="flex flex-col gap-2 border-t border-ink-100 pt-5">
+        <p className="text-xs leading-relaxed text-ink-400">{t("privacyRights")}</p>
+        <Link href="/privacy" className="self-start text-xs font-medium text-brand-700 hover:text-brand-800">
+          {t("privacyPolicyLink")}
+        </Link>
+      </div>
     </div>
   );
 }

@@ -29,7 +29,7 @@ public class FavoriteAlertEmailsTests
     {
         var email = FavoriteAlertEmails.PriceChanged(
             "a@example.com", Change(100_000, 95_000), "https://imova.test/property/1", "https://imova.test/u", "https://imova.test/s",
-            Languages.Romanian);
+            Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.DoesNotContain("<b>mare</b>", email.HtmlBody);
         Assert.Contains("Casă &lt;b&gt;mare&lt;/b&gt;", email.HtmlBody);
@@ -46,7 +46,7 @@ public class FavoriteAlertEmailsTests
             "a@example.com",
             new FavoriteAlertEmails.PriceChange(Guid.NewGuid(), "Garsonieră", "Rent", 400, "EUR", 350, "EUR"),
             "https://imova.test/property/1", "https://imova.test/u", "https://imova.test/s",
-            Languages.Romanian);
+            Languages.Romanian, privacyUrl: "https://imova.test/privacy");
 
         Assert.Contains("Preț vechi: 400 EUR / lună", email.TextBody);
         Assert.Contains("Preț nou: 350 EUR / lună (−13%)", email.TextBody);
@@ -61,7 +61,7 @@ public class FavoriteAlertEmailsTests
             "a@example.com",
             new FavoriteAlertEmails.PriceChange(Guid.NewGuid(), "Garsonieră", "Rent", 400, "EUR", 350, "EUR", "Room", 30),
             "https://imova.test/property/1", "https://imova.test/u", "https://imova.test/s",
-            language);
+            language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(oldPrice, email.TextBody);
@@ -82,7 +82,7 @@ public class FavoriteAlertEmailsTests
 
         var email = FavoriteAlertEmails.Ended(
             "a@example.com", ended, "https://imova.test/property/1", "https://imova.test/property/1#s", "https://imova.test/search",
-            "https://imova.test/u", "https://imova.test/s", language);
+            "https://imova.test/u", "https://imova.test/s", language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(reason, email.TextBody);

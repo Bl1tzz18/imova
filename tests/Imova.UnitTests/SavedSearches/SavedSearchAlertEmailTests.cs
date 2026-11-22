@@ -21,7 +21,7 @@ public class SavedSearchAlertEmailTests
     [Fact]
     public void Html_ShowsACardPerListing_WithItsPhotoPriceAndFacts()
     {
-        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing()], total: 1, Open, Unsubscribe, Ro);
+        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing()], total: 1, Open, Unsubscribe, Ro, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("Un anunț nou pentru „Garaje” — IMOVA", email.Subject);
         Assert.NotNull(email.HtmlBody);
@@ -44,7 +44,7 @@ public class SavedSearchAlertEmailTests
     [Fact]
     public void AListingWithoutAPhoto_GetsAPlaceholder()
     {
-        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing(photo: null)], total: 1, Open, Unsubscribe, Ro);
+        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing(photo: null)], total: 1, Open, Unsubscribe, Ro, privacyUrl: "https://imova.test/privacy");
 
         Assert.DoesNotContain("<img", email.HtmlBody);
         Assert.Contains("fără foto", email.HtmlBody);
@@ -54,7 +54,7 @@ public class SavedSearchAlertEmailTests
     public void UserWrittenText_IsHtmlEncoded()
     {
         var email = SavedSearchAlertEmail.Build(
-            "ana@example.com", "Mele <b>", [Listing(title: "<script>alert(1)</script> & co")], total: 1, Open, Unsubscribe, Ro);
+            "ana@example.com", "Mele <b>", [Listing(title: "<script>alert(1)</script> & co")], total: 1, Open, Unsubscribe, Ro, privacyUrl: "https://imova.test/privacy");
 
         Assert.DoesNotContain("<script>", email.HtmlBody);
         Assert.Contains("&lt;script&gt;alert(1)&lt;/script&gt; &amp; co", email.HtmlBody);
@@ -64,7 +64,7 @@ public class SavedSearchAlertEmailTests
     [Fact]
     public void MoreMatchesThanCards_SaysHowManyMore_InBothVersions()
     {
-        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing(), Listing()], total: 12, Open, Unsubscribe, Ro);
+        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing(), Listing()], total: 12, Open, Unsubscribe, Ro, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal("12 anunțuri noi pentru „Garaje” — IMOVA", email.Subject);
         Assert.Contains("…și încă 10.", email.HtmlBody);
@@ -74,7 +74,7 @@ public class SavedSearchAlertEmailTests
     [Fact]
     public void TheTextVersion_HasTheSameListingsAndLinks()
     {
-        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing()], total: 1, Open, Unsubscribe, Ro);
+        var email = SavedSearchAlertEmail.Build("ana@example.com", "Garaje", [Listing()], total: 1, Open, Unsubscribe, Ro, privacyUrl: "https://imova.test/privacy");
 
         Assert.Contains("• Garaj subteran, Botanica — 9 000 EUR", email.TextBody);
         Assert.Contains("Garaj · Vânzare · 18 m² · Botanica, Chișinău", email.TextBody);
@@ -89,7 +89,7 @@ public class SavedSearchAlertEmailTests
     public void TheEmail_IsWrittenInTheUsersLanguage(string language, string subject, string facts, string more, string noPhoto)
     {
         var email = SavedSearchAlertEmail.Build(
-            "ana@example.com", "Garaje", [Listing(photo: null), Listing()], total: 12, Open, Unsubscribe, language);
+            "ana@example.com", "Garaje", [Listing(photo: null), Listing()], total: 12, Open, Unsubscribe, language, privacyUrl: "https://imova.test/privacy");
 
         Assert.Equal(subject, email.Subject);
         Assert.Contains(facts, email.HtmlBody);

@@ -2,13 +2,14 @@
 
 import { redirectInLocale, redirectTo } from "@/i18n/redirect";
 import { revalidatePath } from "next/cache";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { forwardedForHeader } from "@/lib/auth/clientIp";
 import { clearSessionCookies, getRefreshToken, getSessionToken, setSessionCookies } from "@/lib/auth/session";
 import type { SessionTokens } from "@/lib/auth/sessionCookies";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { applySignInLocale } from "@/i18n/localeCookies";
 import { safeNextPath } from "@/lib/auth/nextPath";
+import { LEGAL_VERSION } from "@/lib/legal/version";
 
 export type AuthFormState = { error?: string; success?: boolean };
 
@@ -57,6 +58,11 @@ export async function login(_prevState: AuthFormState, formData: FormData): Prom
 export async function register(_prevState: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
 
+  // The browser's `required` isn't a guarantee — the API refuses it too (legal.termsNotAccepted).
+  if (formData.get("acceptTerms") !== "on") {
+    return { error: (await getTranslations("Errors"))("codes.legal.termsNotAccepted") };
+  }
+
   const res = await fetch(`${apiUrl}/api/v1/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
@@ -67,6 +73,8 @@ export async function register(_prevState: AuthFormState, formData: FormData): P
       phoneNumber: formData.get("phone"),
       // The site's language right now: the account's emails are written in it.
       language: await getLocale(),
+      // The Terms of use + Privacy policy version the box accepted (see lib/legal/version.ts).
+      acceptedTermsVersion: LEGAL_VERSION,
     }),
   });
 
@@ -79,8 +87,9 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   const res = await fetch(`${apiUrl}/api/v1/auth/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(await forwardedForHeader()) },
-    // Only used when this sign-in creates the account (see register).
-    body: JSON.stringify({ idToken, language: await getLocale() }),
+    // Both only used when this sign-in creates the account (see register); the terms are accepted by
+    // the notice under the Google button.
+    body: JSON.stringify({ idToken, language: await getLocale(), acceptedTermsVersion: LEGAL_VERSION }),
   });
 
   if (!res.ok) {

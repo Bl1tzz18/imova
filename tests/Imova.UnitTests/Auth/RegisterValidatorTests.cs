@@ -1,3 +1,4 @@
+using Imova.Application.Common;
 using Imova.Application.Features.Auth.Register;
 
 namespace Imova.UnitTests.Auth;
@@ -10,8 +11,9 @@ public class RegisterValidatorTests
         string email = "user@example.com",
         string password = "SuperSecret1!",
         string? displayName = "Test User",
-        string phoneNumber = "+373 69 123 456") =>
-        new(email, password, displayName, phoneNumber);
+        string phoneNumber = "+373 69 123 456",
+        string? termsVersion = LegalTerms.CurrentVersion) =>
+        new(email, password, displayName, phoneNumber, AcceptedTermsVersion: termsVersion);
 
     [Fact]
     public void Validate_WithValidCommand_HasNoErrors()
@@ -116,5 +118,18 @@ public class RegisterValidatorTests
         var result = _validator.Validate(ValidCommand(phoneNumber: null!));
 
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(RegisterCommand.PhoneNumber));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("2020-01-01")]
+    public void Validate_WithoutTheCurrentTermsVersion_HasTheTermsNotAcceptedCode(string? version)
+    {
+        var result = _validator.Validate(ValidCommand(termsVersion: version));
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e =>
+            e.PropertyName == nameof(RegisterCommand.AcceptedTermsVersion) && e.ErrorCode == ErrorCodes.TermsNotAccepted);
     }
 }

@@ -183,7 +183,7 @@ public class FavoriteAlerts(
             listingUrl: appOptions.WebUrl($"/property/{listing.Number}", to.Language),
             UnsubscribeUrl(favorite.UserId, to.Language),
             SettingsUrl(to.Language),
-            to.Language);
+            to.Language, appOptions.PrivacyUrl(to.Language));
 
     // The listing's own link now shows its 410 page: the summary, then "Anunțuri asemănătoare".
     private EmailMessage BuildEndedEmail(Recipient to, Guid userId, EndedListingDto ended, CardDetails? card) =>
@@ -198,6 +198,7 @@ public class FavoriteAlerts(
             UnsubscribeUrl(userId, to.Language),
             SettingsUrl(to.Language),
             to.Language,
+            appOptions.PrivacyUrl(to.Language),
             card?.PhotoUrl);
 
     private string UnsubscribeUrl(Guid userId, string language) =>

@@ -348,7 +348,7 @@ public class AgencyLifecycleTests : IAsyncDisposable
     [Fact]
     public void TheDeletionEmail_IsInTheMembersLanguage_AndEncodesTheReason()
     {
-        var message = AgencyDeletedEmail.Build("ana@example.com", "Casa Ta", "Spam <b>repetat</b>", "https://imova.md/my-listings", "ru");
+        var message = AgencyDeletedEmail.Build("ana@example.com", "Casa Ta", "Spam <b>repetat</b>", "https://imova.md/my-listings", "ru", privacyUrl: "https://imova.test/privacy");
 
         Assert.Contains("Агентство Casa Ta удалено", message.Subject);
         Assert.Contains("Spam &lt;b&gt;repetat&lt;/b&gt;", message.HtmlBody);

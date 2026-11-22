@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Auth;
 using Imova.IntegrationTests.TestSupport;
@@ -38,6 +39,7 @@ public class PreferredLanguageEndpointsTests : IClassFixture<WebApplicationFacto
             password = "SuperSecret1!",
             displayName = "Ana",
             phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
             language = "en",
         });
         registered.EnsureSuccessStatusCode();

@@ -12,6 +12,10 @@ public sealed class Conversation : AggregateRoot
     // How long after a notification email another one is held back for the same recipient.
     public static readonly TimeSpan EmailNotificationCooldown = TimeSpan.FromMinutes(10);
 
+    // A conversation with no new message for this long is deleted, messages and images included
+    // (DataRetentionCleanup) — stated in the privacy policy.
+    public static readonly TimeSpan InactiveKeepFor = TimeSpan.FromDays(730);
+
     // For EF Core materialization only.
     private Conversation()
         : base(Guid.Empty)

@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { FieldLabel, TextInput } from "@/components/ui/Field";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { PasswordFields } from "@/components/auth/PasswordFields";
+import { legalLinks } from "@/components/legal/LegalLinks";
 import { confirmationState, meetsPasswordRules } from "@/lib/auth/passwordRules";
 
 const initialState: AuthFormState = {};
@@ -56,10 +57,7 @@ export function RegisterForm({ next }: { next?: string }) {
       />
 
       <Checkbox name="acceptTerms" required>
-        {t.rich("termsAgreement", {
-          terms: (chunks) => <span className="font-medium text-ink-700">{chunks}</span>,
-          privacy: (chunks) => <span className="font-medium text-ink-700">{chunks}</span>,
-        })}
+        {t.rich("termsAgreement", legalLinks)}
       </Checkbox>
 
       {state.error && (

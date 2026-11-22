@@ -1,4 +1,5 @@
 using Imova.Application.Features.Listings.Visitors;
+using Imova.Application.Features.Retention;
 using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Application.Features.Agencies.Import;
@@ -100,6 +101,8 @@ builder.Services.AddScheduledJob<PhotoSizeBackfill>(builder.Configuration, "Phot
 builder.Services.AddScheduledJob<AbandonedPhotoCleanup>(builder.Configuration, "PhotoCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<RefreshTokenCleanup>(builder.Configuration, "SessionCleanup", defaultIntervalSeconds: 6 * 3600);
 builder.Services.AddScheduledJob<ListingVisitorMarkCleanup>(builder.Configuration, "ListingVisitorCleanup", defaultIntervalSeconds: 6 * 3600);
+// The retention limits stated in the privacy policy (old ended listings, inactive conversations, audit IPs).
+builder.Services.AddScheduledJob<DataRetentionCleanup>(builder.Configuration, "DataRetention", defaultIntervalSeconds: 24 * 3600);
 builder.Services.AddScheduledJob<ListingImports>(builder.Configuration, "ListingImports", defaultIntervalSeconds: 15);
 
 // The Telegram bot (TelegramUpdatePoller): only with a "Telegram:BotToken". The token is in every

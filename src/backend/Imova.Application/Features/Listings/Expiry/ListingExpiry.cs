@@ -56,7 +56,7 @@ public class ListingExpiry(
 
             if (email is not null && !(listing.AgencyId is { } agencyId && hiddenAgencyIds.Contains(agencyId)))
             {
-                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl(language), language), listing.Id, cancellationToken);
+                await TrySendAsync(ListingExpiryEmails.Expired(email, listing.Title, MyListingsUrl(language), language, appOptions.PrivacyUrl(language)), listing.Id, cancellationToken);
             }
         }
 
@@ -82,7 +82,7 @@ public class ListingExpiry(
             if (email is not null)
             {
                 if (!await TrySendAsync(
-                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl(language), language), listing.Id, cancellationToken))
+                        ListingExpiryEmails.Reminder(email, listing.Title, listing.ExpiresAt!.Value, MyListingsUrl(language), language, appOptions.PrivacyUrl(language)), listing.Id, cancellationToken))
                 {
                     continue; // Retried next run.
                 }

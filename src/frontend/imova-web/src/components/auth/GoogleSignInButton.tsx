@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { fetchGoogleClientId } from "@/lib/api/authConfig";
 import { googleLogin } from "@/lib/auth/actions";
+import { legalLinks } from "@/components/legal/LegalLinks";
 
 declare global {
   interface Window {
@@ -109,6 +110,10 @@ export function GoogleSignInButton({ next }: { next?: string }) {
         <div className="h-px flex-1 bg-ink-100" />
       </div>
       <div ref={buttonRef} className="flex justify-center" />
+      {/* A Google sign-in can create the account, so it accepts the terms too (see googleLogin). */}
+      <p className="mx-auto mt-3 max-w-[336px] text-center text-xs leading-relaxed text-ink-500">
+        {t.rich("googleTermsNotice", legalLinks)}
+      </p>
       {error && <p className="mt-2 text-center text-sm text-accent-600">{error}</p>}
     </>
   );

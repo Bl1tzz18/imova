@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Imova.Application.Common;
 using Imova.Application.Common.Interfaces;
 using Imova.Contracts.Listings;
 using Imova.Contracts.Messaging;
@@ -76,6 +77,7 @@ public class AccountDataEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         using var data = JsonDocument.Parse(await new StreamReader(zip.GetEntry("imova-data.json")!.Open()).ReadToEndAsync());
         var root = data.RootElement;
         Assert.Equal(user.Email, root.GetProperty("account").GetProperty("email").GetString());
+        Assert.Equal(LegalTerms.CurrentVersion, root.GetProperty("account").GetProperty("termsVersion").GetString());
         Assert.Equal(listing.Id, root.GetProperty("listings")[0].GetProperty("listing").GetProperty("id").GetGuid());
         Assert.Equal(1, root.GetProperty("sessions").GetArrayLength());
         Assert.NotNull(zip.GetEntry("CITESTE-MA.txt"));
@@ -137,6 +139,7 @@ public class AccountDataEndpointsTests : IClassFixture<WebApplicationFactory<Pro
         var again = await anonymous.PostAsJsonAsync("/api/v1/auth/register", new
         {
             email = user.Email, password = Password, displayName = "Din nou", phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
         });
         Assert.True(again.IsSuccessStatusCode);
     }

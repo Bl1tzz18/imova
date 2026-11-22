@@ -14,6 +14,7 @@ namespace Imova.Application.Features.Auth.Register;
 public class RegisterHandler(
     UserManager<ApplicationUser> userManager,
     AuthSessions authSessions,
+    TimeProvider timeProvider,
     IApplicationDbContext dbContext,
     AccountEmails accountEmails,
     ILogger<RegisterHandler> logger)
@@ -29,6 +30,8 @@ public class RegisterHandler(
             DisplayName = request.DisplayName,
             PhoneNumber = request.PhoneNumber,
             PreferredLanguage = Languages.Normalize(request.Language),
+            TermsAcceptedAt = timeProvider.GetUtcNow(),
+            TermsVersion = request.AcceptedTermsVersion,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);

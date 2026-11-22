@@ -30,7 +30,10 @@
     "searchListings": "Search listings",
     "publishListing": "Publish a listing",
     "agencies": "Real estate agencies",
-    "inDevelopment": "Project in development."
+    "inDevelopment": "Project in development.",
+    "terms": "Terms of use",
+    "privacy": "Privacy",
+    "cookies": "Cookies"
   },
   "Agencies": {
     "verified": "Verified",
@@ -335,6 +338,7 @@
     "publishAsLabel": "Publish as",
     "contactPersonLabel": "Contact person",
     "otherContactMessagesNotice": "Messages sent through the platform will arrive in your own inbox, not to this person (they have no IMOVA account) — pass them on if needed.",
+    "otherContactConsent": "You confirm that this person has agreed to their name and contact details appearing on the listing (see the <terms>Terms</terms>). They can ask us to remove them at any time.",
     "contactSelf": "Me",
     "contactOther": "Someone else",
     "contactSelfHint": "Your name and email come from your account.",
@@ -530,7 +534,8 @@
     "passwordRuleMinLength": "At least 8 characters",
     "passwordRuleNumber": "At least one number",
     "passwordRuleSpecial": "At least one special character (e.g. ! ? # @)",
-    "passwordsMatch": "Passwords match"
+    "passwordsMatch": "Passwords match",
+    "googleTermsNotice": "By continuing with Google, you accept the <terms>Terms</terms> and <privacy>Privacy Policy</privacy>."
   },
   "Account": {
     "settingsTitle": "Account settings",
@@ -626,7 +631,8 @@
     "savedSearchAlertsHint": "Alerts for saved searches are set separately, per search, in <link>Saved searches</link>.",
     "telegramQrLabel": "QR code to connect Telegram",
     "telegramQrTitle": "Scan with your phone",
-    "telegramQrHint": "Telegram opens on your phone — press “Start” there."
+    "telegramQrHint": "Telegram opens on your phone — press “Start” there.",
+    "privacyPolicyLink": "How we use your data: Privacy policy"
   },
   "SavedListingsPage": {
     "title": "Saved listings",
@@ -1429,6 +1435,9 @@
       },
       "telegram": {
         "unavailable": "Telegram isn’t available right now."
+      },
+      "legal": {
+        "termsNotAccepted": "You need to accept the Terms and Privacy Policy to create an account."
       }
     },
     "validation": {
@@ -2148,5 +2157,15 @@
     "notFoundTitle": "Page not found",
     "notFoundText": "The link is wrong or the page no longer exists.",
     "backHome": "Back to the home page"
+  },
+  "Legal": {
+    "termsTitle": "Terms of use",
+    "termsDescription": "The rules for using IMOVA: your account, listings, messages, moderation and liability.",
+    "privacyTitle": "Privacy policy",
+    "privacyDescription": "What personal data IMOVA processes, why, how long we keep it, cookies and your rights.",
+    "updated": "Last updated: {date}",
+    "contents": "Contents",
+    "draftNotice": "Preliminary version, under legal review. The highlighted fields will be filled in before launch.",
+    "translationNotice": "This is a translation for your convenience. If it differs from the Romanian version, the Romanian version prevails."
   }
 }

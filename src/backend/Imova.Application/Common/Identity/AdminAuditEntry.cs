@@ -1,14 +1,18 @@
 namespace Imova.Application.Common.Identity;
 
 // A permanent record of a site admin's sensitive action — who did it, to whom or to which agency, when,
-// from where: granting the Admin role, verifying or unverifying an agency. Never updated or deleted by
-// the application; ids only (no FK, so it survives an account's or an agency's deletion).
+// from where: granting the Admin role, verifying or unverifying an agency. Never deleted by the
+// application, and never updated except for one thing: the IP address is cleared after IpKeepFor
+// (DataRetentionCleanup). Ids only (no FK, so it survives an account's or an agency's deletion).
 public sealed class AdminAuditEntry
 {
     public const string GrantAdmin = "GrantAdmin";
     public const string VerifyAgency = "VerifyAgency";
     public const string UnverifyAgency = "UnverifyAgency";
     public const string DeleteAgency = "DeleteAgency";
+
+    // Stated in the privacy policy.
+    public static readonly TimeSpan IpKeepFor = TimeSpan.FromDays(365);
 
     public Guid Id { get; set; }
 
