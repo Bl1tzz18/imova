@@ -18,7 +18,7 @@ public sealed class TelegramBotClient(HttpClient httpClient) : ITelegramBot
 
     public async Task<IReadOnlyList<TelegramUpdate>> GetUpdatesAsync(long? offset, int timeoutSeconds, CancellationToken cancellationToken)
     {
-        var result = await CallAsync("getUpdates", new { offset, timeout = timeoutSeconds, allowedUpdates = new[] { "message" } }, cancellationToken);
+        var result = await CallAsync("getUpdates", new { offset, timeout = timeoutSeconds, allowedUpdates = new[] { "message", "callback_query" } }, cancellationToken);
         return result.EnumerateArray().Select(ReadUpdate).ToList();
     }
 
@@ -30,21 +30,43 @@ public sealed class TelegramBotClient(HttpClient httpClient) : ITelegramBot
             text = html,
             parseMode = "HTML",
             linkPreviewOptions = new { isDisabled = true },
-            // One button per row: they read as a short list, and a long label isn't cut off.
-            replyMarkup = buttons.Count == 0 ? null : new { inlineKeyboard = buttons.Select(b => new[] { new { text = b.Text, url = b.Url } }) },
+            replyMarkup = Keyboard(buttons),
         };
 
-        try
-        {
-            await CallAsync("sendMessage", payload, cancellationToken);
-        }
-        catch (TelegramApiException ex) when (ex.ErrorCode == 403
-                                              || (ex.ErrorCode == 400 && ex.Description.Contains("chat not found", StringComparison.OrdinalIgnoreCase)))
-        {
-            // 403: the user blocked the bot (or deleted their account); 400 "chat not found": the chat is gone.
-            throw new TelegramChatUnavailableException(chatId, ex.Description);
-        }
+        await ToChatAsync(chatId, () => CallAsync("sendMessage", payload, cancellationToken));
     }
+
+    public async Task SendPhotoAsync(
+        long chatId, TelegramPhoto photo, string captionHtml, IReadOnlyList<TelegramButton> buttons, CancellationToken cancellationToken)
+    {
+        if (photo.Url is not null)
+        {
+            var payload = new { chatId, photo = photo.Url, caption = captionHtml, parseMode = "HTML", replyMarkup = Keyboard(buttons) };
+            await ToChatAsync(chatId, () => CallAsync("sendPhoto", payload, cancellationToken));
+            return;
+        }
+
+        // Uploaded with the message: Telegram can't fetch the URL (local storage).
+        await ToChatAsync(chatId, async () =>
+        {
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(chatId.ToString(System.Globalization.CultureInfo.InvariantCulture)), "chat_id");
+            form.Add(new StringContent(captionHtml), "caption");
+            form.Add(new StringContent("HTML"), "parse_mode");
+            if (Keyboard(buttons) is { } keyboard)
+            {
+                form.Add(new StringContent(JsonSerializer.Serialize(keyboard, JsonOptions)), "reply_markup");
+            }
+
+            var file = new ByteArrayContent(photo.Bytes ?? []);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+            form.Add(file, "photo", "photo.jpg");
+            return await SendAsync("sendPhoto", form, cancellationToken);
+        });
+    }
+
+    public async Task AnswerCallbackAsync(string callbackId, string? text, CancellationToken cancellationToken) =>
+        await CallAsync("answerCallbackQuery", new { callbackQueryId = callbackId, text }, cancellationToken);
 
     public async Task SetProfileAsync(string? languageCode, TelegramBotProfile profile, CancellationToken cancellationToken)
     {
@@ -60,10 +82,32 @@ public sealed class TelegramBotClient(HttpClient httpClient) : ITelegramBot
     public async Task DeleteWebhookAsync(CancellationToken cancellationToken) =>
         await CallAsync("deleteWebhook", new { dropPendingUpdates = false }, cancellationToken);
 
-    // Every method answers {"ok": true, "result": …} or {"ok": false, "error_code": …, "description": …}.
-    private async Task<JsonElement> CallAsync(string method, object payload, CancellationToken cancellationToken)
+    // One button per row: they read as a short list, and a long label isn't cut off.
+    private static object? Keyboard(IReadOnlyList<TelegramButton> buttons) => buttons.Count == 0
+        ? null
+        : new { inlineKeyboard = buttons.Select(b => new[] { new { text = b.Text, url = b.Url, callbackData = b.CallbackData } }) };
+
+    // 403: the user blocked the bot (or deleted their Telegram account); 400 "chat not found": the chat is gone.
+    private static async Task ToChatAsync(long chatId, Func<Task<JsonElement>> send)
     {
-        using var response = await httpClient.PostAsJsonAsync(method, payload, JsonOptions, cancellationToken);
+        try
+        {
+            await send();
+        }
+        catch (TelegramApiException ex) when (ex.ErrorCode == 403
+                                              || (ex.ErrorCode == 400 && ex.Description.Contains("chat not found", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new TelegramChatUnavailableException(chatId, ex.Description);
+        }
+    }
+
+    private async Task<JsonElement> CallAsync(string method, object payload, CancellationToken cancellationToken) =>
+        await SendAsync(method, JsonContent.Create(payload, options: JsonOptions), cancellationToken);
+
+    // Every method answers {"ok": true, "result": …} or {"ok": false, "error_code": …, "description": …}.
+    private async Task<JsonElement> SendAsync(string method, HttpContent content, CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.PostAsync(method, content, cancellationToken);
         using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
         var root = document.RootElement;
         if (root.TryGetProperty("ok", out var ok) && ok.GetBoolean())
@@ -79,6 +123,17 @@ public sealed class TelegramBotClient(HttpClient httpClient) : ITelegramBot
     private static TelegramUpdate ReadUpdate(JsonElement update)
     {
         var id = update.GetProperty("update_id").GetInt64();
+        if (update.TryGetProperty("callback_query", out var callback))
+        {
+            var chatId = callback.TryGetProperty("message", out var source) ? source.GetProperty("chat").GetProperty("id").GetInt64()
+                : callback.GetProperty("from").GetProperty("id").GetInt64();
+            return new TelegramUpdate(id, null, new TelegramCallback(
+                callback.GetProperty("id").GetString()!,
+                chatId,
+                callback.TryGetProperty("data", out var data) ? data.GetString() : null,
+                String(callback.GetProperty("from"), "language_code")));
+        }
+
         if (!update.TryGetProperty("message", out var message))
         {
             return new TelegramUpdate(id, null);

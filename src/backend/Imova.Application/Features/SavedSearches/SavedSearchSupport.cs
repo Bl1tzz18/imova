@@ -1,4 +1,6 @@
 using FluentValidation;
+using Imova.Application.Common;
+using Imova.Application.Common.Validation;
 using Imova.Application.Features.Listings.SearchListings;
 using Imova.Contracts.SavedSearches;
 using Imova.Domain.SavedSearches;
@@ -8,6 +10,22 @@ namespace Imova.Application.Features.SavedSearches;
 public static class SavedSearchRules
 {
     public const int MaxPerUser = 20;
+
+    // The channels a request asks for: what it says, else what the search already had. A search
+    // needs at least one (no alerts at all is AlertFrequency.Off) — a coded 400 otherwise.
+    public static AlertChannels Channels(bool? byEmail, bool? byTelegram, AlertChannels current)
+    {
+        var channels = AlertChannels.None;
+        if (byEmail ?? current.HasFlag(AlertChannels.Email)) channels |= AlertChannels.Email;
+        if (byTelegram ?? current.HasFlag(AlertChannels.Telegram)) channels |= AlertChannels.Telegram;
+        if (channels == AlertChannels.None)
+        {
+            throw new ValidationException(
+                [CodedFailure.Of("AlertByEmail", "Alerts must go by email, Telegram or both.", ErrorCodes.SavedSearchNoChannel)]);
+        }
+
+        return channels;
+    }
 }
 
 // Running a saved search: its stored query string through the same parser the search endpoint
@@ -47,5 +65,7 @@ public static class SavedSearchMatches
             savedSearch.QueryString,
             savedSearch.AlertFrequency.ToString(),
             newListingsCount,
-            savedSearch.CreatedAt);
+            savedSearch.CreatedAt,
+            savedSearch.AlertChannels.HasFlag(AlertChannels.Email),
+            savedSearch.AlertChannels.HasFlag(AlertChannels.Telegram));
 }

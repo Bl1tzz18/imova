@@ -1839,6 +1839,9 @@ namespace Imova.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AlertChannels")
+                        .HasColumnType("integer");
+
                     b.Property<int>("AlertFrequency")
                         .HasColumnType("integer");
 

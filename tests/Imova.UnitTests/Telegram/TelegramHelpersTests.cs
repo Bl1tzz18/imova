@@ -64,18 +64,19 @@ public class TelegramHelpersTests
     public void Link_IsAnAnchorForAPublicAddress_PlainTextForALocalOne()
     {
         Assert.Equal("<a href=\"https://imova.md/s?a=1&amp;b=2\">Botanica &lt;2&gt;</a>", TelegramHtml.Link("Botanica <2>", "https://imova.md/s?a=1&b=2"));
-        Assert.Equal("Botanica (http://localhost:3000/s)", TelegramHtml.Link("Botanica", "http://localhost:3000/s"));
+        Assert.Equal("Botanica", TelegramHtml.Link("Botanica", "http://localhost:3000/s"));
     }
 
     [Fact]
-    public void WithButtons_WritesOutTheLinksTelegramWouldRefuse()
+    public void WithButtons_LeavesOutTheLinksTelegramWouldRefuse_KeepsCallbacks()
     {
         var (html, buttons) = TelegramHtml.WithButtons("Salut",
             new TelegramButton("Public", "https://imova.md/a"),
-            new TelegramButton("Local", "http://localhost:3000/b"));
+            new TelegramButton("Local", "http://localhost:3000/b"),
+            new TelegramButton("Stop", CallbackData: "ss-off:x"));
 
-        Assert.Equal("Public", Assert.Single(buttons).Text);
-        Assert.Equal("Salut\n\nLocal: http://localhost:3000/b", html);
+        Assert.Equal(["Public", "Stop"], buttons.Select(b => b.Text));
+        Assert.Equal("Salut", html);
     }
 
     [Theory]

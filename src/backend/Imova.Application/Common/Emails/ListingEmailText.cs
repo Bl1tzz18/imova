@@ -7,7 +7,7 @@ namespace Imova.Application.Common.Emails;
 // words are the web app's own (PropertyType.*, ListingType.*, PropertyCard.perMonth).
 public static class ListingEmailText
 {
-    private static string PropertyType(string propertyType, string language) => propertyType switch
+    public static string PropertyType(string propertyType, string language) => propertyType switch
     {
         "Apartment" => Languages.Pick(language, "Apartament", "Apartment", "Квартира"),
         "House" => Languages.Pick(language, "Casă", "House", "Дом"),
@@ -22,6 +22,13 @@ public static class ListingEmailText
     public static string Price(decimal amount, string currency, string transactionType, string language) =>
         $"{amount.ToString("#,0", CultureInfo.InvariantCulture).Replace(',', ' ')} {currency}"
         + (transactionType == "Rent" ? Languages.Pick(language, " / lună", " / month", " / мес.") : string.Empty);
+
+    public static string Deal(string transactionType, string language) => transactionType == "Rent"
+        ? Languages.Pick(language, "Chirie", "Rent", "Аренда")
+        : Languages.Pick(language, "Vânzare", "Sale", "Продажа");
+
+    // "18 m²"; null when the area is unknown.
+    public static string? Area(decimal areaM2) => areaM2 > 0 ? $"{areaM2.ToString("0.##", CultureInfo.InvariantCulture)} m²" : null;
 
     // "Garaj · Vânzare · 18 m²" (no area when it's unknown)
     public static string Facts(string propertyType, string transactionType, decimal areaM2, string language) => string.Join(

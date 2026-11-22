@@ -92,7 +92,8 @@ builder.Services.AddScoped<ImportPhotoSync>();
 builder.Services.AddScoped<ImportListingWriter>();
 
 // Each job on its own timer; "<Section>:IntervalSeconds" overrides the default.
-builder.Services.AddScheduledJob<SavedSearchAlerts>(builder.Configuration, "SavedSearchAlerts", defaultIntervalSeconds: 300);
+// Every minute: "Imediat" alerts on Telegram are only worth having if they are quick.
+builder.Services.AddScheduledJob<SavedSearchAlerts>(builder.Configuration, "SavedSearchAlerts", defaultIntervalSeconds: 60);
 builder.Services.AddScheduledJob<FavoriteAlerts>(builder.Configuration, "FavoriteAlerts", defaultIntervalSeconds: 3600);
 builder.Services.AddScheduledJob<ListingExpiry>(builder.Configuration, "ListingExpiry", defaultIntervalSeconds: 3600);
 builder.Services.AddScheduledJob<PhotoSizeBackfill>(builder.Configuration, "PhotoSizes", defaultIntervalSeconds: 300);
@@ -117,5 +118,12 @@ if (!string.IsNullOrWhiteSpace(telegramOptions.BotToken))
     builder.Services.AddScoped<TelegramBotUpdates>();
     builder.Services.AddHostedService<TelegramUpdatePoller>();
 }
+else
+{
+    // The alert job then sends email only (it checks TelegramOptions before using the bot).
+    builder.Services.AddSingleton<ITelegramBot, UnavailableTelegramBot>();
+}
+
+builder.Services.AddScoped<SavedSearchTelegramAlert>();
 
 builder.Build().Run();

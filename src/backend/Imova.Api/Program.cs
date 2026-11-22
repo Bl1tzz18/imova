@@ -43,6 +43,7 @@ using Imova.Application.Features.Media.Sizes;
 using Imova.Application.Features.Messaging;
 using Imova.Application.Features.Favorites.Alerts;
 using Imova.Application.Features.SavedSearches;
+using Imova.Application.Features.SavedSearches.Alerts;
 using Imova.Application.Features.Telegram;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Agencies;
@@ -53,6 +54,7 @@ using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Locations;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
+using Imova.Infrastructure.Telegram;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
@@ -123,6 +125,9 @@ builder.Services.AddSingleton(
 // stays with the Worker.
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(TelegramOptions.SectionName).Get<TelegramOptions>() ?? new TelegramOptions());
+// Never used by the API itself — lets the Worker's alert job be built from this container (tests).
+builder.Services.AddSingleton<ITelegramBot, UnavailableTelegramBot>();
+builder.Services.AddScoped<SavedSearchTelegramAlert>();
 builder.Services.AddScoped<AccountEmails>();
 builder.Services.AddScoped<AccountDeletion>();
 builder.Services.AddScoped<AccountDeletionEmails>();

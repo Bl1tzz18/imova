@@ -202,8 +202,16 @@ link and never sees the token.
   Telegram account (one chat per account, one account per chat); `/stop` or "Deconectează"
   disconnects; a chat that blocks the bot is dropped. Commands: `/cautari` (saved searches), `/stop`.
 - On start the worker sets the bot's command menu and descriptions (ro default, en, ru).
-- Telegram refuses buttons pointing at `localhost`, so locally the bot's buttons appear as plain
-  addresses in the message; on the real domain they're buttons.
+- **Saved-search alerts:** each search has `AlertChannels` (Email, Telegram or both; set on
+  /saved-searches). A new search gets Telegram too when the account has it connected. The alert job
+  (`SavedSearchAlerts`, every 60 s) sends one Telegram message per listing (photo, price, place,
+  "Vezi anunțul" + "Oprește alerta", max 5, then "and N more"); a Telegram-only search whose chat is
+  gone falls back to email. Photos on a URL Telegram can't reach (local Azurite) are uploaded instead.
+- To see an alert locally without publishing anything, move a saved search's watermark back:
+  `update "SavedSearches" set "AlertFrequency"=2, "LastAlertedUpTo"=now()-interval '90 days' where "Id"='…';`
+  — within a minute its existing matches arrive as new.
+- Telegram won't link to `localhost` (a button to it rejects the message, a text link is dropped), so
+  locally the "Vezi anunțul" / saved-search links are simply left out; on the real domain they're there.
 - The HttpClient for the Bot API logs nothing (the token is in every request path) — keep it that way.
 - A 404 from every Bot API call means the token is wrong.
 

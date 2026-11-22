@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { getSessionToken } from "@/lib/auth/session";
-import { SAVED_SEARCHES_PATH, type AlertFrequency, type SavedSearch } from "@/lib/savedSearches/savedSearch";
+import { SAVED_SEARCHES_PATH, type AlertChannels, type AlertFrequency, type SavedSearch } from "@/lib/savedSearches/savedSearch";
 
 // Saved-search calls from client components (save button, the /saved-searches page), made on the
 // server because the API needs the session token (an httpOnly cookie).
@@ -38,12 +38,17 @@ export async function saveSearch(
   return { savedSearch: (await res.json()) as SavedSearch };
 }
 
+// channels left out: the API keeps where the alerts go.
 export async function updateSavedSearch(
   id: string,
   name: string,
   alertFrequency: AlertFrequency,
+  channels?: AlertChannels,
 ): Promise<Result<{ savedSearch: SavedSearch }>> {
-  const res = await call(`/${id}`, { method: "PUT", body: JSON.stringify({ name, alertFrequency }) });
+  const body = channels
+    ? { name, alertFrequency, alertByEmail: channels.email, alertByTelegram: channels.telegram }
+    : { name, alertFrequency };
+  const res = await call(`/${id}`, { method: "PUT", body: JSON.stringify(body) });
   if (!res?.ok) return failure(res);
   revalidatePath(SAVED_SEARCHES_PATH);
   return { savedSearch: (await res.json()) as SavedSearch };

@@ -13,6 +13,12 @@ public interface ITelegramBot
     // when the chat can't be written to any more (the user blocked the bot or deleted the chat).
     Task SendMessageAsync(long chatId, string html, IReadOnlyList<TelegramButton> buttons, CancellationToken cancellationToken);
 
+    // A photo with an HTML caption (≤1024 characters) and buttons; same errors as SendMessageAsync.
+    Task SendPhotoAsync(long chatId, TelegramPhoto photo, string captionHtml, IReadOnlyList<TelegramButton> buttons, CancellationToken cancellationToken);
+
+    // Acknowledges a button press (Telegram shows a spinner until then); `text` is a short toast.
+    Task AnswerCallbackAsync(string callbackId, string? text, CancellationToken cancellationToken);
+
     // The bot's command menu and the texts shown before a chat starts, for one language (null =
     // the default for every language without its own).
     Task SetProfileAsync(string? languageCode, TelegramBotProfile profile, CancellationToken cancellationToken);
@@ -21,8 +27,12 @@ public interface ITelegramBot
     Task DeleteWebhookAsync(CancellationToken cancellationToken);
 }
 
-// One update from Telegram; only text messages are kept (Message is null otherwise).
-public sealed record TelegramUpdate(long UpdateId, TelegramIncomingMessage? Message);
+// One update from Telegram: a text message or a press on one of the bot's callback buttons (both
+// null for anything else).
+public sealed record TelegramUpdate(long UpdateId, TelegramIncomingMessage? Message, TelegramCallback? Callback = null);
+
+// A press on a callback button under one of the bot's messages (TelegramButton.CallbackData).
+public sealed record TelegramCallback(string Id, long ChatId, string? Data, string? LanguageCode);
 
 public sealed record TelegramIncomingMessage(
     long ChatId,
@@ -33,8 +43,12 @@ public sealed record TelegramIncomingMessage(
     // The sender's Telegram app language ("ro", "ru", "en-GB", …), if Telegram sent it.
     string? LanguageCode);
 
-// A link button under a message.
-public sealed record TelegramButton(string Text, string Url);
+// A button under a message: a link (Url) or a callback the bot receives when pressed (CallbackData,
+// ≤64 bytes).
+public sealed record TelegramButton(string Text, string? Url = null, string? CallbackData = null);
+
+// A photo Telegram fetches itself (Url — must be publicly reachable) or one uploaded with the message (Bytes).
+public sealed record TelegramPhoto(string? Url, byte[]? Bytes = null);
 
 public sealed record TelegramBotCommand(string Command, string Description);
 

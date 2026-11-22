@@ -38,9 +38,9 @@ public sealed class TelegramUpdatePoller(IServiceScopeFactory scopeFactory, ILog
                 {
                     // Moved past before handling: a message that keeps failing is skipped, not retried forever.
                     offset = update.UpdateId + 1;
-                    if (update.Message is not null)
+                    if (update.Message is not null || update.Callback is not null)
                     {
-                        await HandleAsync(update.Message, stoppingToken);
+                        await HandleAsync(update, stoppingToken);
                     }
                 }
             }
@@ -57,17 +57,25 @@ public sealed class TelegramUpdatePoller(IServiceScopeFactory scopeFactory, ILog
         }
     }
 
-    private async Task HandleAsync(TelegramIncomingMessage message, CancellationToken stoppingToken)
+    private async Task HandleAsync(TelegramUpdate update, CancellationToken stoppingToken)
     {
         try
         {
             using var scope = scopeFactory.CreateScope();
-            await scope.ServiceProvider.GetRequiredService<TelegramBotUpdates>().HandleAsync(message, stoppingToken);
+            var updates = scope.ServiceProvider.GetRequiredService<TelegramBotUpdates>();
+            if (update.Message is not null)
+            {
+                await updates.HandleAsync(update.Message, stoppingToken);
+            }
+            else
+            {
+                await updates.HandleCallbackAsync(update.Callback!, stoppingToken);
+            }
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             // Only the chat id — never the message text, which may hold a link code.
-            logger.LogError(ex, "Handling a Telegram message from chat {ChatId} failed.", message.ChatId);
+            logger.LogError(ex, "Handling a Telegram update from chat {ChatId} failed.", update.Message?.ChatId ?? update.Callback?.ChatId);
         }
     }
 

@@ -13,7 +13,8 @@ namespace Imova.Application.Features.Telegram.Bot;
 //   /stop          disconnects the chat
 //   /cautari       the account's saved searches, each linking to its results
 //   anything else  the command list
-// Every message gets exactly one reply.
+// Every message gets exactly one reply. Button presses: "Oprește alerta" under an alert
+// (HandleCallbackAsync).
 public class TelegramBotUpdates(IApplicationDbContext dbContext, ITelegramBot bot, AppOptions appOptions, TimeProvider timeProvider)
 {
     public async Task HandleAsync(TelegramIncomingMessage message, CancellationToken cancellationToken)
@@ -45,6 +46,58 @@ public class TelegramBotUpdates(IApplicationDbContext dbContext, ITelegramBot bo
         {
             // Blocked the bot between writing and our answer — nothing to send alerts to any more.
             await DropChatAsync(message.ChatId, cancellationToken);
+        }
+    }
+
+    // The callback data of an alert's "Oprește alerta" button: "ss-off:" + the saved search id (N format).
+    public const string StopAlertPrefix = "ss-off:";
+
+    public static string StopAlertData(Guid savedSearchId) => StopAlertPrefix + savedSearchId.ToString("N");
+
+    // A press on one of the bot's buttons. "Oprește alerta" turns that saved search's alerts off
+    // (AlertFrequency.Off, as the email's unsubscribe link does) — only a search of the account this
+    // chat is connected to.
+    public async Task HandleCallbackAsync(TelegramCallback callback, CancellationToken cancellationToken)
+    {
+        var link = await dbContext.TelegramLinks.FirstOrDefaultAsync(l => l.ChatId == callback.ChatId, cancellationToken);
+        var user = link is null ? null : await dbContext.Users.FirstOrDefaultAsync(u => u.Id == link.UserId, cancellationToken);
+        var language = LanguageFor(user?.PreferredLanguage, callback.LanguageCode);
+
+        if (callback.Data is not { } data || !data.StartsWith(StopAlertPrefix, StringComparison.Ordinal)
+            || !Guid.TryParseExact(data[StopAlertPrefix.Length..], "N", out var savedSearchId))
+        {
+            await bot.AnswerCallbackAsync(callback.Id, null, cancellationToken);
+            return;
+        }
+
+        if (user is null)
+        {
+            await bot.AnswerCallbackAsync(callback.Id, NotConnected(language), cancellationToken);
+            return;
+        }
+
+        var savedSearch = await dbContext.SavedSearches
+            .FirstOrDefaultAsync(s => s.Id == savedSearchId && s.UserId == user.Id, cancellationToken);
+        if (savedSearch is null)
+        {
+            await bot.AnswerCallbackAsync(callback.Id, SearchGone(language), cancellationToken);
+            return;
+        }
+
+        savedSearch.ChangeAlertFrequency(Imova.Domain.SavedSearches.AlertFrequency.Off);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await bot.AnswerCallbackAsync(callback.Id, AlertStoppedToast(language), cancellationToken);
+
+        var (html, buttons) = TelegramHtml.WithButtons(
+            AlertStopped(language, savedSearch.Name),
+            new TelegramButton(AllSavedSearchesButton(language), appOptions.WebUrl("/saved-searches")));
+        try
+        {
+            await bot.SendMessageAsync(callback.ChatId, html, buttons, cancellationToken);
+        }
+        catch (TelegramChatUnavailableException)
+        {
+            await DropChatAsync(callback.ChatId, cancellationToken);
         }
     }
 

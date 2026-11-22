@@ -1320,7 +1320,8 @@
         "detailsRequired": "Descrie problema."
       },
       "savedSearch": {
-        "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta."
+        "limitReached": "Poți salva cel mult {max} căutări. Șterge una ca să salvezi alta.",
+        "noChannel": "Alege cel puțin un loc pentru alerte: email sau Telegram."
       },
       "agency": {
         "websiteInvalid": "Introdu adresa completă a site-ului, de exemplu https://agentia.md.",
@@ -1475,7 +1476,7 @@
     "saving": "Se salvează...",
     "cancel": "Anulează",
     "nameLabel": "Nume",
-    "alertLabel": "Alerte pe email",
+    "alertLabel": "Alerte",
     "frequency": {
       "Off": "Fără alerte",
       "Daily": "O dată pe zi",
@@ -1484,12 +1485,12 @@
     "saved": "Căutarea a fost salvată.",
     "savedNoAlerts": "O găsești oricând în căutările salvate.",
     "savedWithAlerts": {
-      "Daily": "Îți trimitem anunțurile noi pe email, o dată pe zi.",
-      "Instant": "Îți trimitem anunțurile noi pe email imediat ce apar."
+      "Daily": "Îți trimitem anunțurile noi {where}, o dată pe zi.",
+      "Instant": "Îți trimitem anunțurile noi {where}, imediat ce apar."
     },
     "viewAll": "Vezi căutările salvate",
     "title": "Căutări salvate",
-    "subtitle": "Revino la căutările tale și primește anunțurile noi pe email.",
+    "subtitle": "Revino la căutările tale și primește anunțurile noi pe email sau pe Telegram.",
     "emptyTitle": "Nu ai nicio căutare salvată",
     "emptyBody": "Caută anunțuri și apasă „Salvează căutarea” ca să revii la ele și să primești alerte pentru anunțurile noi.",
     "startSearching": "Caută anunțuri",
@@ -1507,7 +1508,18 @@
     "unsubscribeGoneBody": "Această căutare salvată a fost ștearsă, așa că nu vei mai primi emailuri pentru ea.",
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri alertele din pagina căutărilor salvate.",
-    "manage": "Gestionează căutările salvate"
+    "manage": "Gestionează căutările salvate",
+    "channelsLabel": "Trimite pe",
+    "channelEmail": "Email",
+    "channelTelegram": "Telegram",
+    "channelsAtLeastOne": "Alertele trebuie să meargă cel puțin într-un loc. Ca să le oprești, alege „Fără alerte”.",
+    "connectTelegram": "+ Conectează Telegram",
+    "telegramNotConnected": "Telegram nu e conectat — alertele vin pe email. Conectează-l",
+    "where": {
+      "email": "pe email",
+      "telegram": "pe Telegram",
+      "both": "pe email și pe Telegram"
+    }
   },
   "AdminAdminsPage": {
     "title": "Administratori",

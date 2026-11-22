@@ -6,7 +6,15 @@ import { useTranslations } from "next-intl";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { FieldLabel, SelectInput, TextInput } from "@/components/ui/Field";
 import { saveSearch } from "@/lib/savedSearches/actions";
-import { ALERT_FREQUENCIES, SAVED_SEARCHES_PATH, isAlertFrequency, type AlertFrequency } from "@/lib/savedSearches/savedSearch";
+import {
+  ALERT_FREQUENCIES,
+  SAVED_SEARCHES_PATH,
+  alertChannels,
+  alertChannelsKey,
+  isAlertFrequency,
+  type AlertFrequency,
+  type SavedSearch,
+} from "@/lib/savedSearches/savedSearch";
 
 function BookmarkIcon() {
   return (
@@ -17,8 +25,8 @@ function BookmarkIcon() {
 }
 
 // "Save this search" in the results toolbar of /search and /map. Saves the current filters (see
-// queryToSave) under a name — the page's own title by default — with email alerts (daily unless
-// changed). Saving the same filters again just updates that saved search. Signed-out visitors go
+// queryToSave) under a name — the page's own title by default — with alerts (daily unless
+// changed) by email, plus Telegram when the account has it connected (the API decides). Saving the same filters again just updates that saved search. Signed-out visitors go
 // to sign in first and come back to this search.
 export function SaveSearchButton({
   queryString,
@@ -35,7 +43,7 @@ export function SaveSearchButton({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(defaultName);
   const [frequency, setFrequency] = useState<AlertFrequency>("Daily");
-  const [status, setStatus] = useState<{ saved?: boolean; error?: string }>({});
+  const [status, setStatus] = useState<{ saved?: SavedSearch; error?: string }>({});
   const [pending, startTransition] = useTransition();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +82,7 @@ export function SaveSearchButton({
     e.preventDefault();
     startTransition(async () => {
       const result = await saveSearch(name.trim() || defaultName, queryString, frequency);
-      setStatus(result.error ? { error: result.error } : { saved: true });
+      setStatus(result.error !== undefined ? { error: result.error } : { saved: result.savedSearch });
     });
   }
 
@@ -90,7 +98,11 @@ export function SaveSearchButton({
           {status.saved ? (
             <div className="flex flex-col gap-3 text-sm">
               <p className="font-medium text-emerald-700">{t("saved")}</p>
-              <p className="text-ink-500">{frequency === "Off" ? t("savedNoAlerts") : t(`savedWithAlerts.${frequency}`)}</p>
+              <p className="text-ink-500">
+                {frequency === "Off"
+                  ? t("savedNoAlerts")
+                  : t(`savedWithAlerts.${frequency}`, { where: t(`where.${alertChannelsKey(alertChannels(status.saved))}`) })}
+              </p>
               <Link href={SAVED_SEARCHES_PATH} className="font-medium text-brand-700 hover:text-brand-800">
                 {t("viewAll")}
               </Link>

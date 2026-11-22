@@ -51,7 +51,7 @@ public class TelegramEndpointsTests : IClassFixture<WebApplicationFactory<Progra
             scope.ServiceProvider.GetRequiredService<IApplicationDbContext>(), bot,
             new AppOptions { WebBaseUrl = "https://imova.md" }, TimeProvider.System);
         await updates.HandleAsync(new TelegramIncomingMessage(chatId, true, $"/start {code}", "tester", "Test", "ro"), CancellationToken.None);
-        return bot.Sent;
+        return bot.Sent.Select(m => m.Html).ToList();
     }
 
     [Fact]
@@ -128,23 +128,5 @@ public class TelegramEndpointsTests : IClassFixture<WebApplicationFactory<Progra
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/users/me/telegram")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsync("/api/v1/users/me/telegram/link", null)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.DeleteAsync("/api/v1/users/me/telegram")).StatusCode);
-    }
-
-    private sealed class RecordingTelegramBot : ITelegramBot
-    {
-        public List<string> Sent { get; } = [];
-
-        public Task<IReadOnlyList<TelegramUpdate>> GetUpdatesAsync(long? offset, int timeoutSeconds, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<TelegramUpdate>>([]);
-
-        public Task SendMessageAsync(long chatId, string html, IReadOnlyList<TelegramButton> buttons, CancellationToken cancellationToken)
-        {
-            Sent.Add(html);
-            return Task.CompletedTask;
-        }
-
-        public Task SetProfileAsync(string? languageCode, TelegramBotProfile profile, CancellationToken cancellationToken) => Task.CompletedTask;
-
-        public Task DeleteWebhookAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

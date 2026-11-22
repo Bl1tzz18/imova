@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button, buttonClassName } from "@/components/ui/Button";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { deleteSavedSearch, updateSavedSearch } from "@/lib/savedSearches/actions";
+import { cn } from "@/lib/utils/cn";
 import {
   ALERT_FREQUENCIES,
+  alertChannels,
   isAlertFrequency,
   openSavedSearchHref,
+  toggleAlertChannel,
+  type AlertChannels,
   type AlertFrequency,
   type SavedSearch,
 } from "@/lib/savedSearches/savedSearch";
@@ -16,28 +21,75 @@ import {
 // One saved search plus what the page computed about it on the server (its title, filter count).
 export type SavedSearchRow = SavedSearch & { summary: string };
 
-export function SavedSearchList({ rows }: { rows: SavedSearchRow[] }) {
+// The account's Telegram, for the channel choice: available = the site has a bot.
+export type TelegramStatus = { available: boolean; connected: boolean };
+
+export function SavedSearchList({ rows, telegram }: { rows: SavedSearchRow[]; telegram: TelegramStatus }) {
   return (
     <ul className="flex flex-col gap-3">
       {rows.map((row) => (
-        <SavedSearchItem key={row.id} row={row} />
+        <SavedSearchItem key={row.id} row={row} telegram={telegram} />
       ))}
     </ul>
   );
 }
 
-function SavedSearchItem({ row }: { row: SavedSearchRow }) {
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+      <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// A channel the alerts go to, as an on/off chip. The last one on can't be turned off.
+function ChannelChip({
+  label,
+  on,
+  locked,
+  disabled,
+  lockedHint,
+  onToggle,
+}: {
+  label: string;
+  on: boolean;
+  locked: boolean;
+  disabled: boolean;
+  lockedHint: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      disabled={disabled || locked}
+      title={locked ? lockedHint : undefined}
+      onClick={onToggle}
+      className={cn(
+        "inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40",
+        on ? "border-brand-200 bg-brand-50 text-brand-800" : "border-ink-200 bg-white text-ink-500 hover:border-ink-300 hover:text-ink-800",
+        locked ? "cursor-default" : "disabled:opacity-60",
+      )}
+    >
+      {on && <CheckIcon />}
+      {label}
+    </button>
+  );
+}
+
+function SavedSearchItem({ row, telegram }: { row: SavedSearchRow; telegram: TelegramStatus }) {
   const t = useTranslations("SavedSearches");
   const [name, setName] = useState(row.name);
   const [frequency, setFrequency] = useState<AlertFrequency>(row.alertFrequency);
+  const [channels, setChannels] = useState<AlertChannels>(alertChannels(row));
   const [renaming, setRenaming] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function save(nextName: string, nextFrequency: AlertFrequency) {
+  function save(nextName: string, nextFrequency: AlertFrequency, nextChannels?: AlertChannels) {
     startTransition(async () => {
-      const result = await updateSavedSearch(row.id, nextName, nextFrequency);
+      const result = await updateSavedSearch(row.id, nextName, nextFrequency, nextChannels);
       if (result.error !== undefined) {
         setError(result.error);
         return;
@@ -45,9 +97,18 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
       setError(null);
       setName(result.savedSearch.name);
       setFrequency(result.savedSearch.alertFrequency);
+      setChannels(alertChannels(result.savedSearch));
       setRenaming(false);
     });
   }
+
+  function toggle(channel: keyof AlertChannels) {
+    const next = toggleAlertChannel(channels, channel);
+    if (next) save(name, frequency, next);
+  }
+
+  // Telegram is offered once the account has it connected (or when the search already uses it).
+  const showTelegram = telegram.connected || channels.telegram;
 
   function remove() {
     startTransition(async () => {
@@ -98,6 +159,38 @@ function SavedSearchItem({ row }: { row: SavedSearchRow }) {
             </div>
           )}
           <p className="mt-1 text-sm text-ink-500">{row.summary}</p>
+
+          {frequency !== "Off" && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-ink-500">{t("channelsLabel")}</span>
+              <ChannelChip
+                label={t("channelEmail")}
+                on={channels.email}
+                locked={channels.email && !channels.telegram}
+                disabled={pending}
+                lockedHint={t("channelsAtLeastOne")}
+                onToggle={() => toggle("email")}
+              />
+              {showTelegram && (
+                <ChannelChip
+                  label={t("channelTelegram")}
+                  on={channels.telegram}
+                  locked={channels.telegram && !channels.email}
+                  disabled={pending}
+                  lockedHint={t("channelsAtLeastOne")}
+                  onToggle={() => toggle("telegram")}
+                />
+              )}
+              {telegram.available && !telegram.connected && (
+                <Link
+                  href="/account?tab=notifications"
+                  className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+                >
+                  {channels.telegram ? t("telegramNotConnected") : t("connectTelegram")}
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

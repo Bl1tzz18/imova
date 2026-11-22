@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { SavedSearchList, type SavedSearchRow } from "@/components/savedSearches/SavedSearchList";
 import { LinkButton } from "@/components/ui/Button";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
+import { getTelegramConnection } from "@/lib/account/actions";
 import { getSavedSearches } from "@/lib/savedSearches/api";
 import { SAVED_SEARCHES_PATH } from "@/lib/savedSearches/savedSearch";
 import { activeFilterCount, parseSearchParams, SEARCH_PATH } from "@/lib/search/filters";
@@ -17,9 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SavedSearchesPage() {
-  const [savedSearches, profile, t] = await Promise.all([
+  const [savedSearches, profile, telegram, t] = await Promise.all([
     getSavedSearches(),
     getCurrentUserProfile(),
+    getTelegramConnection(),
     getTranslations("SavedSearches"),
   ]);
   if (savedSearches === null || !profile) {
@@ -53,7 +55,10 @@ export default async function SavedSearchesPage() {
 
           <div className="mt-8">
             {rows.length > 0 ? (
-              <SavedSearchList rows={rows} />
+              <SavedSearchList
+                rows={rows}
+                telegram={{ available: telegram?.available ?? false, connected: telegram?.connected ?? false }}
+              />
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-[18px] border border-dashed border-line bg-white px-6 py-16 text-center">
                 <p className="font-semibold text-ink-900">{t("emptyTitle")}</p>

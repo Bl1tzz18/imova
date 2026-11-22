@@ -224,4 +224,60 @@ public class TelegramBotUpdatesTests
 
         Assert.Empty(await LinksAsync());
     }
+
+    private static TelegramCallback Press(string? data, long chatId = ChatId) => new("cb-1", chatId, data, "ro");
+
+    [Fact]
+    public async Task StopAlertButton_TurnsThatSearchsAlertsOff_AndSaysSo()
+    {
+        var userId = AddUser();
+        var search = SavedSearch.Create(userId, "Garaje", "transactionType=Sale", AlertFrequency.Instant, Now, AlertChannels.Telegram);
+        _dbContext.SavedSearches.Add(search);
+        await _dbContext.SaveChangesAsync();
+        await _updates.HandleAsync(Message($"/start {await AddCodeAsync(userId)}"), CancellationToken.None);
+
+        await _updates.HandleCallbackAsync(Press(TelegramBotUpdates.StopAlertData(search.Id)), CancellationToken.None);
+
+        await using var fresh = TestDbContextFactory.Create(_databaseName);
+        Assert.Equal(AlertFrequency.Off, (await fresh.SavedSearches.SingleAsync()).AlertFrequency);
+        Assert.Equal(("cb-1", "Alertă oprită"), Assert.Single(_bot.Answers));
+        Assert.StartsWith("Am oprit alertele pentru „Garaje”", _bot.Sent[^1].Html);
+    }
+
+    [Fact]
+    public async Task StopAlertButton_ForAnotherAccountsSearch_ChangesNothing()
+    {
+        var userId = AddUser();
+        var someoneElses = SavedSearch.Create(AddUser(), "Străin", "transactionType=Sale", AlertFrequency.Instant, Now);
+        _dbContext.SavedSearches.Add(someoneElses);
+        await _dbContext.SaveChangesAsync();
+        await _updates.HandleAsync(Message($"/start {await AddCodeAsync(userId)}"), CancellationToken.None);
+
+        await _updates.HandleCallbackAsync(Press(TelegramBotUpdates.StopAlertData(someoneElses.Id)), CancellationToken.None);
+
+        await using var fresh = TestDbContextFactory.Create(_databaseName);
+        Assert.Equal(AlertFrequency.Instant, (await fresh.SavedSearches.SingleAsync()).AlertFrequency);
+        Assert.Equal("Această căutare nu mai există.", Assert.Single(_bot.Answers).Text);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("something-else")]
+    [InlineData("ss-off:not-a-guid")]
+    public async Task UnknownButtons_AreJustAcknowledged(string? data)
+    {
+        await _updates.HandleCallbackAsync(Press(data), CancellationToken.None);
+
+        Assert.Equal(("cb-1", (string?)null), Assert.Single(_bot.Answers));
+        Assert.Empty(_bot.Sent);
+    }
+
+    [Fact]
+    public async Task StopAlertButton_FromAChatNoLongerConnected_SaysSo()
+    {
+        await _updates.HandleCallbackAsync(Press(TelegramBotUpdates.StopAlertData(Guid.NewGuid())), CancellationToken.None);
+
+        Assert.Equal("Acest Telegram nu e conectat la niciun cont IMOVA.", Assert.Single(_bot.Answers).Text);
+    }
 }
+

@@ -101,6 +101,53 @@ public static class TelegramBotTexts
         _ => Languages.Pick(language, "Fără alerte", "No alerts", "Без уведомлений"),
     };
 
+    // --- Saved-search alerts (SavedSearchTelegramAlert) ---
+
+    // The footer of each alert: which saved search it's for.
+    public static string AlertFor(string language, string searchName) => Languages.Pick(language,
+        $"Alertă pentru „{Encode(searchName)}”",
+        $"Alert for “{Encode(searchName)}”",
+        $"Уведомление по поиску «{Encode(searchName)}»");
+
+    public static string ViewListingButton(string language) => Languages.Pick(language, "Vezi anunțul", "View listing", "Открыть объявление");
+
+    public static string StopAlertButton(string language) => Languages.Pick(language, "Oprește alerta", "Stop this alert", "Отключить уведомления");
+
+    public static string AllResultsButton(string language) => Languages.Pick(language, "Vezi toate rezultatele", "See all results", "Все результаты");
+
+    // "Și încă 7 anunțuri noi pentru „…”." — with each language's plural forms.
+    public static string MoreListings(string language, int count, string searchName)
+    {
+        var name = Encode(searchName);
+        return language switch
+        {
+            Languages.English => count == 1
+                ? $"And 1 more new listing for “{name}”."
+                : $"And {count} more new listings for “{name}”.",
+            Languages.Russian => $"И ещё {count} {RussianListings(count)} по поиску «{name}».",
+            _ => count == 1
+                ? $"Și încă un anunț nou pentru „{name}”."
+                : $"Și încă {count} {(count % 100 == 0 || count % 100 >= 20 ? "de " : "")}anunțuri noi pentru „{name}”.",
+        };
+    }
+
+    private static string RussianListings(int count) => (count % 10, count % 100) switch
+    {
+        (1, not 11) => "новое объявление",
+        (>= 2 and <= 4, not (>= 12 and <= 14)) => "новых объявления",
+        _ => "новых объявлений",
+    };
+
+    public static string AlertStopped(string language, string searchName) => Languages.Pick(language,
+        $"Am oprit alertele pentru „{Encode(searchName)}”. Le poți reporni oricând din „Căutări salvate” pe site.",
+        $"Alerts for “{Encode(searchName)}” are off. You can turn them back on anytime under “Saved searches” on the site.",
+        $"Уведомления по поиску «{Encode(searchName)}» отключены. Включить их снова можно в любой момент в разделе «Сохранённые поиски» на сайте.");
+
+    public static string AlertStoppedToast(string language) => Languages.Pick(language, "Alertă oprită", "Alert turned off", "Уведомления отключены");
+
+    public static string SearchGone(string language) => Languages.Pick(language,
+        "Această căutare nu mai există.", "This search no longer exists.", "Этого поиска больше нет.");
+
     // The command menu and the texts shown before a chat starts. /start isn't listed: Telegram shows
     // its own Start button, and a plain /start only explains how to connect.
     public static TelegramBotProfile Profile(string language) => new(

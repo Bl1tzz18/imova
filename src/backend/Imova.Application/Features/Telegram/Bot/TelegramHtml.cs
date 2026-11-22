@@ -4,24 +4,21 @@ using Imova.Application.Common.Interfaces;
 namespace Imova.Application.Features.Telegram.Bot;
 
 // Telegram's HTML formatting (parse_mode=HTML): only &, < and > (and " inside attributes) need
-// escaping. Telegram refuses links to addresses it can't reach — localhost, private networks — in
-// buttons ("BUTTON_URL_INVALID", the whole message is rejected), so with a local App:WebBaseUrl
-// links become plain text instead.
+// escaping. Telegram won't link to addresses it can't reach — localhost, private networks: a
+// button to one rejects the whole message ("BUTTON_URL_INVALID"), a link in the text is silently
+// dropped. So with a local App:WebBaseUrl the links are simply left out (on the real domain they're
+// buttons and links as usual).
 public static class TelegramHtml
 {
     public static string Encode(string text) => text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
     public static string Link(string text, string url) =>
-        CanLink(url) ? $"<a href=\"{Encode(url).Replace("\"", "&quot;")}\">{Encode(text)}</a>" : $"{Encode(text)} ({Encode(url)})";
+        CanLink(url) ? $"<a href=\"{Encode(url).Replace("\"", "&quot;")}\">{Encode(text)}</a>" : Encode(text);
 
-    // The message with its link buttons — or, for addresses Telegram won't take, the links written
-    // out at the end of the text.
-    public static (string Html, IReadOnlyList<TelegramButton> Buttons) WithButtons(string html, params TelegramButton[] buttons)
-    {
-        var usable = buttons.Where(b => CanLink(b.Url)).ToList();
-        var written = buttons.Where(b => !CanLink(b.Url)).Select(b => $"{Encode(b.Text)}: {Encode(b.Url)}").ToList();
-        return (written.Count == 0 ? html : html + "\n\n" + string.Join("\n", written), usable);
-    }
+    // The message with the buttons Telegram will take: link buttons to an address it can't reach are
+    // left out; callback buttons always stay.
+    public static (string Html, IReadOnlyList<TelegramButton> Buttons) WithButtons(string html, params TelegramButton[] buttons) =>
+        (html, buttons.Where(b => b.Url is null || CanLink(b.Url)).ToList());
 
     public static bool CanLink(string url)
     {

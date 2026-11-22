@@ -1320,7 +1320,8 @@
         "detailsRequired": "Describe the problem."
       },
       "savedSearch": {
-        "limitReached": "You can save at most {max} searches. Delete one to save another."
+        "limitReached": "You can save at most {max} searches. Delete one to save another.",
+        "noChannel": "Choose at least one place for alerts: email or Telegram."
       },
       "agency": {
         "websiteInvalid": "Enter the website's full address, for example https://agency.md.",
@@ -1475,7 +1476,7 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "nameLabel": "Name",
-    "alertLabel": "Email alerts",
+    "alertLabel": "Alerts",
     "frequency": {
       "Off": "No alerts",
       "Daily": "Once a day",
@@ -1484,12 +1485,12 @@
     "saved": "Search saved.",
     "savedNoAlerts": "You'll find it anytime in your saved searches.",
     "savedWithAlerts": {
-      "Daily": "We'll email you new listings once a day.",
-      "Instant": "We'll email you new listings as soon as they appear."
+      "Daily": "We’ll send you new listings {where}, once a day.",
+      "Instant": "We’ll send you new listings {where}, as soon as they appear."
     },
     "viewAll": "View saved searches",
     "title": "Saved searches",
-    "subtitle": "Come back to your searches and get new listings by email.",
+    "subtitle": "Come back to your searches and get new listings by email or on Telegram.",
     "emptyTitle": "You have no saved searches",
     "emptyBody": "Search for listings and press “Save this search” to come back to them and get alerts for new listings.",
     "startSearching": "Search listings",
@@ -1507,7 +1508,18 @@
     "unsubscribeGoneBody": "This saved search was deleted, so you won't get emails for it anymore.",
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn alerts off from your saved searches page.",
-    "manage": "Manage saved searches"
+    "manage": "Manage saved searches",
+    "channelsLabel": "Send to",
+    "channelEmail": "Email",
+    "channelTelegram": "Telegram",
+    "channelsAtLeastOne": "Alerts need to go somewhere. To stop them, choose “No alerts”.",
+    "connectTelegram": "+ Connect Telegram",
+    "telegramNotConnected": "Telegram isn’t connected — alerts come by email. Connect it",
+    "where": {
+      "email": "by email",
+      "telegram": "on Telegram",
+      "both": "by email and on Telegram"
+    }
   },
   "AdminAdminsPage": {
     "title": "Administrators",
