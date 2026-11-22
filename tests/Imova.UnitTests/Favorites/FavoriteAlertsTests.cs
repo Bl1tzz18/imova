@@ -78,7 +78,7 @@ public class FavoriteAlertsTests
         Assert.Contains("Prețul a scăzut", email.Subject);
         Assert.Contains("Preț vechi: 80 000 EUR", email.TextBody);
         Assert.Contains("Preț nou: 76 000 EUR (−5%)", email.TextBody);
-        Assert.Contains($"https://imova.test/property/{_listing.Id}", email.TextBody);
+        Assert.Contains($"https://imova.test/property/{_listing.Number}", email.TextBody);
         Assert.Contains($"https://imova.test/favorites/unsubscribe?user={_visitorId}&token=", email.TextBody);
         Assert.Contains("https://imova.test/account?tab=notifications", email.TextBody);
         Assert.Contains("80 000 EUR", email.HtmlBody);
@@ -104,7 +104,7 @@ public class FavoriteAlertsTests
         Assert.Contains("<img src=\"https://blob.test/cover.jpg\"", html);
         Assert.DoesNotContain("second.jpg", html);
         Assert.Contains("Apartament · Vânzare", html);
-        Assert.Contains($"href=\"https://imova.test/property/{_listing.Id}\"", html);
+        Assert.Contains($"href=\"https://imova.test/property/{_listing.Number}\"", html);
         Assert.Contains("line-through;white-space:nowrap;\">80 000 EUR", html);
         Assert.Contains("−5%", html);
     }
@@ -212,7 +212,7 @@ public class FavoriteAlertsTests
         Assert.Contains(_listing.Title, email.TextBody);
         Assert.Contains("Apartament · Vânzare", email.TextBody);
         Assert.Contains("Ultimul preț: 80 000 EUR", email.TextBody);
-        Assert.Contains($"https://imova.test/property/{_listing.Id}#similar-listings-title", email.TextBody);
+        Assert.Contains($"https://imova.test/property/{_listing.Number}#similar-listings-title", email.TextBody);
         Assert.Contains("https://imova.test/search?transactionType=Sale&propertyType=Apartment&raionId=", email.TextBody);
         Assert.NotNull(Reload(favorite).EndedAlertSentAt);
 

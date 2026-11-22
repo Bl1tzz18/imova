@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useTransition, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { searchHref, updateSearch, type SearchState, type SearchView } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";
 

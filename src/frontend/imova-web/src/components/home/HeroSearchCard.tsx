@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { locationParams, searchLocations, type LocationSuggestion } from "@/lib/api/locationSearch";
 import { searchHref } from "@/lib/search/filters";

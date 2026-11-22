@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
@@ -15,6 +15,7 @@ import { authorLabel } from "@/lib/listing/contactCard";
 import { cn } from "@/lib/utils/cn";
 import { formatDateTime, formatLocation, formatPrice } from "@/lib/utils/format";
 import type { ListingReportItem, ListingReportReason, ReportedListing } from "@/types/listingReport";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 // Reasons coloured by how serious they are, so a fraud case stands out at a glance.
 const REASON_TONE: Record<ListingReportReason, string> = {
@@ -69,7 +70,7 @@ function ReportCase({ reported, view, now }: { reported: ReportedListing; view: 
       {/* The listing, and whose it is. */}
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:gap-4">
         <a
-          href={`/property/${listing.id}`}
+          href={listingPath(listing)}
           target="_blank"
           rel="noreferrer"
           className="flex h-[76px] w-[100px] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-brand-800 to-brand-600"
@@ -84,7 +85,7 @@ function ReportCase({ reported, view, now }: { reported: ReportedListing; view: 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <a
-              href={`/property/${listing.id}`}
+              href={listingPath(listing)}
               target="_blank"
               rel="noreferrer"
               className="truncate text-sm font-semibold text-ink-900 hover:underline"
@@ -317,7 +318,7 @@ function CaseActions({ reported }: { reported: ReportedListing }) {
             {canSuspend ? t("dismiss") : t("close")}
           </Button>
           <a
-            href={`/property/${listing.id}`}
+            href={listingPath(listing)}
             target="_blank"
             rel="noreferrer"
             className="ml-auto text-xs font-medium text-brand-700 hover:underline"

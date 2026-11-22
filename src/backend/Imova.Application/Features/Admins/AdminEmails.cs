@@ -9,10 +9,10 @@ namespace Imova.Application.Features.Admins;
 public class AdminEmails(IEmailSender emailSender, AppOptions appOptions)
 {
     public Task SendWelcomeAsync(string to, string grantedBy, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(WelcomeEmail(to, grantedBy, appOptions.WebUrl("/admin/admins"), language), cancellationToken);
+        emailSender.SendAsync(WelcomeEmail(to, grantedBy, appOptions.WebUrl("/admin/admins", language), language), cancellationToken);
 
     public Task SendNoticeAsync(string to, string newAdmin, string grantedBy, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(NoticeEmail(to, newAdmin, grantedBy, appOptions.WebUrl("/admin/admins"), language), cancellationToken);
+        emailSender.SendAsync(NoticeEmail(to, newAdmin, grantedBy, appOptions.WebUrl("/admin/admins", language), language), cancellationToken);
 
     public static EmailMessage WelcomeEmail(string to, string grantedBy, string link, string language)
     {

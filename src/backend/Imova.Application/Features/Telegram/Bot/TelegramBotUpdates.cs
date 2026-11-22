@@ -90,7 +90,7 @@ public class TelegramBotUpdates(IApplicationDbContext dbContext, ITelegramBot bo
 
         var (html, buttons) = TelegramHtml.WithButtons(
             AlertStopped(language, savedSearch.Name),
-            new TelegramButton(AllSavedSearchesButton(language), appOptions.WebUrl("/saved-searches")));
+            new TelegramButton(AllSavedSearchesButton(language), appOptions.WebUrl("/saved-searches", language)));
         try
         {
             await bot.SendMessageAsync(callback.ChatId, html, buttons, cancellationToken);
@@ -202,19 +202,19 @@ public class TelegramBotUpdates(IApplicationDbContext dbContext, ITelegramBot bo
             .ToListAsync(cancellationToken);
         if (searches.Count == 0)
         {
-            return TelegramHtml.WithButtons(NoSavedSearches(language), new TelegramButton(SearchButton(language), appOptions.WebUrl("/search")));
+            return TelegramHtml.WithButtons(NoSavedSearches(language), new TelegramButton(SearchButton(language), appOptions.WebUrl("/search", language)));
         }
 
         // The same "open" route as /saved-searches: marks the search viewed, then shows its results.
         var lines = searches.Select(s =>
-            $"• {TelegramHtml.Link(s.Name, appOptions.WebUrl($"/saved-searches/{s.Id}/open"))} — {Frequency(language, s.AlertFrequency)}");
+            $"• {TelegramHtml.Link(s.Name, appOptions.WebUrl($"/saved-searches/{s.Id}/open", language))} — {Frequency(language, s.AlertFrequency)}");
         return TelegramHtml.WithButtons(
             SavedSearchesHeading(language) + "\n\n" + string.Join("\n", lines),
-            new TelegramButton(AllSavedSearchesButton(language), appOptions.WebUrl("/saved-searches")));
+            new TelegramButton(AllSavedSearchesButton(language), appOptions.WebUrl("/saved-searches", language)));
     }
 
     private (string, IReadOnlyList<TelegramButton>) WithSettingsButton(string html, string language) =>
-        TelegramHtml.WithButtons(html, new TelegramButton(OpenSettingsButton(language), appOptions.WebUrl("/account?tab=notifications")));
+        TelegramHtml.WithButtons(html, new TelegramButton(OpenSettingsButton(language), appOptions.WebUrl("/account?tab=notifications", language)));
 
     private static string? Truncate(string? value, int max) => value is null || value.Length <= max ? value : value[..max];
 }

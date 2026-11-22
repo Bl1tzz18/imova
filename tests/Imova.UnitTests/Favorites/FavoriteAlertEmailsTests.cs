@@ -77,7 +77,7 @@ public class FavoriteAlertEmailsTests
     public void Ended_SaysWhy_InTheUsersLanguage(string language, string subject, string reason, string badge)
     {
         var ended = new EndedListingDto(
-            Guid.NewGuid(), "Sold", "Sale", "House", "Casă", new PriceDto(90_000, "EUR", 90_000, false), 120,
+            Guid.NewGuid(), 100_015, "Sold", "Sale", "House", "Casă", new PriceDto(90_000, "EUR", 90_000, false), 120,
             Guid.NewGuid(), "Chișinău", null, "Botanica", DateTimeOffset.UtcNow);
 
         var email = FavoriteAlertEmails.Ended(

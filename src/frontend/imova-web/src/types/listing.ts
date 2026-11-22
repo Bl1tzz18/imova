@@ -215,6 +215,7 @@ export type EndedListingStatus = "Sold" | "Rented" | "Expired" | "Archived";
 
 export type EndedListing = {
   id: string;
+  number: number;
   status: EndedListingStatus;
   transactionType: "Sale" | "Rent";
   propertyType: string;

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, type MouseEvent } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { canGoBackTo, LAST_SEARCH_KEY, PREVIOUS_URL_KEY } from "@/lib/navigation/history";
 
 function stored(key: string): string | null {

@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/redirect";
 import { revalidatePath } from "next/cache";
 import { getSessionToken } from "@/lib/auth/session";
 import { apiErrorMessage } from "@/lib/api/errorMessage";
@@ -14,7 +14,7 @@ export async function approveListing(listingId: string): Promise<{ error?: strin
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/moderation");
+    return redirectTo("/login?next=/admin/moderation");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/approve`, {
@@ -34,7 +34,7 @@ export async function rejectListing(listingId: string, reason: string): Promise<
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/moderation");
+    return redirectTo("/login?next=/admin/moderation");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/reject`, {
@@ -56,7 +56,7 @@ export async function suspendListing(listingId: string, reason: string): Promise
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/moderation");
+    return redirectTo("/login?next=/admin/moderation");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/suspend`, {
@@ -78,7 +78,7 @@ export async function reinstateListing(listingId: string): Promise<{ error?: str
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/moderation");
+    return redirectTo("/login?next=/admin/moderation");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/listings/${listingId}/reinstate`, {
@@ -100,7 +100,7 @@ export async function dismissListingReports(listingId: string, note: string): Pr
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/moderation?tab=reports");
+    return redirectTo("/login?next=/admin/moderation?tab=reports");
   }
 
   const res = await fetch(`${apiUrl}/api/v1/admin/listing-reports/${listingId}/dismiss`, {
@@ -126,7 +126,7 @@ export async function grantAdmin(_prevState: GrantAdminState, formData: FormData
   const apiUrl = process.env.API_URL ?? "http://localhost:8080";
   const token = await getSessionToken();
   if (!token) {
-    redirect("/login?next=/admin/admins");
+    return redirectTo("/login?next=/admin/admins");
   }
 
   const email = String(formData.get("email") ?? "").trim();

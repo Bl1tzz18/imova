@@ -105,8 +105,9 @@ internal static class ListingTestData
         TransactionType transactionType = TransactionType.Rent,
         Price? price = null,
         ListingContact? contact = null,
-        Guid? agencyId = null) =>
-        Listing.Create(
+        Guid? agencyId = null)
+    {
+        var listing = Listing.Create(
             propertyId ?? Guid.NewGuid(),
             publisherId ?? Guid.NewGuid(),
             transactionType,
@@ -116,6 +117,14 @@ internal static class ListingTestData
             rentalDetails: transactionType == TransactionType.Rent ? new RentalDetails() : null,
             contact: contact,
             agencyId: agencyId);
+        NumberProperty.SetValue(listing, Interlocked.Increment(ref _lastNumber));
+        return listing;
+    }
+
+    // Postgres numbers listings itself (an identity column from 100 000); the in-memory test database
+    // doesn't, so every test listing gets its own number here — links are built from it.
+    private static long _lastNumber = 100_000;
+    private static readonly System.Reflection.PropertyInfo NumberProperty = typeof(Listing).GetProperty(nameof(Listing.Number))!;
 
     // Walks a Draft listing through the real lifecycle methods to reach `target`, so tests never
     // depend on a status that couldn't actually be reached.

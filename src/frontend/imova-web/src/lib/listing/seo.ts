@@ -6,10 +6,6 @@ import type { Listing } from "@/types/listing";
 
 const DESCRIPTION_LENGTH = 160;
 
-export function listingPath(id: string): string {
-  return `/property/${id}`;
-}
-
 // The cover photo: the one marked primary, else the first.
 export function coverPhotoUrl(listing: Pick<Listing, "photos">): string | null {
   return (listing.photos.find((p) => p.isPrimary) ?? listing.photos[0])?.url ?? null;

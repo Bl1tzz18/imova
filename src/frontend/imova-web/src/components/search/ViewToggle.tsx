@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { switchViewHref, type SearchView } from "@/lib/search/filters";
 import { cn } from "@/lib/utils/cn";

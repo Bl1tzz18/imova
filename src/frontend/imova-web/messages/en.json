@@ -2140,5 +2140,13 @@
     "deleteConfirm": "Delete agency",
     "deleting": "Deleting…",
     "empty": "No agency matches the search."
+  },
+  "Meta": {
+    "siteTitle": "IMOVA — Real estate in Moldova",
+    "siteDescription": "Apartments, houses, land and commercial spaces for sale and for rent in Moldova — from owners and agencies.",
+    "ogImageAlt": "IMOVA — real estate in Moldova",
+    "notFoundTitle": "Page not found",
+    "notFoundText": "The link is wrong or the page no longer exists.",
+    "backHome": "Back to the home page"
   }
 }

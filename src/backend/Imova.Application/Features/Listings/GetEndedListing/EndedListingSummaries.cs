@@ -29,6 +29,7 @@ public static class EndedListingSummaries
             r => r.Listing.Id,
             r => new EndedListingDto(
                 r.Listing.Id,
+                r.Listing.Number,
                 r.Listing.Status.ToString(),
                 r.Listing.TransactionType.ToString(),
                 r.Property.PropertyType.ToString(),

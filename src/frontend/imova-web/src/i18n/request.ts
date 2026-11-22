@@ -1,11 +1,10 @@
-import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { defaultLocale, isLocale, localeCookieName } from "./config";
+import { defaultLocale, isLocale } from "./config";
 
-export default getRequestConfig(async () => {
-  const cookieStore = await cookies();
-  const cookieLocale = cookieStore.get(localeCookieName)?.value;
-  const locale = isLocale(cookieLocale) ? cookieLocale : defaultLocale;
+// The language comes from the address ([locale] segment, set by middleware.ts), never the cookie.
+export default getRequestConfig(async ({ requestLocale }) => {
+  const requested = await requestLocale;
+  const locale = isLocale(requested) ? requested : defaultLocale;
 
   return {
     locale,

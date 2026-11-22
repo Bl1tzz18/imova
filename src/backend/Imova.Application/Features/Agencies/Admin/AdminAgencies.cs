@@ -281,7 +281,7 @@ public class AdminDeleteAgencyHandler(
 public class AgencyDeletedEmail(IEmailSender emailSender, AppOptions appOptions)
 {
     public Task SendAsync(string to, string agencyName, string reason, string language, CancellationToken cancellationToken) =>
-        emailSender.SendAsync(Build(to, agencyName, reason, appOptions.WebUrl("/my-listings"), language), cancellationToken);
+        emailSender.SendAsync(Build(to, agencyName, reason, appOptions.WebUrl("/my-listings", language), language), cancellationToken);
 
     public static EmailMessage Build(string to, string agencyName, string reason, string link, string language)
     {
@@ -324,7 +324,7 @@ public class AgencyVerifiedEmail(IEmailSender emailSender, AppOptions appOptions
 {
     public Task SendAsync(string to, string agencyName, string slug, string language, CancellationToken cancellationToken) =>
         emailSender.SendAsync(
-            Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}"), language), cancellationToken);
+            Build(to, agencyName, appOptions.WebUrl($"/agencies/{Uri.EscapeDataString(slug)}", language), language), cancellationToken);
 
     public static EmailMessage Build(string to, string agencyName, string link, string language)
     {

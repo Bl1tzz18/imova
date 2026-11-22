@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { AuthCard, AuthNotice } from "@/components/auth/AuthCard";
 import { AuthTabs } from "@/components/auth/AuthTabs";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useIsClient } from "@/lib/hooks/useIsClient";
 import { applyIncomingMessage, markConversationRead } from "@/lib/messaging/inbox";

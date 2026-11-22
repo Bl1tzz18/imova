@@ -92,7 +92,7 @@ public class SavedSearchAlertsTests
         var email = Assert.Single(_email.Sent);
         Assert.Equal($"{_userId:N}@example.com", email.To);
         Assert.Contains("„Chirii Botanica”", email.Subject);
-        Assert.Contains($"https://imova.test/property/{listing.Id}", email.TextBody);
+        Assert.Contains($"https://imova.test/property/{listing.Number}", email.TextBody);
         Assert.Contains($"https://imova.test/saved-searches/{saved.Id}/open", email.TextBody);
         Assert.Contains($"https://imova.test/saved-searches/unsubscribe?id={saved.Id}&token=", email.TextBody);
 
@@ -142,8 +142,8 @@ public class SavedSearchAlertsTests
         Assert.Equal(1, await RunAsync());
 
         Assert.Equal(2, _email.Sent.Count);
-        Assert.Contains(second.Id.ToString(), _email.Sent[1].TextBody);
-        Assert.DoesNotContain(first.Id.ToString(), _email.Sent[1].TextBody);
+        Assert.Contains($"/property/{second.Number}\n", _email.Sent[1].TextBody);
+        Assert.DoesNotContain($"/property/{first.Number}\n", _email.Sent[1].TextBody);
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class SavedSearchAlertsTests
         _email.Fail = false;
         _clock.Advance(TimeSpan.FromMinutes(5));
         Assert.Equal(1, await RunAsync());
-        Assert.Contains(listing.Id.ToString(), Assert.Single(_email.Sent).TextBody);
+        Assert.Contains($"/property/{listing.Number}\n", Assert.Single(_email.Sent).TextBody);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class SavedSearchAlertsTests
         var message = Assert.Single(_telegram.Sent);
         Assert.Equal(ChatId, message.ChatId);
         Assert.Contains("🔔 <i>Alertă pentru „Chirii Botanica”</i>", message.Html);
-        Assert.Equal($"https://imova.test/property/{listing.Id}", message.Buttons[0].Url);
+        Assert.Equal($"https://imova.test/property/{listing.Number}", message.Buttons[0].Url);
         Assert.Equal(TelegramBotUpdates.StopAlertData(saved.Id), message.Buttons[1].CallbackData);
 
         _clock.Advance(TimeSpan.FromMinutes(5));

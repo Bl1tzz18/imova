@@ -12,7 +12,7 @@ public class AgencyInvitationEmail(IEmailSender emailSender, AppOptions appOptio
     public Task SendAsync(
         string to, string inviterName, string agencyName, AgencyRole role, string token, string language, CancellationToken cancellationToken) =>
         emailSender.SendAsync(
-            Build(to, inviterName, agencyName, role, appOptions.WebUrl($"/invitations/{token}"), language), cancellationToken);
+            Build(to, inviterName, agencyName, role, appOptions.WebUrl($"/invitations/{token}", language), language), cancellationToken);
 
     public static EmailMessage Build(string to, string inviterName, string agencyName, AgencyRole role, string link, string language)
     {

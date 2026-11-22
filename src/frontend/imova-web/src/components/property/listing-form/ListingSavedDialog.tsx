@@ -7,6 +7,7 @@ import { savedOutcome, type SavedOutcome } from "@/lib/listing/savedDialog";
 import { formatPercentChange } from "@/lib/listing/priceHistory";
 import { formatPrice } from "@/lib/utils/format";
 import type { PriceReduction } from "@/types/listing";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 // Opens after every successful save of the edit form (savedAt changes per save) and says what the
 // save actually did — live, back in review, waiting for the email, or saved but not public (see
@@ -67,7 +68,7 @@ export function ListingSavedDialog({
             the main one on top, side by side and equally wide on a wider screen (main one on the
             right). Staying on the form is the quiet option under them. */}
         <div className="mt-3 flex w-full flex-col gap-2 sm:flex-row-reverse">
-          <LinkButton href={`/property/${listingId}`} autoFocus className="w-full whitespace-nowrap sm:flex-1">
+          <LinkButton href={listingPath({ id: listingId })} autoFocus className="w-full whitespace-nowrap sm:flex-1">
             {t("viewListing")}
           </LinkButton>
           <LinkButton href="/my-listings" variant="secondary" className="w-full whitespace-nowrap sm:flex-1">

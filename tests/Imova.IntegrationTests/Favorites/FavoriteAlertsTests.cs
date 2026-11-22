@@ -91,7 +91,7 @@ public class FavoriteAlertsTests : IClassFixture<WebApplicationFactory<Program>>
         var email = Assert.Single(_email.SentTo(user.Email), m => m.Subject.StartsWith("Prețul a scăzut"));
         Assert.Contains("Preț vechi: 640 EUR / lună", email.TextBody);
         Assert.Contains("Preț nou: 608 EUR / lună (−5%)", email.TextBody);
-        Assert.Contains($"http://localhost:3000/property/{listing.Id}", email.TextBody);
+        Assert.Contains($"http://localhost:3000/property/{listing.Number}", email.TextBody);
         Assert.Contains("640 EUR / lună", email.HtmlBody);
         Assert.Contains("608 EUR / lună", email.HtmlBody);
 
@@ -127,7 +127,7 @@ public class FavoriteAlertsTests : IClassFixture<WebApplicationFactory<Program>>
         var email = Assert.Single(_email.SentTo(user.Email), m => m.Subject.StartsWith("Nu mai este disponibil"));
         Assert.Contains("Proprietatea a fost închiriată.", email.TextBody);
         Assert.Contains("Ultimul preț: 520 EUR / lună", email.TextBody);
-        Assert.Contains($"/property/{listing.Id}#similar-listings-title", email.TextBody);
+        Assert.Contains($"/property/{listing.Number}#similar-listings-title", email.TextBody);
     }
 
     [Fact]

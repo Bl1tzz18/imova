@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { TextAreaInput } from "@/components/ui/Field";
@@ -9,6 +9,7 @@ import { REPORT_REASONS, REPORT_TEXT_MAX, reportFormProblem } from "@/lib/listin
 import { reportListing } from "@/lib/listing/reportActions";
 import { cn } from "@/lib/utils/cn";
 import type { ListingReportReason } from "@/types/listingReport";
+import { listingPath } from "@/lib/listing/listingUrl";
 
 const flagIcon = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-4 w-4" aria-hidden>
@@ -35,7 +36,7 @@ export function ReportListingButton({ listingId, signedIn }: { listingId: string
 
   if (!signedIn) {
     return (
-      <Link href={`/login?next=${encodeURIComponent(`/property/${listingId}`)}`} className={quietLink}>
+      <Link href={`/login?next=${encodeURIComponent(listingPath({ id: listingId }))}`} className={quietLink}>
         {flagIcon}
         {t("open")}
       </Link>
@@ -127,7 +128,7 @@ export function ReportListingButton({ listingId, signedIn }: { listingId: string
                   {t("cancel")}
                 </Button>
                 <Link
-                  href={`/login?next=${encodeURIComponent(`/property/${listingId}`)}`}
+                  href={`/login?next=${encodeURIComponent(listingPath({ id: listingId }))}`}
                   className="inline-flex h-9 items-center rounded-full bg-accent-500 px-3.5 text-sm font-medium text-white hover:bg-accent-600"
                 >
                   {t("signIn")}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useTransition } from "react";
 import { LOCALE_MENU_ORDER, LOCALE_NAMES, type Locale } from "@/i18n/config";
 import { setLocale } from "@/i18n/actions";
@@ -14,13 +14,17 @@ export function LanguageSwitcher() {
   const locale = useLocale() as Locale;
   const t = useTranslations("Common");
   const router = useRouter();
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
   function handleSelect(next: Locale) {
     if (next === locale) return;
     startTransition(async () => {
+      // The cookie (and a signed-in account's language) first, then the same page at the other
+      // language's address: /search?… ↔ /ru/search?….
       await setLocale(next);
-      router.refresh();
+      // (The query is read at click time — useSearchParams would need a Suspense boundary.)
+      router.replace(`${pathname}${window.location.search}`, { locale: next });
     });
   }
 

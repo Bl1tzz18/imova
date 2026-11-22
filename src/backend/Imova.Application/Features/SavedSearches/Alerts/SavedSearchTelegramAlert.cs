@@ -56,7 +56,7 @@ public class SavedSearchTelegramAlert(
         {
             var (html, buttons) = TelegramHtml.WithButtons(
                 MoreListings(language, total - shown.Count, savedSearch.Name),
-                new TelegramButton(AllResultsButton(language), appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open")));
+                new TelegramButton(AllResultsButton(language), appOptions.WebUrl($"/saved-searches/{savedSearch.Id}/open", language)));
             try
             {
                 await bot.SendMessageAsync(chatId, html, buttons, cancellationToken);

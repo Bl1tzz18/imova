@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { insideMoldova, MAP_ASPECT_RATIO, type MapSpot } from "@/lib/home/moldovaMap";
 import { cn } from "@/lib/utils/cn";
 

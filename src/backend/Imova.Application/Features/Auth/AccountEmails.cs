@@ -17,7 +17,7 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
     public async Task SendEmailConfirmationAsync(ApplicationUser user, CancellationToken cancellationToken)
     {
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var link = appOptions.WebUrl($"/confirm-email?userId={user.Id}&token={AccountTokens.Encode(token)}");
+        var link = appOptions.WebUrl($"/confirm-email?userId={user.Id}&token={AccountTokens.Encode(token)}", user.PreferredLanguage);
         await emailSender.SendAsync(
             ConfirmationEmail(user.Email!, user.DisplayName, link, user.PreferredLanguage), cancellationToken);
     }
@@ -26,7 +26,8 @@ public class AccountEmails(UserManager<ApplicationUser> userManager, IEmailSende
     {
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
         var link = appOptions.WebUrl(
-            $"/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={AccountTokens.Encode(token)}");
+            $"/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={AccountTokens.Encode(token)}",
+            user.PreferredLanguage);
         await emailSender.SendAsync(PasswordResetEmail(user.Email!, link, user.PreferredLanguage), cancellationToken);
     }
 
