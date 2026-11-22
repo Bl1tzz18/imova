@@ -68,6 +68,8 @@ public class GoogleLoginHandler(
             // Every account publishes as an Individual by default — see PublisherProvisioning.
             dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
             await dbContext.SaveChangesAsync(cancellationToken);
+            // A business event (AppEvents) — the sign-in itself is logged as "GoogleLogin succeeded".
+            logger.LogInformation("{Event} via Google (UserId={UserId})", "AccountCreated", user.Id);
 
             // New account only — a returning user who has since removed or replaced their
             // picture should never have it silently re-synced from Google on a later login.

@@ -30,4 +30,15 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    [Fact]
+    // What the uptime tests call: the API answers and reaches the database.
+    public async Task Ready_ReachesTheDatabase()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/health/ready");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 }

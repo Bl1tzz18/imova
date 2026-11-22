@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common.Logging;
 using Imova.Application.Common;
 using Imova.Application.Common.Emails;
 using Imova.Application.Common.Identity;
@@ -118,7 +119,7 @@ public class GetAdminAgenciesHandler(IApplicationDbContext dbContext, IBlobStora
 
 // Verify or unverify an agency (site admins only — the route checks). Verifying emails its Owners
 // (confirmed addresses, best effort). False when there's no such agency (404).
-public record SetAgencyVerifiedCommand(Guid AgencyId, Guid AdminUserId, bool Verified) : IRequest<bool>;
+public record SetAgencyVerifiedCommand(Guid AgencyId, Guid AdminUserId, bool Verified) : IRequest<bool>, ILoggedCommand;
 
 public class SetAgencyVerifiedHandler(
     IApplicationDbContext dbContext,
@@ -186,7 +187,7 @@ public class SetAgencyVerifiedHandler(
 // in their language) saying who deleted it, why, and that their listings stay. False when there's
 // no such agency (404).
 public record AdminDeleteAgencyCommand(Guid AgencyId, Guid AdminUserId, string? ConfirmName, string? Reason, string? IpAddress)
-    : IRequest<bool>
+    : IRequest<bool>, ILoggedCommand
 {
     public const int MaxReasonLength = 1000;
 }

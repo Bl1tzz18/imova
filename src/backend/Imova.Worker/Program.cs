@@ -19,6 +19,7 @@ using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Imports;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Listings;
+using Imova.Infrastructure.Monitoring;
 using Imova.Infrastructure.Storage;
 using Imova.Infrastructure.Telegram;
 using Imova.Worker;
@@ -30,6 +31,9 @@ using Microsoft.EntityFrameworkCore;
 // sessions; and the Telegram bot's inbox (TelegramUpdatePoller). Uses the same database, email and data-protection setup as the API (the key ring is
 // shared so unsubscribe links made here verify in the API). Never runs migrations — the API does that on startup.
 var builder = Host.CreateApplicationBuilder(args);
+
+// Application Insights, only when its connection string is set (see Telemetry).
+builder.AddImovaTelemetry("imova-worker", isWebApp: false);
 
 builder.Services.AddDbContext<ImovaDbContext>(options =>
     options.UseNpgsql(
@@ -106,7 +110,7 @@ builder.Services.AddScheduledJob<DataRetentionCleanup>(builder.Configuration, "D
 builder.Services.AddScheduledJob<ListingImports>(builder.Configuration, "ListingImports", defaultIntervalSeconds: 15);
 
 // The Telegram bot (TelegramUpdatePoller): only with a "Telegram:BotToken". The token is in every
-// Bot API URL, so this HttpClient logs nothing.
+// Bot API URL, so this HttpClient logs nothing (and TelemetryRedaction strips it from the traces).
 var telegramOptions = builder.Configuration.GetSection(TelegramOptions.SectionName).Get<TelegramOptions>() ?? new TelegramOptions();
 builder.Services.AddSingleton(telegramOptions);
 if (!string.IsNullOrWhiteSpace(telegramOptions.BotToken))

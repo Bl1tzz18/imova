@@ -22,6 +22,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 
+# The release tag in Application Insights: the deploy passes the git commit (--build-arg APP_VERSION=<sha>).
+ARG APP_VERSION=dev
+ENV App__Version=$APP_VERSION
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 

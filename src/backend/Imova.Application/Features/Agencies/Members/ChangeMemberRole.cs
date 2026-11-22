@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common.Logging;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
@@ -11,7 +12,7 @@ namespace Imova.Application.Features.Agencies.Members;
 // Promotes, demotes or (for oneself) steps down. Ownership is handed over by making someone else an
 // Owner, then stepping down. False (404) when the agency or the member isn't there for the caller.
 public record ChangeMemberRoleCommand(Guid AgencyId, Guid ActorId, bool IsAdmin, Guid MemberUserId, AgencyRole Role)
-    : IRequest<bool>;
+    : IRequest<bool>, ILoggedCommand;
 
 public class ChangeMemberRoleValidator : AbstractValidator<ChangeMemberRoleCommand>
 {

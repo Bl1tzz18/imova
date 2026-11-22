@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common.Logging;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
@@ -16,7 +17,7 @@ namespace Imova.Application.Features.Agencies.Lifecycle;
 // its members still see and manage everything, and reactivate it the same way. Owners, Admins and
 // site admins. Null (404) when the caller may not see the agency; 403 for a member whose role isn't
 // enough.
-public record SetAgencyActiveCommand(Guid AgencyId, Guid UserId, bool IsAdmin, bool Active) : IRequest<AgencyDto?>;
+public record SetAgencyActiveCommand(Guid AgencyId, Guid UserId, bool IsAdmin, bool Active) : IRequest<AgencyDto?>, ILoggedCommand;
 
 public class SetAgencyActiveHandler(IApplicationDbContext dbContext, IBlobStorageService blobStorageService, TimeProvider timeProvider)
     : IRequestHandler<SetAgencyActiveCommand, AgencyDto?>
@@ -48,7 +49,7 @@ public class SetAgencyActiveHandler(IApplicationDbContext dbContext, IBlobStorag
 // (agency.confirmNameMismatch otherwise). Its listings stay, as private listings of their authors
 // (AgencyId and the agency's ExternalRef cleared); its members, invitations, former slugs and logo go.
 // Conversations about its listings stay where they are. False (404) when the caller may not see it.
-public record DeleteAgencyCommand(Guid AgencyId, Guid UserId, bool IsAdmin, string? ConfirmName) : IRequest<bool>;
+public record DeleteAgencyCommand(Guid AgencyId, Guid UserId, bool IsAdmin, string? ConfirmName) : IRequest<bool>, ILoggedCommand;
 
 public class DeleteAgencyHandler(
     IApplicationDbContext dbContext,

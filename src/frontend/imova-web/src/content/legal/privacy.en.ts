@@ -73,7 +73,7 @@ export const privacyEn: LegalDocument = {
           list: [
             "**Other users**, as far as you choose: people who see your listing or whom you write to.",
             "**IMOVA administrators**, who review listings before they're published and handle reports. An administrator only sees a conversation if it was reported or a message in it was automatically flagged.",
-            "**Microsoft (Azure)** — hosting of the servers, database and files, in data centres in the European Union.",
+            "**Microsoft (Azure)** — hosting of the servers, database and files, and the error reports and technical logs (Azure Monitor), in data centres in the European Union. Error reports keep neither the IP address nor the parameters in page addresses.",
             "**Our email service provider** — sending emails (confirmations, alerts, notifications).",
             "**Google** — only if you choose \"Continue with Google\": Google learns that you're signing in to IMOVA.",
             "**Telegram** — only if you connect your account: alerts are sent through Telegram.",

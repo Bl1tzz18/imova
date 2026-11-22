@@ -1,3 +1,4 @@
+using Imova.Application.Common.Logging;
 using System.Globalization;
 using FluentValidation;
 using Imova.Application.Common;
@@ -15,7 +16,7 @@ namespace Imova.Application.Features.Agencies.Import;
 // about a wrong file straight away: size, then the header (encoding, separator, known columns, row
 // count — the same ImportCsvReader the Worker uses). Rows are checked by the Worker. Null → 404.
 public sealed record UploadListingImportCommand(Guid AgencyId, Guid UserId, bool IsAdmin, string FileName, byte[] Content)
-    : IRequest<ListingImportJobDto?>;
+    : IRequest<ListingImportJobDto?>, ILoggedCommand;
 
 public class UploadListingImportHandler(
     IApplicationDbContext dbContext,

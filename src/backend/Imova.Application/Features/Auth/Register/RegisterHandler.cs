@@ -46,6 +46,8 @@ public class RegisterHandler(
         // Every account publishes as an Individual by default — see PublisherProvisioning.
         dbContext.Publishers.Add(PublisherProvisioning.NewIndividualFor(user));
         await dbContext.SaveChangesAsync(cancellationToken);
+        // A business event (AppEvents), the same one a first Google sign-in writes.
+        logger.LogInformation("{Event} via email (UserId={UserId})", "AccountCreated", user.Id);
 
         // Best effort: the account exists either way, and the user can ask for another link
         // (resend-confirmation) — a mail server hiccup must not fail the registration.

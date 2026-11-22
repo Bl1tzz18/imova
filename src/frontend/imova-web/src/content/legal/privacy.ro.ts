@@ -74,7 +74,7 @@ export const privacyRo: LegalDocument = {
           list: [
             "**Altor utilizatori**, în măsura în care alegi tu: celor care îți văd anunțul sau cu care corespondezi.",
             "**Administratorilor IMOVA**, care verifică anunțurile înainte de publicare și tratează raportările. O conversație este văzută de un administrator doar dacă a fost raportată sau dacă un mesaj din ea a fost semnalat automat.",
-            "**Microsoft (Azure)** — găzduirea serverelor, a bazei de date și a fișierelor, în centre de date din Uniunea Europeană.",
+            "**Microsoft (Azure)** — găzduirea serverelor, a bazei de date și a fișierelor, precum și rapoartele de erori și jurnalele tehnice (Azure Monitor), în centre de date din Uniunea Europeană. Rapoartele de erori nu păstrează adresa IP și nici parametrii din adresele paginilor.",
             "**Furnizorul nostru de servicii de email** — trimiterea emailurilor (confirmări, alerte, notificări).",
             "**Google** — doar dacă alegi „Continuă cu Google”: Google află că te autentifici la IMOVA.",
             "**Telegram** — doar dacă îți conectezi contul: alertele sunt trimise prin Telegram.",

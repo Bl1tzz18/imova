@@ -1,5 +1,6 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Logging;
 using Imova.Domain.Agencies;
 using MediatR;
 
@@ -10,7 +11,7 @@ namespace Imova.Application.Features.Agencies.Members;
 // AgencyListingReassignment.DefaultHeir. All in one save. False (404) when the agency or the
 // member isn't there for the caller.
 public record RemoveMemberCommand(Guid AgencyId, Guid ActorId, bool IsAdmin, Guid MemberUserId, Guid? ReassignTo)
-    : IRequest<bool>;
+    : IRequest<bool>, ILoggedCommand;
 
 public class RemoveMemberHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
     : IRequestHandler<RemoveMemberCommand, bool>

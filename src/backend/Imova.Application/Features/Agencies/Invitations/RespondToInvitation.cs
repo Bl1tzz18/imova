@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common.Logging;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Identity;
@@ -65,7 +66,7 @@ public class GetMyInvitationsHandler(IApplicationDbContext dbContext, IBlobStora
 }
 
 // Exactly one of Token and InvitationId.
-public record AcceptInvitationCommand(string? Token, Guid? InvitationId, Guid UserId) : IRequest<InvitationDto?>;
+public record AcceptInvitationCommand(string? Token, Guid? InvitationId, Guid UserId) : IRequest<InvitationDto?>, ILoggedCommand;
 
 public class AcceptInvitationValidator : AbstractValidator<AcceptInvitationCommand>
 {
@@ -114,7 +115,7 @@ public class AcceptInvitationHandler(IApplicationDbContext dbContext, IBlobStora
 }
 
 // Exactly one of Token and InvitationId; declining by token needs no account (the link is enough).
-public record DeclineInvitationCommand(string? Token, Guid? InvitationId, Guid? UserId) : IRequest<bool>;
+public record DeclineInvitationCommand(string? Token, Guid? InvitationId, Guid? UserId) : IRequest<bool>, ILoggedCommand;
 
 public class DeclineInvitationHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
     : IRequestHandler<DeclineInvitationCommand, bool>

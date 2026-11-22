@@ -261,6 +261,71 @@ branch — the full trigger list is in CLAUDE.md ("Terms, Privacy and cookies mu
 The retention periods in the privacy policy are real: when you change one (`DataRetentionCleanup`,
 the visitor marks, sessions, …) change the policy's table too.
 
+## Monitoring (errors, logs, uptime)
+
+The API, the Worker and the web server send their requests, outgoing calls, database timings,
+logs and unhandled errors to **Azure Application Insights** through OpenTelemetry. Nothing is sent
+unless `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, so local runs, compose and CI are unaffected.
+
+- **Backend:** `Imova.Infrastructure/Monitoring/Telemetry.cs` (`builder.AddImovaTelemetry(...)` in
+  both `Program.cs` files). Cloud roles `imova-api` and `imova-worker`. Requests to `/health*` aren't
+  recorded.
+- **Web:** `src/instrumentation.ts` → `lib/monitoring/telemetry.ts` (`@azure/monitor-opentelemetry`,
+  Node runtime only). Cloud role `imova-web`. `onRequestError` records every server-side render,
+  route or action error as an exception. **No browser SDK**, on purpose: it would set cookies
+  (`ai_user`, `ai_session`) and need a consent banner (see the privacy policy's cookie table). A
+  crashed page shows `app/[locale]/error.tsx` (translated, with the error digest that matches the
+  logged entry); a crashed root layout shows `app/global-error.tsx`.
+- **Volume and noise:** EF Core's per-query Information logs aren't exported (every query is already
+  a database span); log lines are never sampled with their trace (`EnableTraceBasedLogsSampler =
+  false` — an event or an error must always arrive); the exception middleware's own "fail" line is
+  off (`SuppressDiagnosticsCallback`), so only real 500s are errors (logged once by the handler in
+  `Program.cs`) and a mistyped password is a Warning event, not an alert. Statsbeat and Live Metrics
+  are off.
+- **Release tag:** every image takes `--build-arg APP_VERSION=<git sha>` (`App:Version` in .NET,
+  `APP_VERSION` in the web image); it shows as the role's version. Without it the version is `dev`.
+- **What never leaves:** query values (only parameter names are kept: reset/confirm/delete links,
+  SAS signatures, searched addresses) and the Telegram bot token from the Bot API path
+  (`TelemetryRedaction` in .NET, `lib/monitoring/redact.ts` in the web app — both tested). Application
+  Insights drops the client IP on ingestion by default; never turn `DisableIpMasking` on. Logs
+  carry user ids only, never emails (keep it that way). If you add a new outgoing service that
+  puts a secret in its URL path, add it to the redaction.
+- **Health:** API `/health` (process alive — the container probe) and `/health/ready` (also reaches
+  the database, 503 otherwise — the uptime test). The web app has no health route: its uptime test is
+  the home page, and Container Apps' default TCP probe is enough (a route would only add Next.js
+  spans for every probe).
+- **Business events** (`Application/Common/Logging/AppEvents`): one structured log line per
+  important action, all with an `Event` property — find them with
+  `traces | where isnotempty(customDimensions.Event)`.
+  - Commands marked `ILoggedCommand` (sign-up and sign-in, password changes, account deletion,
+    admin grants, the whole listing lifecycle and moderation, reports, messaging bans, agencies and
+    their members, CSV imports) are logged by `CommandLoggingBehavior`: "ApproveListing succeeded"
+    (Information), or "Login refused: auth.invalidCredentials" (Warning; validation refusals are
+    Information). Put the marker on new commands someone may later ask about; not on frequent ones
+    (read receipts, views).
+  - Also: `AccountCreated` (email or Google), `RateLimited` (which limit, which route),
+    `MessageFlagged` (the content-filter rule, never the text).
+  - **Ids only, by construction:** the behavior copies only Guid-valued properties of the command
+    and its result. Every log line in a signed-in API request also carries the caller as
+    `CallerId` (`CallerLogScope`) — that's how an approval says which admin did it.
+  - Useful queries: sign-ups per day (`Event == "AccountCreated"`), failed sign-ins per hour
+    (`Event == "Login"` and refused), who moderated a listing (`Event in ("ApproveListing",
+    "RejectListing", "SuspendListing")` by `Id`).
+
+**Production setup (with the infrastructure, KAN-13 — Terraform):**
+1. One Log Analytics workspace + one workspace-based Application Insights resource in the same EU
+   region; **retention 30 days** (the privacy policy promises at most 90). Daily cap ~0.5 GB so a
+   loop can't run up the bill (the first 5 GB/month are free).
+2. The connection string as a secret on the three Container Apps
+   (`APPLICATIONINSIGHTS_CONNECTION_STRING`). Container Apps' own console logs go to the same
+   workspace — same 30 days.
+3. **Uptime:** two Standard availability tests every 5 minutes from 3 EU locations: the API's
+   `/health/ready` and the home page `https://imova.md/` (expect 200). A few cents a month.
+4. **Alerts** to one action group (email, plus the Azure mobile app for push): an availability test
+   failing in 2 of 3 locations; any exception in the last 5 minutes (log alert on
+   `exceptions | where cloud_RoleName in ("imova-api","imova-worker","imova-web")`, at most one
+   email per hour); a Worker job that logged an error.
+
 ## Telegram bot
 
 Alerts can also go to Telegram. The bot runs in the **Worker** (`TelegramUpdatePoller`,

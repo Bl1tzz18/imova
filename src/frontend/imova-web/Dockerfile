@@ -27,5 +27,8 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=build /app/public ./public
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
+# The release tag in Application Insights: the deploy passes the git commit (--build-arg APP_VERSION=<sha>).
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
 EXPOSE 3000
 CMD ["node", "server.js"]

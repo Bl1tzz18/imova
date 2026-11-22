@@ -53,6 +53,7 @@ using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
 using Imova.Infrastructure.Listings;
 using Imova.Infrastructure.Locations;
+using Imova.Infrastructure.Monitoring;
 using Imova.Infrastructure.Pricing;
 using Imova.Infrastructure.Storage;
 using Imova.Infrastructure.Telegram;
@@ -64,6 +65,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Application Insights, only when its connection string is set (see Telemetry).
+builder.AddImovaTelemetry("imova-api", isWebApp: true);
 
 // Origins whose browser JS may call the API directly (photo uploads, location typeahead, the
 // messaging hub) — the web app's own origin(s). Most calls go through its server instead and
@@ -339,6 +343,8 @@ builder.Services.AddSingleton<IExchangeRateProvider, ConfiguredExchangeRateProvi
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblyContaining<GetListingsQuery>();
+    // Outermost: logs the outcome of every ILoggedCommand, validation refusals included (AppEvents).
+    cfg.AddOpenBehavior(typeof(CommandLoggingBehavior<,>));
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
@@ -373,14 +379,20 @@ app.UseForwardedHeaders();
 app.UseCors("Frontend");
 
 app.UseAuthentication();
+app.UseCallerLogScope();
 app.UseAuthorization();
 app.UseRateLimiter();
 
 // Every error response carries a language-neutral code next to its English text (ProblemCodes /
 // ErrorCodes) — the web app shows the translated version of the code.
-app.UseExceptionHandler(handler =>
+app.UseExceptionHandler(new ExceptionHandlerOptions
 {
-    handler.Run(async context =>
+    // The middleware's own "fail" log line for every exception it handles is off: an expected
+    // refusal (wrong password, 403, validation) is a business event already (AppEvents), and an
+    // unexpected one is logged once, with its exception, below. Otherwise every mistyped password
+    // would be an error in Application Insights and set off the error alert.
+    SuppressDiagnosticsCallback = _ => true,
+    ExceptionHandler = async context =>
     {
         var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
 
@@ -417,10 +429,16 @@ app.UseExceptionHandler(handler =>
 
         context.Response.StatusCode = status;
         await Results.Problem(detail, statusCode: status, extensions: ProblemCodes.For(code, parameters)).ExecuteAsync(context);
-    });
+    },
 });
 
+// /health: the process answers (container liveness). /health/ready: it can also reach the
+// database — what the uptime tests call (docs/development.md, "Monitoring").
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health/ready", async (ImovaDbContext db, CancellationToken cancellationToken) =>
+    await db.Database.CanConnectAsync(cancellationToken)
+        ? Results.Ok(new { status = "ok" })
+        : Results.Json(new { status = "unavailable" }, statusCode: StatusCodes.Status503ServiceUnavailable));
 
 app.MapListingEndpoints();
 app.MapListingReportEndpoints();

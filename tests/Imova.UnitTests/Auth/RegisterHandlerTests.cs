@@ -4,7 +4,7 @@ using Imova.Application.Features.Auth.Register;
 using Imova.Domain.Publishers;
 using Imova.Infrastructure;
 using Imova.UnitTests.TestSupport;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Imova.UnitTests.Auth;
 
@@ -13,6 +13,7 @@ public class RegisterHandlerTests
     private readonly FakeUserStore _store = new();
     private readonly FakeEmailSender _email = new();
     private readonly ManualTimeProvider _time = new(new DateTimeOffset(2026, 11, 22, 10, 0, 0, TimeSpan.Zero));
+    private readonly CapturingLoggerFactory _loggers = new();
 
     private RegisterHandler Handler(ImovaDbContext dbContext)
     {
@@ -23,7 +24,7 @@ public class RegisterHandlerTests
             _time,
             dbContext,
             new AccountEmails(userManager, _email, new AppOptions { WebBaseUrl = "https://imova.test" }),
-            NullLogger<RegisterHandler>.Instance);
+            new Logger<RegisterHandler>(_loggers));
     }
 
     [Fact]
@@ -41,6 +42,20 @@ public class RegisterHandlerTests
         Assert.Equal("Ana Rusu", publisher.DisplayName);
         Assert.Equal("+373 69 123 456", publisher.Phone);
         Assert.Equal("ana@example.com", publisher.Email);
+    }
+
+    [Fact]
+    // The sign-up event (AppEvents): the new account's id, never its email.
+    public async Task Handle_LogsAnAccountCreatedEvent()
+    {
+        await using var dbContext = TestDbContextFactory.Create();
+
+        await Handler(dbContext).Handle(
+            new RegisterCommand("ana@example.com", "SuperSecret1!", "Ana Rusu", "+373 69 123 456", AcceptedTermsVersion: LegalTerms.CurrentVersion), CancellationToken.None);
+
+        var entry = Assert.Single(_loggers.Entries, e => e.Message.StartsWith("AccountCreated"));
+        Assert.Contains(Assert.Single(_store.Users).Id.ToString(), entry.Message);
+        Assert.DoesNotContain("ana@example.com", entry.Message);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
+using Imova.Application.Common.Logging;
 using Imova.Contracts.Agencies;
 using Imova.Domain.Agencies;
 using MediatR;
@@ -78,7 +79,7 @@ public class ResendAgencyInvitationHandler(
     }
 }
 
-public record RevokeAgencyInvitationCommand(Guid AgencyId, Guid ActorId, bool IsAdmin, Guid InvitationId) : IRequest<bool>;
+public record RevokeAgencyInvitationCommand(Guid AgencyId, Guid ActorId, bool IsAdmin, Guid InvitationId) : IRequest<bool>, ILoggedCommand;
 
 public class RevokeAgencyInvitationHandler(IApplicationDbContext dbContext, TimeProvider timeProvider)
     : IRequestHandler<RevokeAgencyInvitationCommand, bool>
