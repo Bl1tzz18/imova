@@ -245,6 +245,116 @@ public class AgencyLifecycleTests : IAsyncDisposable
         Assert.False(await DeleteAsync(_owner, "Casa Ta"));
     }
 
+    // --- A site admin deletes (from /admin/agencies) ---
+
+    private Task<bool> AdminDeleteAsync(Guid adminId, string? confirmName, string? reason = "Agenție falsă, raportată de mai mulți utilizatori.", Guid? agencyId = null) =>
+        new AdminDeleteAgencyHandler(
+                _db,
+                _blobs,
+                new AgencyDeletedEmail(_email, new AppOptions { WebBaseUrl = "https://imova.md" }),
+                _clock,
+                NullLogger<AdminDeleteAgencyHandler>.Instance)
+            .Handle(new AdminDeleteAgencyCommand(agencyId ?? _agency.Id, adminId, confirmName, reason, "203.0.113.7"), CancellationToken.None);
+
+    [Fact]
+    public async Task AnAdminsDelete_RemovesTheSameAsAnOwners_AndTouchesNothingOutsideTheAgency()
+    {
+        var agent = await AddMemberAsync(AgencyRole.Agent);
+        var ownersListing = await AddAgencyListingAsync(_owner);
+        var agentsListing = await AddAgencyListingAsync(agent);
+        _agency.SetLogo("agencies/x/logo-1_512.jpg", Now);
+        _db.AgencyInvitations.Add(AgencyInvitation.Create(_agency.Id, "ana@example.com", AgencyRole.Agent, "hash", _owner, Now));
+        _db.AgencyFormerSlugs.Add(AgencyFormerSlug.Create("casa-veche", _agency.Id, Now));
+        var otherOwner = Guid.NewGuid();
+        ListingTestData.AddUser(_db, otherOwner);
+        var otherAgency = ListingTestData.AddAgency(_db, otherOwner, "Alta Agenție");
+        var otherListing = ListingTestData.AddListing(_db, ListingTestData.AddIndividualPublisher(_db, otherOwner).Id, agencyId: otherAgency.Id)
+            .MoveTo(ListingStatus.Active);
+        await _db.SaveChangesAsync();
+
+        Assert.True(await AdminDeleteAsync(Guid.NewGuid(), " Casa Ta "));
+
+        Assert.False(await _db.Agencies.AnyAsync(a => a.Id == _agency.Id));
+        Assert.False(await _db.AgencyMembers.AnyAsync(m => m.AgencyId == _agency.Id));
+        Assert.False(await _db.AgencyInvitations.AnyAsync(i => i.AgencyId == _agency.Id));
+        Assert.False(await _db.AgencyFormerSlugs.AnyAsync(s => s.AgencyId == _agency.Id));
+        var listings = await _db.Listings.Where(l => l.Id == ownersListing.Id || l.Id == agentsListing.Id).ToListAsync();
+        Assert.Equal(2, listings.Count);
+        Assert.All(listings, l => Assert.Null(l.AgencyId));
+        Assert.All(listings, l => Assert.Equal(ListingStatus.Active, l.Status));
+        Assert.Equal(["agencies/x/logo-1_512.jpg", "agencies/x/logo-1_128.jpg"], _blobs.DeletedBlobNames);
+
+        // The members' accounts and everything belonging to another agency stay.
+        Assert.True(await _db.Users.AnyAsync(u => u.Id == _owner));
+        Assert.True(await _db.Users.AnyAsync(u => u.Id == agent));
+        Assert.True(await _db.Agencies.AnyAsync(a => a.Id == otherAgency.Id));
+        Assert.Equal(otherAgency.Id, (await _db.Listings.SingleAsync(l => l.Id == otherListing.Id)).AgencyId);
+    }
+
+    [Fact]
+    public async Task AnAdminsDelete_IsAudited_AndEmailsEveryMemberWithTheReason()
+    {
+        var agent = await AddMemberAsync(AgencyRole.Agent);
+        var admin = Guid.NewGuid();
+
+        Assert.True(await AdminDeleteAsync(admin, "Casa Ta", "Date de contact false."));
+
+        var entry = await _db.AdminAuditEntries.SingleAsync();
+        Assert.Equal(
+            (AdminAuditEntry.DeleteAgency, admin, (Guid?)_agency.Id, Now, "203.0.113.7"),
+            (entry.Action, entry.ActorUserId, entry.TargetAgencyId, entry.CreatedAt, entry.IpAddress));
+        Assert.Equal(new[] { $"{_owner:N}@example.com", $"{agent:N}@example.com" }.Order(), _email.Sent.Select(m => m.To).Order());
+        Assert.All(_email.Sent, m => Assert.Contains("Casa Ta a fost ștearsă", m.Subject));
+        Assert.All(_email.Sent, m => Assert.Contains("Date de contact false.", m.TextBody));
+        Assert.All(_email.Sent, m => Assert.Contains("https://imova.md/my-listings", m.TextBody));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("casa ta")]
+    [InlineData("Alta")]
+    public async Task AnAdminsDelete_NeedsTheExactName_AndThenChangesNothing(string? confirmName)
+    {
+        var listing = await AddAgencyListingAsync(_owner);
+
+        var error = await Assert.ThrowsAsync<ValidationException>(() => AdminDeleteAsync(Guid.NewGuid(), confirmName));
+
+        Assert.Equal(ErrorCodes.AgencyConfirmNameMismatch, Assert.Single(error.Errors).ErrorCode);
+        Assert.True(await _db.Agencies.AnyAsync(a => a.Id == _agency.Id));
+        Assert.Equal(_agency.Id, (await _db.Listings.SingleAsync(l => l.Id == listing.Id)).AgencyId);
+        Assert.Empty(await _db.AdminAuditEntries.ToListAsync());
+        Assert.Empty(_email.Sent);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public void AnAdminsDelete_NeedsAReason(string? reason)
+    {
+        var result = new AdminDeleteAgencyValidator().Validate(new AdminDeleteAgencyCommand(_agency.Id, Guid.NewGuid(), "Casa Ta", reason, null));
+
+        Assert.Equal(ErrorCodes.AgencyDeleteReasonRequired, Assert.Single(result.Errors).ErrorCode);
+        Assert.False(new AdminDeleteAgencyValidator()
+            .Validate(new AdminDeleteAgencyCommand(_agency.Id, Guid.NewGuid(), "Casa Ta", new string('x', 1001), null)).IsValid);
+    }
+
+    [Fact]
+    public async Task AnAdminsDelete_OfAnUnknownAgency_IsFalse()
+    {
+        Assert.False(await AdminDeleteAsync(Guid.NewGuid(), "Casa Ta", agencyId: Guid.NewGuid()));
+        Assert.True(await _db.Agencies.AnyAsync(a => a.Id == _agency.Id));
+    }
+
+    [Fact]
+    public void TheDeletionEmail_IsInTheMembersLanguage_AndEncodesTheReason()
+    {
+        var message = AgencyDeletedEmail.Build("ana@example.com", "Casa Ta", "Spam <b>repetat</b>", "https://imova.md/my-listings", "ru");
+
+        Assert.Contains("Агентство Casa Ta удалено", message.Subject);
+        Assert.Contains("Spam &lt;b&gt;repetat&lt;/b&gt;", message.HtmlBody);
+        Assert.Contains("Spam <b>repetat</b>", message.TextBody);
+    }
+
     // --- Verification ---
 
     [Fact]

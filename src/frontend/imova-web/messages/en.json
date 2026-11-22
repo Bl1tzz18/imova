@@ -1326,6 +1326,7 @@
         "invitationClosed": "This invitation is no longer valid.",
         "invitationWrongAccount": "This invitation was sent to another email address. Sign in with that account to accept it.",
         "confirmNameMismatch": "Type the agency's name exactly as it appears to confirm the deletion.",
+        "deleteReasonRequired": "Write why the agency is being deleted — its members get it by email.",
         "nameConflict": "Another agency just got the same address. Nothing was saved — press “Save changes” again."
       },
       "account": {
@@ -2087,6 +2088,17 @@
     "unverifyBody": "The “Verified agency” mark disappears from its page and listings. The owners aren't emailed.",
     "saving": "Saving…",
     "cancel": "Cancel",
+    "delete": "Delete",
+    "deleteTitle": "Delete the agency {name}?",
+    "deleteMembers": "{count, plural, one {Its only member loses access to the agency and gets the reason below by email.} other {Its # members lose access to the agency and get the reason below by email.}}",
+    "deleteListings": "{count, plural, =0 {The agency's listings aren't deleted} one {The agency's listings (# active now) aren't deleted} other {The agency's listings (# active now) aren't deleted}}: they stay published as personal listings of whoever published them.",
+    "deleteOther": "The agency's page, logo, invitations and CSV imports are deleted.",
+    "deleteIrreversible": "This can't be undone.",
+    "deleteReasonLabel": "Reason for deleting",
+    "deleteReasonHint": "The agency's members get it by email, as you write it.",
+    "deleteNameLabel": "Type the agency's name to confirm: {name}",
+    "deleteConfirm": "Delete agency",
+    "deleting": "Deleting…",
     "empty": "No agency matches the search."
   }
 }

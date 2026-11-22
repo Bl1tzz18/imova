@@ -15,6 +15,7 @@ export function ConfirmDialog({
   pendingLabel,
   pending = false,
   danger = false,
+  confirmDisabled = false,
   error,
   onConfirm,
   onCancel,
@@ -27,6 +28,8 @@ export function ConfirmDialog({
   pendingLabel?: string;
   pending?: boolean;
   danger?: boolean;
+  // The confirm button stays off until the parent's own condition holds (e.g. the name typed).
+  confirmDisabled?: boolean;
   error?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
@@ -72,7 +75,7 @@ export function ConfirmDialog({
           <Button type="button" variant="secondary" size="sm" onClick={cancel} disabled={pending}>
             {cancelLabel}
           </Button>
-          <Button type="button" variant={danger ? "danger" : "primary"} size="sm" onClick={onConfirm} disabled={pending}>
+          <Button type="button" variant={danger ? "danger" : "primary"} size="sm" onClick={onConfirm} disabled={pending || confirmDisabled}>
             {pending && pendingLabel ? pendingLabel : confirmLabel}
           </Button>
         </div>

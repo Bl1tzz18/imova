@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
+import { AgencyAdminDeleteButton } from "@/components/admin/AgencyAdminDeleteButton";
 import { AgencyVerifyButton } from "@/components/admin/AgencyVerifyButton";
 import { AutoSubmitForm } from "@/components/agency/AutoSubmitForm";
 import { LinkPagination } from "@/components/agency/LinkPagination";
@@ -137,6 +138,12 @@ export default async function AdminAgenciesPage({
                         {t("csvImport")}
                       </Link>
                       <AgencyVerifyButton agencyId={agency.id} agencyName={agency.name} verified={agency.isVerified} />
+                      <AgencyAdminDeleteButton
+                        agencyId={agency.id}
+                        agencyName={agency.name}
+                        memberCount={agency.memberCount}
+                        activeListingCount={agency.activeListingCount}
+                      />
                     </div>
                   </li>
                 ))}

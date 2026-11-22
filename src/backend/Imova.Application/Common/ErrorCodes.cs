@@ -104,6 +104,9 @@ public static class ErrorCodes
     public const string AgencyInvitationWrongAccount = "agency.invitationWrongAccount";
     public const string AgencyConfirmNameMismatch = "agency.confirmNameMismatch";
 
+    // A site admin deleting an agency must say why (it's emailed to the members).
+    public const string AgencyDeleteReasonRequired = "agency.deleteReasonRequired";
+
     // 409: renaming the agency raced another agency for the same address (slug); nothing was saved.
     public const string AgencyNameConflict = "agency.nameConflict";
     public const string AccountLastAgencyOwner = "account.lastAgencyOwner";

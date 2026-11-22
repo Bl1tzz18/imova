@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getAdminSummary } from "@/lib/admin/summaryApi";
+import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { ADMIN_SECTIONS, adminSectionCount, badgeText, type AdminSectionKey } from "@/lib/admin/adminSections";
 import { cn } from "@/lib/utils/cn";
 
@@ -8,7 +9,13 @@ import { cn } from "@/lib/utils/cn";
 // current one filled, with how many things wait there. Reached from the account menu's single
 // "Administrare" entry, so admins move between sections here, not through that menu. Scrolls
 // sideways on a phone.
+// Only for admins: a page that tells a non-admin "admins only" doesn't show them the admin sections.
 export async function AdminNav({ current }: { current: AdminSectionKey }) {
+  const profile = await getCurrentUserProfile();
+  if (!profile?.roles.includes("Admin")) {
+    return null;
+  }
+
   const [t, summary] = await Promise.all([getTranslations("Header"), getAdminSummary()]);
 
   return (

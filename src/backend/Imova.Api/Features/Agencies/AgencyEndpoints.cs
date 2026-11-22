@@ -33,6 +33,8 @@ public record AgencyProfileRequest(
 
 public record DeleteAgencyRequest(string? ConfirmName);
 
+public record AdminDeleteAgencyRequest(string? ConfirmName, string? Reason);
+
 public static class AgencyEndpoints
 {
     public static void MapAgencyEndpoints(this IEndpointRouteBuilder app)
@@ -307,6 +309,22 @@ public static class AgencyEndpoints
 
         admin.MapPost("/{id:guid}/unverify", (Guid id, ClaimsPrincipal user, ISender sender, CancellationToken ct) =>
             SetVerifiedAsync(id, verified: false, user, sender, ct));
+
+        // Delete for good, with its exact name and a reason (emailed to the members, audited). Same
+        // removal as an Owner's delete: its listings become their authors' private listings.
+        admin.MapDelete("/{id:guid}", async (
+            Guid id,
+            [FromBody] AdminDeleteAgencyRequest request,
+            ClaimsPrincipal user,
+            HttpContext httpContext,
+            ISender sender,
+            CancellationToken ct) =>
+            await sender.Send(
+                new AdminDeleteAgencyCommand(
+                    id, user.GetUserId(), request.ConfirmName, request.Reason, httpContext.Connection.RemoteIpAddress?.ToString()),
+                ct)
+                ? Results.NoContent()
+                : Results.NotFound());
 
         app.MapDelete("/api/v1/agencies/{id:guid}/logo", async (
             Guid id,

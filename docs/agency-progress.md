@@ -205,6 +205,29 @@ by hand; automating it waits until after launch.
   (`ServiceIdentity`), as their usage policies ask.
 - **Small cleanups:** the two xUnit warnings, unused or file-only exports (knip), `postcss` declared.
 
+## Done: a site admin deletes an agency (branch `feat/home-map-hero`, 2026-11-22)
+
+- `DELETE /api/v1/admin/agencies/{id}` `{confirmName, reason}` (admin-only route, `AdminDeleteAgencyCommand`):
+  the agency's exact name (`agency.confirmNameMismatch`) and a reason (`agency.deleteReasonRequired`,
+  ≤ 1000) are required.
+- **What it deletes is exactly an Owner's delete** — both now go through `AgencyRemoval` (Lifecycle):
+  the agency's listings **stay**, as private listings of their authors (AgencyId and ExternalRef
+  cleared; favorites, conversations, views, price history untouched); its members, invitations,
+  former slugs, phone-reveal marks, CSV import jobs/rows and their files, and the logo go. User
+  accounts and other agencies are never touched. A fraudulent agency's listings are suspended
+  separately from moderation if needed.
+- On top: an `AdminAuditEntry` `DeleteAgency` (actor, agency, time, IP) in the same save; a log
+  warning with the reason; an email to every member with a confirmed address, in their language
+  (`AgencyDeletedEmail`: who deleted it — the IMOVA team — the reason, and that their listings stay,
+  button to "Anunțurile mele"). The reason isn't stored in the database (the audit table has no
+  note column; adding one needs a migration).
+- Web: a red "Șterge" on each `/admin/agencies` row → dialog saying what happens (member count,
+  active listing count, what goes, no undo), reason + exact name; the button stays off until both.
+  `ConfirmDialog` gained `confirmDisabled`.
+- Tests: `AgencyLifecycleTests` (same removal, nothing outside touched, audit + emails, name, reason,
+  unknown agency, email language/encoding), `AgencyLifecycleEndpointsTests` (204/400/404, owner 403,
+  anonymous 401). Checked in the browser + Mailpit with a throwaway agency.
+
 ## Before launch
 
 - Change the import contact email (`IMPORT_CONTACT_EMAIL`, now `catalinfilip47@gmail.com`) to an

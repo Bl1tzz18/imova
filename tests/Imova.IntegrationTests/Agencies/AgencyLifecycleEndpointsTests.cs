@@ -108,6 +108,45 @@ public class AgencyLifecycleEndpointsTests : IClassFixture<WebApplicationFactory
             (await owner.GetFromJsonAsync<List<MyAgencyDto>>("/api/v1/users/me/agencies"))!, a => a.Id == agency.Id);
     }
 
+    private static HttpRequestMessage AdminDelete(Guid agencyId, string? confirmName, string? reason) =>
+        new(HttpMethod.Delete, $"/api/v1/admin/agencies/{agencyId}") { Content = JsonContent.Create(new { confirmName, reason }) };
+
+    [Fact]
+    public async Task ASiteAdmin_Deletes_WithTheNameAndAReason_AndTheListingsStay()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var agency = await CreateAgencyAsync(owner);
+        var listing = await PublishActiveAsync(owner, agency.Id);
+        var admin = await ListingApi.RegisterAdminAsync(_factory);
+
+        var noReason = await admin.SendAsync(AdminDelete(agency.Id, agency.Name, " "));
+        Assert.Equal(HttpStatusCode.BadRequest, noReason.StatusCode);
+        Assert.Contains("agency.deleteReasonRequired", await noReason.Content.ReadAsStringAsync());
+        var wrongName = await admin.SendAsync(AdminDelete(agency.Id, "nu e numele", "Agenție falsă."));
+        Assert.Contains("agency.confirmNameMismatch", await wrongName.Content.ReadAsStringAsync());
+
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.SendAsync(AdminDelete(agency.Id, agency.Name, "Agenție falsă."))).StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await owner.GetAsync($"/api/v1/agencies/{agency.Id}")).StatusCode);
+        var after = (await _factory.CreateClient().GetFromJsonAsync<ListingDto>($"/api/v1/listings/{listing.Id}"))!;
+        Assert.Null(after.Agency);
+        Assert.Equal("Active", after.Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.SendAsync(AdminDelete(agency.Id, agency.Name, "Din nou."))).StatusCode);
+    }
+
+    [Fact]
+    public async Task TheAdminDelete_RefusesOwnersAndAnonymousCallers()
+    {
+        var (owner, _) = await ListingApi.RegisterAsync(_factory);
+        var agency = await CreateAgencyAsync(owner);
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await owner.SendAsync(AdminDelete(agency.Id, agency.Name, "Vreau."))).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await _factory.CreateClient().SendAsync(AdminDelete(agency.Id, agency.Name, "Vreau."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await owner.GetAsync($"/api/v1/agencies/{agency.Id}")).StatusCode);
+    }
+
     [Fact]
     public async Task OnlySiteAdmins_Verify_AndSeeTheAdminList()
     {

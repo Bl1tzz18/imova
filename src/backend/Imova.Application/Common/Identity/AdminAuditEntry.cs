@@ -8,6 +8,7 @@ public sealed class AdminAuditEntry
     public const string GrantAdmin = "GrantAdmin";
     public const string VerifyAgency = "VerifyAgency";
     public const string UnverifyAgency = "UnverifyAgency";
+    public const string DeleteAgency = "DeleteAgency";
 
     public Guid Id { get; set; }
 

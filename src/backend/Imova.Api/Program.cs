@@ -124,6 +124,7 @@ builder.Services.AddScoped<AccountDeletionEmails>();
 builder.Services.AddScoped<AdminEmails>();
 builder.Services.AddScoped<AgencyInvitationEmail>();
 builder.Services.AddScoped<AgencyVerifiedEmail>();
+builder.Services.AddScoped<AgencyDeletedEmail>();
 builder.Services.AddSingleton(
     builder.Configuration.GetSection(AuthSessionOptions.SectionName).Get<AuthSessionOptions>() ?? new AuthSessionOptions());
 builder.Services.AddScoped<AuthSessions>();
