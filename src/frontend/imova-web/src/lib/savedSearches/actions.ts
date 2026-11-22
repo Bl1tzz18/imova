@@ -27,12 +27,17 @@ async function failure(res: Response | null): Promise<{ error: string }> {
   return { error: await apiErrorMessage(res) };
 }
 
+// channels left out: email, plus Telegram when the account has it connected (the API decides).
 export async function saveSearch(
   name: string,
   queryString: string,
   alertFrequency: AlertFrequency,
+  channels?: AlertChannels,
 ): Promise<Result<{ savedSearch: SavedSearch }>> {
-  const res = await call("", { method: "POST", body: JSON.stringify({ name, queryString, alertFrequency }) });
+  const body = channels
+    ? { name, queryString, alertFrequency, alertByEmail: channels.email, alertByTelegram: channels.telegram }
+    : { name, queryString, alertFrequency };
+  const res = await call("", { method: "POST", body: JSON.stringify(body) });
   if (!res?.ok) return failure(res);
   revalidatePath(SAVED_SEARCHES_PATH);
   return { savedSearch: (await res.json()) as SavedSearch };

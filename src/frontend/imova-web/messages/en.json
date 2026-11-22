@@ -1509,17 +1509,26 @@
     "unsubscribeInvalidTitle": "Invalid link",
     "unsubscribeInvalidBody": "This link isn't valid. You can turn alerts off from your saved searches page.",
     "manage": "Manage saved searches",
-    "channelsLabel": "Send to",
+    "channelsLabel": "Get alerts by",
     "channelEmail": "Email",
     "channelTelegram": "Telegram",
-    "channelsAtLeastOne": "Alerts need to go somewhere. To stop them, choose “No alerts”.",
-    "connectTelegram": "+ Connect Telegram",
-    "telegramNotConnected": "Telegram isn’t connected — alerts come by email. Connect it",
+    "channelsAtLeastOne": "Pick at least one. To stop alerts, choose “No alerts”.",
     "where": {
       "email": "by email",
       "telegram": "on Telegram",
       "both": "by email and on Telegram"
-    }
+    },
+    "connectTitle": "Get the alerts on Telegram too",
+    "connectSteps": "Open Telegram and press “Start”, then come back here — it ticks itself.",
+    "openTelegram": "Open Telegram",
+    "connectWaiting": "Waiting for you to press “Start”…",
+    "telegramConnectedHere": "Telegram connected. Alerts will go there too.",
+    "connectExpired": "The link has expired. Press “Connect” again.",
+    "notNow": "Not now",
+    "channelEmailHint": "At your account’s address",
+    "channelTelegramPitch": "Instantly, on your phone",
+    "channelTelegramConnected": "Connected",
+    "channelConnect": "Connect"
   },
   "AdminAdminsPage": {
     "title": "Administrators",

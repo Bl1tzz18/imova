@@ -1,89 +1,47 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { siTelegram } from "simple-icons";
 import { Button, buttonClassName } from "@/components/ui/Button";
+import { useTelegramConnect } from "@/components/account/useTelegramConnect";
 import { cn } from "@/lib/utils/cn";
 import { formatDate } from "@/lib/utils/format";
-import { disconnectTelegram, getTelegramConnection, startTelegramLink } from "@/lib/account/actions";
-import {
-  telegramDisplayName,
-  telegramLinkExpired,
-  type TelegramConnection,
-  type TelegramLinkStart,
-} from "@/lib/account/telegram";
+import { disconnectTelegram } from "@/lib/account/actions";
+import { telegramDisplayName, type TelegramConnection } from "@/lib/account/telegram";
 
-// How often the tab asks whether the user has pressed Start in Telegram yet.
-const POLL_MS = 3000;
-
-// The Telegram block of the Notifications tab. Connecting is two steps on purpose: the first button
-// asks for a one-time link, the second is a real link to it — a link opened by script after the
-// request returns is blocked as a popup in most browsers. While the link is out, the tab polls until
-// the bot has connected the chat (or the link has expired).
+// The Telegram block of the Notifications tab: connect (see useTelegramConnect), or see which
+// Telegram is connected and disconnect it.
 export function TelegramConnectionCard({ initial }: { initial: TelegramConnection }) {
   const t = useTranslations("Account");
   const locale = useLocale();
-  const [connection, setConnection] = useState(initial);
-  const [link, setLink] = useState<TelegramLinkStart | null>(null);
-  const [expired, setExpired] = useState(false);
-  const [status, setStatus] = useState<{ kind: "saved" | "error"; text: string } | null>(null);
-  const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (!link) return;
-    let cancelled = false;
-    const timer = window.setInterval(async () => {
-      if (telegramLinkExpired(link)) {
-        window.clearInterval(timer);
-        if (!cancelled) {
-          setLink(null);
-          setExpired(true);
-        }
-        return;
-      }
-
-      const latest = await getTelegramConnection();
-      if (!cancelled && latest?.connected) {
-        window.clearInterval(timer);
-        setConnection(latest);
-        setLink(null);
-        setStatus({ kind: "saved", text: t("telegramConnectedNow") });
-      }
-    }, POLL_MS);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [link, t]);
-
-  const connect = () => {
-    setStatus(null);
-    setExpired(false);
-    startTransition(async () => {
-      const result = await startTelegramLink();
-      if ("error" in result) {
-        setStatus({ kind: "error", text: result.error });
-      } else {
-        setLink(result.link);
-      }
-    });
-  };
+  const telegram = useTelegramConnect(initial);
+  const connection = telegram.connection ?? initial;
+  const [disconnected, setDisconnected] = useState(false);
+  const [disconnecting, startDisconnect] = useTransition();
 
   const disconnect = () => {
-    setStatus(null);
-    startTransition(async () => {
+    telegram.setError(null);
+    setDisconnected(false);
+    startDisconnect(async () => {
       const result = await disconnectTelegram();
       if ("error" in result) {
-        setStatus({ kind: "error", text: result.error });
+        telegram.setError(result.error);
       } else {
-        setConnection({ ...connection, connected: false, username: null, firstName: null, connectedAt: null });
-        setStatus({ kind: "saved", text: t("telegramDisconnected") });
+        telegram.setConnection({ ...connection, connected: false, username: null, firstName: null, connectedAt: null });
+        setDisconnected(true);
       }
     });
   };
 
   const name = telegramDisplayName(connection);
+  const status = telegram.error
+    ? { kind: "error" as const, text: telegram.error }
+    : telegram.justConnected && connection.connected
+      ? { kind: "saved" as const, text: t("telegramConnectedNow") }
+      : disconnected && !connection.connected
+        ? { kind: "saved" as const, text: t("telegramDisconnected") }
+        : null;
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-ink-100 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-5">
@@ -107,9 +65,9 @@ export function TelegramConnectionCard({ initial }: { initial: TelegramConnectio
                 ]
                   .filter(Boolean)
                   .join(" · ")
-              : link
+              : telegram.link
                 ? t("telegramWaiting")
-                : expired
+                : telegram.expired
                   ? t("telegramExpired")
                   : t("telegramHint")}
           </p>
@@ -125,25 +83,25 @@ export function TelegramConnectionCard({ initial }: { initial: TelegramConnectio
 
       <div className="flex shrink-0 flex-col gap-2 sm:items-end">
         {connection.connected ? (
-          <Button type="button" variant="secondary" disabled={pending} onClick={disconnect} className="w-full sm:w-auto">
+          <Button type="button" variant="secondary" disabled={disconnecting} onClick={disconnect} className="w-full sm:w-auto">
             {t("telegramDisconnect")}
           </Button>
-        ) : link ? (
+        ) : telegram.link ? (
           <>
             <a
-              href={link.url}
+              href={telegram.link.url}
               target="_blank"
               rel="noopener noreferrer"
               className={buttonClassName({ className: "w-full sm:w-auto" })}
             >
               {t("telegramOpen")}
             </a>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setLink(null)} className="w-full sm:w-auto">
+            <Button type="button" variant="ghost" size="sm" onClick={telegram.cancel} className="w-full sm:w-auto">
               {t("telegramCancel")}
             </Button>
           </>
         ) : (
-          <Button type="button" variant="secondary" disabled={pending} onClick={connect} className="w-full sm:w-auto">
+          <Button type="button" variant="secondary" disabled={telegram.pending} onClick={telegram.start} className="w-full sm:w-auto">
             {t("telegramConnect")}
           </Button>
         )}

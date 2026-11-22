@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button, buttonClassName } from "@/components/ui/Button";
 import { SelectInput, TextInput } from "@/components/ui/Field";
 import { deleteSavedSearch, updateSavedSearch } from "@/lib/savedSearches/actions";
-import { cn } from "@/lib/utils/cn";
+import { AlertChannelRows, type TelegramChannelStatus } from "@/components/savedSearches/AlertChannelRows";
 import {
   ALERT_FREQUENCIES,
   alertChannels,
   isAlertFrequency,
   openSavedSearchHref,
-  toggleAlertChannel,
   type AlertChannels,
   type AlertFrequency,
   type SavedSearch,
@@ -21,63 +19,26 @@ import {
 // One saved search plus what the page computed about it on the server (its title, filter count).
 export type SavedSearchRow = SavedSearch & { summary: string };
 
-// The account's Telegram, for the channel choice: available = the site has a bot.
-export type TelegramStatus = { available: boolean; connected: boolean };
-
-export function SavedSearchList({ rows, telegram }: { rows: SavedSearchRow[]; telegram: TelegramStatus }) {
+// email/telegram: the account's, for "Primește alertele pe" (see AlertChannelRows).
+export function SavedSearchList({
+  rows,
+  email,
+  telegram,
+}: {
+  rows: SavedSearchRow[];
+  email: string;
+  telegram: TelegramChannelStatus;
+}) {
   return (
     <ul className="flex flex-col gap-3">
       {rows.map((row) => (
-        <SavedSearchItem key={row.id} row={row} telegram={telegram} />
+        <SavedSearchItem key={row.id} row={row} email={email} telegram={telegram} />
       ))}
     </ul>
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
-      <path d="m5 12.5 4.5 4.5L19 7.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// A channel the alerts go to, as an on/off chip. The last one on can't be turned off.
-function ChannelChip({
-  label,
-  on,
-  locked,
-  disabled,
-  lockedHint,
-  onToggle,
-}: {
-  label: string;
-  on: boolean;
-  locked: boolean;
-  disabled: boolean;
-  lockedHint: string;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      disabled={disabled || locked}
-      title={locked ? lockedHint : undefined}
-      onClick={onToggle}
-      className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40",
-        on ? "border-brand-200 bg-brand-50 text-brand-800" : "border-ink-200 bg-white text-ink-500 hover:border-ink-300 hover:text-ink-800",
-        locked ? "cursor-default" : "disabled:opacity-60",
-      )}
-    >
-      {on && <CheckIcon />}
-      {label}
-    </button>
-  );
-}
-
-function SavedSearchItem({ row, telegram }: { row: SavedSearchRow; telegram: TelegramStatus }) {
+function SavedSearchItem({ row, email, telegram }: { row: SavedSearchRow; email: string; telegram: TelegramChannelStatus }) {
   const t = useTranslations("SavedSearches");
   const [name, setName] = useState(row.name);
   const [frequency, setFrequency] = useState<AlertFrequency>(row.alertFrequency);
@@ -102,13 +63,7 @@ function SavedSearchItem({ row, telegram }: { row: SavedSearchRow; telegram: Tel
     });
   }
 
-  function toggle(channel: keyof AlertChannels) {
-    const next = toggleAlertChannel(channels, channel);
-    if (next) save(name, frequency, next);
-  }
 
-  // Telegram is offered once the account has it connected (or when the search already uses it).
-  const showTelegram = telegram.connected || channels.telegram;
 
   function remove() {
     startTransition(async () => {
@@ -160,37 +115,6 @@ function SavedSearchItem({ row, telegram }: { row: SavedSearchRow; telegram: Tel
           )}
           <p className="mt-1 text-sm text-ink-500">{row.summary}</p>
 
-          {frequency !== "Off" && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="text-sm text-ink-500">{t("channelsLabel")}</span>
-              <ChannelChip
-                label={t("channelEmail")}
-                on={channels.email}
-                locked={channels.email && !channels.telegram}
-                disabled={pending}
-                lockedHint={t("channelsAtLeastOne")}
-                onToggle={() => toggle("email")}
-              />
-              {showTelegram && (
-                <ChannelChip
-                  label={t("channelTelegram")}
-                  on={channels.telegram}
-                  locked={channels.telegram && !channels.email}
-                  disabled={pending}
-                  lockedHint={t("channelsAtLeastOne")}
-                  onToggle={() => toggle("telegram")}
-                />
-              )}
-              {telegram.available && !telegram.connected && (
-                <Link
-                  href="/account?tab=notifications"
-                  className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
-                >
-                  {channels.telegram ? t("telegramNotConnected") : t("connectTelegram")}
-                </Link>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -214,6 +138,20 @@ function SavedSearchItem({ row, telegram }: { row: SavedSearchRow; telegram: Tel
           </a>
         </div>
       </div>
+
+      {/* Its own line under the header: beside the controls it would be squeezed. */}
+      {frequency !== "Off" && (
+        <div className="mt-4 max-w-md">
+          <AlertChannelRows
+            channels={channels}
+            onChange={(next) => save(name, frequency, next)}
+            email={email}
+            telegram={telegram}
+            connectHref="/account?tab=notifications"
+            disabled={pending}
+          />
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         {/* While a delete waits for confirmation, only that question and its two answers show. */}

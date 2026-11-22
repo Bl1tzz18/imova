@@ -1509,17 +1509,26 @@
     "unsubscribeInvalidTitle": "Недействительная ссылка",
     "unsubscribeInvalidBody": "Ссылка недействительна. Отключить уведомления можно на странице сохранённых поисков.",
     "manage": "Управлять сохранёнными поисками",
-    "channelsLabel": "Куда присылать",
+    "channelsLabel": "Куда присылать уведомления",
     "channelEmail": "Email",
     "channelTelegram": "Telegram",
-    "channelsAtLeastOne": "Уведомления должны куда-то приходить. Чтобы отключить их, выберите «Без уведомлений».",
-    "connectTelegram": "+ Подключить Telegram",
-    "telegramNotConnected": "Telegram не подключён — уведомления приходят на email. Подключить",
+    "channelsAtLeastOne": "Выберите хотя бы один вариант. Чтобы отключить уведомления, выберите «Без уведомлений».",
     "where": {
       "email": "на email",
       "telegram": "в Telegram",
       "both": "на email и в Telegram"
-    }
+    },
+    "connectTitle": "Получайте уведомления и в Telegram",
+    "connectSteps": "Откройте Telegram и нажмите «Запустить», затем вернитесь сюда — галочка поставится сама.",
+    "openTelegram": "Открыть Telegram",
+    "connectWaiting": "Ждём, пока вы нажмёте «Запустить»…",
+    "telegramConnectedHere": "Telegram подключён. Уведомления будут приходить и туда.",
+    "connectExpired": "Ссылка устарела. Нажмите «Подключить» ещё раз.",
+    "notNow": "Не сейчас",
+    "channelEmailHint": "На адрес вашего аккаунта",
+    "channelTelegramPitch": "Мгновенно, на телефон",
+    "channelTelegramConnected": "Подключён",
+    "channelConnect": "Подключить"
   },
   "AdminAdminsPage": {
     "title": "Администраторы",

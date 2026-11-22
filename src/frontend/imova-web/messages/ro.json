@@ -1509,17 +1509,26 @@
     "unsubscribeInvalidTitle": "Link invalid",
     "unsubscribeInvalidBody": "Linkul nu este valid. Poți opri alertele din pagina căutărilor salvate.",
     "manage": "Gestionează căutările salvate",
-    "channelsLabel": "Trimite pe",
+    "channelsLabel": "Primește alertele pe",
     "channelEmail": "Email",
     "channelTelegram": "Telegram",
-    "channelsAtLeastOne": "Alertele trebuie să meargă cel puțin într-un loc. Ca să le oprești, alege „Fără alerte”.",
-    "connectTelegram": "+ Conectează Telegram",
-    "telegramNotConnected": "Telegram nu e conectat — alertele vin pe email. Conectează-l",
+    "channelsAtLeastOne": "Alege cel puțin un loc. Ca să oprești alertele, alege „Fără alerte”.",
     "where": {
       "email": "pe email",
       "telegram": "pe Telegram",
       "both": "pe email și pe Telegram"
-    }
+    },
+    "connectTitle": "Primește alertele și pe Telegram",
+    "connectSteps": "Deschide Telegram și apasă „Start”, apoi revino aici — se bifează singur.",
+    "openTelegram": "Deschide Telegram",
+    "connectWaiting": "Așteptăm să apeși „Start”…",
+    "telegramConnectedHere": "Telegram conectat. Alertele vin și acolo.",
+    "connectExpired": "Linkul a expirat. Apasă din nou „Conectează”.",
+    "notNow": "Nu acum",
+    "channelEmailHint": "La adresa contului tău",
+    "channelTelegramPitch": "Instant, pe telefon",
+    "channelTelegramConnected": "Conectat",
+    "channelConnect": "Conectează"
   },
   "AdminAdminsPage": {
     "title": "Administratori",

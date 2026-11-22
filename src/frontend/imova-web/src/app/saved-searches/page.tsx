@@ -7,6 +7,7 @@ import { SavedSearchList, type SavedSearchRow } from "@/components/savedSearches
 import { LinkButton } from "@/components/ui/Button";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { getTelegramConnection } from "@/lib/account/actions";
+import { telegramDisplayName } from "@/lib/account/telegram";
 import { getSavedSearches } from "@/lib/savedSearches/api";
 import { SAVED_SEARCHES_PATH } from "@/lib/savedSearches/savedSearch";
 import { activeFilterCount, parseSearchParams, SEARCH_PATH } from "@/lib/search/filters";
@@ -57,7 +58,12 @@ export default async function SavedSearchesPage() {
             {rows.length > 0 ? (
               <SavedSearchList
                 rows={rows}
-                telegram={{ available: telegram?.available ?? false, connected: telegram?.connected ?? false }}
+                email={profile.email}
+                telegram={{
+                  available: telegram?.available ?? false,
+                  connected: telegram?.connected ?? false,
+                  name: telegram ? telegramDisplayName(telegram) : null,
+                }}
               />
             ) : (
               <div className="flex flex-col items-center gap-3 rounded-[18px] border border-dashed border-line bg-white px-6 py-16 text-center">
