@@ -2156,7 +2156,10 @@
     "ogImageAlt": "IMOVA — real estate in Moldova",
     "notFoundTitle": "Page not found",
     "notFoundText": "The link is wrong or the page no longer exists.",
-    "backHome": "Back to the home page"
+    "backHome": "Back to the home page",
+    "errorTitle": "Something went wrong",
+    "errorText": "An error occurred on our side. Please try again in a few moments.",
+    "tryAgain": "Try again"
   },
   "Legal": {
     "termsTitle": "Terms of use",

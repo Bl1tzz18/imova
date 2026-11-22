@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using Imova.Application.Common;
+using Imova.Application.Common.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -73,6 +74,14 @@ public static class AuthRateLimiting
                 {
                     context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
                 }
+
+                // A business event (AppEvents): which limit and which route — many in a row from one
+                // place is someone guessing passwords or scraping. No IP, no account email.
+                var endpoint = context.HttpContext.GetEndpoint();
+                var policy = endpoint?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName ?? "unknown";
+                var route = (endpoint as RouteEndpoint)?.RoutePattern.RawText ?? context.HttpContext.Request.Path.Value;
+                context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(AppEvents.Category)
+                    .LogWarning("{Event}: {Policy} on {Method} {Route}", "RateLimited", policy, context.HttpContext.Request.Method, route);
 
                 await Results.Problem(
                         "Too many attempts. Wait a minute and try again.",

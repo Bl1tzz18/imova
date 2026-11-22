@@ -1,3 +1,4 @@
+using Imova.Application.Common.Logging;
 using Imova.Contracts.Agencies;
 using MediatR;
 
@@ -17,4 +18,4 @@ public record UpdateAgencyCommand(
     string? Bio,
     string? Website,
     string? Address,
-    Guid? RaionId) : IRequest<AgencyDto?>, IAgencyProfileCommand;
+    Guid? RaionId) : IRequest<AgencyDto?>, IAgencyProfileCommand, ILoggedCommand;

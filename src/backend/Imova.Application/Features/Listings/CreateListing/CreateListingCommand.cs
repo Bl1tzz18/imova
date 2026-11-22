@@ -1,3 +1,4 @@
+using Imova.Application.Common.Logging;
 using System.Text.Json;
 using Imova.Contracts.Listings;
 using Imova.Domain.Listings;
@@ -40,4 +41,4 @@ public record CreateListingCommand(
     Currency Currency,
     bool IsNegotiable,
     RentalDetails? RentalDetails,
-    ListingContact? Contact) : IRequest<ListingDto>, IListingWriteCommand;
+    ListingContact? Contact) : IRequest<ListingDto>, IListingWriteCommand, ILoggedCommand;

@@ -2156,7 +2156,10 @@
     "ogImageAlt": "IMOVA — imobiliare în Moldova",
     "notFoundTitle": "Pagina nu a fost găsită",
     "notFoundText": "Linkul este greșit sau pagina nu mai există.",
-    "backHome": "Înapoi la prima pagină"
+    "backHome": "Înapoi la prima pagină",
+    "errorTitle": "Ceva nu a mers",
+    "errorText": "A apărut o eroare la noi. Încearcă din nou peste câteva momente.",
+    "tryAgain": "Încearcă din nou"
   },
   "Legal": {
     "termsTitle": "Termeni de utilizare",

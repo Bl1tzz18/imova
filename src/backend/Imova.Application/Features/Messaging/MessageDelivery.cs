@@ -51,6 +51,13 @@ public class MessageDelivery(
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        if (flagReason is not null)
+        {
+            // A business event (AppEvents): the rule's label, never the message text.
+            logger.LogWarning("{Event}: {Reason} (MessageId={MessageId}, ConversationId={ConversationId}, SenderUserId={SenderUserId})",
+                "MessageFlagged", flagReason, message.Id, conversation.Id, senderUserId);
+        }
+
         var dto = message.ToDto();
         await BestEffortAsync(async () =>
         {

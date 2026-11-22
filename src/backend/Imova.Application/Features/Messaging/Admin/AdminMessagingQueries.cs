@@ -1,3 +1,4 @@
+using Imova.Application.Common.Logging;
 using Imova.Contracts.Messaging;
 using MediatR;
 
@@ -17,10 +18,10 @@ public record GetFlaggedMessagesQuery(bool IsAdmin, bool Resolved = false) : IRe
 public record GetConversationForAdminQuery(bool IsAdmin, Guid ConversationId) : IRequest<AdminConversationDto?>;
 
 // Resolved = true marks it resolved (by AdminUserId), false reopens it. False = no such report.
-public record SetMessagingReportResolvedCommand(bool IsAdmin, Guid AdminUserId, Guid ReportId, bool Resolved) : IRequest<bool>;
+public record SetMessagingReportResolvedCommand(bool IsAdmin, Guid AdminUserId, Guid ReportId, bool Resolved) : IRequest<bool>, ILoggedCommand;
 
 // Same for a flagged message. False = no such message, or it isn't flagged.
-public record SetFlaggedMessageResolvedCommand(bool IsAdmin, Guid AdminUserId, Guid MessageId, bool Resolved) : IRequest<bool>;
+public record SetFlaggedMessageResolvedCommand(bool IsAdmin, Guid AdminUserId, Guid MessageId, bool Resolved) : IRequest<bool>, ILoggedCommand;
 
 // Banned users can't send messages at all. False = no such user.
-public record SetMessagingBanCommand(bool IsAdmin, Guid UserId, bool Banned) : IRequest<bool>;
+public record SetMessagingBanCommand(bool IsAdmin, Guid UserId, bool Banned) : IRequest<bool>, ILoggedCommand;

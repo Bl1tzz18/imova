@@ -1,3 +1,4 @@
+using Imova.Application.Common.Logging;
 using Imova.Contracts.Auth;
 using MediatR;
 
@@ -8,4 +9,4 @@ namespace Imova.Application.Features.Auth.Register;
 // + Privacy policy the person ticked; it must be the current one (LegalTerms.CurrentVersion).
 public record RegisterCommand(
     string Email, string Password, string? DisplayName, string PhoneNumber, string? Language = null, string? AcceptedTermsVersion = null)
-    : IRequest<AuthResultDto>;
+    : IRequest<AuthResultDto>, ILoggedCommand;

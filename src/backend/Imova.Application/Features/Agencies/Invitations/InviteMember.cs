@@ -1,4 +1,5 @@
 using FluentValidation;
+using Imova.Application.Common.Logging;
 using Imova.Application.Common;
 using Imova.Application.Common.Exceptions;
 using Imova.Application.Common.Interfaces;
@@ -14,7 +15,7 @@ namespace Imova.Application.Features.Agencies.Invitations;
 // that already has an open invitation gets it again (new link, new role) instead of a second one.
 // Null (404) when the caller may not see the agency.
 public record InviteMemberCommand(Guid AgencyId, Guid ActorId, bool IsAdmin, string Email, AgencyRole Role)
-    : IRequest<AgencyInvitationDto?>;
+    : IRequest<AgencyInvitationDto?>, ILoggedCommand;
 
 public class InviteMemberValidator : AbstractValidator<InviteMemberCommand>
 {
