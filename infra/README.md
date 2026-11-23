@@ -42,7 +42,8 @@ The free account: the first 30 days are covered by the $200 credit; for 12 month
 of one B1ms server with 32 GB (prod's database) and one Standard Container Registry are free.
 **Before the 12 months end** (the subscription was created in November 2026): set
 `container_registry_sku = "Basic"` in `shared/terraform.tfvars` and apply — Standard would then
-cost ~$20/month.
+cost ~$20/month. The same month the MediatR license (Key Vault `mediatr-license-key`) expires
+(2027-11-23): renew it.
 
 **DNS is in Azure** ($0.50/month for the whole zone): imova.md stays registered at tophost.md, only
 its nameservers point at Azure. That's what lets dev have its own domain: dev is destroyed after
@@ -142,6 +143,7 @@ error alert (`error_alert_enabled`, prod).
 | `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8) |
 | `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment) |
 | `email-password` | `email = { ... }` | the SMTP provider's password (KAN-14) |
+| `mediatr-license-key` | `mediatr_license_enabled = true` (prod) | the Lucky Penny MediatR Community license — **valid until 2027-11-23**, renew it at luckypennysoftware.com |
 
 ```bash
 az keyvault secret set --vault-name <key_vault_name> --name telegram-bot-token --value '<token>'

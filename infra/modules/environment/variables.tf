@@ -146,6 +146,16 @@ variable "google_auth_enabled" {
   default     = false
 }
 
+variable "mediatr_license_enabled" {
+  description = <<-EOT
+    MediatR (Lucky Penny) needs a license in production: creates the mediatr-license-key secret
+    (set by hand) and hands it to the API as MEDIATR_LICENSE_KEY, which MediatR reads by itself.
+    Without it MediatR still works but logs a license warning (fine for dev).
+  EOT
+  type        = bool
+  default     = false
+}
+
 variable "telegram_bot_username" {
   description = "The environment's own Telegram bot (one bot per environment). Null = no Telegram."
   type        = string
