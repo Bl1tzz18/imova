@@ -113,6 +113,7 @@ resource "azurerm_key_vault_secret" "appinsights_connection_string" {
 locals {
   manual_secrets = toset(concat(
     var.google_auth_enabled ? ["google-client-id", "google-client-secret"] : [],
+    var.mediatr_license_enabled ? ["mediatr-license-key"] : [],
     var.telegram_bot_username != null ? ["telegram-bot-token"] : [],
     var.email != null ? ["email-password"] : [],
   ))

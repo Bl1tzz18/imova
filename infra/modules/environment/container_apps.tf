@@ -80,6 +80,10 @@ locals {
       { name = "GoogleAuth__ClientId", secret = "google-client-id" },
       { name = "GoogleAuth__ClientSecret", secret = "google-client-secret" },
     ] : [],
+    # Read by MediatR itself (LicenseAccessor), no code needed. Only the API uses MediatR.
+    var.mediatr_license_enabled ? [
+      { name = "MEDIATR_LICENSE_KEY", secret = "mediatr-license-key" },
+    ] : [],
   )
 
   worker_env = concat(local.backend_env,

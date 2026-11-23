@@ -37,5 +37,8 @@ module "imova" {
   availability_test_enabled = false # ~$5.60/month; a free outside monitor does it instead
   error_alert_enabled       = true
 
+  # Community license, valid until 2027-11-23: renew it before then (infra/README.md).
+  mediatr_license_enabled = true
+
   protect_data = true
 }
