@@ -75,6 +75,13 @@ locals {
       { name = "ASPNETCORE_ENVIRONMENT", value = "Production" },
       { name = "Jwt__Key", secret = "jwt-signing-key" },
       { name = "Cors__AllowedOrigins__0", value = local.web_url },
+      # The visitor's real IP behind the ingress (rate limits): trust private addresses, walk back
+      # two X-Forwarded-For hops (ingress, then the web app). See AuthRateLimiting.ConfigureForwardedHeaders.
+      { name = "ForwardedHeaders__KnownNetworks__0", value = "10.0.0.0/8" },
+      { name = "ForwardedHeaders__KnownNetworks__1", value = "172.16.0.0/12" },
+      { name = "ForwardedHeaders__KnownNetworks__2", value = "192.168.0.0/16" },
+      { name = "ForwardedHeaders__KnownNetworks__3", value = "100.64.0.0/10" },
+      { name = "ForwardedHeaders__ForwardLimit", value = "2" },
     ],
     var.google_auth_enabled ? [
       { name = "GoogleAuth__ClientId", secret = "google-client-id" },
@@ -96,8 +103,11 @@ locals {
   )
 
   web_env = [
-    # Server-side calls to the API (Server Components, actions, the session middleware).
-    { name = "API_URL", value = local.api_url },
+    # Server-side calls to the API (Server Components, actions, the session middleware): by app
+    # name, inside the environment. The public address would resolve to the environment's public
+    # IP from in here too, so the call would leave and come back in with Azure's outbound address,
+    # and the API couldn't see the visitor's IP behind it (rate limits).
+    { name = "API_URL", value = "http://${local.api_app_name}" },
     # The browser's calls (uploads, typeaheads, the messaging hub) — read at runtime, see
     # src/lib/api/publicConfig.ts, so the same image runs in every environment.
     { name = "PUBLIC_API_URL", value = local.api_url },

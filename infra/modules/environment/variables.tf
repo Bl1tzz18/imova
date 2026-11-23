@@ -181,3 +181,23 @@ variable "protect_data" {
   type        = bool
   default     = false
 }
+
+# --- Custom domains (KAN-5) ---------------------------------------------------------------------
+
+variable "domains" {
+  description = <<-EOT
+    The environment's own domains, in the shared DNS zone (infra/shared). Null = only the apps'
+    *.azurecontainerapps.io addresses. Names are relative to the zone, "@" = the zone itself.
+    web: the first name is the site's address; any others (www) are bound too, and the web app
+    redirects them to the first. Each name gets its record, its asuid TXT proof and a free managed
+    certificate. web_url/api_url still have to be set to the new addresses separately — only once
+    the certificates are bound.
+  EOT
+  type = object({
+    zone_name           = string
+    zone_resource_group = string
+    web                 = list(string)
+    api                 = string
+  })
+  default = null
+}

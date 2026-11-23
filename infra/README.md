@@ -173,16 +173,27 @@ purge protection (90 days). Removing prod on purpose = remove `protect_data`, ap
 
 | Environment | Site | API |
 | --- | --- | --- |
-| prod | `imova.md` (and `www.imova.md` → redirect) | `api.imova.md` |
+| prod | `imova.md` (`www.imova.md` redirects to it) | `api.imova.md` |
 | dev | `dev.imova.md` | `api.dev.imova.md` |
 
-All records live in the Azure DNS zone and are written by Terraform: an A record (apex, to the
-environment's `static_ip_address`) or a CNAME (to the app's `*_default_hostname`), plus an
-`asuid.<name>` TXT record with the environment's `custom_domain_verification_id`. Container Apps
-then issues and renews the HTTPS certificates itself, for free
-(`azurerm_container_app_environment_managed_certificate` + `azurerm_container_app_custom_domain`).
-Dev's records are rewritten on every recreate, so dev keeps its domain although its Azure address
-changes. Email records (SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
+The `domains` setting of an environment (`envs/<env>/main.tf`) does it all
+(`modules/environment/domains.tf`): per name an A record (the apex, to the environment's static IP)
+or a CNAME (to the app's own hostname) plus the `asuid.<name>` TXT proof, the name added to the
+app, a free managed certificate that Container Apps renews by itself (HTTP validation for the
+apex, CNAME otherwise), and the binding — an `az containerapp hostname bind` run by Terraform, since
+the provider has no resource for it (so Terraform needs the Azure CLI, signed in). Issuing takes a
+few minutes per name. Only then set `web_url`/`api_url` to the new addresses and apply again
+(links in emails, CORS, canonical URLs, the browser's API address).
+
+The web app redirects `www.` to the bare domain (`lib/seo/canonicalHost.ts`, 308).
+
+**Client IP.** The API rate-limits per visitor, so it must see the visitor's address behind the
+Container Apps ingress: the web server calls the API by app name (`API_URL = http://imova-api` —
+the public address would resolve to the environment's public IP even from inside and come back
+in with Azure's outbound address), and the API trusts private addresses and two
+`X-Forwarded-For` hops (`ForwardedHeaders:KnownNetworks` + `ForwardLimit = 2`;
+`AuthRateLimiting.ConfigureForwardedHeaders`, tests in `ForwardedHeadersTests`). Email records
+(SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
 
 ## Launch checklist (prod)
 
@@ -193,8 +204,8 @@ changes. Email records (SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
 
 ## Still to do (next tickets)
 
-- **KAN-5 — custom domains + client IPs.** prod on `imova.md`/`www`/`api.imova.md`, dev on
-  `dev.imova.md`/`api.dev.imova.md` (see "Custom domain"). **Before launch:** the API must see the visitor's real IP behind the Container
+- **Dev's domains** (`dev.imova.md`, `api.dev.imova.md`): set `domains` in `envs/dev/main.tf` once
+  dev exists (after the Pay-As-You-Go upgrade). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
 - **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.

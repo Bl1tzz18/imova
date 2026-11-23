@@ -42,12 +42,35 @@ public class AccountRateLimitOptions
 // visitor's IP as X-Forwarded-For, and UseForwardedHeaders honours it only when the request comes
 // from a trusted proxy — loopback by default, plus the networks in ForwardedHeaders:KnownNetworks
 // (compose: the docker network). Anyone else sending X-Forwarded-For is limited by their own IP.
+// See ConfigureForwardedHeaders for the hosted (Azure Container Apps) case.
 public static class AuthRateLimiting
 {
     public const string Policy = "auth";
 
     // See AccountRateLimitOptions. Needs an authenticated endpoint (partitions by the user id).
     public const string AccountPolicy = "account";
+
+    // Which X-Forwarded-For entries to believe. Locally (compose) the web app is the only proxy:
+    // one entry, from the docker network. Behind Azure Container Apps there are two hops: the
+    // ingress (Envoy) in front of every app appends the address it saw, so a server action's call
+    // arrives as "visitor, web app" from the ingress, and a browser's direct call as "client" (after
+    // anything the client sent itself). With ForwardedHeaders:ForwardLimit = 2 and the private
+    // ranges as KnownNetworks, the middleware walks back from the right through trusted (private)
+    // addresses and stops at the first public one: the visitor in the first case, the real client
+    // in the second — a spoofed entry further left is never reached.
+    public static void ConfigureForwardedHeaders(ForwardedHeadersOptions forwarded, IConfiguration configuration)
+    {
+        forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+        foreach (var network in configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [])
+        {
+            forwarded.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
+        }
+
+        if (configuration.GetValue<int?>("ForwardedHeaders:ForwardLimit") is > 0 and var limit)
+        {
+            forwarded.ForwardLimit = limit;
+        }
+    }
 
     public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
@@ -56,14 +79,7 @@ public static class AuthRateLimiting
         var accountOptions = configuration.GetSection(AccountRateLimitOptions.SectionName).Get<AccountRateLimitOptions>()
             ?? new AccountRateLimitOptions();
 
-        services.Configure<ForwardedHeadersOptions>(forwarded =>
-        {
-            forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
-            foreach (var network in configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [])
-            {
-                forwarded.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(network));
-            }
-        });
+        services.Configure<ForwardedHeadersOptions>(forwarded => ConfigureForwardedHeaders(forwarded, configuration));
 
         services.AddRateLimiter(limiter =>
         {
