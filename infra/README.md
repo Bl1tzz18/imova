@@ -5,7 +5,7 @@ inside the EU, as the privacy policy says), at the lowest cost that still runs t
 
 ```
 bootstrap/            once per subscription, local state: the storage account holding every other state
-shared/               one Container Registry (images built once, promoted dev → prod) + the imova.md DNS zone
+shared/               one Container Registry (images built once, promoted dev → prod)
 modules/environment/  everything one environment has (below)
 envs/dev, envs/prod   the module with each environment's settings — the only difference between them
 scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod
@@ -30,16 +30,22 @@ Each environment (`rg-imova-<env>`):
 
 | | Monthly | With the free account (first 12 months) |
 | --- | --- | --- |
-| **Shared**: Container Registry Basic $5.07, DNS zone $0.50 | **~$5.60** | ~$5.60 |
+| **Shared**: Container Registry (Standard: free for 12 months; then switch to Basic, $5.07) | **~$5** | **$0** |
 | **Prod until launch** (asleep: apps scale to zero, Worker off): Postgres B1ms $14.53 + 32 GB $4.38; error alert ~$0.50; storage/Key Vault cents | **~$20** | **~$1** (the database is free) |
 | **Prod after launch**: the same + apps always on (1 vCPU, 2 GiB in total) ~$29 while idle, more under load; logs within the free 5 GB | **~$50–55** | **~$30–35** |
 | **Dev**: only exists while you work on it (destroyed otherwise) | **$0** when destroyed, ~$0.70/day while up | same |
 | **Uptime**: a free outside monitor | $0 | $0 |
-| **Total until launch** | **~$26** | **~$7** |
-| **Total after launch** | **~$55–60** | **~$35–40** |
+| **Total until launch** | **~$25** | **~$1** |
+| **Total after launch** | **~$55** | **~$30–35** |
 
 The free account: the first 30 days are covered by the $200 credit; for 12 months 750 hours a month
-of one B1ms server with 32 GB are free (prod's database). Check the current list at sign-up.
+of one B1ms server with 32 GB (prod's database) and one Standard Container Registry are free.
+**Before the 12 months end** (the subscription was created in November 2026): set
+`container_registry_sku = "Basic"` in `shared/terraform.tfvars` and apply — Standard would then
+cost ~$20/month.
+
+**DNS stays at tophost.md** (free with the domain) rather than Azure DNS ($0.50/month): the site
+needs a handful of records, added there by hand once (see "Custom domain").
 
 **Decided against, to keep it cheap** (revisit when traffic or budget justify it):
 - **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
@@ -71,9 +77,8 @@ export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)   # every Terraf
 #    terraform.tfstate safe (or re-import the three resources if it's lost).
 cd infra/bootstrap && terraform init && terraform apply
 
-# 2. Registry + DNS zone.
+# 2. The image registry.
 cd ../shared && terraform init -backend-config=../backend.hcl && terraform apply
-terraform output dns_name_servers    # → set these 4 at tophost.md (Domains → imova.md → Nameservers)
 
 # 3. Build and push the images (from a clean, committed tree; the tag is the commit).
 cd .. && scripts/deploy.sh build     # prints the tag
@@ -149,6 +154,26 @@ and remove the IP afterwards.
 **Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
 purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
 
+## Custom domain (KAN-5)
+
+The domain stays registered — and its DNS served — at tophost.md. Container Apps issues and renews
+the HTTPS certificates itself, for free. Per name, at tophost.md:
+
+| Name | Record | Value (from `terraform output` in envs/prod) |
+| --- | --- | --- |
+| `imova.md` | A | `static_ip_address` |
+| `asuid.imova.md` | TXT | `custom_domain_verification_id` |
+| `www.imova.md` | CNAME | `web_default_hostname` |
+| `asuid.www.imova.md` | TXT | `custom_domain_verification_id` |
+| `api.imova.md` | CNAME | `api_default_hostname` |
+| `asuid.api.imova.md` | TXT | `custom_domain_verification_id` |
+
+Then the domains and their managed certificates are bound in Terraform
+(`azurerm_container_app_environment_managed_certificate` + `azurerm_container_app_custom_domain`),
+`web_url = "https://imova.md"` and `api_url = "https://api.imova.md"` are set in
+`envs/prod/main.tf`, and `www` redirects to the bare domain. Email records (SPF, DKIM, DMARC, MX)
+are added the same way with KAN-14.
+
 ## Launch checklist (prod)
 
 1. Wake prod up: in `envs/prod/main.tf`, web `min_replicas = 1`, api `min_replicas = 1`, worker
@@ -158,12 +183,11 @@ purge protection (90 days). Removing prod on purpose = remove `protect_data`, ap
 
 ## Still to do (next tickets)
 
-- **KAN-5 — custom domains + client IPs.** Bind `imova.md`, `www` and `api.imova.md` (DNS records in
-  `shared/`, managed certificates), then set `web_url`/`api_url` in `envs/prod/main.tf`; dev gets
-  `dev.imova.md`. **Before launch:** the API must see the visitor's real IP behind the Container
+- **KAN-5 — custom domains + client IPs.** Bind `imova.md`, `www` and `api.imova.md` (see "Custom
+  domain"); dev keeps its *.azurecontainerapps.io addresses. **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
 - **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.
-- **KAN-14** — SMTP provider (`email = { ... }`), SPF/DKIM/DMARC records in the DNS zone.
+- **KAN-14** — SMTP provider (`email = { ... }`), SPF/DKIM/DMARC records at tophost.md.
 - **KAN-15** — tested restore of the database (point-in-time) and the blobs.
 - A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.

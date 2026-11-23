@@ -22,6 +22,10 @@ output "api_default_hostname" {
   value = module.imova.api_default_hostname
 }
 
+output "static_ip_address" {
+  value = module.imova.static_ip_address
+}
+
 output "custom_domain_verification_id" {
   value     = module.imova.custom_domain_verification_id
   sensitive = true

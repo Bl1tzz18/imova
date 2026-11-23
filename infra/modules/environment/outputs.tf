@@ -30,6 +30,11 @@ output "api_default_hostname" {
   value = azurerm_container_app.api.ingress[0].fqdn
 }
 
+output "static_ip_address" {
+  description = "The A record for the apex domain (imova.md) at the registrar (KAN-5)."
+  value       = azurerm_container_app_environment.main.static_ip_address
+}
+
 output "custom_domain_verification_id" {
   description = "Goes in the asuid.<host> TXT record when a custom domain is added (KAN-5)."
   value       = azurerm_container_app_environment.main.custom_domain_verification_id
