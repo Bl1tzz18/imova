@@ -10,11 +10,6 @@ RUN npm ci
 
 FROM node:24-alpine AS build
 WORKDIR /app
-# NEXT_PUBLIC_* vars are inlined into the client bundle at build time, so this has to be a build
-# arg (not just a runtime env var) — it's the origin the *browser* uses to call the backend
-# directly for the image-upload endpoints (see lib/api/media.ts).
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
@@ -24,6 +19,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+# Everything environment-specific is a runtime variable (API_URL, PUBLIC_API_URL, SITE_URL, …), so
+# the same image runs in dev and prod — nothing is baked in at build time.
 COPY --from=build /app/public ./public
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static

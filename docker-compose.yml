@@ -127,14 +127,13 @@ services:
   frontend:
     build:
       context: ./src/frontend/imova-web
-      args:
-        # Baked into the client bundle at build time — the browser calls the backend directly
-        # for image uploads (see lib/api/media.ts), so this must be host-reachable, unlike the
-        # server-only API_URL below which uses the compose network's service name.
-        NEXT_PUBLIC_API_URL: http://localhost:8080
     container_name: imova-frontend
     environment:
       API_URL: http://backend:8080
+      # The API's address as the *browser* reaches it (uploads, typeaheads, the messaging hub) —
+      # host-reachable, unlike API_URL above, which uses the compose network's service name. Read
+      # at runtime and handed to the page (lib/api/publicConfig.ts).
+      PUBLIC_API_URL: http://localhost:8080
       # The site's public address — canonical links, link previews (og:url), structured data.
       SITE_URL: http://localhost:3000
     ports:

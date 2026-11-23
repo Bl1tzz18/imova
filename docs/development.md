@@ -319,12 +319,12 @@ unless `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, so local runs, compose an
 2. The connection string as a secret on the three Container Apps
    (`APPLICATIONINSIGHTS_CONNECTION_STRING`). Container Apps' own console logs go to the same
    workspace — same 30 days.
-3. **Uptime:** two Standard availability tests every 5 minutes from 3 EU locations: the API's
-   `/health/ready` and the home page `https://imova.md/` (expect 200). A few cents a month.
-4. **Alerts** to one action group (email, plus the Azure mobile app for push): an availability test
-   failing in 2 of 3 locations; any exception in the last 5 minutes (log alert on
-   `exceptions | where cloud_RoleName in ("imova-api","imova-worker","imova-web")`, at most one
-   email per hour); a Worker job that logged an error.
+3. **Uptime:** a free outside monitor (Better Stack), not Azure's availability tests (those cost
+   $0.000645 per run: ~$17/month for one URL every 5 minutes from 3 locations). Two monitors: the
+   home page and the API's `/health/ready` (expect 200). Setup: `infra/README.md`, "Uptime".
+4. **Alerts** by email: any exception or error log (e.g. a failed Worker job) in imova-web,
+   imova-api or imova-worker in the last 15 minutes, at most one email per hour (one log alert
+   rule, ~$0.50/month — `error_alert_enabled` in Terraform).
 
 ## Telegram bot
 
@@ -372,3 +372,17 @@ sizes (new sizes, other quality), bump `PhotoSizes.CurrentVersion`. Server-writt
 served with `Cache-Control: public, max-age=31536000, immutable` (their names never get new
 content). The Docker images publish for `linux-x64` only, which keeps the other platforms' native
 ImageMagick builds (~240 MB) out of them.
+
+## Deploying (Azure)
+
+Everything is in [`infra/README.md`](../infra/README.md): Terraform for the `dev` and `prod`
+environments (Container Apps, PostgreSQL Flexible Server, Blob Storage, Key Vault, Application
+Insights) plus one shared registry and the imova.md DNS zone, the monthly costs, first-time setup
+and `infra/scripts/deploy.sh` (build the images once, release the same tag to dev, then prod).
+
+**One image per app for every environment:** nothing environment-specific is baked in at build
+time. The web app reads `API_URL`, `PUBLIC_API_URL` (the API's address as the *browser* reaches
+it: uploads, typeaheads, the messaging hub) and `SITE_URL` when it starts; the root layout hands
+`PUBLIC_API_URL` to the browser as a JSON `<script id="imova-public-config">`
+(`src/lib/api/publicConfig.ts`). Compose sets `PUBLIC_API_URL=http://localhost:8080`; a plain
+`npm run dev` falls back to `NEXT_PUBLIC_API_URL`, then `http://localhost:8080`.

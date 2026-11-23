@@ -10,6 +10,7 @@ import { NavigationTracker } from "@/components/layout/NavigationTracker";
 import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { siteUrl } from "@/lib/site";
+import { PUBLIC_CONFIG_ELEMENT_ID, serializePublicConfig, serverPublicConfig } from "@/lib/api/publicConfig";
 import { getUnreadCount } from "@/lib/messaging/api";
 import "../globals.css";
 
@@ -83,6 +84,12 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${fraunces.variable} ${sora.variable}`}>
       <body>
+        {/* Per-environment browser settings (the API's address), read at runtime — lib/api/publicConfig. */}
+        <script
+          id={PUBLIC_CONFIG_ELEMENT_ID}
+          type="application/json"
+          dangerouslySetInnerHTML={{ __html: serializePublicConfig(serverPublicConfig()) }}
+        />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <RealtimeProvider userId={profile?.id ?? null} initialUnreadCount={unreadCount}>
             <Header />

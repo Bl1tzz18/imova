@@ -1,0 +1,169 @@
+# IMOVA infrastructure (Azure, Terraform)
+
+Two environments, **dev** (created only while you work on it) and **prod**, built from one module, in **West Europe** (Netherlands —
+inside the EU, as the privacy policy says), at the lowest cost that still runs the app properly.
+
+```
+bootstrap/            once per subscription, local state: the storage account holding every other state
+shared/               one Container Registry (images built once, promoted dev → prod) + the imova.md DNS zone
+modules/environment/  everything one environment has (below)
+envs/dev, envs/prod   the module with each environment's settings — the only difference between them
+scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod
+backend.hcl           where shared/ and envs/* keep their state
+```
+
+Each environment (`rg-imova-<env>`):
+
+| Piece | What | Notes |
+| --- | --- | --- |
+| Container Apps environment `cae-imova-<env>` | Consumption plan, no VNet | billed per second used; 180k vCPU-s / 360k GiB-s / 2M requests free per month per subscription |
+| `imova-web` | Next.js, port 3000, public | |
+| `imova-api` | ASP.NET Core, port 8080, public (the browser calls it: uploads, typeaheads, the messaging hub) | max 1 replica until SignalR has a Redis backplane; runs the migrations at startup |
+| `imova-worker` | scheduled jobs + Telegram bot, no ingress | 0 or 1 replica, never more |
+| PostgreSQL Flexible Server 16 | B1ms (1 vCore, 2 GiB), 32 GB, PostGIS allow-listed | backups 7 days (the privacy policy's promise), TLS required and verified |
+| Storage account | `listing-images` (public read), `message-attachments` (private) | deleted blobs recoverable for 7 days; CORS = the site's origin |
+| Key Vault | every secret the apps read, through their managed identity | |
+| Log Analytics + Application Insights | 30 days' retention, daily cap | prod: error alert by email (uptime: a free outside monitor) |
+| User-assigned identity | pulls images (AcrPull), reads secrets (Key Vault Secrets User) | no registry passwords |
+
+## Costs (USD, West Europe retail prices, November 2026)
+
+| | Monthly | With the free account (first 12 months) |
+| --- | --- | --- |
+| **Shared**: Container Registry Basic $5.07, DNS zone $0.50 | **~$5.60** | ~$5.60 |
+| **Prod until launch** (asleep: apps scale to zero, Worker off): Postgres B1ms $14.53 + 32 GB $4.38; error alert ~$0.50; storage/Key Vault cents | **~$20** | **~$1** (the database is free) |
+| **Prod after launch**: the same + apps always on (1 vCPU, 2 GiB in total) ~$29 while idle, more under load; logs within the free 5 GB | **~$50–55** | **~$30–35** |
+| **Dev**: only exists while you work on it (destroyed otherwise) | **$0** when destroyed, ~$0.70/day while up | same |
+| **Uptime**: a free outside monitor | $0 | $0 |
+| **Total until launch** | **~$26** | **~$7** |
+| **Total after launch** | **~$55–60** | **~$35–40** |
+
+The free account: the first 30 days are covered by the $200 credit; for 12 months 750 hours a month
+of one B1ms server with 32 GB are free (prod's database). Check the current list at sign-up.
+
+**Decided against, to keep it cheap** (revisit when traffic or budget justify it):
+- **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
+  and two static public IPs, ~$25/month **per environment**. Instead the database has a public
+  endpoint with TLS (`SSL Mode=VerifyFull`), a 32-character random password and a firewall
+  allowing only Azure services (+ the IPs in `postgres_admin_ip_ranges`).
+- **Azure's availability test** (~$5.60/month every 15 minutes, ~$17 every 5): a free outside
+  monitor instead (see "Uptime"). The module still has it (`availability_test_enabled`).
+- **An always-on dev**: created and destroyed on demand instead.
+- Zone redundancy, geo-redundant backups, a second API replica, dedicated workload profiles,
+  private endpoints.
+- Separate subscriptions for dev and prod (best practice; both run in one so the free credits
+  cover both). Each environment has its own state and provider, so splitting later is a matter of
+  pointing `ARM_SUBSCRIPTION_ID` elsewhere and re-applying.
+
+**Cost levers:** `apps` in `envs/prod/main.tf` (CPU/memory; `min_replicas = 0` makes an app scale to
+zero — how prod runs until launch — at the price of a few seconds' cold start for the first visitor
+after a quiet spell), and `log_daily_cap_gb`.
+
+## First-time setup
+
+Tools: [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), Terraform ≥ 1.11, Docker.
+
+```bash
+az login
+export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)   # every Terraform run needs it
+
+# 1. State storage (once). Its own state stays local, in bootstrap/ — keep that folder's
+#    terraform.tfstate safe (or re-import the three resources if it's lost).
+cd infra/bootstrap && terraform init && terraform apply
+
+# 2. Registry + DNS zone.
+cd ../shared && terraform init -backend-config=../backend.hcl && terraform apply
+terraform output dns_name_servers    # → set these 4 at tophost.md (Domains → imova.md → Nameservers)
+
+# 3. Build and push the images (from a clean, committed tree; the tag is the commit).
+cd .. && scripts/deploy.sh build     # prints the tag
+
+# 4. Each environment, dev first.
+cd envs/dev && terraform init -backend-config=../../backend.hcl
+terraform apply -var image_tag=<tag>
+terraform output web_url             # the site
+```
+
+Names that must be globally unique: `stimovatfstate` (bootstrap) and `acrimova` (shared). If Azure
+says one is taken, change it in `bootstrap/variables.tf` + `backend.hcl`, or in
+`shared/terraform.tfvars` + `envs/*/variables.tf`. The rest get a random suffix.
+
+## Everyday work
+
+**Deploy:** `scripts/deploy.sh build`, then `scripts/deploy.sh release dev <tag>`, check dev, then
+`scripts/deploy.sh release prod <tag>` — the same images, never rebuilt for prod. Terraform only
+sets the image when an app is created (`ignore_changes`), so an apply never rolls a deploy back.
+
+**Dev on demand.** Dev is disposable: create it when you need it, destroy it when you're done (its
+database and photos go with it; nothing in dev is worth keeping).
+
+```bash
+cd infra/envs/dev
+terraform apply -var image_tag=<tag>      # ~10 minutes; then scripts/deploy.sh release dev <tag> for newer tags
+terraform destroy -var image_tag=<tag>    # back to $0
+```
+
+Each new dev gets fresh random names (Key Vault, storage, database), so a destroyed one never
+blocks the next. If you only pause for a day or two, stopping the database is enough
+(`az postgres flexible-server stop -g rg-imova-dev -n <postgres_server_name>`, ~$0.15/day left for
+its disk; Azure starts it again by itself after 7 days).
+
+**Uptime.** A free outside monitor — [Better Stack](https://betterstack.com/uptime) (free: 10
+monitors, every 3 minutes, email alerts, commercial use allowed; alternative: HetrixTools, 15
+monitors every minute). Two monitors on prod:
+1. the home page (`web_url` output), expecting 200 — what visitors see; it calls the API and the
+   database behind it;
+2. the API's `/health/ready` (`api_url` output + `/health/ready`), expecting 200 — 503 means the
+   API is up but can't reach the database.
+Update them when the custom domains arrive (KAN-5). Errors inside the apps are covered by the Azure
+error alert (`error_alert_enabled`, prod).
+
+**Infrastructure change:** edit, then `terraform plan` in `envs/dev`, apply, check, then the same in
+`envs/prod`. A change to the module reaches both — apply dev first.
+
+**Secrets set by hand** (Terraform creates them with the value `set-me` and never overwrites them):
+
+| Secret | Turned on by | Value |
+| --- | --- | --- |
+| `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8) |
+| `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment) |
+| `email-password` | `email = { ... }` | the SMTP provider's password (KAN-14) |
+
+```bash
+az keyvault secret set --vault-name <key_vault_name> --name telegram-bot-token --value '<token>'
+# then restart so the apps read it:
+az containerapp revision restart -g rg-imova-<env> -n imova-worker \
+  --revision $(az containerapp show -g rg-imova-<env> -n imova-worker --query properties.latestRevisionName -o tsv)
+```
+
+**Generated secrets** (database password, JWT signing key) are write-only: Terraform sends them to
+Azure but they are never in the state. To rotate both, bump `secrets_version` in the environment's
+module call and apply — every session is signed out (new JWT key). If an apply fails half way
+after a bump, bump again so the database and Key Vault get the same new password.
+
+**Database access from your machine:** add your IP to `postgres_admin_ip_ranges`
+(`{ home = ["1.2.3.4", "1.2.3.4"] }`), apply, get the connection string with
+`az keyvault secret show --vault-name <kv> --name postgres-connection-string --query value -o tsv`,
+and remove the IP afterwards.
+
+**Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
+purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
+
+## Launch checklist (prod)
+
+1. Wake prod up: in `envs/prod/main.tf`, web `min_replicas = 1`, api `min_replicas = 1`, worker
+   `replicas = 1`; `terraform apply`.
+2. The uptime monitors (see "Uptime") on the final addresses.
+3. Everything under "Still to do" below that's marked for launch.
+
+## Still to do (next tickets)
+
+- **KAN-5 — custom domains + client IPs.** Bind `imova.md`, `www` and `api.imova.md` (DNS records in
+  `shared/`, managed certificates), then set `web_url`/`api_url` in `envs/prod/main.tf`; dev gets
+  `dev.imova.md`. **Before launch:** the API must see the visitor's real IP behind the Container
+  Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
+  rate-limit bucket.
+- **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.
+- **KAN-14** — SMTP provider (`email = { ... }`), SPF/DKIM/DMARC records in the DNS zone.
+- **KAN-15** — tested restore of the database (point-in-time) and the blobs.
+- A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.

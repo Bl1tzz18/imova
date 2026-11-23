@@ -104,6 +104,29 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
 
+  # Formatting and validity of every Terraform stack. No Azure access: providers are downloaded,
+  # nothing is planned or applied.
+  terraform:
+    name: Terraform (fmt, validate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.17"
+      - run: terraform fmt -check -recursive -diff
+        working-directory: infra
+      - name: terraform validate
+        working-directory: infra
+        run: |
+          for stack in bootstrap shared envs/dev envs/prod; do
+            echo "::group::$stack"
+            terraform -chdir="$stack" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="$stack" validate
+            echo "::endgroup::"
+          done
+
   # Catches Dockerfile breakage (a new project not copied in, a failing `next build`, …). Nothing
   # is pushed; layers are cached in the GitHub Actions cache per image.
   docker:
@@ -131,7 +154,5 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
-          # Only the web image uses it; the value compose builds with locally.
-          build-args: NEXT_PUBLIC_API_URL=http://localhost:8080
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
