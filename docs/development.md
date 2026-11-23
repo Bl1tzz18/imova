@@ -145,8 +145,10 @@ a new row appears in `RefreshTokens` with the previous one marked `ReplacedAt`.
   locally? Wait a minute, or restart the backend (the counters are in memory).
 - **Client IP**: the web app's server actions forward the visitor's IP as `X-Forwarded-For`, and the
   API only believes that header from `ForwardedHeaders:KnownNetworks` (plus loopback). Compose
-  trusts `172.16.0.0/12` — fine locally, but in production list only the web server / reverse
-  proxy, and put a reverse proxy in front of Next.js (Next keeps a client-sent `X-Forwarded-For`).
+  trusts `172.16.0.0/12` with one hop. In Azure the Container Apps ingress sits in front of both
+  apps (it's the reverse proxy Next needs) and appends what it saw, so the API trusts the private
+  ranges and walks back two hops (`ForwardedHeaders:ForwardLimit = 2`), and the web server calls the
+  API by its internal app name — see `infra/README.md`, "Custom domain".
 - **Login lockout**: 5 wrong passwords lock the account's sign-in for 15 minutes (429). A password
   reset lifts it; so does clearing `LockoutEnd` in `AspNetUsers`.
 - **CORS** (`Cors:AllowedOrigins`, array): the origins whose browser JS may call the API directly

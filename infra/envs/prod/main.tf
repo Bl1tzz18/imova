@@ -18,10 +18,18 @@ module "imova" {
   container_registry_login_server = data.azurerm_container_registry.shared.login_server
   image_tag                       = var.image_tag
 
-  # Until the custom domains are bound (KAN-5) the apps' own *.azurecontainerapps.io addresses are
-  # used; then: web_url = "https://imova.md", api_url = "https://api.imova.md".
-  web_url = null
-  api_url = null
+  # imova.md (www redirects to it) and api.imova.md, in the shared zone, with managed certificates.
+  domains = {
+    zone_name           = "imova.md"
+    zone_resource_group = "rg-imova-shared"
+    web                 = ["@", "www"]
+    api                 = "api"
+  }
+
+  # The site's and the API's public addresses (emails, CORS, canonical URLs, the browser's API
+  # address). Set only once the certificates above were bound.
+  web_url = "https://imova.md"
+  api_url = "https://api.imova.md"
 
   # UNTIL LAUNCH: asleep — web and API scale to zero (a visit wakes them in a few seconds), the
   # Worker is off. On launch day: web min_replicas = 1, api min_replicas = 1, worker replicas = 1

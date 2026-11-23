@@ -62,3 +62,8 @@ output "storage_account_name" {
 output "application_insights_name" {
   value = azurerm_application_insights.main.name
 }
+
+output "custom_domains" {
+  description = "The bound custom domains (KAN-5)."
+  value       = keys(local.domains)
+}

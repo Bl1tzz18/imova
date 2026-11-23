@@ -4,6 +4,7 @@ import { localeCookieName } from "@/i18n/config";
 import { alternateLinksHeader, localeRedirect, splitLocale } from "@/i18n/localePaths";
 import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/site";
+import { wwwRedirect } from "@/lib/seo/canonicalHost";
 import {
   needsRefresh,
   REFRESH_COOKIE,
@@ -17,6 +18,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 type SessionCookie = ReturnType<typeof sessionCookies>[number];
 
 // Every request, in this order:
+// 0. www.imova.md → imova.md, permanently (lib/seo/canonicalHost).
 // 1. Session: keeps a signed-in visitor signed in. The login token only lives 15 minutes, so an
 //    expired (or nearly expired) one is renewed from the refresh token before any page, server
 //    action or route handler runs. The new tokens go both onto this request — so what renders now
@@ -27,6 +29,9 @@ type SessionCookie = ReturnType<typeof sessionCookies>[number];
 //    segment (/ru/search → [locale]=ru, /search → [locale]=ro, /ro/search → redirect to /search).
 // 3. hreflang: every page answers with its addresses in all three languages (Link header).
 export async function middleware(request: NextRequest) {
+  const canonical = wwwRedirect(request.headers.get("host"), siteUrl(), request.nextUrl.pathname, request.nextUrl.search);
+  if (canonical) return NextResponse.redirect(canonical, 308);
+
   const session = await renewSession(request);
 
   const target = localeRedirect({
