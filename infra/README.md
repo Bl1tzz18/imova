@@ -55,9 +55,13 @@ customers", November 2026), and it was also among the dearest EU regions. Poland
 closest Azure region to Moldova (lowest latency for visitors), inside the EU (as the privacy policy
 says), has every service used here, and costs the same as the cheapest EU regions within ~$2/month.
 
-**Dev runs in Germany West Central** (Frankfurt), not next to prod: the free-trial subscription
-allows only one Container Apps environment per region, and prod's is in Poland Central. Same
-prices; the extra latency doesn't matter for testing.
+**No cloud dev on the free trial.** The free-trial subscription allows only **one Container Apps
+environment in the whole subscription** (`MaxNumberOfGlobalEnvironmentsInSubExceeded` — prod has
+it), and PostgreSQL wasn't available to it in Germany West Central either. Until the upgrade,
+prod (asleep, no real users yet) is the test environment and `docker compose` is dev.
+**Upgrade to Pay-As-You-Go before the trial ends (~2026-12-23)** or prod stops: the remaining
+credit and the 12 months of free services carry over, but the spending limit goes — add budget
+alerts first. Then move dev back to `polandcentral` (`envs/dev/main.tf`) and create it.
 
 **Decided against, to keep it cheap** (revisit when traffic or budget justify it):
 - **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
@@ -186,6 +190,9 @@ changes. Email records (SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
 
 ## Launch checklist (prod)
 
+0. Prod was the test environment before launch: empty the test data (accounts, listings, photos,
+   messages) — e.g. drop and recreate the `imova` database (the API recreates the tables and
+   reference data on start) and empty both blob containers.
 1. Wake prod up: in `envs/prod/main.tf`, web `min_replicas = 1`, api `min_replicas = 1`, worker
    `replicas = 1`; `terraform apply`.
 2. The uptime monitors (see "Uptime") on the final addresses.
