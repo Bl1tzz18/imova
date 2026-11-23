@@ -80,9 +80,10 @@ Tools: [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), Ter
 az login
 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)   # every Terraform run needs it
 
-# 1. State storage (once). Its own state stays local, in bootstrap/ — keep that folder's
-#    terraform.tfstate safe (or re-import the three resources if it's lost).
-cd infra/bootstrap && terraform init && terraform apply
+# 1. State storage (once). It starts with local state, then moves its own state into the account
+#    it created (see the comment in bootstrap/versions.tf).
+cd infra/bootstrap && terraform init -backend=false && terraform apply   # backend block commented out
+terraform init -migrate-state -backend-config=../backend.hcl            # backend block back in
 
 # 2. The image registry + the DNS zone.
 cd ../shared && terraform init -backend-config=../backend.hcl && terraform apply

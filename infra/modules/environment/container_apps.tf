@@ -53,6 +53,9 @@ locals {
       { name = "Storage__AllowedOrigin", value = local.web_url },
       { name = "App__WebBaseUrl", value = local.web_url },
       { name = "APPLICATIONINSIGHTS_CONNECTION_STRING", secret = "appinsights-connection-string" },
+      # EF Core logs every SQL command at Information; the console logs go to Log Analytics, where
+      # that would eat the daily cap. Database timings are already in Application Insights (spans).
+      { name = "Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command", value = "Warning" },
     ],
     var.telegram_bot_username == null ? [] : [
       { name = "Telegram__BotUsername", value = var.telegram_bot_username },
