@@ -1,7 +1,7 @@
 variable "location" {
   description = "Azure region."
   type        = string
-  default     = "westeurope"
+  default     = "polandcentral"
 }
 
 variable "container_registry_name" {

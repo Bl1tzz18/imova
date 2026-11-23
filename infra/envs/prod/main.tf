@@ -12,7 +12,7 @@ module "imova" {
   source = "../../modules/environment"
 
   environment = "prod"
-  location    = "westeurope"
+  location    = "polandcentral"
 
   container_registry_id           = data.azurerm_container_registry.shared.id
   container_registry_login_server = data.azurerm_container_registry.shared.login_server
