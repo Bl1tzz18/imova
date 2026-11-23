@@ -105,6 +105,7 @@ export const privacyEn: LegalDocument = {
               ["Ended listings (sold, rented, expired, withdrawn)", "12 months after their last change, then deleted automatically with their photos."],
               ["Photos uploaded for a listing that was never created", "7 days."],
               ["Conversations and their images", "24 months after the last message, then deleted automatically (a reported conversation is kept until the report is resolved)."],
+              ["Emails sent to our @imova.md addresses", "As long as needed to answer you and to follow up (for example a complaint or a request about your data)."],
               ["Saved listings and searches, blocks", "Until you delete them or your account."],
               ["Reports you file about a listing", "As long as the reported listing exists."],
               ["Sign-in sessions", "Until they expire (at most 90 days), then deleted."],

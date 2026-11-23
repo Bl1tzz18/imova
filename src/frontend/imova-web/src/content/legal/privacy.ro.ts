@@ -106,6 +106,7 @@ export const privacyRo: LegalDocument = {
               ["Anunțurile încheiate (vândute, închiriate, expirate, retrase)", "12 luni de la ultima modificare, apoi sunt șterse automat, cu fotografiile lor."],
               ["Fotografii încărcate pentru un anunț care nu a mai fost creat", "7 zile."],
               ["Conversațiile și imaginile din ele", "24 de luni de la ultimul mesaj, apoi sunt șterse automat (o conversație raportată se păstrează până la soluționarea raportării)."],
+              ["Emailurile trimise la adresele noastre @imova.md", "Cât timp e nevoie pentru a-ți răspunde și pentru eventuale urmări (de exemplu o reclamație sau o cerere legată de datele tale)."],
               ["Anunțurile și căutările salvate, blocările", "Până le ștergi tu sau până ștergi contul."],
               ["Raportările pe care le faci despre un anunț", "Cât timp există anunțul raportat."],
               ["Sesiunile de autentificare", "Până expiră (cel mult 90 de zile), apoi sunt șterse."],
