@@ -52,3 +52,9 @@ variable "mx_records" {
   type        = map(string)
   default     = {}
 }
+
+variable "txt_records" {
+  description = "Other TXT records, name (relative to the zone) => value — e.g. the mailbox provider's DKIM key."
+  type        = map(string)
+  default     = {}
+}

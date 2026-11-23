@@ -129,3 +129,19 @@ resource "azurerm_dns_mx_record" "apex" {
 
   tags = local.tags
 }
+
+# Other TXT records (the mailbox provider's DKIM key, …).
+resource "azurerm_dns_txt_record" "other" {
+  for_each = var.txt_records
+
+  name                = each.key
+  zone_name           = azurerm_dns_zone.main.name
+  resource_group_name = azurerm_resource_group.shared.name
+  ttl                 = 3600
+
+  record {
+    value = each.value
+  }
+
+  tags = local.tags
+}
