@@ -22,3 +22,8 @@ variable "container_registry_sku" {
     error_message = "Basic or Standard: Premium isn't needed."
   }
 }
+
+variable "dns_zone_name" {
+  description = "The public domain whose DNS Azure answers (nameservers set at the registrar, tophost.md)."
+  type        = string
+}
