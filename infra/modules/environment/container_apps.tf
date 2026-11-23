@@ -43,6 +43,7 @@ locals {
       "appinsights-connection-string" = azurerm_key_vault_secret.appinsights_connection_string.versionless_id
     },
     { for name, secret in azurerm_key_vault_secret.manual : name => secret.versionless_id },
+    { for secret in azurerm_key_vault_secret.email_password : "email-password" => secret.versionless_id },
   )
 
   # Settings the API and the Worker share. value = plain setting, secret = a key of local.kv_secret.
@@ -60,12 +61,13 @@ locals {
     var.telegram_bot_username == null ? [] : [
       { name = "Telegram__BotUsername", value = var.telegram_bot_username },
     ],
-    var.email == null ? [] : [
-      { name = "Email__Host", value = var.email.host },
-      { name = "Email__Port", value = tostring(var.email.port) },
-      { name = "Email__EnableSsl", value = tostring(var.email.enable_ssl) },
-      { name = "Email__Username", value = var.email.username },
-      { name = "Email__FromAddress", value = var.email.from_address },
+    var.acs_email == null ? [] : [
+      # Azure Communication Services' SMTP endpoint, STARTTLS on 587 (modules/environment/email.tf).
+      { name = "Email__Host", value = "smtp.azurecomm.net" },
+      { name = "Email__Port", value = "587" },
+      { name = "Email__EnableSsl", value = "true" },
+      { name = "Email__Username", value = local.smtp_username },
+      { name = "Email__FromAddress", value = var.acs_email.from_address },
       { name = "Email__Password", secret = "email-password" },
     ],
   )

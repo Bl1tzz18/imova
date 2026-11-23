@@ -14,6 +14,15 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.13"
     }
+    # The SMTP application for outgoing email (modules/environment/email.tf).
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.10"
+    }
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 2.14"
+    }
   }
 
   # The rest of the settings: infra/backend.hcl (terraform init -backend-config=../../backend.hcl).
@@ -40,3 +49,8 @@ provider "azurerm" {
     }
   }
 }
+
+# Both sign in like azurerm: the Azure CLI locally, the same identity in CI later.
+provider "azuread" {}
+
+provider "azapi" {}

@@ -162,13 +162,15 @@ variable "telegram_bot_username" {
   default     = null
 }
 
-variable "email" {
-  description = "SMTP settings (KAN-14). Null = emails are only logged. The password is the email-password secret."
+variable "acs_email" {
+  description = <<-EOT
+    Outgoing email through Azure Communication Services (infra/shared/email.tf): the shared,
+    verified email domain and the sender. The environment gets its own Communication Service, an
+    Entra application for SMTP and the password in Key Vault — nothing to set by hand.
+    Null = emails are only logged.
+  EOT
   type = object({
-    host         = string
-    port         = number
-    enable_ssl   = bool
-    username     = string
+    domain_id    = string
     from_address = string
   })
   default = null

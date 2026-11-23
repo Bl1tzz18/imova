@@ -3,7 +3,7 @@
 # - generated, write-only (database password, JWT key): created from an ephemeral random value,
 #   sent to Azure but never written to the Terraform state; rotated by bumping var.secrets_version;
 # - derived (storage and Application Insights connection strings): kept in sync by Terraform;
-# - set by hand (Google, Telegram, SMTP): created with a placeholder, then `az keyvault secret set`
+# - set by hand (Google, Telegram, MediatR): created with a placeholder, then `az keyvault secret set`
 #   (infra/README.md); Terraform never overwrites the real value.
 
 resource "azurerm_key_vault" "main" {
@@ -115,7 +115,6 @@ locals {
     var.google_auth_enabled ? ["google-client-id", "google-client-secret"] : [],
     var.mediatr_license_enabled ? ["mediatr-license-key"] : [],
     var.telegram_bot_username != null ? ["telegram-bot-token"] : [],
-    var.email != null ? ["email-password"] : [],
   ))
 }
 
