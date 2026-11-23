@@ -27,3 +27,28 @@ variable "dns_zone_name" {
   description = "The public domain whose DNS Azure answers (nameservers set at the registrar, tophost.md)."
   type        = string
 }
+
+variable "spf_includes" {
+  description = <<-EOT
+    Other senders allowed to send as @imova.md, added to the SPF record next to Azure's (e.g. the
+    mailbox provider's "zoho.eu" once contact@imova.md exists). One SPF record per domain is allowed,
+    so every sender goes in this one.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
+variable "apex_txt_extra" {
+  description = "Other TXT values on imova.md itself (e.g. the mailbox provider's verification code)."
+  type        = list(string)
+  default     = []
+}
+
+variable "mx_records" {
+  description = <<-EOT
+    Where mail for @imova.md is delivered (the mailbox provider, e.g. Zoho's mx.zoho.eu / mx2 / mx3),
+    preference => mail server. Empty = imova.md receives no mail.
+  EOT
+  type        = map(string)
+  default     = {}
+}

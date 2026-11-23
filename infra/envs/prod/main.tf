@@ -8,6 +8,13 @@ data "azurerm_container_registry" "shared" {
   resource_group_name = "rg-imova-shared"
 }
 
+data "azurerm_client_config" "current" {}
+
+locals {
+  # The shared email domain (infra/shared/email.tf); there's no data source for it.
+  email_domain_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/rg-imova-shared/providers/Microsoft.Communication/emailServices/ecs-imova/domains/imova.md"
+}
+
 module "imova" {
   source = "../../modules/environment"
 
@@ -44,6 +51,12 @@ module "imova" {
   alert_email               = "catalinfilip47@gmail.com"
   availability_test_enabled = false # ~$5.60/month; a free outside monitor does it instead
   error_alert_enabled       = true
+
+  # Outgoing email from no-reply@imova.md through Azure Communication Services (infra/shared/email.tf).
+  acs_email = {
+    domain_id    = local.email_domain_id
+    from_address = "no-reply@imova.md"
+  }
 
   # Community license, valid until 2027-11-23: renew it before then (infra/README.md).
   mediatr_license_enabled = true

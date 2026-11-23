@@ -15,5 +15,14 @@ terraform {
       source  = "hashicorp/time"
       version = "~> 0.13"
     }
+    # The SMTP application for outgoing email (modules/environment/email.tf).
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.10"
+    }
+    azapi = {
+      source  = "azure/azapi"
+      version = "~> 2.14"
+    }
   }
 }

@@ -150,7 +150,6 @@ error alert (`error_alert_enabled`, prod).
 | --- | --- | --- |
 | `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8) |
 | `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment) |
-| `email-password` | `email = { ... }` | the SMTP provider's password (KAN-14) |
 | `mediatr-license-key` | `mediatr_license_enabled = true` (prod) | the Lucky Penny MediatR Community license — **valid until 2027-11-23**, renew it at luckypennysoftware.com |
 
 ```bash
@@ -197,7 +196,32 @@ the public address would resolve to the environment's public IP even from inside
 in with Azure's outbound address), and the API trusts private addresses and two
 `X-Forwarded-For` hops (`ForwardedHeaders:KnownNetworks` + `ForwardLimit = 2`;
 `AuthRateLimiting.ConfigureForwardedHeaders`, tests in `ForwardedHeadersTests`). Email records
-(SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
+(SPF, DKIM, DMARC, MX) are in the same zone — see "Email".
+
+## Email (KAN-14)
+
+**Outgoing** (confirmations, password resets, alerts) — Azure Communication Services Email, from
+`no-reply@imova.md`, data in Europe:
+- `shared/email.tf`: the email service and the `imova.md` domain, verified through DNS records
+  Terraform writes in the zone (the Azure domain proof and SPF on the apex TXT, two DKIM CNAMEs,
+  a `_dmarc` TXT with `p=none`), then asks Azure to check them.
+- `modules/environment/email.tf` (`acs_email` in `envs/<env>/main.tf`): the environment's own
+  Communication Service linked to that domain, an Entra application `imova-<env>-smtp` (ACS
+  authenticates SMTP through it), its client secret in Key Vault as `email-password` (2 years,
+  rotated with `secrets_version`), and the SMTP username `imova-<env>`. The apps send through
+  `smtp.azurecomm.net:587` with STARTTLS — the same SmtpEmailSender as with Mailpit locally.
+- Limits for a custom domain: 30 emails a minute, 100 an hour per subscription. Raise them with a
+  quota request (Azure portal → the email domain) once there's some sending history.
+
+**Incoming** (`contact@imova.md`, promised in the Terms and the Privacy policy) — a mailbox
+provider (Zoho Mail). When it asks for DNS records, put them in `shared/terraform.tfvars` and apply
+`shared/`:
+- `mx_records = { "10" = "mx.zoho.eu", "20" = "mx2.zoho.eu", "50" = "mx3.zoho.eu" }` (use the
+  servers Zoho shows);
+- `spf_includes = ["zoho.eu"]` — one SPF record per domain, so Zoho is added to Azure's;
+- `apex_txt_extra = ["zoho-verification=..."]` for Zoho's domain check;
+- Zoho's DKIM record is a TXT on its own name — add it as an `azurerm_dns_txt_record` in
+  `shared/email.tf`.
 
 ## Launch checklist (prod)
 
@@ -216,6 +240,6 @@ in with Azure's outbound address), and the API trusts private addresses and two
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
 - **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.
-- **KAN-14** — SMTP provider (`email = { ... }`), SPF/DKIM/DMARC records in the DNS zone.
+- **contact@imova.md** — the Zoho mailbox (see "Email"), before launch (KAN-34).
 - **KAN-15** — tested restore of the database (point-in-time) and the blobs.
 - A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.
