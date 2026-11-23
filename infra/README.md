@@ -30,16 +30,24 @@ Each environment (`rg-imova-<env>`):
 
 | | Monthly | With the free account (first 12 months) |
 | --- | --- | --- |
-| **Shared**: Container Registry Basic $5.07, DNS zone $0.50 | **~$5.60** | ~$5.60 |
+| **Shared**: Container Registry (Standard: free for 12 months; then switch to Basic, $5.07), DNS zone $0.50 | **~$5.60** | **$0.50** |
 | **Prod until launch** (asleep: apps scale to zero, Worker off): Postgres B1ms $14.53 + 32 GB $4.38; error alert ~$0.50; storage/Key Vault cents | **~$20** | **~$1** (the database is free) |
 | **Prod after launch**: the same + apps always on (1 vCPU, 2 GiB in total) ~$29 while idle, more under load; logs within the free 5 GB | **~$50–55** | **~$30–35** |
 | **Dev**: only exists while you work on it (destroyed otherwise) | **$0** when destroyed, ~$0.70/day while up | same |
 | **Uptime**: a free outside monitor | $0 | $0 |
-| **Total until launch** | **~$26** | **~$7** |
-| **Total after launch** | **~$55–60** | **~$35–40** |
+| **Total until launch** | **~$26** | **~$1.50** |
+| **Total after launch** | **~$55–60** | **~$30–35** |
 
 The free account: the first 30 days are covered by the $200 credit; for 12 months 750 hours a month
-of one B1ms server with 32 GB are free (prod's database). Check the current list at sign-up.
+of one B1ms server with 32 GB (prod's database) and one Standard Container Registry are free.
+**Before the 12 months end** (the subscription was created in November 2026): set
+`container_registry_sku = "Basic"` in `shared/terraform.tfvars` and apply — Standard would then
+cost ~$20/month.
+
+**DNS is in Azure** ($0.50/month for the whole zone): imova.md stays registered at tophost.md, only
+its nameservers point at Azure. That's what lets dev have its own domain: dev is destroyed after
+every working session and comes back with a new address, so Terraform has to rewrite its records
+each time — by hand at tophost.md that would be four records per session.
 
 **Decided against, to keep it cheap** (revisit when traffic or budget justify it):
 - **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
@@ -71,7 +79,7 @@ export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)   # every Terraf
 #    terraform.tfstate safe (or re-import the three resources if it's lost).
 cd infra/bootstrap && terraform init && terraform apply
 
-# 2. Registry + DNS zone.
+# 2. The image registry + the DNS zone.
 cd ../shared && terraform init -backend-config=../backend.hcl && terraform apply
 terraform output dns_name_servers    # → set these 4 at tophost.md (Domains → imova.md → Nameservers)
 
@@ -149,6 +157,21 @@ and remove the IP afterwards.
 **Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
 purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
 
+## Custom domain (KAN-5)
+
+| Environment | Site | API |
+| --- | --- | --- |
+| prod | `imova.md` (and `www.imova.md` → redirect) | `api.imova.md` |
+| dev | `dev.imova.md` | `api.dev.imova.md` |
+
+All records live in the Azure DNS zone and are written by Terraform: an A record (apex, to the
+environment's `static_ip_address`) or a CNAME (to the app's `*_default_hostname`), plus an
+`asuid.<name>` TXT record with the environment's `custom_domain_verification_id`. Container Apps
+then issues and renews the HTTPS certificates itself, for free
+(`azurerm_container_app_environment_managed_certificate` + `azurerm_container_app_custom_domain`).
+Dev's records are rewritten on every recreate, so dev keeps its domain although its Azure address
+changes. Email records (SPF, DKIM, DMARC, MX) go in the same zone with KAN-14.
+
 ## Launch checklist (prod)
 
 1. Wake prod up: in `envs/prod/main.tf`, web `min_replicas = 1`, api `min_replicas = 1`, worker
@@ -158,9 +181,8 @@ purge protection (90 days). Removing prod on purpose = remove `protect_data`, ap
 
 ## Still to do (next tickets)
 
-- **KAN-5 — custom domains + client IPs.** Bind `imova.md`, `www` and `api.imova.md` (DNS records in
-  `shared/`, managed certificates), then set `web_url`/`api_url` in `envs/prod/main.tf`; dev gets
-  `dev.imova.md`. **Before launch:** the API must see the visitor's real IP behind the Container
+- **KAN-5 — custom domains + client IPs.** prod on `imova.md`/`www`/`api.imova.md`, dev on
+  `dev.imova.md`/`api.dev.imova.md` (see "Custom domain"). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
 - **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.
