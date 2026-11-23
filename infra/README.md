@@ -213,15 +213,13 @@ in with Azure's outbound address), and the API trusts private addresses and two
 - Limits for a custom domain: 30 emails a minute, 100 an hour per subscription. Raise them with a
   quota request (Azure portal → the email domain) once there's some sending history.
 
-**Incoming** (`contact@imova.md`, promised in the Terms and the Privacy policy) — a mailbox
-provider (Zoho Mail). When it asks for DNS records, put them in `shared/terraform.tfvars` and apply
-`shared/`:
-- `mx_records = { "10" = "mx.zoho.eu", "20" = "mx2.zoho.eu", "50" = "mx3.zoho.eu" }` (use the
-  servers Zoho shows);
-- `spf_includes = ["zoho.eu"]` — one SPF record per domain, so Zoho is added to Azure's;
-- `apex_txt_extra = ["zoho-verification=..."]` for Zoho's domain check;
-- Zoho's DKIM record is a TXT on its own name — add it as an `azurerm_dns_txt_record` in
-  `shared/email.tf`.
+**Incoming** (`contact@imova.md`, promised in the Terms and the Privacy policy) — a Zoho Mail
+mailbox (free plan, EU data centre): the admin mailbox `catalinfilip@imova.md` with `contact@` as an
+alias. Its DNS records are in `shared/terraform.tfvars`: `mx_records` (mx/mx2/mx3.zoho.eu),
+`spf_includes = ["zoho.eu"]` (one SPF record per domain, so Zoho is added to Azure's —
+`v=spf1 include:spf.protection.outlook.com include:zoho.eu -all`), `apex_txt_extra` (Zoho's domain
+check) and `txt_records` (Zoho's DKIM key on `zmail._domainkey`). Zoho may show its own SPF as
+not matching: ours is the combined one on purpose.
 
 ## Launch checklist (prod)
 
