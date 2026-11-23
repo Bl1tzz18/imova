@@ -1,9 +1,10 @@
-// Runs in the browser (called from the client-side ImageUploader), so this needs the
-// browser-reachable API origin — NEXT_PUBLIC_API_URL, not the server-only API_URL used by
-// Server Components/Actions. Falls back to localhost:8080 to match the pattern used everywhere
-// else in this app for local (non-Docker) dev.
+import { readPublicConfig } from "@/lib/api/publicConfig";
+
+// Runs in the browser (uploads, typeaheads, the messaging hub), so this needs the browser-reachable
+// API origin — PUBLIC_API_URL, read at server start and handed to the page (lib/api/publicConfig),
+// not the server-only API_URL used by Server Components/Actions. Localhost:8080 when unset.
 export function getBrowserApiUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  return readPublicConfig().apiUrl;
 }
 
 // Asking for an upload URL and confirming the upload need the session token, so they're server

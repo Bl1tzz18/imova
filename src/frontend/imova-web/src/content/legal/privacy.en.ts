@@ -112,7 +112,7 @@ export const privacyEn: LegalDocument = {
               ["CSV files imported by agencies", "30 days."],
               ["The log of administrators' actions", "Permanently; the IP address in it is deleted after 12 months."],
               ["Telegram connection", "Until you disconnect it or delete your account."],
-              ["Database backups", "Up to 7 days, then overwritten."],
+              ["Database backups and deleted files (photos, message images)", "Up to 7 days, then permanently deleted."],
               ["Server technical logs", "Up to 90 days."],
             ],
           },

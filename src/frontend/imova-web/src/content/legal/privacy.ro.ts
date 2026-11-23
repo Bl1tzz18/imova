@@ -113,7 +113,7 @@ export const privacyRo: LegalDocument = {
               ["Fișierele CSV importate de agenții", "30 de zile."],
               ["Jurnalul acțiunilor administratorilor", "Permanent; adresa IP din el se șterge după 12 luni."],
               ["Conexiunea Telegram", "Până o deconectezi sau ștergi contul."],
-              ["Copiile de siguranță ale bazei de date", "Până la 7 zile, apoi sunt suprascrise."],
+              ["Copiile de siguranță ale bazei de date și fișierele șterse (fotografii, imagini din mesaje)", "Până la 7 zile, apoi sunt șterse definitiv."],
               ["Jurnalele tehnice ale serverelor", "Până la 90 de zile."],
             ],
           },
