@@ -55,6 +55,10 @@ customers", November 2026), and it was also among the dearest EU regions. Poland
 closest Azure region to Moldova (lowest latency for visitors), inside the EU (as the privacy policy
 says), has every service used here, and costs the same as the cheapest EU regions within ~$2/month.
 
+**Dev runs in Germany West Central** (Frankfurt), not next to prod: the free-trial subscription
+allows only one Container Apps environment per region, and prod's is in Poland Central. Same
+prices; the extra latency doesn't matter for testing.
+
 **Decided against, to keep it cheap** (revisit when traffic or budget justify it):
 - **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
   and two static public IPs, ~$25/month **per environment**. Instead the database has a public

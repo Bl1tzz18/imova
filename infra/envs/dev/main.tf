@@ -12,7 +12,9 @@ module "imova" {
   source = "../../modules/environment"
 
   environment = "dev"
-  location    = "polandcentral"
+  # Not Poland Central like prod: the free-trial subscription allows one Container Apps
+  # environment per region (MaxNumberOfRegionalEnvironmentsInSubExceeded), and prod has it there.
+  location = "germanywestcentral"
 
   container_registry_id           = data.azurerm_container_registry.shared.id
   container_registry_login_server = data.azurerm_container_registry.shared.login_server
