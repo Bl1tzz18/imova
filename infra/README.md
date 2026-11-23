@@ -1,6 +1,6 @@
 # IMOVA infrastructure (Azure, Terraform)
 
-Two environments, **dev** (created only while you work on it) and **prod**, built from one module, in **West Europe** (Netherlands —
+Two environments, **dev** (created only while you work on it) and **prod**, built from one module, in **Poland Central** (Warsaw —
 inside the EU, as the privacy policy says), at the lowest cost that still runs the app properly.
 
 ```
@@ -26,17 +26,17 @@ Each environment (`rg-imova-<env>`):
 | Log Analytics + Application Insights | 30 days' retention, daily cap | prod: error alert by email (uptime: a free outside monitor) |
 | User-assigned identity | pulls images (AcrPull), reads secrets (Key Vault Secrets User) | no registry passwords |
 
-## Costs (USD, West Europe retail prices, November 2026)
+## Costs (USD, Poland Central retail prices, November 2026)
 
 | | Monthly | With the free account (first 12 months) |
 | --- | --- | --- |
 | **Shared**: Container Registry (Standard: free for 12 months; then switch to Basic, $5.07), DNS zone $0.50 | **~$5.60** | **$0.50** |
 | **Prod until launch** (asleep: apps scale to zero, Worker off): Postgres B1ms $14.53 + 32 GB $4.38; error alert ~$0.50; storage/Key Vault cents | **~$20** | **~$1** (the database is free) |
-| **Prod after launch**: the same + apps always on (1 vCPU, 2 GiB in total) ~$29 while idle, more under load; logs within the free 5 GB | **~$50–55** | **~$30–35** |
+| **Prod after launch**: the same + apps always on (1 vCPU, 2 GiB in total) ~$22 while idle, more under load; logs within the free 5 GB | **~$40–45** | **~$22–27** |
 | **Dev**: only exists while you work on it (destroyed otherwise) | **$0** when destroyed, ~$0.70/day while up | same |
 | **Uptime**: a free outside monitor | $0 | $0 |
 | **Total until launch** | **~$26** | **~$1.50** |
-| **Total after launch** | **~$55–60** | **~$30–35** |
+| **Total after launch** | **~$46–51** | **~$23–28** |
 
 The free account: the first 30 days are covered by the $200 credit; for 12 months 750 hours a month
 of one B1ms server with 32 GB (prod's database) and one Standard Container Registry are free.
@@ -48,6 +48,11 @@ cost ~$20/month.
 its nameservers point at Azure. That's what lets dev have its own domain: dev is destroyed after
 every working session and comes back with a new address, so Terraform has to rewrite its records
 each time — by hand at tophost.md that would be four records per session.
+
+**Why Poland Central:** West Europe refuses new free-trial subscriptions ("not accepting new
+customers", November 2026), and it was also among the dearest EU regions. Poland Central is the
+closest Azure region to Moldova (lowest latency for visitors), inside the EU (as the privacy policy
+says), has every service used here, and costs the same as the cheapest EU regions within ~$2/month.
 
 **Decided against, to keep it cheap** (revisit when traffic or budget justify it):
 - **A virtual network** (private database, fixed outbound IP): it brings a standard load balancer
