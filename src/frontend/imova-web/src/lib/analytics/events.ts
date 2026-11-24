@@ -16,7 +16,9 @@ export type AnalyticsEvent =
   | "favorite_removed"
   | "saved_search_created"
   | "listing_created"
-  | "search_performed";
+  | "search_performed"
+  // Sent by the sign-up server actions (lib/analytics/serverEvents), not by track().
+  | "account_created";
 
 type Properties = Record<string, string | number | boolean | string[] | null>;
 

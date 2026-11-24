@@ -63,7 +63,7 @@ public class RegisterHandler(
         var roles = (await userManager.GetRolesAsync(user)).ToList();
 
         var session = await authSessions.StartAsync(user, persistent: true, cancellationToken);
-        return AuthResults.For(user, roles, session);
+        return AuthResults.For(user, roles, session, accountCreated: true);
     }
 
 }

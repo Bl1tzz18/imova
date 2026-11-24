@@ -129,6 +129,29 @@ public class AccountEndpointsTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    // The web app counts sign-ups in its analytics from this flag.
+    public async Task Register_SaysTheAccountWasCreated_ALaterLoginDoesNot()
+    {
+        var email = $"created-{Guid.NewGuid():N}@example.com";
+        var client = _factory.CreateClient();
+
+        var register = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email,
+            password = Password,
+            displayName = "New Account",
+            phoneNumber = "+373 69 123 456",
+            acceptedTermsVersion = LegalTerms.CurrentVersion,
+        });
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password = Password });
+
+        register.EnsureSuccessStatusCode();
+        login.EnsureSuccessStatusCode();
+        Assert.True((await register.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accountCreated").GetBoolean());
+        Assert.False((await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accountCreated").GetBoolean());
+    }
+
+    [Fact]
     public async Task Register_WithATakenEmail_ReportsItOnce_WithACode()
     {
         var (_, user) = await ListingApi.RegisterAsync(_factory);

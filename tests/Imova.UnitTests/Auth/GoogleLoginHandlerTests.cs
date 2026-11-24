@@ -71,6 +71,31 @@ public class GoogleLoginHandlerTests
     }
 
     [Fact]
+    // The web app counts sign-ups from this flag: only the sign-in that created the account sets it.
+    public async Task Handle_FlagsTheResultAsAccountCreated_OnlyForANewAccount()
+    {
+        var store = new FakeUserStore();
+        store.SeedUser("existing@example.com", emailConfirmed: true);
+        var handler = CreateHandler(store, new FakeGoogleTokenValidator
+        {
+            UserToReturn = new GoogleUserInfo("new.user@example.com", "New User", null),
+        });
+        var existingHandler = CreateHandler(store, new FakeGoogleTokenValidator
+        {
+            UserToReturn = new GoogleUserInfo("existing@example.com", "Existing", null),
+        });
+        var command = new GoogleLoginCommand("valid-id-token", AcceptedTermsVersion: LegalTerms.CurrentVersion);
+
+        var created = await handler.Handle(command, CancellationToken.None);
+        var again = await handler.Handle(command, CancellationToken.None);
+        var existing = await existingHandler.Handle(command, CancellationToken.None);
+
+        Assert.True(created.AccountCreated);
+        Assert.False(again.AccountCreated);
+        Assert.False(existing.AccountCreated);
+    }
+
+    [Fact]
     public async Task Handle_WithNoExistingAccount_CreatesConfirmedUserAndAssignsUserRole()
     {
         var store = new FakeUserStore();

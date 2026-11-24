@@ -7,7 +7,10 @@ public record AuthResultDto(
     AuthUserDto User,
     string RefreshToken,
     DateTimeOffset RefreshTokenExpiresAt,
-    bool Persistent);
+    bool Persistent,
+    // True only on the request that created the account (registration, or a first Google sign-in):
+    // the web app counts sign-ups in its analytics from it.
+    bool AccountCreated = false);
 
 public record AuthUserDto(
     Guid Id,
