@@ -17,16 +17,18 @@ export function ResultsToolbar({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mt-4 flex items-center justify-between gap-3">
+    // Wraps on a narrow phone (the count on its own line) instead of running off the screen —
+    // "Salvează căutarea" and the sort menu don't both fit beside the count at 390px.
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <p className="text-sm text-ink-500" aria-live="polite">
         {summary}
       </p>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="ml-auto flex min-w-0 items-center gap-2">
         {actions}
         <div className="hidden lg:block">
           <ViewToggle />
         </div>
-        <div className={cn(!sortOnPhones && "hidden lg:block")}>
+        <div className={cn("min-w-0", !sortOnPhones && "hidden lg:block")}>
           <SortSelect />
         </div>
       </div>

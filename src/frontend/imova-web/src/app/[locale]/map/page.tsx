@@ -42,7 +42,8 @@ export default async function MapPage({ searchParams }: PageProps) {
         <SearchNavigationProvider state={state} view="map">
           <FilterOptionsProvider>
             <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-              <h1 className="pt-8 font-hero text-2xl font-extrabold text-ink-950 sm:text-3xl">{title}</h1>
+              {/* Smaller on a phone: the map needs the room under the two filter rows. */}
+              <h1 className="pt-4 font-hero text-xl font-extrabold text-ink-950 sm:pt-8 sm:text-3xl">{title}</h1>
 
               <div className="sticky top-20 z-20 -mx-4 mt-4 border-b border-line bg-ink-50/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                 <SearchFilterBar totalCount={results?.totalCount ?? 0} />

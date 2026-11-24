@@ -122,5 +122,5 @@ function publicLocation(response: NextResponse, request: NextRequest) {
 export const config = {
   runtime: "nodejs",
   // Everything except Next's own files and static files (images, sitemap*.xml, robots.txt).
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|txt|xml)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|txt|xml)$).*)"],
 };

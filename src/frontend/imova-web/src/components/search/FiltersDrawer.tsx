@@ -10,7 +10,8 @@ import { useSearchNavigation } from "./SearchNavigation";
 
 // The filters that don't fit in the top bar. variant "side" (desktop): a panel sliding over the
 // right edge with the type's detailed filters — the bar keeps transaction, type, location and
-// price. variant "sheet" (phone): full screen with every filter, the only filter UI there. Either
+// price. variant "sheet" (phone): every filter, the whole screen under the site header — the
+// only filter UI there besides the location field and price pill. Either
 // way the results update behind it as filters change, and the footer says how many there are.
 // Rendered into <body>: its trigger sits in the sticky, backdrop-blurred top bar, and a
 // backdrop-filter makes an element the containing block of its position:fixed descendants — the
@@ -52,7 +53,9 @@ export function FiltersDrawer({
   const title = side ? t("moreFilters") : t("filters");
 
   return createPortal(
-    <div className={cn("fixed inset-0 z-50 flex", side ? "hidden justify-end lg:flex" : "lg:hidden")}>
+    // The phone sheet starts under the site header (h-20 + its border) and sits below it, so the
+    // logo, language, account and "Adaugă anunț" stay there — and their menus open over the sheet.
+    <div className={cn("fixed flex", side ? "inset-0 z-50 hidden justify-end lg:flex" : "inset-x-0 bottom-0 top-[81px] z-[25] lg:hidden")}>
       {side && <div className="absolute inset-0 bg-ink-950/30" onClick={onClose} aria-hidden />}
       <div
         role="dialog"

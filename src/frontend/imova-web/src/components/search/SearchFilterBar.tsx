@@ -7,6 +7,7 @@ import { activeFilterCount, clearAllFilters, detailFilterCount, singlePropertyTy
 import { FilterPopover } from "./FilterPopover";
 import { LocationFilter, PropertyTypePicker, RangeInputs, TransactionToggle, useLocationSummary } from "./FilterControls";
 import { FiltersDrawer } from "./FiltersDrawer";
+import { LocationSearchField } from "./LocationSearchField";
 import { useSearchNavigation } from "./SearchNavigation";
 import { ViewToggle } from "./ViewToggle";
 
@@ -29,9 +30,9 @@ function CountBadge({ count }: { count: number }) {
 // The pinned search filter bar (the /search list and the /map view share it) — only what narrows
 // the search; how the results are shown (list/map, sorting) is the ResultsToolbar's, under it.
 // Desktop: the filters people change most — transaction, type, location, price — each one click
-// away, "Mai multe filtre" for the type's detailed filters (a side drawer) and reset. Phone:
-// "Filtre" (a full-screen sheet with every filter), reset, and the list/map switch (the toolbar
-// row has only room for the count and sorting there).
+// away, "Mai multe filtre" for the type's detailed filters (a side drawer) and reset. Phone: the
+// location typeahead on top, then price, "Filtre" (a full-screen sheet with every filter) and the
+// list/map switch (the toolbar row has only room for the count and sorting there).
 export function SearchFilterBar({ totalCount }: { totalCount: number }) {
   const t = useTranslations("Search");
   const tType = useTranslations("PropertyType");
@@ -65,6 +66,24 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
       </button>
     ) : null;
 
+  // The price pill: in the desktop bar and in the phone's second row (narrower there).
+  const pricePopover = (panelClassName?: string, maxWidthClassName?: string) => (
+    <FilterPopover
+      label={t("pricePill")}
+      value={price}
+      onClear={() => change({ minPriceEur: null, maxPriceEur: null })}
+      panelClassName={panelClassName}
+      maxWidthClassName={maxWidthClassName}
+    >
+      {() => (
+        <div>
+          <span className="mb-2 block text-xs font-medium text-ink-600">{t("price")}</span>
+          <RangeInputs minParam="minPriceEur" maxParam="maxPriceEur" label={t("price")} decimal />
+        </div>
+      )}
+    </FilterPopover>
+  );
+
   return (
     <>
       <div className="flex items-center gap-2">
@@ -80,14 +99,7 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
           >
             {() => <LocationFilter showClear={false} />}
           </FilterPopover>
-          <FilterPopover label={t("pricePill")} value={price} onClear={() => change({ minPriceEur: null, maxPriceEur: null })}>
-            {() => (
-              <div>
-                <span className="mb-2 block text-xs font-medium text-ink-600">{t("price")}</span>
-                <RangeInputs minParam="minPriceEur" maxParam="maxPriceEur" label={t("price")} decimal />
-              </div>
-            )}
-          </FilterPopover>
+          {pricePopover()}
           <button
             type="button"
             onClick={() => setDrawer("side")}
@@ -100,20 +112,28 @@ export function SearchFilterBar({ totalCount }: { totalCount: number }) {
           {reset}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setDrawer("sheet")}
-          className="flex h-10 items-center gap-2 rounded-full border border-line bg-white px-4 text-sm font-medium text-ink-800 lg:hidden"
-        >
-          {SLIDERS_ICON}
-          {t("filters")}
-          <CountBadge count={filterCount} />
-        </button>
-        <div className="lg:hidden">{reset}</div>
-
-        {/* Wider screens show the list/map switch in the results toolbar under the bar. */}
-        <div className="ml-auto lg:hidden">
-          <ViewToggle />
+        {/* Phone: where (typeahead) on its own row, then price, every other filter and the list/map
+            switch (wider screens have that one in the results toolbar under the bar). No reset
+            button here — it doesn't fit beside a set price at 390px; the sheet's footer and the
+            applied-filter chips under the bar clear filters. The price takes what's left and
+            shortens its text. */}
+        <div className="w-full space-y-2 lg:hidden">
+          <LocationSearchField />
+          <div className="flex items-center gap-2">
+            <div className="min-w-0">{pricePopover("w-[min(340px,calc(100vw-2rem))]", "max-w-full")}</div>
+            <button
+              type="button"
+              onClick={() => setDrawer("sheet")}
+              className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-white px-4 text-sm font-medium text-ink-800"
+            >
+              {SLIDERS_ICON}
+              {t("filters")}
+              <CountBadge count={filterCount} />
+            </button>
+            <div className="ml-auto shrink-0">
+              <ViewToggle />
+            </div>
+          </div>
         </div>
       </div>
 

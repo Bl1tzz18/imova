@@ -12,7 +12,8 @@ import { getAdminSummary } from "@/lib/admin/summaryApi";
 
 // On a phone (down to 360 px) everything sits on one row: the logo never shrinks, the language is a
 // compact select, "Autentificare" is a person icon, and "Adaugă anunț" stays on one line. The links
-// in the middle are desktop-only (phones reach search from the home page).
+// in the middle are desktop-only (phones reach search from the home page). The account (avatar, or
+// sign-in) is the last thing on the right, after "Adaugă anunț" — where most sites keep it.
 export async function Header() {
   const [t, tCommon, profile] = await Promise.all([
     getTranslations("Header"),
@@ -44,6 +45,11 @@ export async function Header() {
         <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
           <LanguageSwitcher />
           {profile && <HeaderMessagesLink />}
+          {/* A shorter label on phones where the full one doesn't fit (Russian); the same words in Romanian. */}
+          <LinkButton href="/properties/new" size="sm" className="shrink-0 whitespace-nowrap px-3 sm:px-3.5">
+            <span className="sm:hidden">{tCommon("addListingShort")}</span>
+            <span className="hidden sm:inline">{tCommon("addListing")}</span>
+          </LinkButton>
           {profile ? (
             <AccountMenu profile={profile} adminWaiting={adminWaiting} />
           ) : (
@@ -58,11 +64,6 @@ export async function Header() {
               <span className="sr-only sm:not-sr-only">{t("login")}</span>
             </Link>
           )}
-          {/* A shorter label on phones where the full one doesn't fit (Russian); the same words in Romanian. */}
-          <LinkButton href="/properties/new" size="sm" className="shrink-0 whitespace-nowrap px-3 sm:px-3.5">
-            <span className="sm:hidden">{tCommon("addListingShort")}</span>
-            <span className="hidden sm:inline">{tCommon("addListing")}</span>
-          </LinkButton>
         </div>
       </div>
     </header>
