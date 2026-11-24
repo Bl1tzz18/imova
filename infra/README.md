@@ -148,16 +148,26 @@ error alert (`error_alert_enabled`, prod).
 
 | Secret | Turned on by | Value |
 | --- | --- | --- |
-| `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8) |
-| `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment) |
+| `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8; prod: client "IMOVA prod" in the Google Cloud project IMOVA, Web application, JavaScript origin `https://imova.md` only, no redirect URIs — the button sends Google's ID token to the API) |
+| `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment; prod: `@imova_md_bot`) |
 | `mediatr-license-key` | `mediatr_license_enabled = true` (prod) | the Lucky Penny MediatR Community license — **valid until 2027-11-23**, renew it at luckypennysoftware.com |
 
+Set the value in the portal (Key Vault → Secrets → the secret → **New Version**), so it never
+lands in a shell history or a chat, or with `az keyvault secret set`. Container Apps caches Key
+Vault values for up to 30 minutes and **a plain restart keeps the cached one** (found on KAN-8: the
+API still served `set-me`). Re-save the app's reference, then restart:
+
 ```bash
-az keyvault secret set --vault-name <key_vault_name> --name telegram-bot-token --value '<token>'
-# then restart so the apps read it:
-az containerapp revision restart -g rg-imova-<env> -n imova-worker \
-  --revision $(az containerapp show -g rg-imova-<env> -n imova-worker --query properties.latestRevisionName -o tsv)
+ID=$(az identity show -g rg-imova-<env> -n id-imova-<env>-apps --query id -o tsv)
+KV=https://<key_vault_name>.vault.azure.net/secrets
+az containerapp secret set -g rg-imova-<env> -n imova-api \
+  --secrets "google-client-id=keyvaultref:$KV/google-client-id,identityref:$ID"
+az containerapp revision restart -g rg-imova-<env> -n imova-api \
+  --revision $(az containerapp show -g rg-imova-<env> -n imova-api --query properties.latestRevisionName -o tsv)
 ```
+
+(Same for the Worker and `telegram-bot-token`. The reference is identical to Terraform's, so the
+next plan shows no change.)
 
 **Generated secrets** (database password, JWT signing key) are write-only: Terraform sends them to
 Azure but they are never in the state. To rotate both, bump `secrets_version` in the environment's
@@ -249,6 +259,8 @@ not matching: ours is the combined one on purpose.
 1. Wake prod up: in `envs/prod/main.tf`, web `min_replicas = 1`, api `min_replicas = 1`, worker
    `replicas = 1`; `terraform apply`.
 2. The uptime monitors (see "Uptime") on the final addresses.
+   With the Worker on, check `@imova_md_bot`: connect it from /account → Notificări and send
+   `/cautari` (the bot only answers while the Worker runs).
 3. Everything under "Still to do" below that's marked for launch.
 
 ## Still to do (next tickets)
@@ -257,7 +269,5 @@ not matching: ours is the combined one on purpose.
   dev exists (after the Pay-As-You-Go upgrade). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
-- **KAN-8** — production Google OAuth client and origin, the prod Telegram bot.
-- **contact@imova.md** — the Zoho mailbox (see "Email"), before launch (KAN-34).
 - **KAN-15** — tested restore of the database (point-in-time) and the blobs.
 - A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.
