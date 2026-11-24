@@ -64,10 +64,11 @@ locals {
         content = merge(local.workbook_query, {
           title         = "Pe scurt"
           visualization = "tiles"
-          query         = <<-KQL
-            let views = customEvents | where name == "PageView" | summarize Value = count() | extend Metric = "Încărcări de pagină", Order = 1;
-            let entries = customEvents | where name == "PageView" and tostring(customDimensions.source) != "internal" | summarize Value = count() | extend Metric = "Intrări din afară", Order = 2;
-            let business = traces
+          # Not "views"/"errors" as let names: the workbook's KQL parser refuses them (keywords).
+          query = <<-KQL
+            let pageLoads = customEvents | where name == "PageView" | summarize Value = count() | extend Metric = "Încărcări de pagină", Order = 1;
+            let outsideEntries = customEvents | where name == "PageView" and tostring(customDimensions.source) != "internal" | summarize Value = count() | extend Metric = "Intrări din afară", Order = 2;
+            let businessEvents = traces
               | extend Event = tostring(customDimensions.Event)
               | where Event in ("AccountCreated", "CreateListing", "ApproveListing", "StartConversation")
               | where Event == "AccountCreated" or message has " succeeded"
@@ -75,8 +76,8 @@ locals {
               | extend Metric = case(Event == "AccountCreated", "Conturi noi", Event == "CreateListing", "Anunțuri create", Event == "ApproveListing", "Anunțuri aprobate", "Conversații începute"),
                        Order = case(Event == "AccountCreated", 3, Event == "CreateListing", 4, Event == "ApproveListing", 5, 6)
               | project Metric, Value, Order;
-            let errors = exceptions | summarize Value = count() | extend Metric = "Erori", Order = 7;
-            union views, entries, business, errors
+            let errorCount = exceptions | summarize Value = count() | extend Metric = "Erori", Order = 7;
+            union pageLoads, outsideEntries, businessEvents, errorCount
             | order by Order asc
             | project Metric, Value
           KQL
