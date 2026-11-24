@@ -344,7 +344,7 @@ export default async function ProprietatePage({
   const contactBar = mobileContactBar(contact, isOwner);
 
   return (
-    <div className={cn("flex min-h-screen flex-col", contactBar && "pb-20 lg:pb-0")}>
+    <div className={cn("flex min-h-screen flex-col", contactBar && "pb-24 md:pb-20 lg:pb-0")}>
       <main className="flex-1">
         {/* Structured data for search engines — only while the listing is public. */}
         {listing.status === "Active" && (
@@ -479,9 +479,12 @@ export default async function ProprietatePage({
 
       <Footer />
 
-      {/* Phones: calling or messaging stays one tap away wherever the visitor has scrolled to. */}
+      {/* Phones: calling or messaging stays one tap away wherever the visitor has scrolled to. Below
+          md it sits on top of the tab bar (MobileTabBar, 4rem + the safe area), like 999.md's listing
+          page, with room at its bottom for the tab bar's raised "+"; from md to lg there's no tab bar,
+          so it's at the bottom edge. */}
       {contactBar && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 border-t border-ink-100 bg-white/95 px-4 pb-6 pt-3 backdrop-blur md:bottom-0 md:pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
           <div className="mx-auto flex max-w-md gap-2">
             {contactBar.contactDetails && (
               <ContactSheet label={t("contactDetails")} closeLabel={t("closeContactDetails")} primary={contactBar.primary === "contactDetails"}>

@@ -21,8 +21,9 @@ const ICONS = {
 // The phone's main places, at the bottom where the thumb is (below md; the desktop header has them
 // instead): Acasă, Mesaje (live unread count), "+" Adaugă anunț, Salvate, Cont — the 999.md layout
 // people already know. Signed out, Mesaje and Salvate go through sign-in (those pages redirect) and
-// Cont is the sign-in page; signed in, Cont opens the account menu as a bottom sheet. Pages with their
-// own bottom bar (a listing, the forms, a conversation) don't show it — lib/navigation/tabBar.ts.
+// Cont is the sign-in page; signed in, Cont opens the account menu as a bottom sheet. The forms and a
+// conversation keep the bottom for their own controls, so they don't show it; a listing's contact bar
+// sits on top of it — lib/navigation/tabBar.ts.
 export function MobileTabBar({ profile, adminWaiting }: { profile: UserProfile | null; adminWaiting: number }) {
   const t = useTranslations("TabBar");
   const pathname = usePathname();
@@ -39,12 +40,13 @@ export function MobileTabBar({ profile, adminWaiting }: { profile: UserProfile |
 
   return (
     <>
-      {/* Keeps the end of every page clear of the bar. */}
+      {/* Keeps the end of every page clear of the bar. The bar is z-30 like the header and comes later
+          in the page, so its raised "+" draws over a listing's contact bar resting on it. */}
       <div aria-hidden className="h-[calc(4rem+env(safe-area-inset-bottom))] md:hidden" />
 
       <nav
         aria-label={t("label")}
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-ink-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
       >
         <ul className="mx-auto grid h-16 max-w-md grid-cols-5 items-end">
           <TabLink href="/" tab="home" active={active} label={t("home")} icon={<TabIcon d={ICONS.home} />} />

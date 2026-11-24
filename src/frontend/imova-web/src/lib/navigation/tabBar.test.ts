@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { activeTab, showsHeaderSearch, showsTabBar } from "./tabBar";
 
 describe("showsTabBar", () => {
-  it.each(["/", "/search", "/map", "/messages", "/saved-listings", "/account", "/my-listings", "/agencies/casa-ta"])(
+  it.each(["/", "/search", "/map", "/messages", "/saved-listings", "/account", "/my-listings", "/agencies/casa-ta", "/property/100015-apartament"])(
     "shows on %s",
     (path) => expect(showsTabBar(path)).toBe(true),
   );
 
-  it.each(["/property/100015-apartament", "/properties/new", "/my-listings/abc/edit", "/messages/abc", "/messages/new"])(
+  it.each(["/properties/new", "/my-listings/abc/edit", "/messages/abc", "/messages/new"])(
     "leaves the bottom to the page's own bar on %s",
     (path) => expect(showsTabBar(path)).toBe(false),
   );

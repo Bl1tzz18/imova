@@ -4,9 +4,10 @@
 
 export type Tab = "home" | "messages" | "add" | "saved" | "account";
 
-// Pages with their own bar at the bottom: a listing ("Date de contact / Scrie mesaj"), the add and
-// edit forms (step buttons), a conversation and a first message (the writing box).
-const OWN_BOTTOM_BAR = [/^\/property\//, /^\/properties\/new$/, /^\/my-listings\/[^/]+\/edit$/, /^\/messages\/.+/];
+// Pages with their own controls at the bottom: the add and edit forms (step buttons), a
+// conversation and a first message (the writing box). A listing keeps the tab bar — its
+// "Date de contact / Scrie mesaj" bar sits on top of it.
+const OWN_BOTTOM_BAR = [/^\/properties\/new$/, /^\/my-listings\/[^/]+\/edit$/, /^\/messages\/.+/];
 
 export function showsTabBar(pathname: string): boolean {
   return !OWN_BOTTOM_BAR.some((pattern) => pattern.test(normalize(pathname)));
