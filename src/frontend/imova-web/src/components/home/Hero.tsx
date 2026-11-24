@@ -66,7 +66,8 @@ export async function Hero() {
           <h1 className="max-w-[580px] text-balance font-hero text-[30px] font-extrabold leading-[1.08] tracking-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.35)] sm:text-[40px] lg:text-[44px]">
             {t("title")}
           </h1>
-          <div className="mt-5 max-w-[580px] sm:mt-6">
+          {/* Phones have the same field in the header (HeaderSearch), so the photo keeps just the line. */}
+          <div className="mt-6 hidden max-w-[580px] md:block">
             <HeroSearchCard />
           </div>
         </div>

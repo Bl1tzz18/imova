@@ -1,7 +1,6 @@
 {
   "Common": {
     "addListing": "Add listing",
-    "addListingShort": "Add listing",
     "selectLanguage": "Select language",
     "previous": "Previous",
     "next": "Next"
@@ -23,7 +22,9 @@
     "agencyVerification": "Agency verification",
     "agencies": "Agencies",
     "administration": "Administration",
-    "adminWaiting": "{count, plural, one {# item waiting} other {# items waiting}}"
+    "adminWaiting": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "searchPlaceholder": "City or sector",
+    "searchLabel": "Search listings by place"
   },
   "Footer": {
     "tagline": "Moldova's real estate platform — listings from individuals and agencies.",
@@ -2171,5 +2172,15 @@
     "contents": "Contents",
     "draftNotice": "Preliminary version, under legal review. The highlighted fields will be filled in before launch.",
     "translationNotice": "This is a translation for your convenience. If it differs from the Romanian version, the Romanian version prevails."
+  },
+  "TabBar": {
+    "label": "Main menu",
+    "home": "Home",
+    "messages": "Messages",
+    "unread": "{count, plural, one {# unread message} other {# unread messages}}",
+    "add": "Post",
+    "addListing": "Add listing",
+    "saved": "Saved",
+    "account": "Account"
   }
 }

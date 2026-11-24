@@ -6,6 +6,9 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { Header } from "@/components/layout/Header";
+import { MobileTabBar } from "@/components/layout/MobileTabBar";
+import { adminWaitingTotal } from "@/lib/admin/adminSections";
+import { getAdminSummary } from "@/lib/admin/summaryApi";
 import { NavigationTracker } from "@/components/layout/NavigationTracker";
 import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
@@ -80,6 +83,7 @@ export default async function RootLayout({
 
   const [locale, messages, profile] = await Promise.all([getLocale(), getMessages(), getCurrentUserProfile()]);
   const unreadCount = profile ? await getUnreadCount() : 0;
+  const adminWaiting = profile?.roles.includes("Admin") ? adminWaitingTotal(await getAdminSummary()) : 0;
 
   return (
     <html lang={locale} className={`${inter.variable} ${fraunces.variable} ${sora.variable}`}>
@@ -94,6 +98,7 @@ export default async function RootLayout({
           <RealtimeProvider userId={profile?.id ?? null} initialUnreadCount={unreadCount}>
             <Header />
             {children}
+            <MobileTabBar profile={profile} adminWaiting={adminWaiting} />
             {/* useSearchParams needs a Suspense boundary, or every page would render client-side only. */}
             <Suspense fallback={null}>
               <NavigationTracker />
