@@ -7,8 +7,8 @@
     "next": "Următor"
   },
   "Header": {
-    "buy": "Cumpără",
-    "rent": "Închiriază",
+    "buy": "De vânzare",
+    "rent": "De închiriat",
     "login": "Autentificare",
     "logout": "Deconectare",
     "account": "Cont",
@@ -225,7 +225,8 @@
     "mapTruncated": "Se afișează cele mai noi {shown} din {total} de anunțuri — restrânge filtrele pentru a le vedea pe toate.",
     "mapEmptyTitle": "Niciun anunț pe hartă",
     "mapEmptyHint": "Niciun anunț cu locație exactă nu se potrivește filtrelor. Unele anunțuri nu au încă o locație pe hartă, dar apar în listă.",
-    "mapEmptyShowList": "Vezi rezultatele în listă"
+    "mapEmptyShowList": "Vezi rezultatele în listă",
+    "locationPlaceholder": "Unde cauți? Oraș, sat sau sector"
   },
   "MapPage": {
     "title": "Proprietăți pe hartă",

@@ -115,8 +115,11 @@ export function ContactActions({
     </span>
   );
 
-  // One app gets a full-width "Scrie pe …" button; two or three share a row.
+  // One app gets a full-width "Scrie pe …" button; two share a row with their names; three share it
+  // with their logos only — three names don't fit a phone's card (or the desktop column) without
+  // being cut to "Wha…", and the logos are known well enough. The label stays for screen readers.
   const single = apps.length === 1;
+  const iconsOnly = apps.length >= 3;
   const appClass = cn(
     "flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-ink-100 bg-white px-3 text-sm font-medium text-ink-900 transition-colors hover:border-ink-200 hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:opacity-60",
     single && "w-full",
@@ -179,7 +182,9 @@ export function ContactActions({
         <div className={cn("gap-2", single ? "flex" : "grid", apps.length === 2 && "grid-cols-2", apps.length === 3 && "grid-cols-3")}>
           {apps.map((app) => {
             const label = single ? t("writeOn", { app }) : app;
-            const content = (
+            const content = iconsOnly ? (
+              <AppIcon app={app} className="h-[22px] w-[22px] shrink-0" />
+            ) : (
               <>
                 <AppIcon app={app} className="h-[18px] w-[18px] shrink-0" />
                 <span className="truncate">{label}</span>
@@ -192,6 +197,7 @@ export function ContactActions({
                 target={opensInNewTab(app) ? "_blank" : undefined}
                 rel={opensInNewTab(app) ? "noopener noreferrer" : undefined}
                 aria-label={t("writeOn", { app })}
+                title={iconsOnly ? t("writeOn", { app }) : undefined}
                 className={appClass}
               >
                 {content}
@@ -203,6 +209,7 @@ export function ContactActions({
                 onClick={() => void openApp(app)}
                 disabled={pending}
                 aria-label={t("writeOn", { app })}
+                title={iconsOnly ? t("writeOn", { app }) : undefined}
                 className={appClass}
               >
                 {content}

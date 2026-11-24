@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { HeroSearchCard } from "@/components/home/HeroSearchCard";
@@ -9,8 +8,20 @@ import { searchHref } from "@/lib/search/filters";
 const PROPERTY_TYPES = ["Apartment", "House", "Land", "Commercial", "Garage", "Room"] as const;
 
 // The hero photo: Sebastian Schuster, https://unsplash.com/photos/-y8fNw9x9wc — Unsplash License,
-// free for commercial use with no credit required. Swap the file in public/images to change it.
-const HERO_PHOTO_SRC = "/images/hero-home.jpg";
+// free for commercial use with no credit required. Served as ready-made files, not through
+// next/image: that resized the 2000 px original on the first request after every restart (seconds
+// on the small server) and sent ~460 KB. These are cropped to the hero's shape — a wide band on a
+// computer, nearly square-to-portrait on a phone — in AVIF/WebP, ~35–115 KB, cached for a year
+// (next.config.js). To change the photo: replace public/images/hero-home.jpg, bump VERSION in
+// scripts/make-hero-images.mjs, run it, and update HERO_PHOTO below.
+const HERO_PHOTO = {
+  dir: "/images/hero/home-v1",
+  wide: [1280, 1600, 2000],
+  tall: [480, 800],
+};
+const heroSrcSet = (crop: "wide" | "tall", format: "avif" | "webp") =>
+  HERO_PHOTO[crop].map((w) => `${HERO_PHOTO.dir}-${crop}-${w}.${format} ${w}w`).join(", ");
+const WIDE_MEDIA = "(min-width: 640px)";
 
 // The home page's first screen, the way the big portals do it: one warm, lived-in photo, one line
 // and one field ("where?"). The property types sit right under the photo as tiles that overlap its
@@ -33,14 +44,21 @@ export async function Hero() {
           tiles. The section itself must not form a stacking context (no isolate/z-index), or
           everything in it would sit under the tiles. */}
       <section className="relative flex min-h-[420px] items-end sm:items-center">
-        <Image
-          src={HERO_PHOTO_SRC}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="z-0 object-cover object-[60%_30%]"
-        />
+        {/* The wide crop from the sm breakpoint (where the shade turns to come from the left). */}
+        <picture>
+          <source media={WIDE_MEDIA} type="image/avif" srcSet={heroSrcSet("wide", "avif")} sizes="100vw" />
+          <source media={WIDE_MEDIA} type="image/webp" srcSet={heroSrcSet("wide", "webp")} sizes="100vw" />
+          <source type="image/avif" srcSet={heroSrcSet("tall", "avif")} sizes="100vw" />
+          <img
+            src={`${HERO_PHOTO.dir}-tall-800.webp`}
+            srcSet={heroSrcSet("tall", "webp")}
+            sizes="100vw"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 z-0 h-full w-full object-cover object-[60%_30%]"
+          />
+        </picture>
         <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/65 via-black/25 to-black/0 sm:bg-gradient-to-r sm:from-black/55 sm:via-black/25 sm:to-black/0" />
 
         {/* The bottom padding leaves room for the tiles that overlap the photo's lower edge. */}

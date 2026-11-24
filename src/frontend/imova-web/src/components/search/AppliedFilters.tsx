@@ -3,17 +3,15 @@
 import { useLocale, useTranslations } from "next-intl";
 import { DETAIL_LAYOUTS } from "@/lib/property/detailLayouts";
 import { appliedDetailFilters, formatRange, type AppliedFilter } from "@/lib/search/applied";
-import { singlePropertyType } from "@/lib/search/filters";
-import { cn } from "@/lib/utils/cn";
-import { useLocationSummary } from "./FilterControls";
+import { clearAllFilters, singlePropertyType } from "@/lib/search/filters";
 import { useFilterOptions } from "./FilterOptions";
 import { useSearchNavigation } from "./SearchNavigation";
 
-type Chip = { id: string; remove: Record<string, string[] | null>; label: string; phoneOnly: boolean };
+type Chip = { id: string; remove: Record<string, string[] | null>; label: string };
 
-// One removable chip per applied drawer filter (see appliedDetailFilters), under the top bar. On a
-// phone the bar has no location/price pills (and the page title only names the type and deal), so
-// those two get chips there as well.
+// One removable chip per applied drawer filter (see appliedDetailFilters), under the top bar.
+// Location and price aren't chips: the bar shows them (pills on a computer, the location field and
+// the price pill on a phone). On a phone the row ends with "reset all" — the bar has no room for it.
 export function AppliedFilters() {
   const t = useTranslations("Search");
   const tAttr = useTranslations("Attributes");
@@ -25,8 +23,6 @@ export function AppliedFilters() {
   const { state, change } = useSearchNavigation();
   const { amenities, proximities } = useFilterOptions();
   const type = singlePropertyType(state);
-  const location = useLocationSummary();
-  const [minPrice, maxPrice] = [state.minPriceEur?.[0] ?? null, state.maxPriceEur?.[0] ?? null];
 
   const yesNo = (value: string) => (value === "true" ? tAttr("yes") : tAttr("no"));
   const number = (n: string) => Number(n).toLocaleString(locale);
@@ -60,22 +56,15 @@ export function AppliedFilters() {
 
   const chips = appliedDetailFilters(state).flatMap((filter): Chip[] => {
     const label = text(filter);
-    return label === null ? [] : [{ id: filter.id, remove: filter.remove, label, phoneOnly: false }];
+    return label === null ? [] : [{ id: filter.id, remove: filter.remove, label }];
   });
-  const phoneChips: Chip[] = [
-    ...(location ? [{ id: "location", remove: { raionId: null, localitateId: null, chisinauSectorId: null }, label: location, phoneOnly: true }] : []),
-    ...(minPrice !== null || maxPrice !== null
-      ? [{ id: "price", remove: { minPriceEur: null, maxPriceEur: null }, label: `${t("pricePill")}: ${formatRange(minPrice, maxPrice, { from: t("min"), upTo: t("max") }, number)} €`, phoneOnly: true }]
-      : []),
-  ];
-  if (chips.length + phoneChips.length === 0) return null;
-
+  if (chips.length === 0) return null;
 
   return (
-    <div className={cn("mt-3 flex flex-wrap items-center gap-2", chips.length === 0 && "lg:hidden")}>
+    <div className="mt-3 flex flex-wrap items-center gap-2">
       <ul className="contents" aria-label={t("appliedFilters")}>
-        {[...phoneChips, ...chips].map(({ id, remove, label, phoneOnly }) => (
-          <li key={id} className={cn(phoneOnly && "lg:hidden")}>
+        {chips.map(({ id, remove, label }) => (
+          <li key={id}>
             <button
               type="button"
               onClick={() => change(remove)}
@@ -90,6 +79,13 @@ export function AppliedFilters() {
           </li>
         ))}
       </ul>
+      <button
+        type="button"
+        onClick={() => change(clearAllFilters(state))}
+        className="h-8 px-2 text-sm font-medium text-accent-600 hover:text-accent-700 lg:hidden"
+      >
+        {t("resetShort")}
+      </button>
     </div>
   );
 }

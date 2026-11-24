@@ -104,7 +104,7 @@ export function SaveSearchButton({
 
   if (!signedIn) {
     return (
-      <LinkButton href={`/login?next=${encodeURIComponent(returnTo)}`} variant="secondary" size="sm">
+      <LinkButton href={`/login?next=${encodeURIComponent(returnTo)}`} variant="secondary" size="sm" className="shrink-0 whitespace-nowrap">
         <BookmarkIcon />
         {t("save")}
       </LinkButton>
@@ -123,7 +123,7 @@ export function SaveSearchButton({
 
   return (
     <div ref={containerRef} className="relative">
-      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <Button type="button" variant="secondary" size="sm" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="shrink-0 whitespace-nowrap">
         <BookmarkIcon />
         {t("save")}
       </Button>

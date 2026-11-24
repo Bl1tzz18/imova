@@ -14,6 +14,7 @@ export function FilterPopover({
   onClear,
   align = "start",
   panelClassName,
+  maxWidthClassName = "max-w-[240px]",
   children,
 }: {
   label: string;
@@ -22,6 +23,8 @@ export function FilterPopover({
   onClear?: () => void;
   align?: "start" | "end";
   panelClassName?: string;
+  // Replaces the trigger's default max width (a narrower one on a phone's crowded row).
+  maxWidthClassName?: string;
   children: (close: () => void) => ReactNode;
 }) {
   const t = useTranslations("Search");
@@ -59,7 +62,8 @@ export function FilterPopover({
         aria-label={active ? `${label}: ${value}` : label}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex h-10 max-w-[240px] items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
+          "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
+          maxWidthClassName,
           active ? "border-brand-300 bg-brand-50 text-brand-800" : "border-line bg-white text-ink-800 hover:border-ink-300",
           open && "ring-2 ring-brand-500/20",
         )}

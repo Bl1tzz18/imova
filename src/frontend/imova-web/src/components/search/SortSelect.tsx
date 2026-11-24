@@ -12,8 +12,8 @@ export function SortSelect() {
   // No visible "Sortează": the selected option ("Preț crescător") already reads as a sort, and the
   // filter bar needs the room. Screen readers still get the label.
   return (
-    <label className="flex items-center text-sm text-ink-600">
-      <SelectInput value={state.sort?.[0] ?? "Newest"} onChange={(e) => change({ sort: e.target.value })} className="h-10 w-auto text-sm" aria-label={t("sortLabel")}>
+    <label className="flex min-w-0 items-center text-sm text-ink-600">
+      <SelectInput value={state.sort?.[0] ?? "Newest"} onChange={(e) => change({ sort: e.target.value })} className="h-10 w-auto min-w-0 max-w-full text-sm" aria-label={t("sortLabel")}>
         {SORTS.map((sort) => (
           <option key={sort} value={sort}>
             {t(`sort.${sort}`)}
