@@ -167,8 +167,9 @@ az containerapp revision restart -g rg-imova-<env> -n imova-api \
   --revision $(az containerapp show -g rg-imova-<env> -n imova-api --query properties.latestRevisionName -o tsv)
 ```
 
-(Same for the Worker and `telegram-bot-token`. The reference is identical to Terraform's, so the
-next plan shows no change.)
+(Same for the Worker and `telegram-bot-token`. The reference is identical to Terraform's; the next
+plan may still show the app's secrets as changed, because re-saving moves that secret to the front
+of the list — same names and Key Vault addresses, only the order differs, and applying puts it back.)
 
 **Generated secrets** (database password, JWT signing key) are write-only: Terraform sends them to
 Azure but they are never in the state. To rotate both, bump `secrets_version` in the environment's
