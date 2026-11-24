@@ -34,7 +34,8 @@
     "inDevelopment": "Project in development.",
     "terms": "Terms of use",
     "privacy": "Privacy",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "cookieSettings": "Cookie settings"
   },
   "Agencies": {
     "verified": "Verified",
@@ -2182,5 +2183,13 @@
     "addListing": "Add listing",
     "saved": "Saved",
     "account": "Account"
+  },
+  "Consent": {
+    "title": "We care about your privacy",
+    "necessary": "We use cookies the site needs to work: they keep you signed in, remember your language and settings, and help keep your account safe. These are always on.",
+    "statistics": "With your consent, we also use statistics cookies (PostHog, with data hosted in the EU): we see which pages are used and record how you move around the site, with everything you type in fields hidden, to improve it. We use no advertising cookies and never sell data.",
+    "choice": "If you refuse, the site works just the same and we send nothing to PostHog. You can change your choice at any time from \"Cookie settings\" at the bottom of the page. Details in the <link>cookie policy</link>.",
+    "accept": "Accept",
+    "reject": "Refuse"
   }
 }

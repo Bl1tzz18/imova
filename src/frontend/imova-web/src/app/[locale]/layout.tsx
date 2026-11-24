@@ -10,6 +10,8 @@ import { MobileTabBar } from "@/components/layout/MobileTabBar";
 import { adminWaitingTotal } from "@/lib/admin/adminSections";
 import { getAdminSummary } from "@/lib/admin/summaryApi";
 import { NavigationTracker } from "@/components/layout/NavigationTracker";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
+import { ConsentBanner } from "@/components/consent/ConsentBanner";
 import { RealtimeProvider } from "@/components/messaging/RealtimeProvider";
 import { getCurrentUserProfile } from "@/lib/auth/profile";
 import { siteUrl } from "@/lib/site";
@@ -99,6 +101,8 @@ export default async function RootLayout({
             <Header />
             {children}
             <MobileTabBar profile={profile} adminWaiting={adminWaiting} />
+            <ConsentBanner />
+            <AnalyticsProvider userId={profile?.id ?? null} />
             {/* useSearchParams needs a Suspense boundary, or every page would render client-side only. */}
             <Suspense fallback={null}>
               <NavigationTracker />

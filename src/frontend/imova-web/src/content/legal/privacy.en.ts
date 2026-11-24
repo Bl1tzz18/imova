@@ -27,6 +27,7 @@ export const privacyEn: LegalDocument = {
             "**Messages:** your conversations with other users, including the images sent, and their status (delivered, read).",
             "**Account activity:** saved listings, saved searches and their alerts, the reports you file (on listings or conversations), the users you've blocked.",
             "**Telegram (only if you connect it):** the id of your chat with our bot, your Telegram username and first name.",
+            "**Usage statistics:** which pages you open, your searches (the filters used), actions on the site (for example revealing a number or saving a listing), errors in the browser, the type of device and browser, and the approximate country or city. We only collect them if you accept statistics cookies; then we link them to your browser and, if you're signed in, to your account id (never to your name, email or phone), and we record how you move through the public pages and the listing form (session recording), with what you type in fields hidden; we never record messages, the account, sign-in or admin pages (see [Cookies](/privacy#cookies)).",
             "**Technical data:** your IP address (used on the spot to limit abusive attempts and kept only in technical logs), sign-in sessions (when a session started and ended) and an anonymous visitor id (see [Cookies](/privacy#cookies)).",
           ],
         },
@@ -48,6 +49,8 @@ export const privacyEn: LegalDocument = {
               ["Emails about saved listings (price changed, listing ended) and about your listings expiring", "Saved listings, your listings, account", "Legitimate interest in keeping you informed about what you follow; you can unsubscribe at any time"],
               ["Moderating listings, handling reports, preventing fraud and spam, automatically flagging suspicious messages for human review", "Listings, messages, reports, technical data", "Legitimate interest in keeping the platform safe"],
               ["Statistics for listing owners (views, phone reveals, saves)", "Anonymous visitor id, account", "Legitimate interest in accurate statistics without double counting"],
+              ["Anonymous statistics about the site's traffic (which pages load, on what kind of device, in which language and from which site visitors come), for all visitors, without cookies", "The page address, the kind of browser and the referring site from the request the server receives, used on the spot; we keep no IP address, exact browser or identifier, so the result can't identify you", "Legitimate interest in understanding how people reach the site"],
+              ["Statistics about how the site is used, session recording and browser error reports, to improve it", "Usage statistics, account id", "Your consent, given in the cookie banner; you can withdraw it at any time from \"Cookie settings\" at the bottom of the page"],
               ["Security: limiting attempts, a log of administrators' actions", "IP address, technical data", "Legitimate interest in protecting accounts and the service"],
               ["Answering requests from authorities", "The data requested, within the law", "Legal obligation"],
             ],
@@ -76,6 +79,7 @@ export const privacyEn: LegalDocument = {
             "**Microsoft (Azure)** — hosting of the servers, database and files, and the error reports and technical logs (Azure Monitor), in data centres in the European Union. Error reports keep neither the IP address nor the parameters in page addresses.",
             "**Microsoft (Azure Communication Services)** — sending emails (confirmations, alerts, notifications), in the European Union.",
             "**Zoho (Zoho Mail, data centres in the European Union)** — the mailbox for the messages you send to our @imova.md addresses (for example contact@imova.md).",
+            "**PostHog (PostHog Inc., hosted in the European Union, Frankfurt)** — usage statistics, session recordings and browser error reports. The data reaches PostHog through our own address (imova.md), not directly from your browser.",
             "**Google** — only if you choose \"Continue with Google\": Google learns that you're signing in to IMOVA.",
             "**Telegram** — only if you connect your account: alerts are sent through Telegram.",
             "**OpenStreetMap Foundation** — the site's maps load straight from your browser from OpenStreetMap's servers, which see your IP address and the map area shown.",
@@ -89,7 +93,7 @@ export const privacyEn: LegalDocument = {
       id: "transfers",
       heading: "Transfers outside the Republic of Moldova",
       blocks: [
-        "Data is hosted in the European Union, which ensures an adequate level of protection. The OpenStreetMap Foundation is in the United Kingdom, which has an EU adequacy decision. Google and Telegram may also process data in other countries; we only use them at your request (Google sign-in, connecting Telegram), and the transfer is necessary for the service you asked for. Where providers offer standard contractual clauses, we rely on them.",
+        "Data is hosted in the European Union, which ensures an adequate level of protection. The OpenStreetMap Foundation is in the United Kingdom, which has an EU adequacy decision. Google and Telegram may also process data in other countries; we only use them at your request (Google sign-in, connecting Telegram), and the transfer is necessary for the service you asked for. PostHog Inc. is a US company, but our statistics are hosted in the European Union; for any access from the US (for example technical support) PostHog's standard contractual clauses apply. Where providers offer standard contractual clauses, we rely on them.",
       ],
     },
     {
@@ -115,6 +119,8 @@ export const privacyEn: LegalDocument = {
               ["The log of administrators' actions", "Permanently; the IP address in it is deleted after 12 months."],
               ["Telegram connection", "Until you disconnect it or delete your account."],
               ["Database backups and deleted files (photos, message images)", "Up to 7 days, then permanently deleted."],
+              ["Usage statistics (PostHog)", "Up to 12 months; if you delete your account, we also delete the statistics linked to it."],
+              ["Session recordings (only with your consent)", "Up to 30 days."],
               ["Server technical logs", "Up to 90 days."],
             ],
           },
@@ -143,7 +149,7 @@ export const privacyEn: LegalDocument = {
       id: "cookies",
       heading: "Cookies and browser storage",
       blocks: [
-        "We only use our own cookies, needed for the site to work. We use no advertising, analytics or third-party cookies — which is why we don't ask for consent with a banner. If we ever add cookies like that, we'll ask for your consent first.",
+        "We use our own cookies needed for the site to work and, only if you accept in the cookie banner, a statistics cookie (PostHog). We use no advertising cookies. If you refuse, the site works just the same and we send nothing to PostHog. You can change your choice at any time from \"Cookie settings\" at the bottom of the page.",
         {
           table: {
             columns: ["Name", "What it's for", "Duration"],
@@ -153,6 +159,8 @@ export const privacyEn: LegalDocument = {
               ["imova_vid", "A random, anonymous id so that a view or a phone reveal on a listing is counted only once a day. It isn't linked to who you are and isn't shared with anyone.", "1 year."],
               ["NEXT_LOCALE", "Remembers the site's language.", "1 year."],
               ["imova_locale_chosen", "Remembers that you picked the language yourself, so it isn't changed when you sign in.", "1 year."],
+              ["imova_consent", "Remembers your choice in the cookie banner (necessary).", "1 year."],
+              ["ph_<key>_posthog", "Only with your consent: the browser's statistics id and the current session (PostHog). PostHog keeps the same data in localStorage too.", "1 year."],
             ],
           },
         },

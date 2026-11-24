@@ -156,6 +156,20 @@ variable "mediatr_license_enabled" {
   default     = false
 }
 
+variable "posthog" {
+  description = <<-EOT
+    Product analytics (PostHog, EU cloud): the project's public key (the web app, POSTHOG_KEY —
+    the cookie banner and PostHog only appear with it) and its numeric project id (the API, to delete
+    a person when an account is deleted, with the posthog-personal-api-key secret, set by hand).
+    Null = no product analytics and no cookie banner.
+  EOT
+  type = object({
+    project_key = string
+    project_id  = string
+  })
+  default = null
+}
+
 variable "telegram_bot_username" {
   description = "The environment's own Telegram bot (one bot per environment). Null = no Telegram."
   type        = string

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { recordListingView } from "@/lib/listing/contactActions";
+import { track } from "@/lib/analytics/events";
 
 // Tells the API the listing was opened — once per page load, from the browser, so link prefetches
 // and crawlers that don't run scripts aren't counted. Not rendered for the owner. Renders nothing.
@@ -12,6 +13,7 @@ export function ListingViewTracker({ listingId }: { listingId: string }) {
     if (sent.current === listingId) return;
     sent.current = listingId;
     void recordListingView(listingId);
+    track("listing_viewed", { listing_id: listingId });
   }, [listingId]);
 
   return null;

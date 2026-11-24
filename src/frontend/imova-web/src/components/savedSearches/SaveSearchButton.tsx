@@ -12,6 +12,7 @@ import { TelegramLinkQr } from "@/components/account/TelegramLinkQr";
 import { getTelegramConnection } from "@/lib/account/actions";
 import { telegramDisplayName } from "@/lib/account/telegram";
 import { saveSearch } from "@/lib/savedSearches/actions";
+import { track } from "@/lib/analytics/events";
 import {
   ALERT_FREQUENCIES,
   SAVED_SEARCHES_PATH,
@@ -116,6 +117,7 @@ export function SaveSearchButton({
     startTransition(async () => {
       const result = await saveSearch(name.trim() || defaultName, queryString, frequency, frequency === "Off" ? undefined : channels);
       setStatus(result.error !== undefined ? { error: result.error } : { saved: result.savedSearch });
+      if (result.error === undefined) track("saved_search_created", { alert_frequency: frequency });
     });
   }
 

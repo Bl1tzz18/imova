@@ -34,7 +34,8 @@
     "inDevelopment": "Proiect în dezvoltare.",
     "terms": "Termeni de utilizare",
     "privacy": "Confidențialitate",
-    "cookies": "Cookie-uri"
+    "cookies": "Cookie-uri",
+    "cookieSettings": "Setări cookie-uri"
   },
   "Agencies": {
     "verified": "Verificată",
@@ -2182,5 +2183,13 @@
     "addListing": "Adaugă anunț",
     "saved": "Salvate",
     "account": "Cont"
+  },
+  "Consent": {
+    "title": "Ținem la confidențialitatea ta",
+    "necessary": "Folosim cookie-uri necesare pentru funcționarea site-ului: te țin conectat, îți rețin limba și setările și ne ajută să păstrăm contul în siguranță. Acestea sunt mereu active.",
+    "statistics": "Cu acordul tău, folosim și cookie-uri de statistici (PostHog, cu datele găzduite în UE): vedem ce pagini sunt folosite și înregistrăm cum navighezi pe site, cu tot ce scrii în câmpuri ascuns, ca să-l îmbunătățim. Nu folosim cookie-uri de publicitate și nu vindem datele nimănui.",
+    "choice": "Dacă refuzi, site-ul funcționează la fel și nu trimitem nimic către PostHog. Îți poți schimba alegerea oricând din „Setări cookie-uri”, în subsolul paginii. Detalii în <link>politica de cookie-uri</link>.",
+    "accept": "Accept",
+    "reject": "Refuz"
   }
 }

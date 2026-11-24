@@ -1,10 +1,12 @@
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
-import { localeCookieName } from "@/i18n/config";
+import { defaultLocale, localeCookieName } from "@/i18n/config";
 import { alternateLinksHeader, localeRedirect, splitLocale } from "@/i18n/localePaths";
 import { routing } from "@/i18n/routing";
 import { siteUrl } from "@/lib/site";
 import { wwwRedirect } from "@/lib/seo/canonicalHost";
+import { pageViewFrom } from "@/lib/monitoring/pageViews";
+import { recordPageView } from "@/lib/monitoring/pageViewEvents";
 import {
   needsRefresh,
   REFRESH_COOKIE,
@@ -28,6 +30,8 @@ type SessionCookie = ReturnType<typeof sessionCookies>[number];
 //    that language's address (localeRedirect); then next-intl maps the address onto the [locale]
 //    segment (/ru/search → [locale]=ru, /search → [locale]=ro, /ro/search → redirect to /search).
 // 3. hreflang: every page answers with its addresses in all three languages (Link header).
+// 4. Anonymous page-view statistics (lib/monitoring/pageViews): for a page someone actually reads
+//    (not a redirect, prefetch or bot), whatever they chose in the cookie banner.
 export async function middleware(request: NextRequest) {
   const canonical = wwwRedirect(request.headers.get("host"), siteUrl(), request.nextUrl.pathname, request.nextUrl.search);
   if (canonical) return NextResponse.redirect(canonical, 308);
@@ -47,8 +51,17 @@ export async function middleware(request: NextRequest) {
   applySession(response, session);
 
   if (request.method === "GET" && !response.headers.has("location")) {
-    const { path } = splitLocale(request.nextUrl.pathname);
+    const { path, locale } = splitLocale(request.nextUrl.pathname);
     response.headers.set("Link", alternateLinksHeader(siteUrl(), path, request.nextUrl.search));
+    const view = pageViewFrom({
+      method: request.method,
+      path,
+      locale: locale ?? defaultLocale,
+      search: request.nextUrl.search,
+      siteHost: new URL(siteUrl()).hostname,
+      headers: request.headers,
+    });
+    if (view) recordPageView(view);
   }
 
   return response;
@@ -122,5 +135,5 @@ function publicLocation(response: NextResponse, request: NextRequest) {
 export const config = {
   runtime: "nodejs",
   // Everything except Next's own files and static files (images, sitemap*.xml, robots.txt).
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|txt|xml)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|ingest/|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|txt|xml)$).*)"],
 };

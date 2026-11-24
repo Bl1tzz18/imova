@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { setFavorite } from "@/lib/property/actions";
+import { track } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils/cn";
 
 function HeartIcon({ filled, className }: { filled: boolean; className?: string }) {
@@ -51,6 +52,8 @@ export function SaveListingButton({
       const result = await setFavorite(listingId, next, pathname);
       if (result.error) {
         setSaved(!next);
+      } else {
+        track(next ? "favorite_added" : "favorite_removed", { listing_id: listingId });
       }
     });
   }

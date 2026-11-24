@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { siTelegram, siViber, siWhatsapp, type SimpleIcon } from "simple-icons";
 import { revealAgencyPhone, revealListingPhone } from "@/lib/listing/contactActions";
+import { track } from "@/lib/analytics/events";
 import {
   formatPhone,
   maskedPhoneGlyphs,
@@ -72,6 +73,7 @@ export function ContactActions({
     }
     setPhone(result.phone);
     setJustRevealed(true);
+    track("phone_revealed", "listingId" in phoneOf ? { listing_id: phoneOf.listingId } : { agency_id: phoneOf.agencyId });
     return result.phone;
   }
 
@@ -80,6 +82,7 @@ export function ContactActions({
   // chat once the number is here.
   async function openApp(app: MessagingApp) {
     const tab = opensInNewTab(app) ? window.open("about:blank", "_blank") : null;
+    track("messaging_app_opened", { app });
     const number = await reveal();
     if (!number) {
       tab?.close();
@@ -125,8 +128,9 @@ export function ContactActions({
     single && "w-full",
   );
 
+  // ph-no-capture: product analytics never records the number (autocapture, session replay).
   return (
-    <div className="mt-4 space-y-2.5">
+    <div className="ph-no-capture mt-4 space-y-2.5">
       <button
         type="button"
         onClick={() => {

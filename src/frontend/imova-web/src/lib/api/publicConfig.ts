@@ -5,15 +5,17 @@
 
 export const PUBLIC_CONFIG_ELEMENT_ID = "imova-public-config";
 
-export type PublicConfig = { apiUrl: string };
+// posthogKey: the PostHog project key (public by design — it can only send events). Null turns
+// product analytics and the cookie banner off (local, CI).
+export type PublicConfig = { apiUrl: string; posthogKey: string | null };
 
 const LOCAL_API_URL = "http://localhost:8080";
 
 // Server side: from the environment. PUBLIC_API_URL is the deployed setting; NEXT_PUBLIC_API_URL
-// still works for a local `npm run dev` that sets it.
+// still works for a local `npm run dev` that sets it. POSTHOG_KEY is set only where analytics runs.
 export function serverPublicConfig(env: Record<string, string | undefined> = process.env): PublicConfig {
   const apiUrl = env.PUBLIC_API_URL || env.NEXT_PUBLIC_API_URL || LOCAL_API_URL;
-  return { apiUrl: apiUrl.replace(/\/+$/, "") };
+  return { apiUrl: apiUrl.replace(/\/+$/, ""), posthogKey: env.POSTHOG_KEY?.trim() || null };
 }
 
 // The <script> body. "<" is escaped so a value can never close the script element early.
@@ -21,17 +23,19 @@ export function serializePublicConfig(config: PublicConfig): string {
   return JSON.stringify(config).replace(/</g, "\\u003c");
 }
 
-// Back from the <script> body; anything missing or malformed falls back to the local default.
+// Back from the <script> body; anything missing or malformed falls back to the local default
+// (and no analytics).
 export function parsePublicConfig(text: string | null | undefined): PublicConfig {
   try {
     const value: unknown = JSON.parse(text ?? "");
     if (value && typeof value === "object" && typeof (value as PublicConfig).apiUrl === "string" && (value as PublicConfig).apiUrl) {
-      return { apiUrl: (value as PublicConfig).apiUrl };
+      const key = (value as PublicConfig).posthogKey;
+      return { apiUrl: (value as PublicConfig).apiUrl, posthogKey: typeof key === "string" && key ? key : null };
     }
   } catch {
     // fall through
   }
-  return { apiUrl: LOCAL_API_URL };
+  return { apiUrl: LOCAL_API_URL, posthogKey: null };
 }
 
 let cached: PublicConfig | null = null;

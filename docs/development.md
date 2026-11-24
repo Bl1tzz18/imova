@@ -328,6 +328,54 @@ unless `APPLICATIONINSIGHTS_CONNECTION_STRING` is set, so local runs, compose an
    imova-api or imova-worker in the last 15 minutes, at most one email per hour (one log alert
    rule, ~$0.50/month — `error_alert_enabled` in Terraform).
 
+**Anonymous traffic + the dashboard.** Every full page load by a person (not in-site clicks — Next
+strips the headers that tell them from prefetches before middleware; not bots, prefetches or
+redirects) becomes a `PageView` custom event from the middleware (`lib/monitoring/pageViews.ts` →
+`pageViewEvents.ts`): page kind (`/property/[slug]`), device class, language, referring domain
+(`direct` / `internal` / `google.com`…) and `utm_*` tags — no IP, user agent, cookie or id, so it
+covers visitors who refuse cookies too. Web log sampling is off (`enableTraceBasedSamplingForLogs:
+false`), or rate-limited request sampling would drop them. The Azure workbook
+**"IMOVA — trafic și activitate"** (`infra/modules/environment/workbook.tf`) shows them with the
+API's business events, errors and response times; 30 days back (workspace retention). To check
+the events locally: the Azure exporter only talks HTTPS, so point
+`APPLICATIONINSIGHTS_CONNECTION_STRING`'s `IngestionEndpoint` at an HTTPS capture server on
+localhost (self-signed, `NODE_TLS_REJECT_UNAUTHORIZED=0`) — plain `http://` is refused silently.
+
+## Product analytics (PostHog) and the cookie banner
+
+Browser-side analytics are PostHog's **EU cloud**, and only where the web app has `POSTHOG_KEY`
+(the project's public key — runtime, `lib/api/publicConfig.ts`). Without it (local, CI) there is
+no PostHog and **no cookie banner**. To try it locally: `POSTHOG_KEY=phc_… docker compose up -d
+frontend` (a throwaway PostHog project; a fake key also works for the banner — requests then 401).
+
+- **Consent** (`lib/consent/consent.ts`, `components/consent/ConsentBanner.tsx`): our cookie
+  `imova_consent` = `1:analytics` (accepted) or `1:` (refused), one year; categories are a list so
+  marketing (GA4 / Google Ads, later) can join. Bump `CONSENT_VERSION` to ask everyone again. The
+  footer's "Setări cookie-uri" reopens the banner. It's a modal `<dialog>` (centred on a computer,
+  a bottom sheet on a phone) with "Refuz" and "Accept" identical — never an "Accept" + "Settings"
+  pair without a refuse button on the first screen (GDPR / Law 195/2024; EDPB, CNIL fines).
+  Escape doesn't close it; focus starts on the title.
+- **PostHog** (`components/analytics/AnalyticsProvider.tsx`) is only loaded after "Accept" — before
+  an answer and after "Refuz" nothing is sent at all, and `track()` drops events instead of queueing
+  them (EDPB Guidelines 2/2023: consent covers cookieless tracking too, so no cookieless mode).
+  "Refuz" later opts out and removes PostHog's cookie, storage and opt-out marker. After "Accept":
+  PostHog's cookie + localStorage, `identify(accountId)` (never email/name), `reset()` on sign-out,
+  session replay with all inputs masked and never on `replayAllowed()`'s pages (messages, account,
+  admin, sign-in, one-time links). `before_send` redacts tokens/emails/user ids in URLs
+  (`lib/analytics/privacy.ts`). Elements with `ph-no-capture` (the revealed phone, the inbox and
+  conversation) are never autocaptured or recorded.
+- **Requests** go to our own `/ingest/*` (next.config rewrites to `eu.i.posthog.com` /
+  `eu-assets.i.posthog.com`; excluded from the middleware matcher).
+- **Events**: `track()` from `lib/analytics/events.ts` (ids and categories only): `listing_viewed`,
+  `phone_revealed`, `messaging_app_opened`, `message_started`, `favorite_added/removed`,
+  `saved_search_created`, `listing_created`, `search_performed` (`SearchTracker`), plus PostHog's
+  pageviews, page leaves and browser exceptions.
+- **Account deletion** deletes the PostHog person and their events (`PostHogAnalyticsErasure`, API
+  settings `PostHog:ProjectId` + `PostHog:PersonalApiKey`; without them a no-op).
+- **PostHog project settings** to set by hand: EU cloud; *Discard client IP data* on; data retention ≤12
+  months and recordings 30 days (what the privacy policy promises). Terraform: `posthog = {
+  project_key, project_id }` in `envs/<env>/main.tf` + the `posthog-personal-api-key` secret.
+
 ## Telegram bot
 
 Alerts can also go to Telegram. The bot runs in the **Worker** (`TelegramUpdatePoller`,

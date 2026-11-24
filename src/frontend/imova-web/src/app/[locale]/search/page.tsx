@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { SearchTracker } from "@/components/search/SearchTracker";
 import { Link } from "@/i18n/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { searchIndexing } from "@/lib/search/indexing";
@@ -55,6 +57,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
+        <Suspense fallback={null}>
+          <SearchTracker view="list" resultCount={total} />
+        </Suspense>
         <SearchNavigationProvider state={state}>
           <FilterOptionsProvider>
             <div className="mx-auto max-w-[1440px] px-4 sm:px-6">

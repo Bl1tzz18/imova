@@ -5,5 +5,5 @@ namespace Imova.Application.Common;
 // test checks the two agree). Bump both together whenever the text changes in substance.
 public static class LegalTerms
 {
-    public const string CurrentVersion = "2026-11-23";
+    public const string CurrentVersion = "2026-11-24";
 }

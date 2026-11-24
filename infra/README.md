@@ -150,6 +150,7 @@ error alert (`error_alert_enabled`, prod).
 | --- | --- | --- |
 | `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8; prod: client "IMOVA prod" in the Google Cloud project IMOVA, Web application, JavaScript origin `https://imova.md` only, no redirect URIs — the button sends Google's ID token to the API) |
 | `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment; prod: `@imova_md_bot`) |
+| `posthog-personal-api-key` | `posthog = { project_key, project_id }` | a PostHog personal API key scoped to that one project with only **person:write** (account deletion deletes the person there — `PostHogAnalyticsErasure`) |
 | `mediatr-license-key` | `mediatr_license_enabled = true` (prod) | the Lucky Penny MediatR Community license — **valid until 2027-11-23**, renew it at luckypennysoftware.com |
 
 Set the value in the portal (Key Vault → Secrets → the secret → **New Version**), so it never

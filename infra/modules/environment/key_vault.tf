@@ -115,6 +115,7 @@ locals {
     var.google_auth_enabled ? ["google-client-id", "google-client-secret"] : [],
     var.mediatr_license_enabled ? ["mediatr-license-key"] : [],
     var.telegram_bot_username != null ? ["telegram-bot-token"] : [],
+    var.posthog != null ? ["posthog-personal-api-key"] : [],
   ))
 }
 

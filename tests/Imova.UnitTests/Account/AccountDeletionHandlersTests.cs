@@ -35,7 +35,7 @@ public class AccountDeletionHandlersTests
     private AccountDeletionEmails Emails() => new(_userManager, _email, _app);
 
     private AccountDeletion Deletion() =>
-        new(_db, new FakeBlobStorageService(), Emails(), NullLogger<AccountDeletion>.Instance);
+        new(_db, new FakeBlobStorageService(), Emails(), new FakeAnalyticsErasure(), NullLogger<AccountDeletion>.Instance);
 
     // The same account in the Identity store (password, lockout) and in the database (everything else).
     private ApplicationUser Seed(bool withPassword = true)

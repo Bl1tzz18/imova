@@ -29,7 +29,8 @@ namespace Imova.Application.Features.Account;
 // - photos uploaded for a listing that was never created, and blocks in either direction;
 // - conversations whose other participant is already gone too (nobody can read them any more).
 // Then, best-effort, the files: listing photos, profile pictures, agency logos, message images
-// nobody can see any more, and uploads that were never sent.
+// nobody can see any more, and uploads that were never sent; and the person in product analytics
+// (IAnalyticsErasure — PostHog knows the account id of visitors who accepted analytics cookies).
 //
 // What stays: messages the user sent in a conversation with someone who still has an account —
 // they're part of *that* person's correspondence too (the thread shows "deleted account" and can't
@@ -39,6 +40,7 @@ public class AccountDeletion(
     IApplicationDbContext dbContext,
     IBlobStorageService blobStorageService,
     AccountDeletionEmails emails,
+    IAnalyticsErasure analyticsErasure,
     ILogger<AccountDeletion> logger)
 {
     // The purpose Identity's token provider signs the emailed deletion link with.
@@ -128,6 +130,15 @@ public class AccountDeletion(
         logger.LogInformation("Account {UserId} deleted at the owner's request.", userId);
 
         await DeleteFilesAsync(userId, publicBlobs, attachmentBlobs, cancellationToken);
+
+        try
+        {
+            await analyticsErasure.EraseUserAsync(userId, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not delete account {UserId} from product analytics; delete it in PostHog by hand.", userId);
+        }
 
         if (emailConfirmed && !string.IsNullOrWhiteSpace(email))
         {

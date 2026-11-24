@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { CookieSettingsButton } from "@/components/consent/ConsentBanner";
 
 export function Footer() {
   const t = useTranslations("Footer");
@@ -31,6 +32,7 @@ export function Footer() {
           <Link href="/privacy#cookies" className="hover:text-ink-950">
             {t("cookies")}
           </Link>
+          <CookieSettingsButton className="hover:text-ink-950">{t("cookieSettings")}</CookieSettingsButton>
         </div>
         <p className="pt-2 text-xs text-ink-400">
           © {new Date().getFullYear()} IMOVA. {t("inDevelopment")}
