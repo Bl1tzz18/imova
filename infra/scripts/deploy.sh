@@ -56,6 +56,13 @@ release() {
       || { echo "$image:$tag isn't in the registry: run scripts/deploy.sh build first." >&2; exit 1; }
   done
 
+  # The way back from a bad migration (some are one-way): a point-in-time restore to just before
+  # the release. B1ms can't take on-demand backups, so the restore point is this timestamp.
+  # Steps: docs/backup-restore.md.
+  local restore_point
+  restore_point="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "Restore point before this release: $restore_point (UTC; keep it, restorable for 7 days)"
+
   # The API first: it runs the database migrations the other two may depend on.
   for app in imova-api imova-worker imova-web; do
     echo "Updating $app in $env to $tag"
@@ -63,7 +70,7 @@ release() {
       --image "$registry/$app:$tag" --output none
   done
 
-  echo "$env now runs $tag."
+  echo "$env now runs $tag. If its migrations went wrong: restore to $restore_point (docs/backup-restore.md)."
 }
 
 case "${1:-}" in
