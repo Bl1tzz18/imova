@@ -37,6 +37,7 @@ public class RegisterHandlerTests
 
         var user = Assert.Single(_store.Users);
         Assert.Equal(user.Id, result.User.Id);
+        Assert.True(result.AccountCreated);
         var publisher = Assert.Single(dbContext.Publishers);
         Assert.Equal(user.Id, publisher.UserId);
         Assert.Equal("Ana Rusu", publisher.DisplayName);

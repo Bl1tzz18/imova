@@ -10,12 +10,20 @@ import { apiErrorMessage } from "@/lib/api/errorMessage";
 import { applySignInLocale } from "@/i18n/localeCookies";
 import { safeNextPath } from "@/lib/auth/nextPath";
 import { LEGAL_VERSION } from "@/lib/legal/version";
+import { captureServerEvent } from "@/lib/analytics/serverEvents";
 
 export type AuthFormState = { error?: string; success?: boolean };
 
 type AuthResponseBody = SessionTokens & {
   user: { requiresPhoneNumber: boolean; preferredLanguage?: string };
+  // Only on the response that created the account.
+  accountCreated?: boolean;
 };
+
+// Sign-ups in the product analytics (with the visitor's consent only — see captureServerEvent).
+async function countSignUp(session: AuthResponseBody, method: "email" | "google") {
+  if (session.accountCreated) await captureServerEvent("account_created", { method });
+}
 
 // Stores the session, then puts the site in the account's language (see applySignInLocale) —
 // returned, so the redirect that follows lands on that language's address.
@@ -34,7 +42,9 @@ async function completeSignIn(res: Response, next: string): Promise<AuthFormStat
     return readAuthError(res);
   }
 
-  const locale = await startSession((await res.json()) as AuthResponseBody);
+  const session = (await res.json()) as AuthResponseBody;
+  await countSignUp(session, "email");
+  const locale = await startSession(session);
   return redirectInLocale(next, locale);
 }
 
@@ -97,6 +107,7 @@ export async function googleLogin(idToken: string, next?: string): Promise<AuthF
   }
 
   const session = (await res.json()) as AuthResponseBody;
+  await countSignUp(session, "google");
   const locale = await startSession(session);
   const { user } = session;
 

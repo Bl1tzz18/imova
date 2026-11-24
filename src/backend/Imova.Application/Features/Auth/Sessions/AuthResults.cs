@@ -5,7 +5,7 @@ namespace Imova.Application.Features.Auth.Sessions;
 
 public static class AuthResults
 {
-    public static AuthResultDto For(ApplicationUser user, IReadOnlyList<string> roles, SessionTokenDto session) =>
+    public static AuthResultDto For(ApplicationUser user, IReadOnlyList<string> roles, SessionTokenDto session, bool accountCreated = false) =>
         new(
             session.Token,
             session.ExpiresAt,
@@ -20,5 +20,6 @@ public static class AuthResults
                 user.PreferredLanguage),
             session.RefreshToken,
             session.RefreshTokenExpiresAt,
-            session.Persistent);
+            session.Persistent,
+            accountCreated);
 }

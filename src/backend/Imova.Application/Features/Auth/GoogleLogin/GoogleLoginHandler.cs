@@ -31,6 +31,7 @@ public class GoogleLoginHandler(
         }
 
         var user = await userManager.FindByEmailAsync(googleUser.Email);
+        var accountCreated = user is null;
         if (user is null)
         {
             if (request.AcceptedTermsVersion != LegalTerms.CurrentVersion)
@@ -90,7 +91,7 @@ public class GoogleLoginHandler(
 
         var roles = (await userManager.GetRolesAsync(user)).ToList();
         var session = await authSessions.StartAsync(user, persistent: true, cancellationToken);
-        return AuthResults.For(user, roles, session);
+        return AuthResults.For(user, roles, session, accountCreated);
     }
 
     // Never throws — a failure here (Google's URL is unreachable/expired, an unrecognized image

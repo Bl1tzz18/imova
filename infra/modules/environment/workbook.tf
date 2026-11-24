@@ -56,7 +56,7 @@ locals {
       {
         type    = 1
         name    = "intro"
-        content = { json = "## IMOVA — trafic și activitate\nÎncărcările de pagină sunt anonime și includ toți vizitatorii (și pe cei care refuză cookie-urile): fără IP, fără identificatori, doar tipul paginii, dispozitivul, limba și sursa. Click-urile în interiorul site-ului nu sunt aici — pentru ele și pentru vizitatori unici, PostHog (doar cu acord). Datele se păstrează 30 de zile." }
+        content = { json = "## IMOVA — trafic și activitate\n**Vizite** = de câte ori a intrat cineva pe site din afară (Google, un link, adresa scrisă). **Pagini încărcate** = toate paginile deschise de la zero, inclusiv reîncărcările; click-urile în interiorul site-ului nu sunt numărate. Ambele sunt anonime și includ toți vizitatorii (și pe cei care refuză cookie-urile): fără IP, fără identificatori, doar tipul paginii, dispozitivul, limba și sursa. Pentru click-uri și vizitatori unici: PostHog (doar cu acord). Datele se păstrează 30 de zile." }
       },
       {
         type = 3
@@ -66,8 +66,8 @@ locals {
           visualization = "tiles"
           # Not "views"/"errors" as let names: the workbook's KQL parser refuses them (keywords).
           query = <<-KQL
-            let pageLoads = customEvents | where name == "PageView" | summarize Value = count() | extend Metric = "Încărcări de pagină", Order = 1;
-            let outsideEntries = customEvents | where name == "PageView" and tostring(customDimensions.source) != "internal" | summarize Value = count() | extend Metric = "Intrări din afară", Order = 2;
+            let pageLoads = customEvents | where name == "PageView" | summarize Value = count() | extend Metric = "Pagini încărcate", Order = 2;
+            let outsideEntries = customEvents | where name == "PageView" and tostring(customDimensions.source) != "internal" | summarize Value = count() | extend Metric = "Vizite", Order = 1;
             let businessEvents = traces
               | extend Event = tostring(customDimensions.Event)
               | where Event in ("AccountCreated", "CreateListing", "ApproveListing", "StartConversation")
@@ -97,7 +97,7 @@ locals {
         type = 3
         name = "page-loads-by-device"
         content = merge(local.workbook_query, {
-          title         = "Încărcări de pagină pe zi, pe dispozitiv"
+          title         = "Pagini încărcate pe zi, pe dispozitiv"
           visualization = "timechart"
           query         = <<-KQL
             customEvents
@@ -125,7 +125,7 @@ locals {
         type = 3
         name = "sources"
         content = merge(local.workbook_query, {
-          title         = "De unde vin (intrări din afară)"
+          title         = "De unde vin vizitele"
           visualization = "barchart"
           query         = <<-KQL
             customEvents

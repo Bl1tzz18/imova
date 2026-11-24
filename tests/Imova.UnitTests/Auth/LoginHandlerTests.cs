@@ -24,6 +24,7 @@ public class LoginHandlerTests
         Assert.Equal(user.Id, result.User.Id);
         Assert.Equal("user@example.com", result.User.Email);
         Assert.Equal("ro", result.User.PreferredLanguage);
+        Assert.False(result.AccountCreated);
     }
 
     [Fact]
