@@ -199,6 +199,10 @@ docker image rm postgres:16-alpine
 `GrantAdmin` row in `AdminAuditEntries` (actor = target, since nobody could grant it). Later admins
 are added from `/admin/admins`.
 
+**Backups and restore:** [`docs/backup-restore.md`](../docs/backup-restore.md) — seeing the
+backups, the restore point `deploy.sh release prod` prints, restoring the database and deleted
+blobs (rehearsed 2026-11-24, KAN-15).
+
 **Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
 purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
 
@@ -269,5 +273,4 @@ not matching: ours is the combined one on purpose.
   dev exists (after the Pay-As-You-Go upgrade). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
-- **KAN-15** — tested restore of the database (point-in-time) and the blobs.
 - A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.
