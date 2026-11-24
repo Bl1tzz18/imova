@@ -36,8 +36,6 @@ export function AccountMenu({ profile, adminWaiting = 0 }: { profile: UserProfil
     };
   }, [open]);
 
-  const menuItemClass =
-    "flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink-700 transition-colors hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:outline-none";
   const isAdmin = profile.roles.includes("Admin");
   const close = () => setOpen(false);
 
@@ -72,46 +70,61 @@ export function AccountMenu({ profile, adminWaiting = 0 }: { profile: UserProfil
           role="menu"
           className="fixed inset-x-4 top-[calc(100%+8px)] z-30 overflow-hidden rounded-xl border border-ink-100 bg-white py-1.5 shadow-[var(--shadow-card)] sm:absolute sm:inset-x-auto sm:right-0 sm:w-64"
         >
-          <div className="border-b border-ink-100 px-3.5 py-2.5">
-            <p className="truncate text-sm font-medium text-ink-900">{profile.displayName ?? profile.email}</p>
-            <p className="truncate text-xs text-ink-400">{profile.email}</p>
-          </div>
-
-          {/* Your own things. Messages aren't here: they're the envelope right next to the avatar. */}
-          <div className="py-1">
-            {ACCOUNT_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} role="menuitem" onClick={close} className={menuItemClass}>
-                <MenuIcon d={link.icon} />
-                {t(link.label)}
-              </Link>
-            ))}
-          </div>
-
-          {/* The admin area is one entry; its sections are tabs there (AdminNav). */}
-          {isAdmin && (
-            <div className="border-t border-ink-100 py-1">
-              <Link href="/admin" role="menuitem" onClick={close} className={`${menuItemClass} font-semibold text-ink-900`}>
-                <MenuIcon d={ICONS.shield} className="text-accent-600" />
-                <span className="flex-1">{t("administration")}</span>
-                {adminWaiting > 0 && (
-                  <span className="rounded-full bg-accent-500 px-1.5 text-[11px] font-bold leading-[18px] text-white">
-                    <span aria-hidden>{badgeText(adminWaiting)}</span>
-                    <span className="sr-only">{t("adminWaiting", { count: adminWaiting })}</span>
-                  </span>
-                )}
-              </Link>
-            </div>
-          )}
-
-          <form action={logout} className="border-t border-ink-100 pt-1">
-            <button type="submit" role="menuitem" className={`${menuItemClass} text-ink-500`}>
-              <MenuIcon d={ICONS.logout} />
-              {t("logout")}
-            </button>
-          </form>
+          <AccountMenuItems profile={profile} adminWaiting={adminWaiting} onPick={close} />
         </div>
       )}
     </div>
+  );
+}
+
+const menuItemClass =
+  "flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink-700 transition-colors hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:outline-none";
+
+// The menu's content — who you are, your pages, the admin area, sign out. Shared by the avatar's
+// dropdown (desktop) and the phone tab bar's "Cont" sheet.
+export function AccountMenuItems({ profile, adminWaiting, onPick }: { profile: UserProfile; adminWaiting: number; onPick: () => void }) {
+  const t = useTranslations("Header");
+  const isAdmin = profile.roles.includes("Admin");
+  return (
+    <>
+      <div className="border-b border-ink-100 px-3.5 py-2.5">
+        <p className="truncate text-sm font-medium text-ink-900">{profile.displayName ?? profile.email}</p>
+        <p className="truncate text-xs text-ink-400">{profile.email}</p>
+      </div>
+
+      {/* Your own things. Messages aren't here: they're the envelope beside the avatar (the Mesaje tab on a phone). */}
+      <div className="py-1">
+        {ACCOUNT_LINKS.map((link) => (
+          <Link key={link.href} href={link.href} role="menuitem" onClick={onPick} className={menuItemClass}>
+            <MenuIcon d={link.icon} />
+            {t(link.label)}
+          </Link>
+        ))}
+      </div>
+
+      {/* The admin area is one entry; its sections are tabs there (AdminNav). */}
+      {isAdmin && (
+        <div className="border-t border-ink-100 py-1">
+          <Link href="/admin" role="menuitem" onClick={onPick} className={`${menuItemClass} font-semibold text-ink-900`}>
+            <MenuIcon d={ICONS.shield} className="text-accent-600" />
+            <span className="flex-1">{t("administration")}</span>
+            {adminWaiting > 0 && (
+              <span className="rounded-full bg-accent-500 px-1.5 text-[11px] font-bold leading-[18px] text-white">
+                <span aria-hidden>{badgeText(adminWaiting)}</span>
+                <span className="sr-only">{t("adminWaiting", { count: adminWaiting })}</span>
+              </span>
+            )}
+          </Link>
+        </div>
+      )}
+
+      <form action={logout} className="border-t border-ink-100 pt-1">
+        <button type="submit" role="menuitem" className={`${menuItemClass} text-ink-500`}>
+          <MenuIcon d={ICONS.logout} />
+          {t("logout")}
+        </button>
+      </form>
+    </>
   );
 }
 

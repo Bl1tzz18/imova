@@ -1,7 +1,6 @@
 {
   "Common": {
     "addListing": "Adaugă anunț",
-    "addListingShort": "Adaugă anunț",
     "selectLanguage": "Selectează limba",
     "previous": "Anterior",
     "next": "Următor"
@@ -23,7 +22,9 @@
     "agencyVerification": "Verificare agenții",
     "agencies": "Agenții",
     "administration": "Administrare",
-    "adminWaiting": "{count, plural, one {# lucru în așteptare} few {# lucruri în așteptare} other {# de lucruri în așteptare}}"
+    "adminWaiting": "{count, plural, one {# lucru în așteptare} few {# lucruri în așteptare} other {# de lucruri în așteptare}}",
+    "searchPlaceholder": "Oraș sau sector",
+    "searchLabel": "Caută anunțuri după localitate"
   },
   "Footer": {
     "tagline": "Platforma de imobiliare pentru Moldova — anunțuri de la persoane fizice și agenții.",
@@ -2171,5 +2172,15 @@
     "contents": "Cuprins",
     "draftNotice": "Versiune preliminară, în curs de verificare juridică. Câmpurile evidențiate vor fi completate înainte de lansare.",
     "translationNotice": "Aceasta este versiunea în limba română, care prevalează asupra traducerilor."
+  },
+  "TabBar": {
+    "label": "Meniul principal",
+    "home": "Acasă",
+    "messages": "Mesaje",
+    "unread": "{count, plural, one {# mesaj necitit} few {# mesaje necitite} other {# de mesaje necitite}}",
+    "add": "Adaugă",
+    "addListing": "Adaugă anunț",
+    "saved": "Salvate",
+    "account": "Cont"
   }
 }

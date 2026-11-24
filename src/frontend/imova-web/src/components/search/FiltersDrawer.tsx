@@ -53,9 +53,9 @@ export function FiltersDrawer({
   const title = side ? t("moreFilters") : t("filters");
 
   return createPortal(
-    // The phone sheet starts under the site header (h-20 + its border) and sits below it, so the
-    // logo, language, account and "Adaugă anunț" stay there — and their menus open over the sheet.
-    <div className={cn("fixed flex", side ? "inset-0 z-50 hidden justify-end lg:flex" : "inset-x-0 bottom-0 top-[81px] z-[25] lg:hidden")}>
+    // The phone sheet fills the space between the site header (h-20 + its border) and, below md, the
+    // tab bar (4rem + the safe area): both stay usable, and the header's menus open over the sheet.
+    <div className={cn("fixed flex", side ? "inset-0 z-50 hidden justify-end lg:flex" : "inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] top-[81px] z-[25] md:bottom-0 lg:hidden")}>
       {side && <div className="absolute inset-0 bg-ink-950/30" onClick={onClose} aria-hidden />}
       <div
         role="dialog"
@@ -77,7 +77,7 @@ export function FiltersDrawer({
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
           <SearchFilters scope={side ? "details" : "all"} idPrefix={variant} />
         </div>
-        <div className="flex items-center gap-3 border-t border-line bg-white p-4">
+        <div className="flex items-center gap-3 border-t border-line bg-white p-4 pb-6 md:pb-4">
           {side ? (
             <button type="button" onClick={clearDetails} className="text-sm font-medium text-ink-600 hover:text-ink-950">
               {t("clearDetails")}
