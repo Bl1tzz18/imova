@@ -68,5 +68,9 @@ module "imova" {
   google_auth_enabled   = true
   telegram_bot_username = "imova_md_bot"
 
+  # Product analytics (PostHog EU) + the cookie banner. Uncomment with the project's values once the
+  # PostHog project exists, then set posthog-personal-api-key in Key Vault (infra/README.md).
+  # posthog = { project_key = "phc_…", project_id = "12345" }
+
   protect_data = true
 }

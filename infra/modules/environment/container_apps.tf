@@ -93,6 +93,11 @@ locals {
     var.mediatr_license_enabled ? [
       { name = "MEDIATR_LICENSE_KEY", secret = "mediatr-license-key" },
     ] : [],
+    # Deleting an account deletes its person in PostHog too (AccountDeletion, PostHogAnalyticsErasure).
+    var.posthog == null ? [] : [
+      { name = "PostHog__ProjectId", value = var.posthog.project_id },
+      { name = "PostHog__PersonalApiKey", secret = "posthog-personal-api-key" },
+    ],
   )
 
   worker_env = concat(local.backend_env,
@@ -104,18 +109,25 @@ locals {
     ],
   )
 
-  web_env = [
-    # Server-side calls to the API (Server Components, actions, the session middleware): by app
-    # name, inside the environment. The public address would resolve to the environment's public
-    # IP from in here too, so the call would leave and come back in with Azure's outbound address,
-    # and the API couldn't see the visitor's IP behind it (rate limits).
-    { name = "API_URL", value = "http://${local.api_app_name}" },
-    # The browser's calls (uploads, typeaheads, the messaging hub) — read at runtime, see
-    # src/lib/api/publicConfig.ts, so the same image runs in every environment.
-    { name = "PUBLIC_API_URL", value = local.api_url },
-    { name = "SITE_URL", value = local.web_url },
-    { name = "APPLICATIONINSIGHTS_CONNECTION_STRING", secret = "appinsights-connection-string" },
-  ]
+  web_env = concat(
+    [
+      # Server-side calls to the API (Server Components, actions, the session middleware): by app
+      # name, inside the environment. The public address would resolve to the environment's public
+      # IP from in here too, so the call would leave and come back in with Azure's outbound address,
+      # and the API couldn't see the visitor's IP behind it (rate limits).
+      { name = "API_URL", value = "http://${local.api_app_name}" },
+      # The browser's calls (uploads, typeaheads, the messaging hub) — read at runtime, see
+      # src/lib/api/publicConfig.ts, so the same image runs in every environment.
+      { name = "PUBLIC_API_URL", value = local.api_url },
+      { name = "SITE_URL", value = local.web_url },
+      { name = "APPLICATIONINSIGHTS_CONNECTION_STRING", secret = "appinsights-connection-string" },
+    ],
+    # Product analytics + the cookie banner (components/analytics, components/consent). The project
+    # key is public by design (it can only send events), so it's a plain setting.
+    var.posthog == null ? [] : [
+      { name = "POSTHOG_KEY", value = var.posthog.project_key },
+    ],
+  )
 
   # The secrets each app may read: exactly the ones its settings use.
   app_secrets = {

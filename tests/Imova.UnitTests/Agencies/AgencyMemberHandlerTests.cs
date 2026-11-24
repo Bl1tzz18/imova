@@ -412,7 +412,7 @@ public class AgencyMemberHandlerTests : IAsyncDisposable
 
     private AccountDeletion Deletion() =>
         new(_db, _blobs, new AccountDeletionEmails(TestUserManagerFactory.Create(new FakeUserStore()), _email, new AppOptions()),
-            NullLogger<AccountDeletion>.Instance);
+            new FakeAnalyticsErasure(), NullLogger<AccountDeletion>.Instance);
 
     [Fact]
     public async Task DeletingTheAccountOfTheLastOwner_OfAnAgencyWithOthers_IsRefused_AndNothingIsDeleted()

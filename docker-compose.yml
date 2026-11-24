@@ -136,6 +136,9 @@ services:
       PUBLIC_API_URL: http://localhost:8080
       # The site's public address — canonical links, link previews (og:url), structured data.
       SITE_URL: http://localhost:3000
+      # Product analytics + the cookie banner, off unless set (e.g. a PostHog test project's key:
+      # POSTHOG_KEY=phc_… docker compose up -d frontend).
+      POSTHOG_KEY: ${POSTHOG_KEY:-}
     ports:
       - "3000:3000"
     depends_on:

@@ -12,6 +12,16 @@ const nextConfig = {
   serverExternalPackages: ["@azure/monitor-opentelemetry", "@opentelemetry/api"],
   // The home page's photo files carry a version in their names (scripts/make-hero-images.mjs), so
   // browsers may keep them for a year; Next sends public files with max-age=0 otherwise.
+  // Product analytics (components/analytics/AnalyticsProvider): PostHog's EU endpoints behind our own
+  // /ingest, so the browser only talks to imova.md (and blockers of third-party trackers don't
+  // break the numbers). PostHog's API paths end in "/", hence no trailing-slash redirect.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      { source: "/ingest/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
+      { source: "/ingest/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
   async headers() {
     return [{ source: "/images/hero/:file*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] }];
   },

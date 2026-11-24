@@ -19,12 +19,14 @@ namespace Imova.UnitTests.Account;
 public class AccountDeletionTests
 {
     private readonly MessagingFixture _f = new();
+    private readonly FakeAnalyticsErasure _analytics = new();
 
     private AccountDeletion Deletion() =>
         new(
             _f.Db,
             _f.Blobs,
             new AccountDeletionEmails(TestUserManagerFactory.Create(new FakeUserStore()), _f.Email, _f.App),
+            _analytics,
             NullLogger<AccountDeletion>.Instance);
 
     private Task<bool> DeleteAsync(Guid userId) => Deletion().DeleteAsync(userId, CancellationToken.None);
@@ -49,6 +51,32 @@ public class AccountDeletionTests
             ExpiresAt = _f.Clock.Now.AddDays(1),
             SessionExpiresAt = _f.Clock.Now.AddDays(90),
         });
+
+    [Fact]
+    public async Task DeleteAsync_DeletesThePersonFromProductAnalytics()
+    {
+        Assert.True(await DeleteAsync(_f.Seller.Id));
+
+        Assert.Equal([_f.Seller.Id], _analytics.Erased);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_StillDeletesTheAccount_WhenProductAnalyticsFails()
+    {
+        _analytics.Fail = true;
+
+        Assert.True(await DeleteAsync(_f.Seller.Id));
+
+        Assert.False(await _f.Db.Users.AnyAsync(u => u.Id == _f.Seller.Id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ForAMissingAccount_ErasesNothing()
+    {
+        Assert.False(await DeleteAsync(Guid.NewGuid()));
+
+        Assert.Empty(_analytics.Erased);
+    }
 
     [Fact]
     public async Task DeleteAsync_RemovesTheAccountAndEverythingItOwns()

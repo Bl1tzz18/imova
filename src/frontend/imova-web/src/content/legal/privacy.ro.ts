@@ -28,6 +28,7 @@ export const privacyRo: LegalDocument = {
             "**Mesajele:** conversațiile cu alți utilizatori, inclusiv imaginile trimise, și starea lor (livrat, citit).",
             "**Activitatea în cont:** anunțurile salvate, căutările salvate și alertele lor, raportările pe care le faci (anunțuri sau conversații), utilizatorii pe care i-ai blocat.",
             "**Telegram (doar dacă îl conectezi):** identificatorul conversației cu botul nostru, numele de utilizator și prenumele din Telegram.",
+            "**Statistici de utilizare:** ce pagini deschizi, căutările (filtrele folosite), acțiunile de pe site (de exemplu afișarea unui număr sau salvarea unui anunț), erorile apărute în browser, tipul de dispozitiv și browser și țara sau orașul aproximativ. Le colectăm doar dacă accepți cookie-urile de statistici; atunci le legăm de browserul tău și, dacă ești conectat, de identificatorul contului (niciodată de nume, email sau telefon) și înregistrăm cum navighezi pe paginile publice și în formularul de anunț (înregistrarea sesiunii), cu textul din câmpuri ascuns; nu înregistrăm niciodată mesajele, contul, autentificarea și paginile de administrare (vezi [Cookie-uri](/privacy#cookies)).",
             "**Date tehnice:** adresa IP (folosită pe loc pentru limitarea încercărilor abuzive și păstrată doar în jurnalele tehnice), sesiunile de autentificare (dispozitiv conectat, începutul și sfârșitul sesiunii) și un identificator anonim de vizitator (vezi [Cookie-uri](/privacy#cookies)).",
           ],
         },
@@ -49,6 +50,8 @@ export const privacyRo: LegalDocument = {
               ["Emailuri despre anunțurile salvate (preț schimbat, anunț încheiat) și despre expirarea anunțurilor tale", "Anunțurile salvate, anunțurile tale, contul", "Interesul legitim de a te informa despre ce urmărești; te poți dezabona oricând"],
               ["Moderarea anunțurilor, tratarea raportărilor, prevenirea fraudelor și a spamului, semnalarea automată a mesajelor suspecte pentru verificare umană", "Anunțurile, mesajele, raportările, datele tehnice", "Interesul legitim de a ține platforma sigură"],
               ["Statistici pentru proprietarii de anunțuri (vizualizări, afișări ale telefonului, salvări)", "Identificatorul anonim de vizitator, contul", "Interesul legitim de a oferi statistici corecte, fără dubluri"],
+              ["Statistici anonime despre traficul site-ului (ce pagini se încarcă, de pe ce tip de dispozitiv, în ce limbă și de pe ce site vin vizitatorii), pentru toți vizitatorii, fără cookie-uri", "Adresa paginii, tipul de browser și site-ul de proveniență din cererea primită de server, folosite pe loc; nu păstrăm adresa IP, browserul exact sau vreun identificator, deci rezultatul nu te poate identifica", "Interesul legitim de a înțelege cum ajung oamenii pe site"],
+              ["Statistici despre folosirea site-ului, înregistrarea sesiunilor și rapoarte de erori din browser, ca să-l îmbunătățim", "Statisticile de utilizare, identificatorul contului", "Consimțământul tău, dat prin bannerul de cookie-uri; îl poți retrage oricând din „Setări cookie-uri” din subsolul paginii"],
               ["Securitate: limitarea încercărilor, jurnalul acțiunilor administratorilor", "Adresa IP, datele tehnice", "Interesul legitim de a proteja conturile și serviciul"],
               ["Răspunsul la cererile autorităților", "Datele cerute, în limita legii", "Obligația legală"],
             ],
@@ -77,6 +80,7 @@ export const privacyRo: LegalDocument = {
             "**Microsoft (Azure)** — găzduirea serverelor, a bazei de date și a fișierelor, precum și rapoartele de erori și jurnalele tehnice (Azure Monitor), în centre de date din Uniunea Europeană. Rapoartele de erori nu păstrează adresa IP și nici parametrii din adresele paginilor.",
             "**Microsoft (Azure Communication Services)** — trimiterea emailurilor (confirmări, alerte, notificări), în Uniunea Europeană.",
             "**Zoho (Zoho Mail, centre de date din Uniunea Europeană)** — căsuța de email pentru mesajele pe care ni le trimiți la adresele noastre @imova.md (de exemplu contact@imova.md).",
+            "**PostHog (PostHog Inc., găzduire în Uniunea Europeană, Frankfurt)** — statisticile de utilizare, înregistrările sesiunilor și rapoartele de erori din browser. Datele ajung la PostHog prin adresa noastră (imova.md), nu direct din browserul tău.",
             "**Google** — doar dacă alegi „Continuă cu Google”: Google află că te autentifici la IMOVA.",
             "**Telegram** — doar dacă îți conectezi contul: alertele sunt trimise prin Telegram.",
             "**OpenStreetMap Foundation** — hărțile de pe site se încarcă direct din browserul tău de pe serverele OpenStreetMap, care văd adresa IP și zona de hartă afișată.",
@@ -90,7 +94,7 @@ export const privacyRo: LegalDocument = {
       id: "transfers",
       heading: "Transferuri în afara Republicii Moldova",
       blocks: [
-        "Datele sunt găzduite în Uniunea Europeană, care asigură un nivel de protecție adecvat. OpenStreetMap Foundation se află în Regatul Unit, care beneficiază de o decizie de adecvare a Uniunii Europene. Google și Telegram pot prelucra date și în alte țări; le folosim doar la cererea ta (autentificarea cu Google, conectarea Telegram), iar transferul este necesar pentru serviciul cerut. Acolo unde furnizorii oferă clauze contractuale standard, ne bazăm pe acestea.",
+        "Datele sunt găzduite în Uniunea Europeană, care asigură un nivel de protecție adecvat. OpenStreetMap Foundation se află în Regatul Unit, care beneficiază de o decizie de adecvare a Uniunii Europene. Google și Telegram pot prelucra date și în alte țări; le folosim doar la cererea ta (autentificarea cu Google, conectarea Telegram), iar transferul este necesar pentru serviciul cerut. PostHog Inc. este o companie din SUA, dar statisticile noastre sunt găzduite în Uniunea Europeană; pentru un eventual acces din SUA (de exemplu asistență tehnică) se aplică clauzele contractuale standard ale PostHog. Acolo unde furnizorii oferă clauze contractuale standard, ne bazăm pe acestea.",
       ],
     },
     {
@@ -116,6 +120,8 @@ export const privacyRo: LegalDocument = {
               ["Jurnalul acțiunilor administratorilor", "Permanent; adresa IP din el se șterge după 12 luni."],
               ["Conexiunea Telegram", "Până o deconectezi sau ștergi contul."],
               ["Copiile de siguranță ale bazei de date și fișierele șterse (fotografii, imagini din mesaje)", "Până la 7 zile, apoi sunt șterse definitiv."],
+              ["Statisticile de utilizare (PostHog)", "Până la 12 luni; dacă îți ștergi contul, ștergem și statisticile legate de el."],
+              ["Înregistrările sesiunilor (doar cu acordul tău)", "Până la 30 de zile."],
               ["Jurnalele tehnice ale serverelor", "Până la 90 de zile."],
             ],
           },
@@ -144,7 +150,7 @@ export const privacyRo: LegalDocument = {
       id: "cookies",
       heading: "Cookie-uri și stocare în browser",
       blocks: [
-        "Folosim doar cookie-uri proprii, necesare pentru funcționarea site-ului. Nu folosim cookie-uri de publicitate, de analiză sau de la terți — de aceea nu îți cerem acordul printr-un banner. Dacă vom adăuga vreodată astfel de cookie-uri, îți vom cere întâi acordul.",
+        "Folosim cookie-uri proprii necesare pentru funcționarea site-ului și, doar dacă accepți în bannerul de cookie-uri, un cookie de statistici (PostHog). Nu folosim cookie-uri de publicitate. Dacă refuzi, site-ul funcționează la fel și nu trimitem nimic către PostHog. Îți poți schimba alegerea oricând din „Setări cookie-uri”, în subsolul paginii.",
         {
           table: {
             columns: ["Nume", "La ce folosește", "Durată"],
@@ -154,6 +160,8 @@ export const privacyRo: LegalDocument = {
               ["imova_vid", "Identificator aleatoriu, anonim, ca o vizualizare sau o afișare a telefonului unui anunț să fie numărată o singură dată pe zi. Nu e legat de identitatea ta și nu e transmis nimănui.", "1 an."],
               ["NEXT_LOCALE", "Ține minte limba site-ului.", "1 an."],
               ["imova_locale_chosen", "Ține minte că ai ales limba manual, ca să nu o schimbăm la autentificare.", "1 an."],
+              ["imova_consent", "Ține minte ce ai ales în bannerul de cookie-uri (necesar).", "1 an."],
+              ["ph_<cheie>_posthog", "Doar cu acordul tău: identificatorul de statistici al browserului și sesiunea curentă (PostHog). PostHog păstrează aceleași date și în localStorage.", "1 an."],
             ],
           },
         },

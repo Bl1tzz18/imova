@@ -15,6 +15,7 @@ import { ListingSavedDialog } from "@/components/property/listing-form/ListingSa
 import { updateListingDetails, type UpdateListingState } from "@/lib/property/actions";
 import { createListing, type CreateListingState } from "./actions";
 import { photoRequirement } from "@/lib/property/photos";
+import { track } from "@/lib/analytics/events";
 import type { MyAgency } from "@/types/agency";
 import type { Listing, Publisher } from "@/types/listing";
 
@@ -77,6 +78,13 @@ export function PropertyForm({
     if (!isEdit) setGeneratedId(crypto.randomUUID());
   }, [isEdit]);
   const listingId = listing?.id ?? generatedId;
+
+  const created = state.success && !isEdit;
+  useEffect(() => {
+    if (created) track("listing_created", { property_type: propertyType, transaction_type: transactionType });
+    // Once per creation; the type fields can't change after it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [created]);
 
   const formRef = useRef<HTMLFormElement>(null);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);

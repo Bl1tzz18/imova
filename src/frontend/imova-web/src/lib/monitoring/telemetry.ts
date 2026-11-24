@@ -20,6 +20,10 @@ export function startTelemetry(connectionString: string) {
     spanProcessors: [redactingProcessor],
     // A live stream to a separate Microsoft endpoint; not needed at this size.
     enableLiveMetrics: false,
+    // Requests are sampled (5 traces a second by default); logs would follow their trace's fate.
+    // Off, so every log line and every PageView custom event (lib/monitoring/pageViewEvents) is
+    // kept — the same lesson as the API's EnableTraceBasedLogsSampler.
+    enableTraceBasedSamplingForLogs: false,
   });
 }
 

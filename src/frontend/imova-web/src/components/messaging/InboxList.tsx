@@ -52,7 +52,8 @@ export function InboxList({
   return (
     <ul
       className={cn(
-        "divide-y divide-line bg-white",
+        // Names and message previews: never in product analytics.
+        "ph-no-capture divide-y divide-line bg-white",
         variant === "card" && "overflow-hidden rounded-[18px] border border-line shadow-[var(--shadow-card)]",
         variant === "sidebar" && "border-b border-line",
       )}

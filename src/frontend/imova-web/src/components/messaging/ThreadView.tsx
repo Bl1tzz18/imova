@@ -161,8 +161,9 @@ export function ThreadView({
   const typing = isTypingVisible(typingAt, now);
   const blockedByOther = thread.blockedByOther;
 
+  // ph-no-capture: product analytics never sees the conversation (autocapture).
   return (
-    <div className="flex h-full min-h-0 flex-col bg-white">
+    <div className="ph-no-capture flex h-full min-h-0 flex-col bg-white">
       <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
           {backHref && (

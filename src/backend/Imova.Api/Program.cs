@@ -48,6 +48,7 @@ using Imova.Application.Features.SavedSearches.Alerts;
 using Imova.Application.Features.Telegram;
 using Imova.Infrastructure;
 using Imova.Infrastructure.Agencies;
+using Imova.Infrastructure.Analytics;
 using Imova.Infrastructure.Email;
 using Imova.Infrastructure.Geocoding;
 using Imova.Infrastructure.Identity;
@@ -283,6 +284,26 @@ builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
 builder.Services.AddSingleton<IPhotoResizer, MagickPhotoResizer>();
 builder.Services.AddScoped<PhotoSizeGenerator>();
 builder.Services.AddScoped<MessageImageCopies>();
+
+// Product analytics (PostHog): only to delete a person when their account is deleted
+// (AccountDeletion). Without "PostHog:ProjectId" + "PostHog:PersonalApiKey" there's nothing to delete.
+// The key is in the Authorization header, so this client logs nothing.
+var postHogOptions = builder.Configuration.GetSection(PostHogOptions.SectionName).Get<PostHogOptions>() ?? new PostHogOptions();
+if (postHogOptions.IsConfigured)
+{
+    builder.Services.AddSingleton(postHogOptions);
+    builder.Services.AddHttpClient<IAnalyticsErasure, PostHogAnalyticsErasure>(client =>
+        {
+            client.BaseAddress = new Uri(postHogOptions.Host.TrimEnd('/') + "/");
+            client.DefaultRequestHeaders.Authorization = new("Bearer", postHogOptions.PersonalApiKey.Trim());
+            client.Timeout = TimeSpan.FromSeconds(15);
+        })
+        .RemoveAllLoggers();
+}
+else
+{
+    builder.Services.AddSingleton<IAnalyticsErasure, NoAnalyticsErasure>();
+}
 
 // Typed HttpClient for downloading external images (currently just Google profile pictures on
 // new-account sign-in — see GoogleLoginHandler). A short timeout since this is a synchronous

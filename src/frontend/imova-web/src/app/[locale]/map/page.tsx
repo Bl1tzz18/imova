@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { SearchTracker } from "@/components/search/SearchTracker";
 import { getTranslations } from "next-intl/server";
 import { Footer } from "@/components/layout/Footer";
 import { PropertyMapExplorer } from "@/components/property/PropertyMapExplorer";
@@ -39,6 +41,9 @@ export default async function MapPage({ searchParams }: PageProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
+        <Suspense fallback={null}>
+          <SearchTracker view="map" resultCount={results?.totalCount} />
+        </Suspense>
         <SearchNavigationProvider state={state} view="map">
           <FilterOptionsProvider>
             <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
