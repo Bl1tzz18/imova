@@ -61,5 +61,12 @@ module "imova" {
   # Community license, valid until 2027-11-23: renew it before then (infra/README.md).
   mediatr_license_enabled = true
 
+  # KAN-8: prod's own Google OAuth client (JavaScript origin https://imova.md) and its own
+  # Telegram bot — never dev's, only one process may poll a bot. The values are set by hand in Key
+  # Vault (google-client-id, google-client-secret, telegram-bot-token; infra/README.md). The bot
+  # only answers while the Worker runs (replicas = 1 from launch).
+  google_auth_enabled   = true
+  telegram_bot_username = "imova_md_bot"
+
   protect_data = true
 }
