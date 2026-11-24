@@ -164,10 +164,30 @@ Azure but they are never in the state. To rotate both, bump `secrets_version` in
 module call and apply — every session is signed out (new JWT key). If an apply fails half way
 after a bump, bump again so the database and Key Vault get the same new password.
 
-**Database access from your machine:** add your IP to `postgres_admin_ip_ranges`
-(`{ home = ["1.2.3.4", "1.2.3.4"] }`), apply, get the connection string with
-`az keyvault secret show --vault-name <kv> --name postgres-connection-string --query value -o tsv`,
-and remove the IP afterwards.
+**Database access from your machine** (e.g. granting the first admin). No psql needed — Docker has
+it. Prod's delete lock on the server also covers its firewall rules, so closing access again means
+lifting the lock for a moment; Terraform puts it back:
+
+```bash
+SERVER=psql-imova-prod-wpq4p   # terraform output postgres_server_name
+KV=kv-imova-prod-wpq4p         # terraform output key_vault_name
+MYIP=$(curl -s https://api.ipify.org)
+az postgres flexible-server firewall-rule create -g rg-imova-prod --server-name $SERVER \
+  --name temp-access --start-ip-address $MYIP --end-ip-address $MYIP
+docker run --rm -e PGPASSWORD="$(az keyvault secret show --vault-name $KV --name postgres-connection-string \
+  --query value -o tsv | sed -n 's/.*Password=\([^;]*\).*/\1/p')" postgres:16-alpine \
+  psql "host=$SERVER.postgres.database.azure.com dbname=imova user=imova_admin sslmode=require" -c "…"
+# close it again:
+az lock delete --name do-not-delete -g rg-imova-prod --resource-name $SERVER \
+  --resource-type Microsoft.DBforPostgreSQL/flexibleServers
+az postgres flexible-server firewall-rule delete -g rg-imova-prod --server-name $SERVER --name temp-access --yes
+cd infra/envs/prod && terraform apply -var image_tag=<current>   # recreates the lock
+docker image rm postgres:16-alpine
+```
+
+**First admin** (2026-11-23): granted that way — a row in `AspNetUserRoles` for the Admin role plus a
+`GrantAdmin` row in `AdminAuditEntries` (actor = target, since nobody could grant it). Later admins
+are added from `/admin/admins`.
 
 **Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
 purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
