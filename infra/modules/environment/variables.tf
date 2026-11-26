@@ -192,6 +192,11 @@ variable "acs_email" {
 
 # --- Protection ---------------------------------------------------------------------------------
 
+variable "key_vault_secret_officers" {
+  description = "Who runs Terraform and so writes the Key Vault secrets: a name → Entra object id (a person or the GitHub deploy identity)."
+  type        = map(string)
+}
+
 variable "protect_data" {
   description = "CanNotDelete locks on the database, storage and Key Vault, and purge protection on Key Vault (prod)."
   type        = bool

@@ -18,11 +18,15 @@ resource "azurerm_key_vault" "main" {
   tags                       = local.tags
 }
 
-# Whoever runs Terraform writes the secrets; the apps only read them.
-resource "azurerm_role_assignment" "deployer_secrets_officer" {
+# Whoever runs Terraform writes the secrets; the apps only read them. A fixed list (you, and the
+# GitHub deploy identity) rather than "whoever is signed in": otherwise every run from the other
+# one would take the role away from the first.
+resource "azurerm_role_assignment" "secrets_officers" {
+  for_each = var.key_vault_secret_officers
+
   scope                = azurerm_key_vault.main.id
   role_definition_name = "Key Vault Secrets Officer"
-  principal_id         = data.azurerm_client_config.current.object_id
+  principal_id         = each.value
 }
 
 resource "azurerm_role_assignment" "apps_secrets_user" {
@@ -37,7 +41,7 @@ resource "time_sleep" "key_vault_roles" {
   create_duration = "60s"
 
   depends_on = [
-    azurerm_role_assignment.deployer_secrets_officer,
+    azurerm_role_assignment.secrets_officers,
     azurerm_role_assignment.apps_secrets_user,
   ]
 }

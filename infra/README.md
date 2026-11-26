@@ -8,7 +8,8 @@ bootstrap/            once per subscription, local state: the storage account ho
 shared/               one Container Registry (images built once, promoted dev → prod) + the imova.md DNS zone
 modules/environment/  everything one environment has (below)
 envs/dev, envs/prod   the module with each environment's settings — the only difference between them
-scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod
+scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod (by hand)
+scripts/setup-cd.sh   one-time setup of the GitHub "Deploy" workflow
 backend.hcl           where shared/ and envs/* keep their state
 ```
 
@@ -113,9 +114,53 @@ says one is taken, change it in `bootstrap/variables.tf` + `backend.hcl`, or in
 
 ## Everyday work
 
-**Deploy:** `scripts/deploy.sh build`, then `scripts/deploy.sh release dev <tag>`, check dev, then
+**Deploy:** from GitHub — see "Deploying from GitHub" below. By hand it's still
+`scripts/deploy.sh build`, then `scripts/deploy.sh release dev <tag>`, check dev, then
 `scripts/deploy.sh release prod <tag>` — the same images, never rebuilt for prod. Terraform only
 sets the image when an app is created (`ignore_changes`), so an apply never rolls a deploy back.
+
+## Deploying from GitHub
+
+**Actions → Deploy → Run workflow** (branch `main`), then pick what:
+
+| `what` | Does |
+| --- | --- |
+| `everything` (default) | images → Terraform (shared, then prod) → release → checks |
+| `app` | images → release → checks (no Terraform) |
+| `infrastructure` | Terraform only (shared, then prod) |
+
+`.github/workflows/deploy.yml`, step by step:
+1. **Checks:** the run is on `main` and CI passed on that commit (otherwise it stops and says so).
+2. **Images:** api, worker and web built once, tagged with the commit (first 12 characters), pushed
+   to `acrimova`; a tag already in the registry isn't rebuilt.
+3. **Terraform:** `plan` then `apply` of `shared` and `envs/prod`, each plan listed in the run's
+   summary. A plan that **deletes or replaces** anything is refused — read it, then run again with
+   **allow_destroy** ticked if it's what you meant.
+4. **Release:** the apps moved to the new images, API first (it runs the migrations); the summary
+   shows the database **restore point** taken just before (docs/backup-restore.md).
+5. **Checks:** `https://api.imova.md/health/ready` and `https://imova.md` must answer 200 (waits up to
+   3 minutes for a sleeping prod to wake).
+
+One deploy runs at a time. The workflow has no stored password: it signs in to Azure with GitHub's
+OIDC token as the Entra application **imova-github-deploy**, which accepts only runs of this repo in
+the GitHub environment **production** (deployments from `main` only). Its rights: Owner of
+`rg-imova-prod` and `rg-imova-shared` (Terraform manages role assignments and delete locks there),
+blob data on the state storage, Key Vault Secrets Officer on prod's vault (Terraform,
+`key_vault_secret_officers`), and in Microsoft Graph only the applications it owns (it owns
+`imova-prod-smtp`). Want a confirmation click before each deploy? GitHub → Settings → Environments →
+production → Required reviewers (yourself; untick "Prevent self-review").
+
+**One-time setup** (done once; running it again is harmless):
+1. `infra/scripts/setup-cd.sh` (signed in with `az login` as the subscription owner and `gh auth
+   login`): creates the application, its rights, the federated credential and the `production`
+   environment with `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` as variables
+   (IDs, not secrets). It prints the application's object id.
+2. Put that id in `key_vault_secret_officers.github` in `envs/prod/main.tf` and `envs/dev/main.tf`.
+3. One `terraform apply` on prod from your machine (it gives the application its Key Vault role —
+   the workflow can't read the vault before that). After that, everything is the button.
+
+Dev isn't in the workflow yet (it doesn't exist on the free trial): once it does, add a second
+environment and a `dev` choice.
 
 **Dev on demand.** Dev is disposable: create it when you need it, destroy it when you're done (its
 database and photos go with it; nothing in dev is worth keeping).
@@ -275,4 +320,4 @@ not matching: ours is the combined one on purpose.
   dev exists (after the Pay-As-You-Go upgrade). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
-- A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.
+- ~~A CD workflow (GitHub Actions with OIDC, no stored secrets)~~ — done: "Deploying from GitHub".

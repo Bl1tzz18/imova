@@ -34,6 +34,9 @@ terraform {
 # The subscription comes from ARM_SUBSCRIPTION_ID (infra/README.md), never from a file.
 provider "azurerm" {
   storage_use_azuread = true
+  # The providers it needs are registered already; checking them at every run would need rights on
+  # the whole subscription, which the GitHub deploy identity doesn't have (only its resource groups).
+  resource_provider_registrations = "none"
 
   features {
     key_vault {
