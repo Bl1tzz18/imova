@@ -4,17 +4,19 @@
 #
 #   infra/scripts/setup-cd.sh
 #
-# It creates (or finds again — running it twice is harmless):
-# - an Entra application "imova-github-deploy" with no password: GitHub signs in with a short-lived
-#   OIDC token, and only a run of this repo in the "production" environment is accepted;
-# - its rights: Owner of rg-imova-prod and rg-imova-shared (Terraform manages role assignments and
-#   delete locks there), the state storage's blob data, and in Microsoft Graph only the
-#   applications it owns — it is made owner of imova-prod-smtp, which Terraform manages;
-# - the GitHub environment "production" (deployments from main only) with the three IDs the
-#   workflow needs, as variables — none of them is a secret.
-# At the end it prints the identity's object id: it goes in envs/prod/main.tf and envs/dev/main.tf
-# (key_vault_secret_officers.github), then one `terraform apply` from your machine gives it the
-# Key Vault role — after that, every deploy is the button.
+# It creates (or finds again — running it twice is harmless) two Entra applications with no
+# password: GitHub signs in with a short-lived OIDC token, accepted only for this repo's run in the
+# matching GitHub environment:
+# - "imova-github-build" (environment "build"): push and read images in the registry, nothing else;
+# - "imova-github-deploy" (environment "production", which waits for your approval): Owner of
+#   rg-imova-prod and rg-imova-shared (Terraform manages role assignments and delete locks there),
+#   the state storage's blob data, and in Microsoft Graph only the applications it owns — it is
+#   made owner of imova-prod-smtp, which Terraform manages.
+# And the two GitHub environments (deployments from main only), each with the three IDs its
+# workflow jobs need as variables (none of them is a secret); "production" requires your approval.
+# At the end it prints the deploy identity's object id: it goes in envs/prod/main.tf and
+# envs/dev/main.tf (key_vault_secret_officers.github), then one `terraform apply` from your machine
+# gives it the Key Vault role — after that, every deploy is a merge plus an Approve.
 set -euo pipefail
 
 REPO="${REPO:-Bl1tzz18/imova}"
@@ -27,42 +29,54 @@ SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
 TENANT_ID="$(az account show --query tenantId -o tsv)"
 echo "Subscription $SUBSCRIPTION_ID, tenant $TENANT_ID, repo $REPO"
 
-# --- The application and its service principal ---------------------------------------------------
-APP_ID="$(az ad app list --display-name "$APP_NAME" --query '[0].appId' -o tsv)"
-if [[ -z "$APP_ID" ]]; then
-  APP_ID="$(az ad app create --display-name "$APP_NAME" --sign-in-audience AzureADMyOrg --query appId -o tsv)"
-  echo "Created application $APP_NAME ($APP_ID)"
-fi
-APP_OBJECT_ID="$(az ad app show --id "$APP_ID" --query id -o tsv)"
-SP_ID="$(az ad sp list --filter "appId eq '$APP_ID'" --query '[0].id' -o tsv)"
-if [[ -z "$SP_ID" ]]; then
-  SP_ID="$(az ad sp create --id "$APP_ID" --query id -o tsv)"
-fi
+# --- The applications, their service principals and who may sign in as them ----------------------
+# identity <display-name> <github-environment> → sets APP_ID and SP_ID
+identity() {
+  APP_ID="$(az ad app list --display-name "$1" --query '[0].appId' -o tsv)"
+  if [[ -z "$APP_ID" ]]; then
+    APP_ID="$(az ad app create --display-name "$1" --sign-in-audience AzureADMyOrg --query appId -o tsv)"
+    echo "Created application $1 ($APP_ID)"
+  fi
+  local app_object_id subject
+  app_object_id="$(az ad app show --id "$APP_ID" --query id -o tsv)"
+  SP_ID="$(az ad sp list --filter "appId eq '$APP_ID'" --query '[0].id' -o tsv)"
+  if [[ -z "$SP_ID" ]]; then
+    SP_ID="$(az ad sp create --id "$APP_ID" --query id -o tsv)"
+  fi
+  # Only GitHub Actions runs of this repo in that environment can sign in as it.
+  subject="repo:$REPO:environment:$2"
+  if ! az ad app federated-credential list --id "$app_object_id" --query "[?subject=='$subject'].name" -o tsv | grep -q .; then
+    az ad app federated-credential create --id "$app_object_id" --parameters "{
+      \"name\": \"github-$2\",
+      \"issuer\": \"https://token.actions.githubusercontent.com\",
+      \"subject\": \"$subject\",
+      \"audiences\": [\"api://AzureADTokenExchange\"]
+    }" --output none
+    echo "$1 trusts $subject"
+  fi
+}
 
-# Only GitHub Actions runs of this repo in the "production" environment can sign in as it.
-SUBJECT="repo:$REPO:environment:production"
-if ! az ad app federated-credential list --id "$APP_OBJECT_ID" --query "[?subject=='$SUBJECT'].name" -o tsv | grep -q .; then
-  az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters "{
-    \"name\": \"github-production\",
-    \"issuer\": \"https://token.actions.githubusercontent.com\",
-    \"subject\": \"$SUBJECT\",
-    \"audiences\": [\"api://AzureADTokenExchange\"]
-  }" --output none
-  echo "Trusts $SUBJECT"
-fi
+identity imova-github-build build
+BUILD_APP_ID="$APP_ID"
+BUILD_SP_ID="$SP_ID"
+
+identity "$APP_NAME" production
 
 # --- Azure roles ---------------------------------------------------------------------------------
-assign() { # role scope
-  if [[ -z "$(az role assignment list --assignee "$SP_ID" --role "$1" --scope "$2" --query '[0].id' -o tsv)" ]]; then
-    az role assignment create --assignee-object-id "$SP_ID" --assignee-principal-type ServicePrincipal \
-      --role "$1" --scope "$2" --output none
-    echo "$1 on ${2##*/}"
+assign() { # principal role scope
+  if [[ -z "$(az role assignment list --assignee "$1" --role "$2" --scope "$3" --query '[0].id' -o tsv)" ]]; then
+    az role assignment create --assignee-object-id "$1" --assignee-principal-type ServicePrincipal \
+      --role "$2" --scope "$3" --output none
+    echo "$2 on ${3##*/}"
   fi
 }
 RG="/subscriptions/$SUBSCRIPTION_ID/resourceGroups"
-assign Owner "$RG/rg-imova-prod"
-assign Owner "$RG/rg-imova-shared"
-assign "Storage Blob Data Contributor" "$RG/rg-imova-tfstate/providers/Microsoft.Storage/storageAccounts/stimovatfstate"
+REGISTRY="$RG/rg-imova-shared/providers/Microsoft.ContainerRegistry/registries/acrimova"
+assign "$BUILD_SP_ID" AcrPush "$REGISTRY"
+assign "$BUILD_SP_ID" Reader "$REGISTRY"
+assign "$SP_ID" Owner "$RG/rg-imova-prod"
+assign "$SP_ID" Owner "$RG/rg-imova-shared"
+assign "$SP_ID" "Storage Blob Data Contributor" "$RG/rg-imova-tfstate/providers/Microsoft.Storage/storageAccounts/stimovatfstate"
 
 # --- Microsoft Graph: manage only the applications it owns (imova-prod-smtp) ----------------------
 OWNED_BY="$(az ad sp show --id "$GRAPH_APP_ID" --query "appRoles[?value=='Application.ReadWrite.OwnedBy'].id | [0]" -o tsv)"
@@ -86,16 +100,22 @@ add_owner() { # objects-path object-id
 add_owner applications "$SMTP_APP_ID"
 add_owner servicePrincipals "$SMTP_SP_ID"
 
-# --- GitHub: the "production" environment, main only, with the IDs -------------------------------
-"$GH" api --method PUT "repos/$REPO/environments/production" --input - >/dev/null <<'JSON'
-{ "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true } }
-JSON
-if ! "$GH" api "repos/$REPO/environments/production/deployment-branch-policies" --jq '.branch_policies[].name' | grep -qx main; then
-  "$GH" api --method POST "repos/$REPO/environments/production/deployment-branch-policies" -f name=main -f type=branch >/dev/null
-fi
-"$GH" variable set AZURE_CLIENT_ID --env production --repo "$REPO" --body "$APP_ID"
-"$GH" variable set AZURE_TENANT_ID --env production --repo "$REPO" --body "$TENANT_ID"
-"$GH" variable set AZURE_SUBSCRIPTION_ID --env production --repo "$REPO" --body "$SUBSCRIPTION_ID"
+# --- GitHub: the two environments, main only, with their IDs; production waits for you ------------
+REVIEWER_ID="$("$GH" api user --jq .id)"
+environment() { # name app-id protection-json
+  "$GH" api --method PUT "repos/$REPO/environments/$1" --input - >/dev/null <<<"$3"
+  if ! "$GH" api "repos/$REPO/environments/$1/deployment-branch-policies" --jq '.branch_policies[].name' | grep -qx main; then
+    "$GH" api --method POST "repos/$REPO/environments/$1/deployment-branch-policies" -f name=main -f type=branch >/dev/null
+  fi
+  "$GH" variable set AZURE_CLIENT_ID --env "$1" --repo "$REPO" --body "$2"
+  "$GH" variable set AZURE_TENANT_ID --env "$1" --repo "$REPO" --body "$TENANT_ID"
+  "$GH" variable set AZURE_SUBSCRIPTION_ID --env "$1" --repo "$REPO" --body "$SUBSCRIPTION_ID"
+}
+BRANCHES='"deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true }'
+environment build "$BUILD_APP_ID" "{ $BRANCHES }"
+# You approve your own deploys, so self-review must stay allowed.
+environment production "$APP_ID" "{ $BRANCHES, \"prevent_self_review\": false,
+  \"reviewers\": [{ \"type\": \"User\", \"id\": $REVIEWER_ID }] }"
 
 echo
 echo "Done. The deploy identity's object id (key_vault_secret_officers.github):"

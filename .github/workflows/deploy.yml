@@ -1,17 +1,24 @@
 name: Deploy
 
-# Production deploy, by hand: Actions → Deploy → Run workflow (from main). For the commit on main:
-#   1. checks it's main and that CI passed on it;
-#   2. builds the three images once, tagged with the commit (skipped if the registry has them);
-#   3. Terraform plan + apply: shared (registry, DNS, email), then prod — refusing any plan that
-#      deletes or replaces something unless "allow_destroy" is ticked;
-#   4. points prod's apps at the new images (API first: it runs the migrations) and prints the
-#      database restore point taken just before;
-#   5. checks the site and the API answer.
-# Signs in to Azure with OIDC (no stored passwords) as "imova-github-deploy", which trusts only this
-# repo's "production" environment. One-time setup: infra/scripts/setup-cd.sh (infra/README.md,
-# "Deploying from GitHub"). infra/scripts/deploy.sh still does the same by hand.
+# Every green CI run on main ends here:
+#   1. the commit's three images are built and pushed (automatically);
+#   2. "Deploy to prod" waits for your approval (GitHub → the run → Review deployments → Approve),
+#      then: Terraform plan + apply (shared, then prod — a plan that deletes or replaces something
+#      is refused unless run by hand with "allow_destroy"), the apps moved to the new images (API
+#      first: it runs the migrations; the database restore point is in the summary), and a check
+#      that the site and the API answer.
+# Not approving is fine: the next merge brings a newer run. By hand (Actions → Deploy → Run
+# workflow, from main) for a redeploy, only the infrastructure, or allow_destroy.
+#
+# No stored passwords: GitHub's OIDC token. The images are pushed as "imova-github-build" (the
+# "build" environment: push to the registry, nothing else); prod is changed as
+# "imova-github-deploy" (the "production" environment, behind your approval). One-time setup:
+# infra/scripts/setup-cd.sh (infra/README.md, "Deploying from GitHub").
 on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       what:
@@ -27,11 +34,6 @@ on:
         type: boolean
         default: false
 
-# One deploy at a time; a second one waits instead of cancelling the first.
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -44,37 +46,54 @@ env:
 jobs:
   check:
     name: Checks
+    # After CI: only a green run for a push to this repo's main — never a pull request (a fork's
+    # branch can be called "main" too).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       actions: read
     outputs:
-      tag: ${{ steps.tag.outputs.tag }}
+      sha: ${{ steps.commit.outputs.sha }}
+      tag: ${{ steps.commit.outputs.tag }}
+      what: ${{ steps.commit.outputs.what }}
     steps:
-      - name: From main only
-        if: github.ref != 'refs/heads/main'
-        run: |
-          echo "::error::Deploy runs from main only (this run is on ${GITHUB_REF_NAME})."
-          exit 1
-      - name: CI passed on this commit
+      - name: Commit and what to deploy
+        id: commit
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          WHAT: ${{ inputs.what || 'everything' }}
         run: |
-          passed=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${GITHUB_SHA}&status=success" --jq '.total_count')
-          if [ "$passed" = "0" ]; then
-            echo "::error::CI hasn't passed on ${GITHUB_SHA::12} yet. Wait for the CI run on main to finish green, then deploy."
-            exit 1
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            if [ "$GITHUB_REF" != refs/heads/main ]; then
+              echo "::error::Deploy runs from main only (this run is on ${GITHUB_REF_NAME})."
+              exit 1
+            fi
+            passed=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${SHA}&status=success" --jq '.total_count')
+            if [ "$passed" = "0" ]; then
+              echo "::error::CI hasn't passed on ${SHA::12} yet. When it does, this workflow starts by itself."
+              exit 1
+            fi
           fi
-      - id: tag
-        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          {
+            echo "sha=$SHA"
+            echo "tag=${SHA::12}"
+            echo "what=$WHAT"
+          } >> "$GITHUB_OUTPUT"
+          echo "Commit ${SHA::12}, deploying: $WHAT" >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Image (${{ matrix.image }})
     needs: check
-    if: inputs.what != 'infrastructure'
+    if: needs.check.outputs.what != 'infrastructure'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: production
+    environment: build
     permissions:
       contents: read
       id-token: write
@@ -93,6 +112,8 @@ jobs:
             dockerfile: src/frontend/imova-web/Dockerfile
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check.outputs.sha }}
       - uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
@@ -103,12 +124,12 @@ jobs:
         env:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
-          echo "server=$(az acr show --name "$ACR_NAME" --query loginServer -o tsv)" >> "$GITHUB_OUTPUT"
-          if az acr repository show --name "$ACR_NAME" --image "imova-${{ matrix.image }}:$TAG" --output none 2>/dev/null; then
+          echo "server=${ACR_NAME}.azurecr.io" >> "$GITHUB_OUTPUT"
+          az acr login --name "$ACR_NAME"
+          if docker manifest inspect "${ACR_NAME}.azurecr.io/imova-${{ matrix.image }}:$TAG" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "imova-${{ matrix.image }}:$TAG is already in the registry — not rebuilt."
           fi
-          az acr login --name "$ACR_NAME"
       - uses: docker/setup-buildx-action@v3
         if: steps.registry.outputs.exists != 'true'
       - uses: docker/build-push-action@v6
@@ -122,56 +143,67 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 
-  infrastructure:
-    name: Terraform (shared, prod)
+  deploy:
+    name: Deploy to prod
     needs: [check, build]
-    # After the images (a new app would be created with them); also when the build was skipped.
+    # Also when the build was skipped (infrastructure only).
     if: >-
-      always() && inputs.what != 'app' && needs.check.result == 'success' &&
+      always() && needs.check.result == 'success' &&
       (needs.build.result == 'success' || needs.build.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 40
-    environment: production
+    timeout-minutes: 60
+    # Waits here for your approval (the environment's required reviewer).
+    environment:
+      name: production
+      url: https://imova.md
+    # One deploy at a time; a newer one waits instead of interrupting it.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
     env:
+      SHA: ${{ needs.check.outputs.sha }}
+      TAG: ${{ needs.check.outputs.tag }}
+      WHAT: ${{ needs.check.outputs.what }}
+      ALLOW_DESTROY: ${{ inputs.allow_destroy || false }}
       ARM_USE_OIDC: "true"
       ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_IN_AUTOMATION: "true"
-      ALLOW_DESTROY: ${{ inputs.allow_destroy }}
     steps:
       - uses: actions/checkout@v4
-      # The Azure CLI too: binding a custom domain runs `az containerapp hostname bind`.
+        with:
+          ref: ${{ needs.check.outputs.sha }}
+      # Also for Terraform: binding a custom domain runs `az containerapp hostname bind`.
       - uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - uses: hashicorp/setup-terraform@v3
+        if: env.WHAT != 'app'
         with:
           terraform_version: "~1.17"
           terraform_wrapper: false
-      - name: Image tag
-        env:
-          BUILT: ${{ needs.build.result == 'success' && needs.check.outputs.tag || '' }}
-        run: |
-          # Only used if Terraform creates an app; otherwise the running image is kept.
-          tag="$BUILT"
-          if [ -z "$tag" ]; then
-            tag=$(az containerapp show --name imova-api --resource-group "$RESOURCE_GROUP" \
-              --query 'properties.template.containers[0].image' -o tsv | sed 's/.*://')
-          fi
-          echo "IMAGE_TAG=$tag" >> "$GITHUB_ENV"
-      - name: Plan and apply
+
+      - name: Terraform (shared, then prod)
+        if: env.WHAT != 'app'
         working-directory: infra
         run: |
+          # The image tag only matters if Terraform creates an app; otherwise the running one stays.
+          image_tag="$TAG"
+          if [ "$WHAT" = infrastructure ]; then
+            image_tag=$(az containerapp show --name imova-api --resource-group "$RESOURCE_GROUP" \
+              --query 'properties.template.containers[0].image' -o tsv | sed 's/.*://')
+          fi
+
           for stack in shared envs/prod; do
             backend=$([ "$stack" = shared ] && echo ../backend.hcl || echo ../../backend.hcl)
             vars=()
-            [ "$stack" = envs/prod ] && vars=(-var "image_tag=$IMAGE_TAG")
+            [ "$stack" = envs/prod ] && vars=(-var "image_tag=$image_tag")
 
             echo "::group::$stack: init + plan"
             terraform -chdir="$stack" init -input=false -lockfile=readonly -backend-config="$backend"
@@ -197,7 +229,7 @@ jobs:
             removed=$(terraform -chdir="$stack" show -json tfplan \
               | jq '[.resource_changes[] | select(.change.actions | index("delete"))] | length')
             if [ "$removed" != 0 ] && [ "$ALLOW_DESTROY" != true ]; then
-              echo "::error::The $stack plan deletes or replaces $removed resource(s) — see the summary. Run again with \"allow_destroy\" ticked if that's intended."
+              echo "::error::The $stack plan deletes or replaces $removed resource(s) — see the summary. If that's intended: Actions → Deploy → Run workflow with \"allow_destroy\" ticked."
               exit 1
             fi
 
@@ -206,31 +238,9 @@ jobs:
             echo "::endgroup::"
           done
 
-  release:
-    name: Release to prod
-    needs: [check, build, infrastructure]
-    if: >-
-      always() && needs.check.result == 'success' && needs.build.result == 'success' &&
-      (needs.infrastructure.result == 'success' || needs.infrastructure.result == 'skipped')
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment:
-      name: production
-      url: https://imova.md
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      TAG: ${{ needs.check.outputs.tag }}
-    steps:
-      - uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Point the apps at the new images
+        if: env.WHAT != 'infrastructure'
         run: |
-          registry=$(az acr show --name "$ACR_NAME" --query loginServer -o tsv)
           # The way back from a bad migration (some are one-way): a point-in-time restore to just
           # before this release (docs/backup-restore.md). B1ms can't take on-demand backups.
           restore_point=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -242,9 +252,11 @@ jobs:
           for app in imova-api imova-worker imova-web; do
             echo "Updating $app to $TAG"
             az containerapp update --name "$app" --resource-group "$RESOURCE_GROUP" \
-              --image "$registry/$app:$TAG" --output none
+              --image "${ACR_NAME}.azurecr.io/$app:$TAG" --output none
           done
+
       - name: The site and the API answer
+        if: env.WHAT != 'infrastructure'
         run: |
           # Prod may be asleep (scaled to zero): the first request wakes it, so allow a few minutes.
           check() {
