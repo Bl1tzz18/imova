@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils/cn";
+import { popoverItem, popoverPanel } from "@/components/ui/popover";
 
 type DropdownItem = {
   id: string;
@@ -62,8 +63,7 @@ export function DropdownMenu({
     };
   }, [open]);
 
-  const itemClass =
-    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-800 hover:bg-ink-50 focus:bg-ink-50 focus:outline-none";
+  const itemClass = cn(popoverItem, "whitespace-nowrap focus:bg-ink-50 focus:outline-none");
 
   return (
     <div ref={root} className="relative shrink-0">
@@ -84,7 +84,7 @@ export function DropdownMenu({
         <div
           role="menu"
           aria-label={label}
-          className={cn("absolute right-0 top-full z-20 mt-1.5 overflow-hidden rounded-xl border border-ink-100 bg-white py-1 shadow-[var(--shadow-card-hover)]", menuMinWidth)}
+          className={cn("absolute right-0 top-full z-20 mt-2 origin-top-right overflow-hidden p-1.5", popoverPanel, menuMinWidth)}
         >
           {items.map((item) =>
             item.href ? (
@@ -110,12 +110,12 @@ export function DropdownMenu({
                   setOpen(false);
                   item.onSelect?.();
                 }}
-                className={cn(itemClass, item.checked && "bg-accent-100/60 font-semibold text-accent-700 hover:bg-accent-100 focus:bg-accent-100")}
+                className={cn(itemClass, item.checked && "font-semibold text-ink-950")}
               >
                 {item.icon}
                 <span className="flex-1">{item.label}</span>
                 {item.checked ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-accent-600" aria-hidden>
                     <path d="m5 12.5 4.5 4.5L19 7.5" />
                   </svg>
                 ) : (

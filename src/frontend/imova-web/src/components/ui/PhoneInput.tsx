@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils/cn";
 import { inputClass } from "@/components/ui/Field";
 import { getCountryList, type Country } from "@/lib/utils/countries";
 import { isValidPhone } from "@/lib/utils/phone";
+import { popoverItem, popoverPanel, popoverSearch } from "@/components/ui/popover";
 
 const DEFAULT_COUNTRY = "MD";
 
@@ -119,14 +120,14 @@ export function PhoneInput({
         </button>
 
         {open && (
-          <div className="absolute left-0 top-[calc(100%+4px)] z-20 w-72 rounded-xl border border-ink-100 bg-white p-2 shadow-[var(--shadow-card)]">
+          <div className={cn("absolute left-0 top-[calc(100%+6px)] z-20 w-72 origin-top-left p-1.5", popoverPanel)}>
             <input
               ref={searchRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("phoneSearchPlaceholder")}
-              className={cn(inputClass, "mb-2 h-9 text-sm")}
+              className={cn(popoverSearch, "mb-1.5")}
             />
             <ul role="listbox" className="max-h-64 overflow-y-auto">
               {filteredCountries.length === 0 && (
@@ -140,8 +141,9 @@ export function PhoneInput({
                     aria-selected={c.code === country.code}
                     onClick={() => selectCountry(c)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50",
-                      c.code === country.code && "bg-brand-100/60",
+                      popoverItem,
+                      "gap-2 py-2",
+                      c.code === country.code && "font-semibold text-ink-950",
                     )}
                   >
                     <span className="text-base leading-none">{c.flag}</span>

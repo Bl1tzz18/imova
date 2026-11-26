@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { searchLocations, type LocationSuggestion } from "@/lib/api/locationSearch";
 import { cn } from "@/lib/utils/cn";
+import { popoverItem, popoverPanel } from "@/components/ui/popover";
 
 // Typeahead over every raion, localitate and Chișinău sector (diacritics optional). Typing clears a
 // previous pick; picking one reports it up.
@@ -99,7 +100,7 @@ export function LocationAutocomplete({
         className={className}
       />
       {open && suggestions.length > 0 && (
-        <ul id={listId} role="listbox" className="absolute left-0 right-0 top-[calc(100%+4px)] z-30 max-h-72 overflow-y-auto rounded-xl border border-line bg-white py-1 text-left shadow-[var(--shadow-card-hover)]">
+        <ul id={listId} role="listbox" className={cn("absolute left-0 right-0 top-[calc(100%+6px)] z-30 max-h-72 origin-top overflow-y-auto p-1.5 text-left", popoverPanel)}>
           {suggestions.map((s, i) => (
             <li key={`${s.kind}-${s.id}`} role="option" aria-selected={i === highlighted}>
               <button
@@ -107,7 +108,7 @@ export function LocationAutocomplete({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => pick(s)}
                 onMouseEnter={() => setHighlighted(i)}
-                className={cn("flex w-full items-baseline justify-between gap-3 px-3.5 py-2 text-left text-sm", i === highlighted && "bg-bubble")}
+                className={cn(popoverItem, "items-baseline justify-between", i === highlighted && "bg-ink-50")}
               >
                 <span className="truncate font-medium text-ink-900">{s.name}</span>
                 <span className="shrink-0 text-xs text-ink-400">{kindLabel(s)}</span>

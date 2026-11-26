@@ -3,7 +3,11 @@
     "addListing": "Добавить объявление",
     "selectLanguage": "Выбрать язык",
     "previous": "Назад",
-    "next": "Вперёд"
+    "next": "Вперёд",
+    "listSearch": "Поиск",
+    "listNoResults": "Ничего не найдено",
+    "listRequired": "Выберите вариант",
+    "close": "Закрыть"
   },
   "Header": {
     "buy": "Продажа",

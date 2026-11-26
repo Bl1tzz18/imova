@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { cn } from "@/lib/utils/cn";
 import { normalizeForSearch } from "@/lib/utils/search";
 import { inputClass } from "@/components/ui/Field";
+import { popoverItem, popoverPanel, popoverSearch } from "@/components/ui/popover";
 
 type SearchableSelectOption = {
   id: string;
@@ -132,17 +133,28 @@ export function SearchableSelect({
         aria-expanded={open}
         className={cn(
           inputClass,
-          "flex items-center justify-between text-left disabled:cursor-not-allowed disabled:opacity-60",
+          "flex items-center justify-between text-left transition-[border-color,box-shadow] hover:border-ink-300 disabled:cursor-not-allowed disabled:opacity-60 aria-expanded:border-ink-300 aria-expanded:ring-4 aria-expanded:ring-ink-200/50",
         )}
       >
         <span className={cn("truncate", !selected && "text-ink-400")}>
           {selected ? selected.label : placeholder}
         </span>
-        <span className="ml-2 shrink-0 text-ink-400">▾</span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={cn("ml-2 h-4 w-4 shrink-0 text-ink-400 transition-transform duration-200 motion-reduce:transition-none", open && "rotate-180")}
+          aria-hidden
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
 
       {open && (
-        <div className="absolute left-0 top-[calc(100%+4px)] z-20 w-full min-w-[16rem] rounded-xl border border-ink-100 bg-white p-2 shadow-[var(--shadow-card)]">
+        <div className={cn("absolute left-0 top-[calc(100%+6px)] z-20 w-full min-w-[16rem] origin-top p-1.5", popoverPanel)}>
           <input
             ref={searchRef}
             type="text"
@@ -150,10 +162,10 @@ export function SearchableSelect({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
             placeholder={searchPlaceholder}
-            className={cn(inputClass, "mb-2 h-9 text-sm")}
+            className={cn(popoverSearch, "mb-1.5")}
           />
           <ul role="listbox" className="max-h-64 overflow-y-auto">
-            {filteredOptions.length === 0 && <li className="px-2 py-2 text-sm text-ink-400">{noResultsText}</li>}
+            {filteredOptions.length === 0 && <li className="px-3 py-2.5 text-sm text-ink-400">{noResultsText}</li>}
             {filteredOptions.map((option, index) => (
               <li key={option.id}>
                 <button
@@ -166,11 +178,17 @@ export function SearchableSelect({
                   onClick={() => select(option)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   className={cn(
-                    "w-full truncate rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50",
-                    index === highlightedIndex ? "bg-ink-50" : option.id === value && "bg-brand-100/60",
+                    popoverItem,
+                    index === highlightedIndex && "bg-ink-50",
+                    option.id === value && "font-semibold text-ink-950",
                   )}
                 >
-                  {option.label}
+                  <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                  {option.id === value && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0 text-accent-600" aria-hidden>
+                      <path d="m5 12.5 4.5 4.5L19 7.5" />
+                    </svg>
+                  )}
                 </button>
               </li>
             ))}

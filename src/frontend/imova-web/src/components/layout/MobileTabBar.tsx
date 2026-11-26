@@ -174,7 +174,7 @@ function AccountSheet({ onClose, label, children }: { onClose: () => void; label
       <div
         role="menu"
         aria-label={label}
-        className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] max-h-[70vh] overflow-y-auto rounded-t-2xl border-t border-ink-100 bg-white pb-6 pt-1.5 shadow-[0_-12px_32px_-16px_rgba(11,22,32,0.35)]"
+        className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] max-h-[70vh] overflow-y-auto rounded-t-[22px] border-t border-ink-100 bg-white px-1.5 pb-6 pt-1.5 shadow-[0_-12px_32px_-16px_rgba(11,22,32,0.35)]"
       >
         {children}
       </div>

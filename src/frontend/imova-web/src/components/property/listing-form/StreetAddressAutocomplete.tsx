@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { TextInput } from "@/components/ui/Field";
 import { cn } from "@/lib/utils/cn";
 import { getStreetSuggestions, type StreetSuggestion } from "@/lib/api/locations";
+import { popoverItem, popoverPanel } from "@/components/ui/popover";
 
 // 3, not 2: tested against the real Photon API during development — at 2 characters, once a
 // locality bias is folded into the query (see getStreetSuggestions/GetStreetSuggestionsHandler,
@@ -181,10 +182,10 @@ export function StreetAddressAutocomplete({
       {open && (loading || suggestions.length > 0) && (
         <ul
           role="listbox"
-          className="absolute left-0 top-[calc(100%+4px)] z-20 max-h-64 w-full overflow-y-auto rounded-xl border border-ink-100 bg-white p-2 shadow-[var(--shadow-card)]"
+          className={cn("absolute left-0 top-[calc(100%+6px)] z-20 max-h-64 w-full origin-top overflow-y-auto p-1.5", popoverPanel)}
         >
           {loading && (
-            <li className="flex items-center gap-2 px-2 py-1.5 text-xs text-ink-400" aria-live="polite">
+            <li className="flex items-center gap-2 px-3 py-2 text-xs text-ink-400" aria-live="polite">
               <span
                 className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-ink-300 border-t-transparent"
                 aria-hidden="true"
@@ -204,7 +205,8 @@ export function StreetAddressAutocomplete({
                 onClick={() => select(suggestion)}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={cn(
-                  "w-full truncate rounded-lg px-2 py-1.5 text-left text-sm hover:bg-ink-50",
+                  popoverItem,
+                  "block truncate",
                   index === highlightedIndex && "bg-ink-50",
                 )}
               >
