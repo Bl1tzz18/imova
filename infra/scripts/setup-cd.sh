@@ -27,7 +27,9 @@ command -v "$GH" >/dev/null || GH="$HOME/.local/bin/gh"
 
 SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
 TENANT_ID="$(az account show --query tenantId -o tsv)"
-echo "Subscription $SUBSCRIPTION_ID, tenant $TENANT_ID, repo $REPO"
+# "owner@<owner id>/repo@<repo id>", as GitHub's OIDC token may name the repo.
+REPO_WITH_IDS="$("$GH" api "repos/$REPO" --jq '"\(.owner.login)@\(.owner.id)/\(.name)@\(.id)"')"
+echo "Subscription $SUBSCRIPTION_ID, tenant $TENANT_ID, repo $REPO ($REPO_WITH_IDS)"
 
 # --- The applications, their service principals and who may sign in as them ----------------------
 # identity <display-name> <github-environment> → sets APP_ID and SP_ID
@@ -43,17 +45,22 @@ identity() {
   if [[ -z "$SP_ID" ]]; then
     SP_ID="$(az ad sp create --id "$APP_ID" --query id -o tsv)"
   fi
-  # Only GitHub Actions runs of this repo in that environment can sign in as it.
-  subject="repo:$REPO:environment:$2"
-  if ! az ad app federated-credential list --id "$app_object_id" --query "[?subject=='$subject'].name" -o tsv | grep -q .; then
-    az ad app federated-credential create --id "$app_object_id" --parameters "{
-      \"name\": \"github-$2\",
-      \"issuer\": \"https://token.actions.githubusercontent.com\",
-      \"subject\": \"$subject\",
-      \"audiences\": [\"api://AzureADTokenExchange\"]
-    }" --output none
-    echo "$1 trusts $subject"
-  fi
+  # Only GitHub Actions runs of this repo in that environment can sign in as it. GitHub names the
+  # repo in the token either by name ("repo:owner/name:…") or, for newer repos, with the owner's
+  # and the repo's numeric ids too ("repo:owner@123/name@456:…" — this one does); both are trusted.
+  local name subject
+  for name in "github-$2" "github-$2-ids"; do
+    if [[ "$name" == *-ids ]]; then subject="repo:$REPO_WITH_IDS:environment:$2"; else subject="repo:$REPO:environment:$2"; fi
+    if ! az ad app federated-credential list --id "$app_object_id" --query "[?subject=='$subject'].name" -o tsv | grep -q .; then
+      az ad app federated-credential create --id "$app_object_id" --parameters "{
+        \"name\": \"$name\",
+        \"issuer\": \"https://token.actions.githubusercontent.com\",
+        \"subject\": \"$subject\",
+        \"audiences\": [\"api://AzureADTokenExchange\"]
+      }" --output none
+      echo "$1 trusts $subject"
+    fi
+  done
 }
 
 identity imova-github-build build
