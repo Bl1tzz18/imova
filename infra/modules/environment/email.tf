@@ -31,6 +31,12 @@ resource "azuread_service_principal" "smtp" {
   count = var.acs_email != null ? 1 : 0
 
   client_id = azuread_application_registration.smtp[0].client_id
+
+  # The GitHub deploy identity is made an owner by infra/scripts/setup-cd.sh (that's what lets it
+  # manage this application); Terraform mustn't take that away.
+  lifecycle {
+    ignore_changes = [owners]
+  }
 }
 
 resource "azuread_application_password" "smtp" {

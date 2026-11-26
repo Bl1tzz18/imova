@@ -32,7 +32,7 @@ module "imova" {
   # (infra/README.md, "Deploying from GitHub").
   key_vault_secret_officers = {
     owner  = "4ff6815a-833e-44cd-a030-f3329db74b7f" # catalin.imova@gmail.com
-    github = "DEPLOY_OBJECT_ID"                     # imova-github-deploy — filled in after setup-cd.sh
+    github = "d9768138-5ffb-4f61-93b3-854f99b83edc" # imova-github-deploy (infra/scripts/setup-cd.sh)
   }
 
   protect_data = false
