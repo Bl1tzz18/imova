@@ -28,5 +28,12 @@ module "imova" {
 
   log_daily_cap_gb = 0.1
 
+  # Who runs Terraform (and so writes Key Vault secrets): you, and the GitHub deploy identity
+  # (infra/README.md, "Deploying from GitHub").
+  key_vault_secret_officers = {
+    owner  = "4ff6815a-833e-44cd-a030-f3329db74b7f" # catalin.imova@gmail.com
+    github = "d9768138-5ffb-4f61-93b3-854f99b83edc" # imova-github-deploy (infra/scripts/setup-cd.sh)
+  }
+
   protect_data = false
 }

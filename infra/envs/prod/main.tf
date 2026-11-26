@@ -76,5 +76,18 @@ module "imova" {
     project_id  = "366783"
   }
 
+  # Who runs Terraform (and so writes Key Vault secrets): you, and the GitHub deploy identity
+  # (infra/README.md, "Deploying from GitHub").
+  key_vault_secret_officers = {
+    owner  = "4ff6815a-833e-44cd-a030-f3329db74b7f" # catalin.imova@gmail.com
+    github = "d9768138-5ffb-4f61-93b3-854f99b83edc" # imova-github-deploy (infra/scripts/setup-cd.sh)
+  }
+
   protect_data = true
+}
+
+# The Key Vault role was "whoever runs Terraform"; now a fixed list — the same assignment, kept.
+moved {
+  from = module.imova.azurerm_role_assignment.deployer_secrets_officer
+  to   = module.imova.azurerm_role_assignment.secrets_officers["owner"]
 }

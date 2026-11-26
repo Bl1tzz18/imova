@@ -8,7 +8,8 @@ bootstrap/            once per subscription, local state: the storage account ho
 shared/               one Container Registry (images built once, promoted dev → prod) + the imova.md DNS zone
 modules/environment/  everything one environment has (below)
 envs/dev, envs/prod   the module with each environment's settings — the only difference between them
-scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod
+scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod (by hand)
+scripts/setup-cd.sh   one-time setup of the GitHub deploy (merge → CI → images → Approve → prod)
 backend.hcl           where shared/ and envs/* keep their state
 ```
 
@@ -113,100 +114,61 @@ says one is taken, change it in `bootstrap/variables.tf` + `backend.hcl`, or in
 
 ## Everyday work
 
-**Deploy:** `scripts/deploy.sh build`, then `scripts/deploy.sh release dev <tag>`, check dev, then
+**Deploy:** from GitHub — see "Deploying from GitHub" below. By hand it's still
+`scripts/deploy.sh build`, then `scripts/deploy.sh release dev <tag>`, check dev, then
 `scripts/deploy.sh release prod <tag>` — the same images, never rebuilt for prod. Terraform only
 sets the image when an app is created (`ignore_changes`), so an apply never rolls a deploy back.
 
-**Dev on demand.** Dev is disposable: create it when you need it, destroy it when you're done (its
-database and photos go with it; nothing in dev is worth keeping).
+## Deploying from GitHub
 
-```bash
-cd infra/envs/dev
-terraform apply -var image_tag=<tag>      # ~10 minutes; then scripts/deploy.sh release dev <tag> for newer tags
-terraform destroy -var image_tag=<tag>    # back to $0
-```
+**Merge to `main` → CI → images → your Approve → prod.** Every green CI run for a push to `main`
+starts `.github/workflows/deploy.yml`:
+1. **Images** (automatic): api, worker and web built once, tagged with the commit (first 12
+   characters), pushed to `acrimova`; a tag already in the registry isn't rebuilt.
+2. **Deploy to prod** waits for you: GitHub → Actions → the run → **Review deployments** →
+   production → **Approve and deploy** (GitHub also emails you). Then, in one go:
+   - **Terraform** `plan` + `apply` of `shared`, then `envs/prod`, each plan listed in the run's
+     summary. A plan that **deletes or replaces** anything is refused (see below);
+   - **release:** the apps moved to the new images, API first (it runs the migrations); the summary
+     shows the database **restore point** taken just before (docs/backup-restore.md);
+   - **check:** `https://api.imova.md/health/ready` and `https://imova.md` must answer 200 (waits up
+     to 3 minutes for a sleeping prod to wake).
 
-Each new dev gets fresh random names (Key Vault, storage, database), so a destroyed one never
-blocks the next. If you only pause for a day or two, stopping the database is enough
-(`az postgres flexible-server stop -g rg-imova-dev -n <postgres_server_name>`, ~$0.15/day left for
-its disk; Azure starts it again by itself after 7 days).
+Not approving is fine — the run just waits (GitHub drops it after 30 days); approve the newest one.
+Pull requests (and forks) never start it: only a push to this repo's `main`.
 
-**Uptime.** A free outside monitor — [Better Stack](https://betterstack.com/uptime) (free: 10
-monitors, every 3 minutes, email alerts, commercial use allowed; alternative: HetrixTools, 15
-monitors every minute). Two monitors on prod:
-1. the home page (`web_url` output), expecting 200 — what visitors see; it calls the API and the
-   database behind it;
-2. the API's `/health/ready` (`api_url` output + `/health/ready`), expecting 200 — 503 means the
-   API is up but can't reach the database.
-Update them when the custom domains arrive (KAN-5). Errors inside the apps are covered by the Azure
-error alert (`error_alert_enabled`, prod).
+**By hand:** Actions → Deploy → Run workflow (branch `main`) — for a redeploy of the current commit,
+or with `what`:
 
-**Infrastructure change:** edit, then `terraform plan` in `envs/dev`, apply, check, then the same in
-`envs/prod`. A change to the module reaches both — apply dev first.
+| `what` | Does |
+| --- | --- |
+| `everything` (default) | images → (approve) → Terraform → release → checks |
+| `app` | images → (approve) → release → checks |
+| `infrastructure` | (approve) → Terraform only |
 
-**Secrets set by hand** (Terraform creates them with the value `set-me` and never overwrites them):
+and **allow_destroy** for a plan that is meant to delete or replace something (read the plan in the
+refused run's summary first).
 
-| Secret | Turned on by | Value |
-| --- | --- | --- |
-| `google-client-id`, `google-client-secret` | `google_auth_enabled = true` | the environment's Google OAuth client (KAN-8; prod: client "IMOVA prod" in the Google Cloud project IMOVA, Web application, JavaScript origin `https://imova.md` only, no redirect URIs — the button sends Google's ID token to the API) |
-| `telegram-bot-token` | `telegram_bot_username = "..."` | that environment's own bot (one bot per environment; prod: `@imova_md_bot`) |
-| `posthog-personal-api-key` | `posthog = { project_key, project_id }` | a PostHog personal API key scoped to that one project with only **person:write** (account deletion deletes the person there — `PostHogAnalyticsErasure`) |
-| `mediatr-license-key` | `mediatr_license_enabled = true` (prod) | the Lucky Penny MediatR Community license — **valid until 2027-11-23**, renew it at luckypennysoftware.com |
+**Sign-in, no stored passwords:** GitHub's OIDC token, accepted by two Entra applications only for
+this repo's runs in the matching GitHub environment (both: deployments from `main` only):
+- **imova-github-build** (environment **build**): AcrPush + Reader on the registry, nothing else;
+- **imova-github-deploy** (environment **production**, which requires your approval): Owner of
+  `rg-imova-prod` and `rg-imova-shared` (Terraform manages role assignments and delete locks there),
+  blob data on the state storage, Key Vault Secrets Officer on prod's vault (Terraform,
+  `key_vault_secret_officers`), and in Microsoft Graph only the applications it owns (it owns
+  `imova-prod-smtp`; Terraform ignores that service principal's `owners` so it stays one).
 
-Set the value in the portal (Key Vault → Secrets → the secret → **New Version**), so it never
-lands in a shell history or a chat, or with `az keyvault secret set`. Container Apps caches Key
-Vault values for up to 30 minutes and **a plain restart keeps the cached one** (found on KAN-8: the
-API still served `set-me`). Re-save the app's reference, then restart:
+**One-time setup** (running it again is harmless):
+1. `infra/scripts/setup-cd.sh` (signed in with `az login` as the subscription owner and `gh auth
+   login`): both applications, their rights and federated credentials, both GitHub environments
+   with `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` as variables (IDs, not
+   secrets) and you as production's required reviewer. It prints the deploy application's object id.
+2. That id in `key_vault_secret_officers.github` (`envs/prod/main.tf`, `envs/dev/main.tf`).
+3. One `terraform apply` on prod from your machine (it gives the deploy application its Key Vault
+   role — the workflow can't read the vault before that). After that: merge, Approve.
 
-```bash
-ID=$(az identity show -g rg-imova-<env> -n id-imova-<env>-apps --query id -o tsv)
-KV=https://<key_vault_name>.vault.azure.net/secrets
-az containerapp secret set -g rg-imova-<env> -n imova-api \
-  --secrets "google-client-id=keyvaultref:$KV/google-client-id,identityref:$ID"
-az containerapp revision restart -g rg-imova-<env> -n imova-api \
-  --revision $(az containerapp show -g rg-imova-<env> -n imova-api --query properties.latestRevisionName -o tsv)
-```
-
-(Same for the Worker and `telegram-bot-token`. The reference is identical to Terraform's; the next
-plan may still show the app's secrets as changed, because re-saving moves that secret to the front
-of the list — same names and Key Vault addresses, only the order differs, and applying puts it back.)
-
-**Generated secrets** (database password, JWT signing key) are write-only: Terraform sends them to
-Azure but they are never in the state. To rotate both, bump `secrets_version` in the environment's
-module call and apply — every session is signed out (new JWT key). If an apply fails half way
-after a bump, bump again so the database and Key Vault get the same new password.
-
-**Database access from your machine** (e.g. granting the first admin). No psql needed — Docker has
-it. Prod's delete lock on the server also covers its firewall rules, so closing access again means
-lifting the lock for a moment; Terraform puts it back:
-
-```bash
-SERVER=psql-imova-prod-wpq4p   # terraform output postgres_server_name
-KV=kv-imova-prod-wpq4p         # terraform output key_vault_name
-MYIP=$(curl -s https://api.ipify.org)
-az postgres flexible-server firewall-rule create -g rg-imova-prod --server-name $SERVER \
-  --name temp-access --start-ip-address $MYIP --end-ip-address $MYIP
-docker run --rm -e PGPASSWORD="$(az keyvault secret show --vault-name $KV --name postgres-connection-string \
-  --query value -o tsv | sed -n 's/.*Password=\([^;]*\).*/\1/p')" postgres:16-alpine \
-  psql "host=$SERVER.postgres.database.azure.com dbname=imova user=imova_admin sslmode=require" -c "…"
-# close it again:
-az lock delete --name do-not-delete -g rg-imova-prod --resource-name $SERVER \
-  --resource-type Microsoft.DBforPostgreSQL/flexibleServers
-az postgres flexible-server firewall-rule delete -g rg-imova-prod --server-name $SERVER --name temp-access --yes
-cd infra/envs/prod && terraform apply -var image_tag=<current>   # recreates the lock
-docker image rm postgres:16-alpine
-```
-
-**First admin** (2026-11-23): granted that way — a row in `AspNetUserRoles` for the Admin role plus a
-`GrantAdmin` row in `AdminAuditEntries` (actor = target, since nobody could grant it). Later admins
-are added from `/admin/admins`.
-
-**Backups and restore:** [`docs/backup-restore.md`](../docs/backup-restore.md) — seeing the
-backups, the restore point `deploy.sh release prod` prints, restoring the database and deleted
-blobs (rehearsed 2026-11-24, KAN-15).
-
-**Protection:** prod has CanNotDelete locks on the database, storage and Key Vault, and Key Vault
-purge protection (90 days). Removing prod on purpose = remove `protect_data`, apply, then destroy.
+Dev isn't in the workflow yet (it doesn't exist on the free trial): once it does, add a `dev`
+environment and deploy there before prod.
 
 ## Custom domain (KAN-5)
 
@@ -275,4 +237,4 @@ not matching: ours is the combined one on purpose.
   dev exists (after the Pay-As-You-Go upgrade). **Before launch:** the API must see the visitor's real IP behind the Container
   Apps ingress (`ForwardedHeaders:KnownNetworks` + a forward limit), or every visitor shares one
   rate-limit bucket.
-- A CD workflow (GitHub Actions with OIDC, no stored secrets) running `deploy.sh`.
+- ~~A CD workflow (GitHub Actions with OIDC, no stored secrets)~~ — done: "Deploying from GitHub".
