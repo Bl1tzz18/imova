@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { logout } from "@/lib/auth/actions";
 import type { UserProfile } from "@/lib/auth/profile";
 import { badgeText } from "@/lib/admin/adminSections";
+import { popoverItem, popoverPanel } from "@/components/ui/popover";
 
 // The avatar's menu: your own pages (with icons), then — for admins — one "Administrare" entry
 // with how many things wait there, then sign out.
@@ -68,7 +69,7 @@ export function AccountMenu({ profile, adminWaiting = 0 }: { profile: UserProfil
       {open && (
         <div
           role="menu"
-          className="fixed inset-x-4 top-[calc(100%+8px)] z-30 overflow-hidden rounded-xl border border-ink-100 bg-white py-1.5 shadow-[var(--shadow-card)] sm:absolute sm:inset-x-auto sm:right-0 sm:w-64"
+          className={`fixed inset-x-4 top-[calc(100%+8px)] z-30 origin-top-right overflow-hidden p-1.5 sm:absolute sm:inset-x-auto sm:right-0 sm:w-64 ${popoverPanel}`}
         >
           <AccountMenuItems profile={profile} adminWaiting={adminWaiting} onPick={close} />
         </div>
@@ -77,8 +78,7 @@ export function AccountMenu({ profile, adminWaiting = 0 }: { profile: UserProfil
   );
 }
 
-const menuItemClass =
-  "flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink-700 transition-colors hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:outline-none";
+const menuItemClass = popoverItem;
 
 // The menu's content — who you are, your pages, the admin area, sign out. Shared by the avatar's
 // dropdown (desktop) and the phone tab bar's "Cont" sheet.
@@ -87,7 +87,7 @@ export function AccountMenuItems({ profile, adminWaiting, onPick }: { profile: U
   const isAdmin = profile.roles.includes("Admin");
   return (
     <>
-      <div className="border-b border-ink-100 px-3.5 py-2.5">
+      <div className="mb-1 border-b border-ink-100 px-3 pb-2.5 pt-2">
         <p className="truncate text-sm font-medium text-ink-900">{profile.displayName ?? profile.email}</p>
         <p className="truncate text-xs text-ink-400">{profile.email}</p>
       </div>

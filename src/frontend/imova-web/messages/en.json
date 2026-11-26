@@ -3,7 +3,11 @@
     "addListing": "Add listing",
     "selectLanguage": "Select language",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "listSearch": "Search",
+    "listNoResults": "No results",
+    "listRequired": "Choose an option",
+    "close": "Close"
   },
   "Header": {
     "buy": "For sale",

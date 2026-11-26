@@ -3,7 +3,11 @@
     "addListing": "Adaugă anunț",
     "selectLanguage": "Selectează limba",
     "previous": "Anterior",
-    "next": "Următor"
+    "next": "Următor",
+    "listSearch": "Caută",
+    "listNoResults": "Niciun rezultat",
+    "listRequired": "Alege o opțiune",
+    "close": "Închide"
   },
   "Header": {
     "buy": "De vânzare",

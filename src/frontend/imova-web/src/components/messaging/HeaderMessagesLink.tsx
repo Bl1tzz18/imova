@@ -15,7 +15,7 @@ export function HeaderMessagesLink() {
     <Link
       href="/messages"
       aria-label={badge ? t("inboxWithUnread", { count: unreadCount }) : t("inbox")}
-      className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-600 transition-colors hover:bg-white hover:text-ink-950"
+      className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-600 transition-colors hover:bg-ink-100 hover:text-ink-950"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5">
         <path d="M4 6h16v12H4z" strokeLinejoin="round" />

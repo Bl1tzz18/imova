@@ -8,7 +8,7 @@ import { PropertyIcon } from "@/components/property/PropertyIcon";
 import { ListingStats } from "@/components/property/ListingStats";
 import { OwnerListingActions } from "@/components/property/OwnerListingActions";
 import { ownerActions } from "@/lib/listing/ownerActions";
-import { inputClass } from "@/components/ui/Field";
+import { inputClass, SelectInput } from "@/components/ui/Field";
 import {
   groupOwnerListings,
   initialOwnerGroup,
@@ -115,13 +115,13 @@ export function OwnerListingsList({
               className={cn(inputClass, "pl-10")}
             />
           </label>
-          {/* The sort: a full menu on wider screens; on a phone a 44px sort icon over an invisible
-              native select, so the search keeps the room and the phone's own picker still opens. */}
+          {/* The sort: a full menu on wider screens; on a phone a 44px sort icon over the invisible
+              list, so the search keeps the room; tapping it opens the list as a sheet. */}
           <label className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-700 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 sm:w-auto sm:border-0 sm:bg-transparent sm:focus-within:ring-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5 sm:hidden" aria-hidden>
               <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <select
+            <SelectInput
               aria-label={t("sortLabel")}
               value={sort}
               onChange={(e) => {
@@ -129,14 +129,14 @@ export function OwnerListingsList({
                 setSort(next);
                 remember({ sort: next });
               }}
-              className={cn(inputClass, "absolute inset-0 h-full w-full opacity-0 sm:static sm:w-auto sm:pr-8 sm:opacity-100")}
+              className="absolute inset-0 h-full w-full opacity-0 sm:static sm:w-auto sm:opacity-100"
             >
               {OWNER_SORTS.map((s) => (
                 <option key={s} value={s}>
                   {t(`sort.${s}`)}
                 </option>
               ))}
-            </select>
+            </SelectInput>
           </label>
         </div>
       )}

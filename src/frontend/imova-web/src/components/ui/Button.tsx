@@ -8,6 +8,8 @@ const variants = {
   secondary:
     "bg-white text-ink-900 border border-ink-200 hover:border-ink-300 hover:bg-ink-50",
   ghost: "text-ink-700 hover:bg-white/60",
+  // A visible but secondary call to action next to an orange primary one (the header's "Adaugă anunț").
+  outline: "border-[1.5px] border-accent-500 bg-white text-accent-600 hover:bg-accent-100/60",
   // Irreversible actions only (deleting the account).
   danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-600/20",
 } as const;

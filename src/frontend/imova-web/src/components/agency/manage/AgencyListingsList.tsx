@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { AutoSubmitForm } from "@/components/agency/AutoSubmitForm";
 import { LinkPagination } from "@/components/agency/LinkPagination";
 import { OwnerListingRow } from "@/components/property/OwnerListingsList";
-import { inputClass } from "@/components/ui/Field";
+import { inputClass, SelectInput } from "@/components/ui/Field";
 import { agencyListingsTabHref, agencyManagePath, tabOfGroup, type AgencyListingsTabState } from "@/lib/agency/manage";
 import { OWNER_GROUPS, OWNER_SORTS, OWNER_TOOLS_FROM } from "@/lib/listing/ownerGroups";
 import { cn } from "@/lib/utils/cn";
@@ -50,24 +50,24 @@ export async function AgencyListingsList({
             </svg>
             <input type="search" name="q" defaultValue={state.q} placeholder={t("searchPlaceholder")} className={cn(inputClass, "pl-10")} />
           </label>
-          {/* As in "Anunțurile mele": a full select on wider screens, an icon over an invisible native
-              select on a phone. */}
+          {/* As in "Anunțurile mele": a full select on wider screens, an icon over an invisible list on a
+              phone. */}
           <label className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-ink-200 bg-white text-ink-700 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 sm:w-auto sm:border-0 sm:bg-transparent sm:focus-within:ring-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5 sm:hidden" aria-hidden>
               <path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <select
+            <SelectInput
               name="sort"
               aria-label={t("sortLabel")}
               defaultValue={state.sort}
-              className={cn(inputClass, "absolute inset-0 h-full w-full opacity-0 sm:static sm:w-auto sm:pr-8 sm:opacity-100")}
+              className="absolute inset-0 h-full w-full opacity-0 sm:static sm:w-auto sm:opacity-100"
             >
               {OWNER_SORTS.map((s) => (
                 <option key={s} value={s}>
                   {t(`sort.${s}`)}
                 </option>
               ))}
-            </select>
+            </SelectInput>
           </label>
         </AutoSubmitForm>
       )}

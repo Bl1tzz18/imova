@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils/cn";
+import { popoverPanel } from "@/components/ui/popover";
 
 // A top-bar filter: a pill that names the filter — or, once set, its value ("Apartament",
 // "50 000–90 000 €") — and opens a small panel with the controls. Closes on a click outside, on
@@ -80,8 +81,9 @@ export function FilterPopover({
           role="dialog"
           aria-label={label}
           className={cn(
-            "absolute top-full z-30 mt-2 rounded-2xl border border-line bg-white p-4 shadow-[0_12px_40px_-12px_rgba(15,23,42,0.25)]",
-            align === "end" ? "right-0" : "left-0",
+            "absolute top-full z-30 mt-2 p-4",
+            popoverPanel,
+            align === "end" ? "right-0 origin-top-right" : "left-0 origin-top-left",
             panelClassName ?? "w-[340px]",
           )}
         >

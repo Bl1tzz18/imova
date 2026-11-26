@@ -44,6 +44,14 @@ export function MobileTabBar({ profile, adminWaiting }: { profile: UserProfile |
           in the page, so its raised "+" draws over a listing's contact bar resting on it. */}
       <div aria-hidden className="h-[calc(4rem+env(safe-area-inset-bottom))] md:hidden" />
 
+      {/* Before the bar and on its layer (z-30): it covers the page, the header and a listing's contact
+          bar, while the bar itself — later in the page — stays on top. */}
+      {profile && accountOpen && (
+        <AccountSheet onClose={() => setAccountOpen(false)} label={t("account")}>
+          <AccountMenuItems profile={profile} adminWaiting={adminWaiting} onPick={() => setAccountOpen(false)} />
+        </AccountSheet>
+      )}
+
       <nav
         aria-label={t("label")}
         className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-100 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
@@ -106,11 +114,6 @@ export function MobileTabBar({ profile, adminWaiting }: { profile: UserProfile |
         </ul>
       </nav>
 
-      {profile && accountOpen && (
-        <AccountSheet onClose={() => setAccountOpen(false)} label={t("account")}>
-          <AccountMenuItems profile={profile} adminWaiting={adminWaiting} onPick={() => setAccountOpen(false)} />
-        </AccountSheet>
-      )}
     </>
   );
 }
@@ -166,12 +169,12 @@ function AccountSheet({ onClose, label, children }: { onClose: () => void; label
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[19] md:hidden">
+    <div className="fixed inset-0 z-30 md:hidden">
       <div aria-hidden className="absolute inset-0 bg-ink-950/30" onClick={onClose} />
       <div
         role="menu"
         aria-label={label}
-        className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] max-h-[70vh] overflow-y-auto rounded-t-2xl border-t border-ink-100 bg-white pb-6 pt-1.5 shadow-[0_-12px_32px_-16px_rgba(11,22,32,0.35)]"
+        className="absolute inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] max-h-[70vh] overflow-y-auto rounded-t-[22px] border-t border-ink-100 bg-white px-1.5 pb-6 pt-1.5 shadow-[0_-12px_32px_-16px_rgba(11,22,32,0.35)]"
       >
         {children}
       </div>

@@ -42,9 +42,15 @@
   --color-bubble: #f4f6f9;
 
   --animate-typing-dot: typing-dot 1.2s ease-in-out infinite;
+  /* Every dropdown (lists, menus, suggestions): a short scale-in from its trigger; on a phone, a
+     sheet rising from the bottom. */
+  --animate-pop-in: pop-in 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-sheet-up: sheet-up 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   --shadow-card: 0 1px 2px rgba(11, 22, 32, 0.06), 0 8px 24px -12px rgba(11, 22, 32, 0.18);
   --shadow-card-hover: 0 4px 8px rgba(11, 22, 32, 0.07), 0 16px 32px -12px rgba(11, 22, 32, 0.22);
+  /* Dropdowns: three layers — a contact edge, the lift, and a long soft fall-off. */
+  --shadow-popover: 0 1px 2px rgba(11, 22, 32, 0.06), 0 12px 32px -8px rgba(11, 22, 32, 0.18), 0 28px 60px -24px rgba(11, 22, 32, 0.18);
 }
 
 html {
@@ -69,6 +75,34 @@ html {
 @keyframes typing-dot {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* Dropdowns opening (--animate-pop-in / --animate-sheet-up). */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop-in,
+  .animate-sheet-up {
+    animation: none;
+  }
 }
 
 /* The map's "same address" panel rising into place (MapSpotPanel). */

@@ -8,6 +8,7 @@ import { SelectInput, TextAreaInput } from "@/components/ui/Field";
 import { reportConversation, setConversationArchived, setUserBlocked } from "@/lib/messaging/actions";
 import { cn } from "@/lib/utils/cn";
 import type { ReportReason } from "@/types/messaging";
+import { popoverItem, popoverPanel } from "@/components/ui/popover";
 
 const REASONS: ReportReason[] = ["Spam", "Fraud", "Abuse", "Other"];
 
@@ -68,7 +69,7 @@ export function ConversationActions({
   }
 
   const menuItem =
-    "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-800 transition-colors hover:bg-bubble disabled:opacity-50";
+    cn(popoverItem, "disabled:opacity-50");
   const itemIcon = "h-[18px] w-[18px] shrink-0";
 
   return (
@@ -90,7 +91,7 @@ export function ConversationActions({
       </button>
 
       {panel === "menu" && (
-        <div role="menu" className="absolute right-0 top-full z-20 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-[var(--shadow-card)]">
+        <div role="menu" className={cn("absolute right-0 top-full z-20 mt-2 w-56 origin-top-right overflow-hidden p-1.5", popoverPanel)}>
           <button
             type="button"
             role="menuitem"
@@ -134,7 +135,7 @@ export function ConversationActions({
       )}
 
       {panel === "report" && (
-        <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-2xl border border-line bg-white p-4 text-left shadow-[var(--shadow-card)]">
+        <div className={cn("absolute right-0 top-full z-20 mt-2 w-80 origin-top-right p-4 text-left", popoverPanel)}>
           <label className="block text-sm font-medium text-ink-700">
             {t("reportReason")}
             <SelectInput value={reason} onChange={(e) => setReason(e.target.value as ReportReason)} className="mt-1">
