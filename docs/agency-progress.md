@@ -230,10 +230,9 @@ by hand; automating it waits until after launch.
 
 ## Before launch
 
-- Change the import contact email (`IMPORT_CONTACT_EMAIL`, now `catalinfilip47@gmail.com`) to an
-  `@imova.md` address — „schimbă emailul de contact pentru import cu o adresă @imova.md”. The same
-  placeholder is `ServiceIdentity:ContactEmail` (API and Worker `appsettings.json`), the address
-  Nominatim and Photon see — change it together.
+- ~~Change the import contact email to an `@imova.md` address~~ — done: `IMPORT_CONTACT_EMAIL`
+  and `ServiceIdentity:ContactEmail` (the address Nominatim and Photon see) are both
+  contact@imova.md.
 - Have a native speaker check the Russian texts (emails and site).
 
 ## Decisions (made by the product owner in this session)
