@@ -4,17 +4,17 @@ name: CI/CD
 # - Pull request: CI only — build, tests, Terraform fmt/validate, Docker images built (not pushed).
 #   Job names are what the branch protection's required checks refer to — renaming a job means
 #   updating those too.
-# - Push to main: the same CI, then CD — the three images built and pushed (only once every CI job
-#   passed), then "Deploy to prod", which waits for your approval (the run → Review deployments →
-#   Approve and deploy) and then applies Terraform (shared, then prod), moves the apps to the new
-#   images and checks the site and the API answer. Not approving is fine: approve the newest run.
+# - Push to main: the same CI, then CD — "Deploy to prod" (once every CI job passed) waits for your
+#   approval (the run → Review deployments → Approve and deploy), then pushes the three images to
+#   the registry (from the CI build cache), applies Terraform (shared, then prod), moves the apps to
+#   the new images and checks the site and the API answer. Only approved commits reach the
+#   registry. Not approving is fine: a newer run's deploy cancels an older one still waiting.
 # - By hand (Actions → CI/CD → Run workflow, from main): the same as a push, with "what"
 #   (everything / app / infrastructure) and "allow_destroy" (a Terraform plan that deletes or
 #   replaces something is refused otherwise).
-# CD signs in to Azure with GitHub's OIDC token, no stored passwords: images as
-# "imova-github-build" (environment "build": push to the registry only), prod as
-# "imova-github-deploy" (environment "production", behind your approval). One-time setup:
-# infra/scripts/setup-cd.sh (infra/README.md, "Deploying from GitHub").
+# CD signs in to Azure with GitHub's OIDC token, no stored passwords, as "imova-github-deploy"
+# (environment "production", behind your approval). One-time setup: infra/scripts/setup-cd.sh
+# (infra/README.md, "Deploying from GitHub").
 on:
   pull_request:
   push:
@@ -159,8 +159,8 @@ jobs:
           done
 
   # Catches Dockerfile breakage (a new project not copied in, a failing `next build`, …). Nothing
-  # is pushed; layers are cached in the GitHub Actions cache per image — on main the Image jobs
-  # below then push the same images straight from that cache.
+  # is pushed; layers are cached in the GitHub Actions cache per image — after an approved deploy
+  # the same images are pushed straight from that cache.
   docker:
     name: Docker image (${{ matrix.image }})
     runs-on: ubuntu-latest
@@ -191,70 +191,11 @@ jobs:
 
   # ---- CD (main only) ---------------------------------------------------------------------------
 
-  images:
-    name: Image (${{ matrix.image }}) → registry
-    needs: [backend, integration, frontend, terraform, docker]
-    if: github.event_name != 'pull_request' && inputs.what != 'infrastructure'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: build
-    permissions:
-      contents: read
-      id-token: write
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - image: api
-            context: .
-            dockerfile: src/backend/Imova.Api/Dockerfile
-          - image: worker
-            context: .
-            dockerfile: src/backend/Imova.Worker/Dockerfile
-          - image: web
-            context: src/frontend/imova-web
-            dockerfile: src/frontend/imova-web/Dockerfile
-    steps:
-      - uses: actions/checkout@v4
-      # The commit's first 12 characters, like infra/scripts/deploy.sh.
-      - name: Image tag
-        run: echo "TAG=${GITHUB_SHA::12}" >> "$GITHUB_ENV"
-      - uses: azure/login@v2
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      - name: Registry
-        id: registry
-        run: |
-          echo "server=${ACR_NAME}.azurecr.io" >> "$GITHUB_OUTPUT"
-          az acr login --name "$ACR_NAME"
-          if docker manifest inspect "${ACR_NAME}.azurecr.io/imova-${{ matrix.image }}:$TAG" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "imova-${{ matrix.image }}:$TAG is already in the registry — not rebuilt."
-          fi
-      - uses: docker/setup-buildx-action@v3
-        if: steps.registry.outputs.exists != 'true'
-      - uses: docker/build-push-action@v6
-        if: steps.registry.outputs.exists != 'true'
-        with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.dockerfile }}
-          push: true
-          tags: ${{ steps.registry.outputs.server }}/imova-${{ matrix.image }}:${{ env.TAG }}
-          build-args: APP_VERSION=${{ env.TAG }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
-
   deploy:
     name: Deploy to prod
-    needs: [backend, integration, frontend, terraform, images]
-    # Once all of CI passed; also when the images were skipped (infrastructure only).
-    if: >-
-      always() && github.event_name != 'pull_request' &&
-      needs.backend.result == 'success' && needs.integration.result == 'success' &&
-      needs.frontend.result == 'success' && needs.terraform.result == 'success' &&
-      (needs.images.result == 'success' || needs.images.result == 'skipped')
+    # Once every CI job passed — main only.
+    needs: [backend, integration, frontend, terraform, docker]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # Waits here for your approval (the environment's required reviewer).
@@ -286,6 +227,54 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Only now, after the approval, do the images reach the registry — so it holds only what was
+      # (or is about to be) deployed. Built from the Docker check jobs' cache: quick.
+      - name: Which images to push
+        id: images
+        if: env.WHAT != 'infrastructure'
+        run: |
+          az acr login --name "$ACR_NAME"
+          for image in api worker web; do
+            if docker manifest inspect "${ACR_NAME}.azurecr.io/imova-$image:$TAG" >/dev/null 2>&1; then
+              echo "imova-$image:$TAG is already in the registry — not rebuilt."
+            else
+              echo "$image=true" >> "$GITHUB_OUTPUT"
+            fi
+          done
+      - uses: docker/setup-buildx-action@v3
+        if: env.WHAT != 'infrastructure'
+      - name: Image (api)
+        if: steps.images.outputs.api == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/backend/Imova.Api/Dockerfile
+          push: true
+          tags: ${{ env.ACR_NAME }}.azurecr.io/imova-api:${{ env.TAG }}
+          build-args: APP_VERSION=${{ env.TAG }}
+          cache-from: type=gha,scope=api
+      - name: Image (worker)
+        if: steps.images.outputs.worker == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/backend/Imova.Worker/Dockerfile
+          push: true
+          tags: ${{ env.ACR_NAME }}.azurecr.io/imova-worker:${{ env.TAG }}
+          build-args: APP_VERSION=${{ env.TAG }}
+          cache-from: type=gha,scope=worker
+      - name: Image (web)
+        if: steps.images.outputs.web == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: src/frontend/imova-web
+          file: src/frontend/imova-web/Dockerfile
+          push: true
+          tags: ${{ env.ACR_NAME }}.azurecr.io/imova-web:${{ env.TAG }}
+          build-args: APP_VERSION=${{ env.TAG }}
+          cache-from: type=gha,scope=web
+
       - uses: hashicorp/setup-terraform@v3
         if: env.WHAT != 'app'
         with:
