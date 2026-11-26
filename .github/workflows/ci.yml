@@ -34,9 +34,11 @@ on:
         type: boolean
         default: false
 
-# A new push to a PR cancels that PR's older run; runs on main always finish.
+# A new push to a PR cancels that PR's older run. On main every run is on its own (its own group, the
+# run id) and always finishes — a run waiting for the deploy approval must never hold up the CI of
+# the commits after it; only the deploy job is one-at-a-time (deploy-production, below).
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
