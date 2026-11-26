@@ -4,16 +4,14 @@
 #
 #   infra/scripts/setup-cd.sh
 #
-# It creates (or finds again — running it twice is harmless) two Entra applications with no
-# password: GitHub signs in with a short-lived OIDC token, accepted only for this repo's run in the
-# matching GitHub environment:
-# - "imova-github-build" (environment "build"): push and read images in the registry, nothing else;
-# - "imova-github-deploy" (environment "production", which waits for your approval): Owner of
-#   rg-imova-prod and rg-imova-shared (Terraform manages role assignments and delete locks there),
-#   the state storage's blob data, and in Microsoft Graph only the applications it owns — it is
-#   made owner of imova-prod-smtp, which Terraform manages.
-# And the two GitHub environments (deployments from main only), each with the three IDs its
-# workflow jobs need as variables (none of them is a secret); "production" requires your approval.
+# It creates (or finds again — running it twice is harmless) the Entra application
+# "imova-github-deploy" with no password: GitHub signs in with a short-lived OIDC token, accepted
+# only for this repo's runs in the GitHub environment "production" (which waits for your approval).
+# Its rights: Owner of rg-imova-prod and rg-imova-shared (Terraform manages role assignments and
+# delete locks there; it also pushes the images to the registry), the state storage's blob data,
+# and in Microsoft Graph only the applications it owns — it is made owner of imova-prod-smtp, which
+# Terraform manages. And the GitHub environment "production" (deployments from main only, you as
+# the required reviewer) with the three IDs the workflow needs as variables (none is a secret).
 # At the end it prints the deploy identity's object id: it goes in envs/prod/main.tf and
 # envs/dev/main.tf (key_vault_secret_officers.github), then one `terraform apply` from your machine
 # gives it the Key Vault role — after that, every deploy is a merge plus an Approve.
@@ -63,10 +61,6 @@ identity() {
   done
 }
 
-identity imova-github-build build
-BUILD_APP_ID="$APP_ID"
-BUILD_SP_ID="$SP_ID"
-
 identity "$APP_NAME" production
 
 # --- Azure roles ---------------------------------------------------------------------------------
@@ -78,9 +72,6 @@ assign() { # principal role scope
   fi
 }
 RG="/subscriptions/$SUBSCRIPTION_ID/resourceGroups"
-REGISTRY="$RG/rg-imova-shared/providers/Microsoft.ContainerRegistry/registries/acrimova"
-assign "$BUILD_SP_ID" AcrPush "$REGISTRY"
-assign "$BUILD_SP_ID" Reader "$REGISTRY"
 assign "$SP_ID" Owner "$RG/rg-imova-prod"
 assign "$SP_ID" Owner "$RG/rg-imova-shared"
 assign "$SP_ID" "Storage Blob Data Contributor" "$RG/rg-imova-tfstate/providers/Microsoft.Storage/storageAccounts/stimovatfstate"
@@ -107,7 +98,7 @@ add_owner() { # objects-path object-id
 add_owner applications "$SMTP_APP_ID"
 add_owner servicePrincipals "$SMTP_SP_ID"
 
-# --- GitHub: the two environments, main only, with their IDs; production waits for you ------------
+# --- GitHub: the production environment, main only, with the IDs; it waits for you ---------------
 REVIEWER_ID="$("$GH" api user --jq .id)"
 environment() { # name app-id protection-json
   "$GH" api --method PUT "repos/$REPO/environments/$1" --input - >/dev/null <<<"$3"
@@ -119,7 +110,6 @@ environment() { # name app-id protection-json
   "$GH" variable set AZURE_SUBSCRIPTION_ID --env "$1" --repo "$REPO" --body "$SUBSCRIPTION_ID"
 }
 BRANCHES='"deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true }'
-environment build "$BUILD_APP_ID" "{ $BRANCHES }"
 # You approve your own deploys, so self-review must stay allowed.
 environment production "$APP_ID" "{ $BRANCHES, \"prevent_self_review\": false,
   \"reviewers\": [{ \"type\": \"User\", \"id\": $REVIEWER_ID }] }"

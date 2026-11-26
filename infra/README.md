@@ -9,7 +9,7 @@ shared/               one Container Registry (images built once, promoted dev �
 modules/environment/  everything one environment has (below)
 envs/dev, envs/prod   the module with each environment's settings — the only difference between them
 scripts/deploy.sh     build the images once, release a tag to dev, then the same tag to prod (by hand)
-scripts/setup-cd.sh   one-time setup of the GitHub deploy (merge → CI → images → Approve → prod)
+scripts/setup-cd.sh   one-time setup of the GitHub deploy (merge → CI → Approve → prod)
 backend.hcl           where shared/ and envs/* keep their state
 ```
 
@@ -121,52 +121,58 @@ sets the image when an app is created (`ignore_changes`), so an apply never roll
 
 ## Deploying from GitHub
 
-**Merge to `main` → CI → images → your Approve → prod**, as one run of `.github/workflows/ci.yml`
-("CI/CD"; a pull request runs only the CI part). After a push to `main`, once every CI job passed:
-1. **Images** (automatic): api, worker and web built once, tagged with the commit (first 12
-   characters), pushed to `acrimova`; a tag already in the registry isn't rebuilt.
-2. **Deploy to prod** waits for you: GitHub → Actions → the run → **Review deployments** →
-   production → **Approve and deploy** (GitHub also emails you). Then, in one go:
-   - **Terraform** `plan` + `apply` of `shared`, then `envs/prod`, each plan listed in the run's
-     summary. A plan that **deletes or replaces** anything is refused (see below);
-   - **release:** the apps moved to the new images, API first (it runs the migrations); the summary
-     shows the database **restore point** taken just before (docs/backup-restore.md);
-   - **check:** `https://api.imova.md/health/ready` and `https://imova.md` must answer 200 (waits up
-     to 3 minutes for a sleeping prod to wake).
+**Merge to `main` → CI → your Approve → prod**, as one run of `.github/workflows/ci.yml` ("CI/CD";
+a pull request runs only the CI part). After a push to `main`, once every CI job passed (including
+the three Docker image builds), **Deploy to prod** waits for you: GitHub → Actions → the run →
+**Review deployments** → production → **Approve and deploy** (GitHub also emails you). Then, in one go:
+1. **images:** api, worker and web pushed to `acrimova`, tagged with the commit (first 12
+   characters), built from the CI jobs' cache — so the registry only ever holds approved commits;
+2. **Terraform** `plan` + `apply` of `shared`, then `envs/prod`, each plan listed in the run's
+   summary. A plan that **deletes or replaces** anything is refused (see below);
+3. **release:** the apps moved to the new images, API first (it runs the migrations); the summary
+   shows the database **restore point** taken just before (docs/backup-restore.md);
+4. **check:** `https://api.imova.md/health/ready` and `https://imova.md` must answer 200 (waits up to
+   3 minutes for a sleeping prod to wake).
 
-Not approving is fine — the run just waits (GitHub drops it after 30 days); approve the newest one.
-Pull requests (and forks) never reach the CD part: only a push to this repo's `main` (both GitHub
-environments accept deployments from `main` only).
+Not approving is fine: when a newer commit's deploy starts waiting, the older one still waiting is
+cancelled by itself (one `deploy-production` group), and a deploy already running is never
+interrupted. CI on `main` always runs to the end, so you see which commit broke what. Pull
+requests (and forks) never reach the CD part: only a push to this repo's `main` (the `production`
+environment accepts deployments from `main` only).
 
 **By hand:** Actions → CI/CD → Run workflow (branch `main`) — for a redeploy of the current commit,
 or with `what`:
 
 | `what` | Does |
 | --- | --- |
-| `everything` (default) | images → (approve) → Terraform → release → checks |
-| `app` | images → (approve) → release → checks |
-| `infrastructure` | (approve) → Terraform only |
+| `everything` (default) | CI → (approve) → images → Terraform → release → checks |
+| `app` | CI → (approve) → images → release → checks |
+| `infrastructure` | CI → (approve) → Terraform only |
 
 and **allow_destroy** for a plan that is meant to delete or replace something (read the plan in the
 refused run's summary first).
 
-**Sign-in, no stored passwords:** GitHub's OIDC token, accepted by two Entra applications only for
-this repo's runs in the matching GitHub environment (both: deployments from `main` only):
-- **imova-github-build** (environment **build**): AcrPush + Reader on the registry, nothing else;
-- **imova-github-deploy** (environment **production**, which requires your approval): Owner of
-  `rg-imova-prod` and `rg-imova-shared` (Terraform manages role assignments and delete locks there),
-  blob data on the state storage, Key Vault Secrets Officer on prod's vault (Terraform,
-  `key_vault_secret_officers`), and in Microsoft Graph only the applications it owns (it owns
-  `imova-prod-smtp`; Terraform ignores that service principal's `owners` so it stays one).
+**Sign-in, no stored passwords:** GitHub's OIDC token, accepted by the Entra application
+**imova-github-deploy** only for this repo's runs in the GitHub environment **production**
+(deployments from `main` only, your approval required). Its rights: Owner of `rg-imova-prod` and
+`rg-imova-shared` (Terraform manages role assignments and delete locks there; it pushes the images
+too), blob data on the state storage, Key Vault Secrets Officer on prod's vault (Terraform,
+`key_vault_secret_officers`), and in Microsoft Graph only the applications it owns (it owns
+`imova-prod-smtp`; Terraform ignores that service principal's `owners` so it stays one).
 
 **One-time setup** (running it again is harmless):
 1. `infra/scripts/setup-cd.sh` (signed in with `az login` as the subscription owner and `gh auth
-   login`): both applications, their rights and federated credentials, both GitHub environments
-   with `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` as variables (IDs, not
-   secrets) and you as production's required reviewer. It prints the deploy application's object id.
+   login`): the application, its rights and federated credentials, the GitHub environment
+   `production` with `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` as variables
+   (IDs, not secrets) and you as its required reviewer. It prints the application's object id.
 2. That id in `key_vault_secret_officers.github` (`envs/prod/main.tf`, `envs/dev/main.tf`).
 3. One `terraform apply` on prod from your machine (it gives the deploy application its Key Vault
    role — the workflow can't read the vault before that). After that: merge, Approve.
+
+(A first version also had an `imova-github-build` application and a `build` environment for the
+images; they're no longer used and can be deleted: `az ad app delete --id $(az ad app list
+--display-name imova-github-build --query '[0].appId' -o tsv)` and GitHub → Settings →
+Environments → build → Delete.)
 
 Dev isn't in the workflow yet (it doesn't exist on the free trial): once it does, add a `dev`
 environment and deploy there before prod.
