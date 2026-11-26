@@ -8,7 +8,7 @@ name: CI/CD
 #   approval (the run → Review deployments → Approve and deploy), then pushes the three images to
 #   the registry (from the CI build cache), applies Terraform (shared, then prod), moves the apps to
 #   the new images and checks the site and the API answer. Only approved commits reach the
-#   registry. Not approving is fine: a newer run's deploy cancels an older one still waiting.
+#   registry. Not approving is fine: the next commit's run closes the older one still waiting.
 # - By hand (Actions → CI/CD → Run workflow, from main): the same as a push, with "what"
 #   (everything / app / infrastructure) and "allow_destroy" (a Terraform plan that deletes or
 #   replaces something is refused otherwise).
@@ -193,10 +193,39 @@ jobs:
 
   # ---- CD (main only) ---------------------------------------------------------------------------
 
+  # A deploy waiting for approval holds the deploy queue, so a newer commit's deploy would wait
+  # behind it until someone approves or rejects it. This closes the older runs still waiting, so only
+  # the newest ever asks for approval. A deploy already approved and running isn't "waiting" and is
+  # never touched. force-cancel: a plain cancel doesn't stop a job waiting for a review.
+  supersede:
+    name: Close older deploys waiting for approval
+    needs: [backend, integration, frontend, terraform, docker]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Force-cancel older runs still waiting
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          older=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=waiting&per_page=50" \
+            --jq ".workflow_runs[] | select(.run_number < ${GITHUB_RUN_NUMBER}) | \"\(.id) \(.head_sha[0:12])\"") || {
+            echo "::warning::Couldn't list the older runs; an older deploy may still be waiting for approval."
+            exit 0
+          }
+          [ -z "$older" ] && { echo "No older deploy waiting."; exit 0; }
+          while read -r id sha; do
+            echo "Closing run $id (commit $sha), superseded by ${GITHUB_SHA::12}"
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/runs/$id/force-cancel" >/dev/null \
+              || echo "::warning::Couldn't close run $id — reject it by hand (the run → Review deployments → Reject)."
+          done <<< "$older"
+
   deploy:
     name: Deploy to prod
-    # Once every CI job passed — main only.
-    needs: [backend, integration, frontend, terraform, docker]
+    # Once every CI job passed — main only — and older waiting deploys are out of the way.
+    needs: [backend, integration, frontend, terraform, docker, supersede]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 60

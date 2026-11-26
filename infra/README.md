@@ -134,11 +134,12 @@ the three Docker image builds), **Deploy to prod** waits for you: GitHub → Act
 4. **check:** `https://api.imova.md/health/ready` and `https://imova.md` must answer 200 (waits up to
    3 minutes for a sleeping prod to wake).
 
-Not approving is fine: deploys share one queue (`deploy-production`) — at most one running and one
-waiting; when another deploy joins the queue, the one waiting there is cancelled (its run shows as
-"cancelled", red — nothing failed). GitHub keeps whichever joined the queue last, which is normally
-the newest commit; if two merges land close together it can be the older one — check the commit
-before approving. A deploy already running is never interrupted. CI on `main` always runs to the end, so you see which commit broke what. Pull
+Not approving is fine: only the newest commit ever waits for approval. A deploy waiting for
+approval holds the deploy queue (`deploy-production`), so each run on `main`, once its CI passed,
+force-cancels the older runs still waiting (job "Close older deploys waiting for approval"; a plain
+cancel doesn't stop a job waiting for a review). They show as "cancelled" — nothing failed. A
+deploy already approved and running is never interrupted: the newer one waits for it to finish,
+then asks for approval. CI on `main` always runs to the end, so you see which commit broke what. Pull
 requests (and forks) never reach the CD part: only a push to this repo's `main` (the `production`
 environment accepts deployments from `main` only).
 
