@@ -121,8 +121,8 @@ sets the image when an app is created (`ignore_changes`), so an apply never roll
 
 ## Deploying from GitHub
 
-**Merge to `main` → CI → images → your Approve → prod.** Every green CI run for a push to `main`
-starts `.github/workflows/deploy.yml`:
+**Merge to `main` → CI → images → your Approve → prod**, as one run of `.github/workflows/ci.yml`
+("CI/CD"; a pull request runs only the CI part). After a push to `main`, once every CI job passed:
 1. **Images** (automatic): api, worker and web built once, tagged with the commit (first 12
    characters), pushed to `acrimova`; a tag already in the registry isn't rebuilt.
 2. **Deploy to prod** waits for you: GitHub → Actions → the run → **Review deployments** →
@@ -135,9 +135,10 @@ starts `.github/workflows/deploy.yml`:
      to 3 minutes for a sleeping prod to wake).
 
 Not approving is fine — the run just waits (GitHub drops it after 30 days); approve the newest one.
-Pull requests (and forks) never start it: only a push to this repo's `main`.
+Pull requests (and forks) never reach the CD part: only a push to this repo's `main` (both GitHub
+environments accept deployments from `main` only).
 
-**By hand:** Actions → Deploy → Run workflow (branch `main`) — for a redeploy of the current commit,
+**By hand:** Actions → CI/CD → Run workflow (branch `main`) — for a redeploy of the current commit,
 or with `what`:
 
 | `what` | Does |
