@@ -159,11 +159,10 @@ jobs:
           done
 
   # Catches Dockerfile breakage (a new project not copied in, a failing `next build`, …). Nothing
-  # is pushed; layers are cached in the GitHub Actions cache per image. Pull requests only: on main
-  # the Image jobs below build the same images and push them.
+  # is pushed; layers are cached in the GitHub Actions cache per image — on main the Image jobs
+  # below then push the same images straight from that cache.
   docker:
     name: Docker image (${{ matrix.image }})
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -194,7 +193,7 @@ jobs:
 
   images:
     name: Image (${{ matrix.image }}) → registry
-    needs: [backend, integration, frontend, terraform]
+    needs: [backend, integration, frontend, terraform, docker]
     if: github.event_name != 'pull_request' && inputs.what != 'infrastructure'
     runs-on: ubuntu-latest
     timeout-minutes: 30
