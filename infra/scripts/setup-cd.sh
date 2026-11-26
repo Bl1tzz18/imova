@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-time setup for the GitHub "Deploy" workflow (.github/workflows/deploy.yml). Run it once,
+# One-time setup for the CD half of the GitHub "CI/CD" workflow (.github/workflows/ci.yml). Run it once,
 # signed in to Azure as the subscription's owner (az login) and to GitHub (gh auth login):
 #
 #   infra/scripts/setup-cd.sh
